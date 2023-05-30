@@ -9,6 +9,19 @@
 ###  Demonstration:
 ![](./extras/showcase.gif)
 
+
+### Overview
+42_ft_transcendence is a web server written from scratch in C++ (C++98), capable of handling multiple clients simultaneously.  
+
+> Disclaimer: Only tested on Google Chrome and Firefox
+
+### Features
+- User Account
+- 2FA
+- Chat (channels, channel roles, DM's)
+- Pong game (customizable)
+- Matchmaking and match history
+
 ### Installing and running the project:
 
 ###  Subject (v12.1): [ft_transcendence en_subject](./extras/en.subject_ft_transcendence.pdf)
@@ -18,13 +31,13 @@
 [Web Development 10min Overview](https://youtu.be/5YDVJaItmaY)  
 [100+ Web Development Things you Should Know](https://youtu.be/erEgovG9WBs)  
 
-[Frontend Overview](https://youtu.be/WG5ikvJ2TKA)
-[Backend Overview](https://youtu.be/XBu54nfzxAQ) 
+[Frontend Overview](https://youtu.be/WG5ikvJ2TKA)  
+[Backend Overview](https://youtu.be/XBu54nfzxAQ)  
 
 [JavaScript 101](https://youtu.be/lkIFF4maKMU)  
 
-[SQL Explained in 100 seconds](https://youtu.be/zsjvFFKOm3c)
-[7 Databases Overview](https://youtu.be/W2Z7fbCLSTw)
+[SQL Explained in 100 seconds](https://youtu.be/zsjvFFKOm3c)  
+[7 Databases Overview](https://youtu.be/W2Z7fbCLSTw)  
 
 ---
 Made by Nuno Carvalho (Kuninoto) | nnuno-ca@student.42porto.com  
