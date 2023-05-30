@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  nginx:
+    container_name: nginx
+    build: ./backend/
+    volumes:
+      - /frontend:/var/www/html
+    ports:
+      - 8080:8080
