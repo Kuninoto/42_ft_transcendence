@@ -1,10 +1,40 @@
 version: "3.8"
 
+networks:
+  transcendence-network:
+    name: transcendence-network
+    driver: bridge
+
 services:
+  postgresql:
+    container_name: postgresql
+    image: postgres:latest
+    volumes:
+      - /nfs/homes/$(USER)/Desktop/data:/var/lib/mysql
+    env_file:
+      - .env
+    networks:
+      - transcendence-network
+    restart: on-failure
+
+  adminer:
+    container_name: adminer
+    image: adminer:latest
+    env_file:
+      - .env
+    networks:
+      - transcendence-network
+    depends_on:
+      - postgresql
+    restart: on-failure
+
   nginx:
     container_name: nginx
     build: ./backend/
     volumes:
       - /frontend:/var/www/html
+    depends_on:
+      - postgresql
     ports:
       - 8080:8080
+    restart: on-failure
