@@ -65,4 +65,6 @@ else
     echo "ERROR: tsc installation failed!"
 fi
 
-sudo npm install tailwindcss@latest postcss@latest autoprefixer@latest
+sudo npm i -g tailwindcss@latest postcss@latest autoprefixer@latest
+
+sudo npm i -g @nestjs/cli
