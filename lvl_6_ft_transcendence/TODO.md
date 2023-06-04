@@ -1,5 +1,5 @@
 Frontend:
-- Implement the design's that are already on figma
+- Implement the designs that are already on Figma
 
 Backend:
 
@@ -10,6 +10,10 @@ Backend:
    psql -Utranscendence_user
    \l
   )
+Links to look up to:
+ - https://stackoverflow.com/questions/48629799/postgres-image-is-not-creating-database/54200233#54200233
+ - https://github.com/docker-library/postgres/issues/537
+ - https://github.com/docker-library/postgres/issues/203
 
 - Setup NestJS <-> Database connection
 - User 42 OAuth
