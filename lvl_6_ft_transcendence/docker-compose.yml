@@ -1,37 +1,48 @@
 version: "3.8"
 
-#networks:
-#  transcendence-network:
-#    name: transcendence-network
-#    driver: bridge
-
 services:
-  postgres:
-    container_name: postgres
-    image: postgres:latest
+  #frontend:
+  #  build:
+  #    context: frontend
+  #    target: development
+  #    depends_on:
+  #      - 
+
+  #backend:
+  #  build:
+  #    context: backend
+  #    target: development
+  #    depends_on:
+  #      - db
+
+  db:
+    container_name: db
+    image: postgres:15.3-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      # - /nfs/homes/$(USER)/Desktop/data/transcendence:/var/lib/postgresql/data
-      - /home/${USER}/data/transcendence:/var/lib/postgresql/data
-    env_file:
-      - .env.development
+      - ./data/db:/var/lib/postgresql/data
     ports:
       - 5432:5432
-    #networks:
-    #  - transcendence-network
-    restart: on-failure
+    networks:
+      - transcendence-network
+    restart: always
 
-#  adminer:
-#    container_name: adminer
-#    image: adminer:latest
-#    env_file:
-#      - .env.development
-#    ports:
-#      - 8080:8080
-#    networks:
-#      - transcendence-network
-#    depends_on:
-#      - postgresql
-#    restart: on-failure
+  adminer:
+    container_name: adminer
+    image: adminer:latest
+    environment: 
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: hydra
+    ports:
+      - 8080:8080
+    networks:
+      - transcendence-network
+    depends_on:
+      - db
+    restart: always
 #
 #  nginx:
 #    container_name: nginx
@@ -42,4 +53,8 @@ services:
 #      - postgresql
 #    ports:
 #      - 8001:8001
-#    restart: on-failure
+#    restart: always
+networks:
+  transcendence-network:
+    name: transcendence-network
+    driver: bridge

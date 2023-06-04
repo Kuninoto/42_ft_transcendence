@@ -3,17 +3,14 @@ COMPOSE_FILE_PATH=./docker-compose.yml
 all: build up_detached ps
 
 build:
-	@mkdir -p /home/$(SUDO_USER)/data;
-	@mkdir -p /home/$(SUDO_USER)/data/transcendence;
+#@if ! [ -f ./.env] then \
+#	echo "ft_transcendence: error: .env file not found, please provide one like the example \".env.example\""; \
+#	exit 1; \
+#fi
 
-	@if ! [ -f ./.env.development ] && ! [ -f ./.env.production ]; then \
-		echo "ft_transcendence: error: .env file not found, please provide one like the example \".env.example\""; \
-		exit 1; \
-	fi
-
-	@if ! [ -d "/home/$(SUDO_USER)/data/transcendence" ]; then \
-    	echo "ft_transcendence: error: mandatory directory for Docker Volumes wasn't found"; \
-		exit 1; \
+	@if ! [ -d "./data/db" ]; then \
+		mkdir -p ./data; \
+		mkdir -p ./data/db; \
 	fi
 
 	docker compose -f $(COMPOSE_FILE_PATH) build --progress=plain
@@ -45,13 +42,13 @@ rmi: stop
 
 delete_volumes:
 	docker compose -f $(COMPOSE_FILE_PATH) down --volumes
-	sudo rm -rf /home/$(SUDO_USER)/transcendence
+	sudo rm -rf ./data
 
 system_prune:
 	docker system prune
 
 re: fclean all ps
 
-fclean: stop delete_volumes rm rmi
+fclean: stop rm delete_volumes rmi
 
 .PHONY: all build up_detached down start stop ps rm delete_volumes
