@@ -3,10 +3,10 @@ COMPOSE_FILE_PATH=./docker-compose.yml
 all: build up_detached ps
 
 build:
-#@if ! [ -f ./.env] then \
-#	echo "ft_transcendence: error: .env file not found, please provide one like the example \".env.example\""; \
-#	exit 1; \
-#fi
+	@if ! [ -f "./.env" ]; then \
+		echo "ft_transcendence: error: .env file not found, please provide one like the example \".env.example\""; \
+		exit 1; \
+	fi
 
 	@if ! [ -d "./data/db" ]; then \
 		mkdir -p ./data; \
