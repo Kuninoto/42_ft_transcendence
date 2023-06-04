@@ -18,28 +18,26 @@ services:
   db:
     container_name: db
     image: postgres:15.3-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      .env
     volumes:
       - ./data/db:/var/lib/postgresql/data
     ports:
       - 5432:5432
     networks:
-      - transcendence-network
+      - app-net
     restart: always
 
   adminer:
     container_name: adminer
     image: adminer:latest
     environment: 
-      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_SERVER: db
       ADMINER_DESIGN: hydra
     ports:
       - 8080:8080
     networks:
-      - transcendence-network
+      - app-net
     depends_on:
       - db
     restart: always
@@ -54,7 +52,7 @@ services:
 #    ports:
 #      - 8001:8001
 #    restart: always
+
 networks:
-  transcendence-network:
-    name: transcendence-network
-    driver: bridge
+  app-net:
+    name: app-net
