@@ -12,9 +12,7 @@ Design by: [Marta Rodrigues](https://www.linkedin.com/in/martafilipa-rodrigues)
 ![](./extras/showcase.gif)
 
 ### Stack Used  
-<img src="https://github.com/devicons/devicon/blob/master/icons/typescript/typescript-original.svg" title="TypeScript" alt="TS Logo" width="50" height="50" />&nbsp;
-<img src="https://github.com/devicons/devicon/blob/master/icons/react/react-original.svg" title="React" alt="React Logo" width="50" height="50" />&nbsp;  
-<img src="https://github.com/devicons/devicon/blob/master/icons/tailwindcss/tailwindcss-plain.svg" title="Tailwindcss" alt="Tailwindcss Logo" width="50" height="50" />&nbsp;
+<img src="https://github.com/devicons/devicon/blob/master/icons/typescript/typescript-original.svg" title="TypeScript" alt="TS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/react/react-original.svg" title="React" alt="React Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/tailwindcss/tailwindcss-plain.svg" title="Tailwindcss" alt="Tailwindcss Logo" width="50" height="50" />&nbsp;  
 <img src="https://github.com/devicons/devicon/blob/master/icons/nestjs/nestjs-plain.svg" title="NestJS" alt="NestJS Logo" width="50" height="50" />&nbsp;
 <img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL" alt="PostgreSQL Logo" width="50" height="50" />&nbsp; 
 <img src="https://github.com/devicons/devicon/blob/master/icons/docker/docker-original.svg" title="Docker" alt="Docker Logo" width="65" height="65" />  
@@ -58,10 +56,10 @@ A website to host the might pong contest!
 [SQL explained in 100 seconds](https://youtu.be/zsjvFFKOm3c)  
 [7 Databases Overview](https://youtu.be/W2Z7fbCLSTw)  
 
-**React**
+**React**  
 [React in 100 seconds](https://www.youtube.com/watch?v=Tn6-PIqc4UM)  
 
-**NextJS**
+**NextJS**  
 [NextJS in 100 seconds](https://www.youtube.com/watch?v=Sklc_fQBmcs)  
 [The Story of NextJS](https://www.youtube.com/watch?v=BILxV_vrZO0)  
 
@@ -75,13 +73,13 @@ A website to host the might pong contest!
 [Session vs Token based authentication](https://www.geeksforgeeks.org/session-vs-token-based-authentication/)  
 [Nest.JS Tutorial - Setting up Passport, OAuth2, TypeORM, Sessions, Session Store, Database](https://www.youtube.com/watch?v=vGafqCNCCSs)  
 
-**PostgreSQL**
+**PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  
 [How to use Postgre Official Docker Image](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/)  
 [PostgreSQL CLI Cheat Sheet](https://tomcam.github.io/postgres/)  
 [PostgreSQL Official Docker Image Docs](https://github.com/docker-library/docs/blob/master/postgres/README.md)  
 
-**Adminer**
+**Adminer**  
 [Definition](https://en.m.wikipedia.org/wiki/Adminer)  
 [What is Adminer and how to use it](https://kinsta.com/blog/adminer/#what-is-adminer)  
 [Connection Adminer to Postgresql](https://www.reddit.com/r/docker/comments/g77ldf/connect_adminer_to_postgresql/)  

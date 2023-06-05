@@ -7,6 +7,7 @@ Backend:
 
 - Setup NestJS <-> Database connection
 - User 42 OAuth
+- Hash the passwords with salt
 
 
 NOTES:
