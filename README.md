@@ -56,6 +56,8 @@ A website to host the might pong contest!
 [SQL explained in 100 seconds](https://youtu.be/zsjvFFKOm3c)  
 [7 Databases Overview](https://youtu.be/W2Z7fbCLSTw)  
 
+[NestJS, TypeOrm and PostgreSQL full example development and setup](https://medium.com/@gausmann.simon/nestjs-typeorm-and-postgresql-full-example-development-and-project-setup-working-with-database-c1a2b1b11b8f)  
+
 **React**  
 [React in 100 seconds](https://www.youtube.com/watch?v=Tn6-PIqc4UM)  
 
@@ -68,10 +70,13 @@ A website to host the might pong contest!
 [Official Docs](https://docs.nestjs.com/)  
 
 **User Auth**  
+[Introduction to OAuth 2.0](https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2)  
 [Google OAuth 2.0 Login for React in 5 minutes](https://www.youtube.com/watch?v=HtJKUQXmtok)  
 [Session vs Token Authentication in 100 Seconds](https://www.youtube.com/watch?v=UBUNrFtufWo)  
 [Session vs Token based authentication](https://www.geeksforgeeks.org/session-vs-token-based-authentication/)  
 [Nest.JS Tutorial - Setting up Passport, OAuth2, TypeORM, Sessions, Session Store, Database](https://www.youtube.com/watch?v=vGafqCNCCSs)  
+[Introduction to JWT](https://jwt.io/introduction/)  
+[JWT Authentication best practices](https://blog.logrocket.com/jwt-authentication-best-practices/)  
 
 **PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  
