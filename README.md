@@ -58,6 +58,8 @@ A website to host the might pong contest!
 
 [NestJS, TypeOrm and PostgreSQL full example development and setup](https://medium.com/@gausmann.simon/nestjs-typeorm-and-postgresql-full-example-development-and-project-setup-working-with-database-c1a2b1b11b8f)  
 
+[NestJS Tutorial for Beginners](https://www.youtube.com/watch?v=oU5Di3be-Sk&list=PLS1QulWo1RIbihafA6GlwyvmwkHshmVyh&pp=iAQB)  
+
 **React**  
 [React in 100 seconds](https://www.youtube.com/watch?v=Tn6-PIqc4UM)  
 

@@ -1,6 +1,6 @@
-import { Column, Entity, PrimaryColumn, Timestamp } from "typeorm";
+import { PrimaryColumn, Column, Entity } from "typeorm";
 
-@Entity('users')
+@Entity('user')
 export class User {
     @PrimaryColumn({unique: true})
     id: number;
@@ -9,18 +9,20 @@ export class User {
     name: string;
 
     @Column()
-    hashed_pass: string;
+    hashedPass: string;
 
     @Column({ type: 'boolean', default: false })
-    is_online: boolean;
+    isOnline: boolean;
 
     @Column({ type: 'boolean', default: false })
-    is_auth: boolean;
+    isAuth: boolean;
 
     @Column({ type: 'boolean', default: false })
-    has_2fa: boolean;
+    has2fa: boolean;
 
     @Column({ type: 'boolean', default: false })
-    in_match: boolean;
+    inMatch: boolean;
 
+    @Column({ type: 'date'})
+    createdAt: Date;
 }
