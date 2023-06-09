@@ -38,14 +38,25 @@ export class UserController {
   // @Param lets us access the request parameters
   @Delete('delete/:id')
   public deleteUserById(@Param('id', ParseIntPipe) id: number) {
-    this.userService.deleteUserById(id);
-    return 'Deleted user with ID: ' + id;
+    try {
+      this.userService.deleteUserById(id);
+      return 'Successfully deleted user with ID: ' + id;
+    }
+    catch (err) {
+      return 'Failed to delete user with ID: ' + id;
+    }
   }
 
   // !TODO
-  //@Patch('edit/:id')
-  //public patchUserById(@Param('id', ParseIntPipe) id: number,
-  //                     @Body() updateUserDTO: UpdateUserDTO) {
-  //  return this.userService.patchUserById(id, updateUserDTO);
-  //}
+  @Patch('edit/:id')
+  public async patchUserById(@Param('id', ParseIntPipe) id: number,
+                       @Body() updateUserDTO: UpdateUserDTO) {
+    try {
+      await this.userService.patchUserById(id, updateUserDTO);
+      return 'Successfully patched user with ID: ' + id;
+    }
+    catch (err) {
+      return 'Failed to patch user with ID: ' + id;
+    }
+  }
 }

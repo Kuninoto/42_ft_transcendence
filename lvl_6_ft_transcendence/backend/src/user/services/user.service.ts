@@ -26,11 +26,9 @@ export class UserService {
 		}
 
     // !TODO 
-    //public patchUserById(id: number, updateUserDTO: UpdateUserDTO) {
-    //  const userToUpdate = this.userRepository.findOneBy({id: id});
-    //  
-    //  //const updatedUser = this.userRepository.create(updateUserDTO);
-    //  //updateUser.last_update_at = new Date();
-    //  //return this.userRepository.save(updatedUser);
-    //}
+    public async patchUserById(id: number, updateUserDTO: UpdateUserDTO) {
+        this.userRepository.update(id, updateUserDTO);
+    //  this.userRepository.update(id, {last_update_at: Date.now()});
+        return this.userRepository.update(id, updateUserDTO);
+    }
 }
