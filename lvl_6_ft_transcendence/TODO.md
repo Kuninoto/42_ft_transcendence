@@ -13,11 +13,12 @@ https://medium.com/@gausmann.simon/nestjs-typeorm-and-postgresql-full-example-de
     CREATE TABLE User (
         id BIGSERIAL,
         nick TEXT,
-        hashed_pass TEXT,
-        is_online boolean,
-        is_auth boolean,
-        has_2fa boolean,
-        in_match boolean,
+        hashedPass TEXT,
+        isOnline boolean,
+        isAuth boolean,
+        has2fa boolean,
+        inMatch boolean,
+        createdAt DATE,
     );
 
     // missing kick ban or mute 
@@ -29,6 +30,7 @@ https://medium.com/@gausmann.simon/nestjs-typeorm-and-postgresql-full-example-de
 
         (client_ids of the admins)
         channel_admins ARRAY,
+        createdAt DATE,
     );
 
 
