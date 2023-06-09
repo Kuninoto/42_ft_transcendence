@@ -1,0 +1,9 @@
+User names must have at least 3 chars
+User passwords on their plain text form must have at least 8 length
+
+Dev Adminer login:
+    PostgreSQL
+    db
+    user123
+    passwd123
+    transcendence_db
