@@ -56,10 +56,6 @@ A website to host the might pong contest!
 [SQL explained in 100 seconds](https://youtu.be/zsjvFFKOm3c)  
 [7 Databases Overview](https://youtu.be/W2Z7fbCLSTw)  
 
-[NestJS, TypeOrm and PostgreSQL full example development and setup](https://medium.com/@gausmann.simon/nestjs-typeorm-and-postgresql-full-example-development-and-project-setup-working-with-database-c1a2b1b11b8f)  
-
-[NestJS Tutorial for Beginners](https://www.youtube.com/watch?v=oU5Di3be-Sk&list=PLS1QulWo1RIbihafA6GlwyvmwkHshmVyh&pp=iAQB)  
-
 **React**  
 [React in 100 seconds](https://www.youtube.com/watch?v=Tn6-PIqc4UM)  
 
@@ -91,6 +87,13 @@ A website to host the might pong contest!
 [What is Adminer and how to use it](https://kinsta.com/blog/adminer/#what-is-adminer)  
 [Connection Adminer to Postgresql](https://www.reddit.com/r/docker/comments/g77ldf/connect_adminer_to_postgresql/)  
 [Setup Adminer with docker for database managment](https://dev.to/codewithml/setup-adminer-with-docker-for-database-management-4dd2)  
+
+**Gluing the pieces together**
+[NestJS, TypeOrm and PostgreSQL full example development and setup](https://medium.com/@gausmann.simon/nestjs-typeorm-and-postgresql-full-example-development-and-project-setup-working-with-database-c1a2b1b11b8f)  
+
+[NestJS Tutorial for Beginners](https://www.youtube.com/watch?v=oU5Di3be-Sk&list=PLS1QulWo1RIbihafA6GlwyvmwkHshmVyh&pp=iAQB)  
+[Setting up NestJS with PostgreSQL](https://blog.devgenius.io/setting-up-nestjs-with-postgresql-ac2cce9045fe)  
+
 
 ---
 Made by Nuno Carvalho (Kuninoto) | nnuno-ca@student.42porto.com  
