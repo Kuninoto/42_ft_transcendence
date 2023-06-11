@@ -10,9 +10,9 @@ import {
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { UserService } from '../services/user.service';
-import { CreateUserDTO } from '../dtos/CreateUser.dto';
-import { UpdateUserDTO } from '../dtos/UpdateUser.dto';
+import { UserService } from '../service/user.service';
+import { CreateUserDTO } from '../dto/CreateUser.dto';
+import { UpdateUserDTO } from '../dto/UpdateUser.dto';
 
 @Controller('user')
 export class UserController {
@@ -27,7 +27,7 @@ export class UserController {
   // POST /user/create
   // @Body lets us access the request body
   // ValidationPipe ensures that request body
-  // is in the CreateUserDTO format
+  // is in the CreateUserDTO format (our desired format)
   @Post('create')
   @UsePipes(ValidationPipe)
   public createUser(@Body() createUserDTO: CreateUserDTO) {
