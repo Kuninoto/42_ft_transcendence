@@ -27,7 +27,6 @@ export class UserService {
 
     // !TODO 
     public async patchUserById(id: number, updateUserDTO: UpdateUserDTO) {
-        this.userRepository.update(id, updateUserDTO);
     //  this.userRepository.update(id, {last_update_at: Date.now()});
         return this.userRepository.update(id, updateUserDTO);
     }

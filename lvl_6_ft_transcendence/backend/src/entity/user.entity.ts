@@ -1,4 +1,4 @@
-import { PrimaryGeneratedColumn, Column, Entity, Timestamp } from "typeorm";
+import { PrimaryGeneratedColumn, Column, Entity } from "typeorm";
 
 @Entity('user')
 export class User {
@@ -14,11 +14,6 @@ export class User {
     })
     name: string;
 
-    @Column({
-        nullable: false,
-    })
-    hashed_pass: string;
-
     @Column({ default: true })
     is_online: boolean;
 
@@ -31,9 +26,12 @@ export class User {
     @Column({ default: false })
     in_match: boolean;
 
-    @Column({ type: 'timestamp'})
+    @Column({ type: 'timestamp' })
     created_at: Date;
 
-    @Column({ type: 'timestamp'})
+    @Column({ type: 'timestamp' })
     last_update_at: Date;
+
+    @Column({ nullable: false })
+    access_token: string;
 }

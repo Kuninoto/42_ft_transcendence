@@ -1,7 +1,8 @@
 import {
     Controller,
     Get,
-    Query
+    Query,
+    Redirect
 } from '@nestjs/common';
 import { AuthService } from '../service/auth.service';
 
@@ -12,7 +13,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Get('login')
-  public getAccessToken(@Query('code') codeParam: string ) {
-    return this.authService.getAccessToken(codeParam);
+  public userLogin(@Query('code') codeParam: string ) {
+    return this.authService.userLogin(codeParam);
   }
 }
