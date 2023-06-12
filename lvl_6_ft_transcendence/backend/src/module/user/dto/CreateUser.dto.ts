@@ -6,5 +6,5 @@ export class CreateUserDTO {
   readonly name: string;
 
   @IsNotEmpty()
-  readonly hashed_pass: string;
+  readonly avatar_endpoint: string;
 }

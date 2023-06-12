@@ -32,14 +32,14 @@ Backend:
 
 - User 42 OAuth
     - intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
-------------------------------------------- Currently at --------------------------------------
     GET request part
 
-
-    - Figure out what the user id should be
-      (perhaps just an internal counter/random value (?),
-      most certaintly it is because postgres/nestjs is already incrementally setting it)
-    - Figure out what and how to retrieve from the 42 User login 
+------------------------------------------- Currently at --------------------------------------
+    - Figure out how to make or call the userService to register a new user 
+    - Figure out what to retrieve from the 42 User and how the user registration should be
+        (database registering, which fields I want from the 42 API, should I save the avatar endpoint) 
+        Should it be a redirect with the user's info as query params?
+    
 
 - Understand NestJS Guards
 
