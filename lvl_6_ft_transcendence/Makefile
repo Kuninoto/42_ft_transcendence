@@ -13,35 +13,35 @@ build:
 		mkdir -p ./data/db; \
 	fi
 
-	docker compose -f $(COMPOSE_FILE_PATH) build --progress=plain
+	docker-compose -f $(COMPOSE_FILE_PATH) build --progress=plain
 
 up_detached:
-	docker compose -f $(COMPOSE_FILE_PATH) up -d
+	docker-compose -f $(COMPOSE_FILE_PATH) up -d
 #	sudo bash ./srcs/requirements/tools/manage_hosts.sh
 
 down:
-	docker compose -f $(COMPOSE_FILE_PATH) down
+	docker-compose -f $(COMPOSE_FILE_PATH) down
 #	sudo bash ./srcs/requirements/tools/manage_hosts.sh --delete
 
 start:
-	docker compose -f $(COMPOSE_FILE_PATH) start
+	docker-compose -f $(COMPOSE_FILE_PATH) start
 #	sudo bash ./srcs/requirements/tools/manage_hosts.sh
 
 stop:
-	docker compose -f $(COMPOSE_FILE_PATH) stop
+	docker-compose -f $(COMPOSE_FILE_PATH) stop
 #	sudo bash ./srcs/requirements/tools/manage_hosts.sh --delete
 
 ps:
-	docker compose -f $(COMPOSE_FILE_PATH) ps
+	docker-compose -f $(COMPOSE_FILE_PATH) ps
 
 rm: stop
-	docker compose -f $(COMPOSE_FILE_PATH) rm
+	docker-compose -f $(COMPOSE_FILE_PATH) rm
 
 rmi: stop
-	docker compose -f $(COMPOSE_FILE_PATH) down --rmi all
+	docker-compose -f $(COMPOSE_FILE_PATH) down --rmi all
 
 delete_volumes:
-	docker compose -f $(COMPOSE_FILE_PATH) down --volumes
+	docker-compose -f $(COMPOSE_FILE_PATH) down --volumes
 	sudo rm -rf ./data
 
 system_prune:
