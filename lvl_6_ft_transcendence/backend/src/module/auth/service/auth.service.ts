@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { UserService } from '../../user/service/user.service';
+import { CreateUserDTO } from 'src/module/user/dto/CreateUser.dto';
+import { UpdateUserDTO } from 'src/module/user/dto/UpdateUser.dto';
 
 @Injectable()
 export class AuthService {
-    constructor() {}
+    constructor(private readonly userService: UserService) {}
 
-    public async getAccessToken(codeParam: string) {
+    private async requestAccessToken(codeParam: string) {
         // !TODO
         // check nestjs guards
         // and change this protection
@@ -20,10 +23,43 @@ export class AuthService {
             code: codeParam,
             redirect_uri: 'http://localhost:3000/auth/login',
         }}).then((response) => {
+            console.log('response.data.access_token = ' + response.data.access_token);
             return response.data.access_token;
         }).catch((error) => {
             console.error(error);
             return error;
         });
+    }
+
+    private async requestUserInfo(accessToken: string) {
+        // !TODO
+        // check nestjs guards
+        // and change this protection
+        if (!accessToken) return null;
+    
+        try {
+            const response = await axios.get('https://api.intra.42.fr/v2/me', { headers: {
+                                Authorization: 'Bearer ' + accessToken,
+                            }});
+            console.log('response.data = ' + response.data);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    public async userLogin(codeParam: string) {        
+      try {
+        const accessToken = await this.requestAccessToken(codeParam);
+        const userInfo = await this.requestUserInfo(accessToken);
+
+        // if (firstLogin)
+          this.userService.createUser({name: userInfo.name, avatar_endpoint: userInfo.avatar_endpoint});  
+        // else
+        //  this.userService.login()
+      } catch (error) {
+        // Handle any errors that occurred during the process
+        console.error(error);
+      }
     }
 }
