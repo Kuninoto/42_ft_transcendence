@@ -14,5 +14,32 @@
    <button onclick="showLeaderboard()">Leaderboard</button>
    <button onclick="goToProfile()">Profile</button>
 
+  <form id="uploadForm">
+    <input type="file" id="imageInput" accept="image/*">
+    <button type="submit">Upload</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent form submission
+      
+      var input = document.getElementById('imageInput');
+      var file = input.files[0];
+      
+      if (file) {
+        var reader = new FileReader();
+        reader.onloadend = function() {
+          var base64Image = reader.result;
+          document.getElementById('result').innerHTML = '<img src="' + base64Image + '">';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+</html>
+
 </body>
 </html>

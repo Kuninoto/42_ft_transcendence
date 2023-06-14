@@ -13,6 +13,7 @@ import {
 import { UserService } from '../service/user.service';
 import { CreateUserDTO } from '../dto/CreateUser.dto';
 import { UpdateUserDTO } from '../dto/UpdateUser.dto';
+import { User } from '../../../entity/user.entity';
 
 @Controller('user')
 export class UserController {
@@ -20,8 +21,8 @@ export class UserController {
 
   // GET /user/id
   @Get('/:id')
-  public getUserById(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.getUserById(id);
+  public async getUserById(@Param('id', ParseIntPipe) id: number) : Promise<User> {
+    return await this.userService.getUserById(id);
   }
 
   // POST /user/create
@@ -30,8 +31,8 @@ export class UserController {
   // is in the CreateUserDTO format (our desired format)
   @Post('create')
   @UsePipes(ValidationPipe)
-  public createUser(@Body() createUserDTO: CreateUserDTO) {
-    return this.userService.createUser(createUserDTO);
+  public async createUser(@Body() createUserDTO: CreateUserDTO) : Promise<User> {
+    return await this.userService.createUser(createUserDTO);
   }
 
   // /user/delete/id
