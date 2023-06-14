@@ -8,30 +8,26 @@ import entities from './typeorm/index';
 
 @Module({
     imports: [
-      ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../.env'}),
+      ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env'}),
       TypeOrmModule.forRootAsync({
         imports: [ConfigModule],
         useFactory: (configService: ConfigService) => ({
           type: "postgres",
           host: "localhost",
           port: 5432,
-          // !TODO
-          // username: configService.get("POSTGRES_USER"),
-          // password: configService.get("POSTGRES_PASSWORD"),
-          // database: configService.get("POSTGRES_DB"),
-          username: "user123",
-          password: "passwd123",
-          database: "transcendence_db",
+          username: process.env.POSTGRES_USER,
+          password: process.env.POSTGRES_PASSWORD,
+          database: process.env.POSTGRES_DB,
           entities: entities,
           
-          //  !TODO: turn of during prod
+          //  !TODO: turn off during prod
           synchronize: true,
         }),
         inject: [ConfigService],
       }),
       UserModule,
       AuthModule,
-	  ChatModule,
+	    ChatModule,
     ],
     controllers: [],
     providers: [],
