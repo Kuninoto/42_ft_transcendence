@@ -9,16 +9,23 @@ import {
   UsePipes,
   ParseIntPipe,
   ValidationPipe,
+  UploadedFile,
+  UseInterceptors
 } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { CreateUserDTO } from '../dto/CreateUser.dto';
 import { UpdateUserDTO } from '../dto/UpdateUser.dto';
 import { User } from '../../../entity/user.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from '../middleware/multer/multer.config';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
+  // !TODO
+  // Should it be a route or with params?
+  
   // GET /user/id
   @Get('/:id')
   public async getUserById(@Param('id', ParseIntPipe) id: number) : Promise<User> {
@@ -49,15 +56,31 @@ export class UserController {
   }
 
   // !TODO
-  @Patch('edit/:id')
-  public async patchUserById(@Param('id', ParseIntPipe) id: number,
-                       @Body() updateUserDTO: UpdateUserDTO) {
-    try {
-      await this.userService.patchUserById(id, updateUserDTO);
-      return 'Successfully patched user with ID: ' + id;
-    }
-    catch (err) {
-      return 'Failed to patch user with ID: ' + id;
-    }
+  @Post('edit/:id/avatar')
+  @UseInterceptors(FileInterceptor('avatar', multerConfig))
+  public async updateAvatarById(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() avatar,
+  ) {
+    const avatarURL = '../upload/avatars/' + avatar.filename;
+
+    return await this.userService.updateUserById(id, {
+      name: undefined,
+      avatar_url: avatarURL,
+      last_updated_at: undefined
+    });
+  }
+
+  // !TODO
+  @Patch('edit/:id/name')
+  public async updateNameById(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('name') newName: string,
+  ) {
+    return await this.userService.updateUserById(id, {
+      name: newName,
+      last_updated_at: undefined,
+      avatar_url: undefined,
+    });
   }
 }

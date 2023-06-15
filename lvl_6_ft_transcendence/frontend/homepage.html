@@ -1,45 +1,151 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ft_transcendence</title>
-</head>
-<body>
-   Homepage!
-   <br>
-   <button onclick="enterQueue()">Play</button>
-   <button onclick="showThemes()">Pong themes</button>
-   <button onclick="showLeaderboard()">Leaderboard</button>
-   <button onclick="goToProfile()">Profile</button>
+<html>
+  <body>
+    <h2>User Information</h2>
+    <label for="userId">User ID:</label>
+    <input type="text" id="userId" name="userId" placeholder="Enter User ID">
+    <button id="getUserButton">Get User</button>
+    <div id="userInfo"></div>
 
-  <form id="uploadForm">
-    <input type="file" id="imageInput" accept="image/*">
-    <button type="submit">Upload</button>
-  </form>
+    <h2>Delete User</h2>
+    <label for="deleteUserId">User ID:</label>
+    <input type="text" id="deleteUserId" name="deleteUserId" placeholder="Enter User ID">
+    <button id="deleteUserButton">Delete User</button>
+    <div id="deleteStatus"></div>
 
-  <div id="result"></div>
+    <h2>Update User's Name</h2>
+    <label for="updateNameUserId">User ID:</label>
+    <input type="text" id="updateNameUserId" name="updateNameUserId" placeholder="Enter User ID">
+    <label for="newName">New Name:</label>
+    <input type="text" id="newName" name="newName" placeholder="Enter New Name">
+    <button id="updateNameButton">Update Name</button>
+    <div id="updateNameStatus"></div>
 
-  <script>
-    document.getElementById('uploadForm').addEventListener('submit', function(event) {
-      event.preventDefault(); // Prevent form submission
-      
-      var input = document.getElementById('imageInput');
-      var file = input.files[0];
-      
-      if (file) {
-        var reader = new FileReader();
-        reader.onloadend = function() {
-          var base64Image = reader.result;
-          document.getElementById('result').innerHTML = '<img src="' + base64Image + '">';
-        };
-        reader.readAsDataURL(file);
+    <h2>Update User's Avatar</h2>
+    <label for="updateAvatarUserId">User ID:</label>
+    <input type="text" id="updateAvatarUserId" name="updateAvatarUserId" placeholder="Enter User ID">
+    <label for="newAvatar">New Avatar:</label>
+    <input type="file" id="newAvatar" name="newAvatar">
+    <button id="updateAvatarButton">Update Avatar</button>
+    <div id="updateAvatarStatus"></div>
+
+    <script>
+      function displayUserInformation(user) {
+        const userInfoDiv = document.getElementById('userInfo');
+        userInfoDiv.innerHTML = `
+          <p>ID: ${user.id}</p>
+          <p>Name: ${user.name}</p>
+          <p>Status: ${user.status}</p>
+          <p>Is Authenticated: ${user.is_auth}</p>
+          <p>Has 2FA: ${user.has_2fa}</p>
+          <p>Created At: ${user.created_at}</p>
+          <p>Last Updated At: ${user.last_updated_at}</p>
+          <img src="${user.avatar_url}" alt="Avatar" />
+        `;
       }
-    });
-  </script>
-</body>
-</html>
 
-</body>
+      document.getElementById('getUserButton').addEventListener('click', function () {
+        const userId = document.getElementById('userId').value;
+        fetch(`http://localhost:3000/user/${userId}`)
+          .then(response => response.json())
+          .then(data => {
+            displayUserInformation(data);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      });
+
+      document.getElementById('deleteUserButton').addEventListener('click', function () {
+        const deleteUserId = document.getElementById('deleteUserId').value;
+        fetch(`http://localhost:3000/user/delete/${deleteUserId}`, {
+          method: 'DELETE',
+        })
+          .then(response => {
+            if (response.ok) {
+              const deleteStatusDiv = document.getElementById('deleteStatus');
+              deleteStatusDiv.textContent = 'User deleted successfully.';
+              // Clear user information after deletion
+              const userInfoDiv = document.getElementById('userInfo');
+              userInfoDiv.innerHTML = '';
+            } else {
+              throw new Error('User deletion failed.');
+            }
+          })
+          .then(() => {
+            // Clear input field after deletion
+            document.getElementById('deleteUserId').value = '';
+          })
+          .catch(error => {
+            const deleteStatusDiv = document.getElementById('deleteStatus');
+            deleteStatusDiv.textContent = 'An error occurred while deleting the user.';
+            console.error('Error:', error);
+          });
+      });
+
+      document.getElementById('updateNameButton').addEventListener('click', function () {
+        const updateNameUserId = document.getElementById('updateNameUserId').value;
+        const newName = document.getElementById('newName').value;
+
+        fetch(`http://localhost:3000/user/edit/${updateNameUserId}/name`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: newName,
+          }),
+        })
+          .then(response => {
+            if (response.ok) {
+              const updateNameStatusDiv = document.getElementById('updateNameStatus');
+              updateNameStatusDiv.textContent = 'User name updated successfully.';
+            } else {
+              throw new Error('User name update failed.');
+            }
+          })
+          .then(() => {
+            // Clear input fields after update
+            document.getElementById('updateNameUserId').value = '';
+            document.getElementById('newName').value = '';
+          })
+          .catch(error => {
+            const updateNameStatusDiv = document.getElementById('updateNameStatus');
+            updateNameStatusDiv.textContent = 'An error occurred while updating the user name.';
+            console.error('Error:', error);
+          });
+      });
+
+      document.getElementById('updateAvatarButton').addEventListener('click', function () {
+        const updateAvatarUserId = document.getElementById('updateAvatarUserId').value;
+        const newAvatar = document.getElementById('newAvatar').files[0];
+
+        const formData = new FormData();
+        formData.append('avatar', newAvatar);
+
+        fetch(`http://localhost:3000/user/edit/${updateAvatarUserId}/avatar`, {
+          method: 'POST',
+          body: formData,
+        })
+          .then(response => {
+            if (response.ok) {
+              const updateAvatarStatusDiv = document.getElementById('updateAvatarStatus');
+              updateAvatarStatusDiv.textContent = 'User avatar updated successfully.';
+            } else {
+              throw new Error('User avatar update failed.');
+            }
+          })
+          .then(() => {
+            // Clear input fields after update
+            document.getElementById('updateAvatarUserId').value = '';
+            document.getElementById('newAvatar').value = '';
+          })
+          .catch(error => {
+            const updateAvatarStatusDiv = document.getElementById('updateAvatarStatus');
+            updateAvatarStatusDiv.textContent = 'An error occurred while updating the user avatar.';
+            console.error('Error:', error);
+          });
+      });
+    </script>
+  </body>
 </html>

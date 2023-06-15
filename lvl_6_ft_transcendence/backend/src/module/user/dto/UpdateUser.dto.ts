@@ -7,5 +7,8 @@ export class UpdateUserDTO {
 
   @IsNotEmpty()
   @IsOptional()
-  readonly avatar: string;
+  readonly avatar_url: string;
+
+  @IsNotEmpty()
+  last_updated_at: Date; 
 }
