@@ -38,7 +38,7 @@ export class User {
     created_at: Date;
 
     @Column({ type: 'timestamp' })
-    last_update_at: Date;
+    last_updated_at: Date;
 
     @Column({
         type: 'varchar',

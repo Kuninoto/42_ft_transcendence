@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ft_transcendence</title>
-</head>
-<body>
-    <button onclick="login()">Login</button>
-    <script src="./login.tsx"></script>
-</body>
+<html>
+  <body>
+    <h2>Login with 42</h2>
+    <button id="loginButton">Login with 42</button>
+
+    <script>
+      document.getElementById('loginButton').addEventListener('click', function () {
+        window.location.href =
+          'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-b5dc96e149f80b24df624871658fdaa8d6610f1efc0a284afab94cbdb7d0420c&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin&response_type=code';
+      });
+    </script>
+  </body>
 </html>

@@ -8,5 +8,5 @@ export class CreateUserDTO {
   readonly access_token: string;
 
   @IsNotEmpty()
-  readonly intra_photo_url: string;
+  readonly avatar_url: string;
 }

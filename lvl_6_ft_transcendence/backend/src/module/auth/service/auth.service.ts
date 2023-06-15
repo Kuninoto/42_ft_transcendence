@@ -53,7 +53,7 @@ export class AuthService {
             return this.userService.createUser({
               name: userInfo.login,
               access_token: accessToken,
-              intra_photo_url: userInfo.image.versions.medium,
+              avatar_url: userInfo.image.versions.medium,
             });
         // else
         //  this.userService.login()
