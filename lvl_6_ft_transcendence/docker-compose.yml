@@ -24,8 +24,6 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - app-net
-    ports:
-      - 5432:5432
     env_file:
       - ./backend/.env
     restart: always

@@ -5,6 +5,7 @@ import { UsersModule } from './module/users/users.module';
 import { AuthModule } from './module/auth/auth.module';
 import { ChatModule } from './module/chat/chat.module';
 import entities from './typeorm/index';
+import 'dotenv/config';
 
 @Module({
   imports: [
@@ -32,4 +33,5 @@ import entities from './typeorm/index';
   controllers: [],
   providers: [],
 })
+
 export class AppModule {}
