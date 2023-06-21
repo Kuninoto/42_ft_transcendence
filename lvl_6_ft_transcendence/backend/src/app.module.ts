@@ -3,8 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './module/user/user.module';
 import { AuthModule } from './module/auth/auth.module';
-import { ChatModule } from './module/chat/chat.module';
 import entities from './typeorm/index';
+import { MessagesModule } from './module/messages/messages.module';
 
 @Module({
     imports: [
@@ -30,8 +30,8 @@ import entities from './typeorm/index';
         inject: [ConfigService],
       }),
       UserModule,
-      AuthModule,
-	  ChatModule,
+    //   AuthModule,
+	MessagesModule
     ],
     controllers: [],
     providers: [],
