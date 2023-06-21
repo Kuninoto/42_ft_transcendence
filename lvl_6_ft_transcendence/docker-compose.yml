@@ -8,49 +8,60 @@ services:
   #    depends_on:
   #      - 
 
-  #backend:
-  #  build:
-  #    context: backend
-  #    target: development
-  #    depends_on:
-  #      - db
+  backend:
+    container_name: transcendence_backend
+    build: ./backend
+    depends_on:
+      - postgres
+      - adminer
+      - nest
 
-  db:
-    container_name: db
-    image: postgres:15.3-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
     volumes:
-      - ./data/db:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
+    # - ./data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     networks:
       - app-net
+    ports:
+      - 5432:5432
+    env_file:
+      - ./backend/.env
     restart: always
 
   adminer:
     container_name: adminer
     image: adminer:latest
     environment: 
-      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DEFAULT_SERVER: postgres
       ADMINER_DESIGN: hydra
     ports:
       - 8080:8080
     networks:
       - app-net
     depends_on:
-      - db
+      - postgres
     restart: always
-#
+
+  nest:
+      container_name: nest
+      build: ./backend/
+      depends_on:
+        - postgres
+      ports:
+        - 3000:3000
+      networks:
+        - app-net
+      restart: always
+
 #  nginx:
 #    container_name: nginx
-#    build: ./backend/
+#    build: ./frontend/
 #    volumes:
 #      - /frontend:/var/www/html
 #    depends_on:
-#      - postgresql
+#      - backend
 #    ports:
 #      - 8001:8001
 #    restart: always
@@ -58,3 +69,7 @@ services:
 networks:
   app-net:
     name: app-net
+    driver: bridge
+
+volumes:
+  db_data:
