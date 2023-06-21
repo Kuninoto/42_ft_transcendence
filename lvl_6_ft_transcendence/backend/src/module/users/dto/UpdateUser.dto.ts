@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class UpdateUserDTO {
   @IsNotEmpty()
@@ -10,5 +10,5 @@ export class UpdateUserDTO {
   readonly avatar_url: string;
 
   @IsNotEmpty()
-  last_updated_at: Date; 
+  last_updated_at: Date;
 }
