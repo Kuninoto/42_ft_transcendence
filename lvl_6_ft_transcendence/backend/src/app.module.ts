@@ -13,13 +13,13 @@ import entities from './typeorm/index';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: 'localhost',
+        host: process.env.POSTGRES_HOST,
         port: 5432,
         username: process.env.POSTGRES_USER,
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DB,
         entities: entities,
-
+        autoLoadEntities: true,
         //  !TODO: turn off during prod
         synchronize: true,
       }),
