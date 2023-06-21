@@ -51,6 +51,8 @@ services:
         - 3000:3000
       networks:
         - app-net
+      env_file:
+      - ./backend/.env
       restart: always
 
 #  nginx:
