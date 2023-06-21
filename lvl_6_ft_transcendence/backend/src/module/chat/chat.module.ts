@@ -4,8 +4,8 @@ import { ChatController } from './controller/chat.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-	imports: [],
-	providers: [ChatService],
-	controllers: [ChatController]
+  imports: [],
+  providers: [ChatService],
+  controllers: [ChatController],
 })
 export class ChatModule {}

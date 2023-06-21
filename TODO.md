@@ -39,8 +39,11 @@ Backend:
         Should it be a redirect with the user's info as query params?
     - Figure out why updateUserAvatar() is not being able to update users table
 ------------------------------------------- Currently at --------------------------------------
-    - Figure out how to properly route user updates and how to properly link/save the avatar_url on the user database
+    - Test all the user routes
+    - Figure out how to serve a locally stored avatar
+
     
+- Change 42's Auth to use passportjs oauth2
 - Understand JWT and how to keep access_token
 
 - Add checks for when user doesn't exist in (probably) all user service functions
@@ -50,3 +53,5 @@ Backend:
 - Stress test misconfigs on JSON Objects
 
 - Hash the passwords with salt (on the frontend)
+
+- Review the routes architecture (take as an example the routes of full-grown sites)

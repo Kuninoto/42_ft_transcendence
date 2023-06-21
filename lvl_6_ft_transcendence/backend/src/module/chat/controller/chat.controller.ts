@@ -3,7 +3,7 @@ import { ChatService } from '../service/chat.service';
 
 @Controller('chat')
 export class ChatController {
-  constructor(private chatService : ChatService) {}
+  constructor(private chatService: ChatService) {}
   @Get()
   @Render('index')
   getChat(): void {}

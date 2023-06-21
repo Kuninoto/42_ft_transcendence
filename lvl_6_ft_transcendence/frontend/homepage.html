@@ -46,7 +46,7 @@
 
       document.getElementById('getUserButton').addEventListener('click', function () {
         const userId = document.getElementById('userId').value;
-        fetch(`http://localhost:3000/user/${userId}`)
+        fetch(`http://localhost:3000/users/${userId}`)
           .then(response => response.json())
           .then(data => {
             displayUserInformation(data);
@@ -58,7 +58,7 @@
 
       document.getElementById('deleteUserButton').addEventListener('click', function () {
         const deleteUserId = document.getElementById('deleteUserId').value;
-        fetch(`http://localhost:3000/user/delete/${deleteUserId}`, {
+        fetch(`http://localhost:3000/users/${deleteUserId}/delete`, {
           method: 'DELETE',
         })
           .then(response => {
@@ -87,7 +87,7 @@
         const updateNameUserId = document.getElementById('updateNameUserId').value;
         const newName = document.getElementById('newName').value;
 
-        fetch(`http://localhost:3000/user/edit/${updateNameUserId}/name`, {
+        fetch(`http://localhost:3000/users/${updateNameUserId}/edit/name`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -123,7 +123,7 @@
         const formData = new FormData();
         formData.append('avatar', newAvatar);
 
-        fetch(`http://localhost:3000/user/edit/${updateAvatarUserId}/avatar`, {
+        fetch(`http://localhost:3000/users/${updateAvatarUserId}/edit/avatar`, {
           method: 'POST',
           body: formData,
         })
