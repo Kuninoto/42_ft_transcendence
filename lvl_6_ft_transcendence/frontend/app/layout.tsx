@@ -2,16 +2,16 @@
 
 import './globals.css'
 import { Press_Start_2P } from 'next/font/google'
-import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 
-const pressStart = Press_Start_2P({ weight: "400", subsets: ['latin'] })
+const pressStart = Press_Start_2P({ weight: '400', subsets: ['latin'] })
 
 export default function RootLayout({
 	children,
 }: {
 	children: React.ReactNode
 }) {
-	const handle = useFullScreenHandle();
+	const handle = useFullScreenHandle()
 
 	return (
 		<html lang="en">
