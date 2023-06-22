@@ -6,65 +6,35 @@ services:
   #    context: frontend
   #    target: development
   #    depends_on:
-  #      - 
-
-  backend:
-    container_name: transcendence_backend
-    build: ./backend
-    depends_on:
-      - postgres
-      - adminer
-      - nest
-
+  #      -
   postgres:
     container_name: postgres
     image: postgres:alpine
     volumes:
-<<<<<<< HEAD
       # - ./data/db:/var/lib/postgresql/data
       - db_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-=======
-    # - ./data:/var/lib/postgresql/data
-      - db_data:/var/lib/postgresql/data
->>>>>>> c2e88bf770ac04746ac8d384c6632a58cb9c6fa5
     networks:
       - app-net
     env_file:
       - ./backend/.env
     restart: always
 
-<<<<<<< HEAD
   frontend:
     container_name: frontend
-    image: node:latest
-    build: frontend/.
+    build: ./frontend
     ports:
-      - 3000:3000
+      - 3001:3000
     volumes:
       - ./frontend/app:/app/app
       - ./frontend/public:/app/public
     restart: on-failure
 
-#  adminer:
-#    container_name: adminer
-#    image: adminer:latest
-#    env_file:
-#      - .env.development
-#    ports:
-#      - 8080:8080
-#    networks:
-#      - transcendence-network
-#    depends_on:
-#      - postgresql
-#    restart: on-failure
-#
-=======
   adminer:
     container_name: adminer
     image: adminer:latest
-    environment: 
+    environment:
       ADMINER_DEFAULT_SERVER: postgres
       ADMINER_DESIGN: hydra
     ports:
@@ -76,19 +46,18 @@ services:
     restart: always
 
   nest:
-      container_name: nest
-      build: ./backend/
-      depends_on:
-        - postgres
-      ports:
-        - 3000:3000
-      networks:
-        - app-net
-      env_file:
+    container_name: nest
+    build: ./backend/
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
+    networks:
+      - app-net
+    env_file:
       - ./backend/.env
-      restart: always
+    restart: always
 
->>>>>>> c2e88bf770ac04746ac8d384c6632a58cb9c6fa5
 #  nginx:
 #    container_name: nginx
 #    build: ./frontend/
@@ -103,13 +72,7 @@ services:
 networks:
   app-net:
     name: app-net
-<<<<<<< HEAD
-
-volumes:
-  db_data:
-=======
     driver: bridge
 
 volumes:
   db_data:
->>>>>>> c2e88bf770ac04746ac8d384c6632a58cb9c6fa5
