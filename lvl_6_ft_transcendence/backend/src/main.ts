@@ -13,7 +13,12 @@ import * as cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(cors()); // Enable CORS for all routes
+
+  app.enableCors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Transcendence API')
@@ -25,6 +30,7 @@ async function bootstrap() {
   SwaggerModule.setup('help', app, document);
 
   app.useGlobalPipes(new ValidationPipe());
+// app.setGlobalPrefix('api');
   await app.listen(3000);
 }
 
