@@ -8,29 +8,34 @@ services:
   #    depends_on:
   #      - 
 
-  #backend:
-  #  build:
-  #    context: backend
-  #    target: development
-  #    depends_on:
-  #      - db
+  backend:
+    container_name: transcendence_backend
+    build: ./backend
+    depends_on:
+      - postgres
+      - adminer
+      - nest
 
-  db:
-    container_name: db
-    image: postgres:15.3-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
     volumes:
+<<<<<<< HEAD
       # - ./data/db:/var/lib/postgresql/data
       - db_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
+=======
+    # - ./data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+>>>>>>> c2e88bf770ac04746ac8d384c6632a58cb9c6fa5
     networks:
       - app-net
+    env_file:
+      - ./backend/.env
     restart: always
 
+<<<<<<< HEAD
   frontend:
     container_name: frontend
     image: node:latest
@@ -55,13 +60,42 @@ services:
 #      - postgresql
 #    restart: on-failure
 #
+=======
+  adminer:
+    container_name: adminer
+    image: adminer:latest
+    environment: 
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: hydra
+    ports:
+      - 8080:8080
+    networks:
+      - app-net
+    depends_on:
+      - postgres
+    restart: always
+
+  nest:
+      container_name: nest
+      build: ./backend/
+      depends_on:
+        - postgres
+      ports:
+        - 3000:3000
+      networks:
+        - app-net
+      env_file:
+      - ./backend/.env
+      restart: always
+
+>>>>>>> c2e88bf770ac04746ac8d384c6632a58cb9c6fa5
 #  nginx:
 #    container_name: nginx
-#    build: ./backend/
+#    build: ./frontend/
 #    volumes:
 #      - /frontend:/var/www/html
 #    depends_on:
-#      - postgresql
+#      - backend
 #    ports:
 #      - 8001:8001
 #    restart: on-failure
@@ -69,6 +103,13 @@ services:
 networks:
   app-net:
     name: app-net
+<<<<<<< HEAD
 
 volumes:
   db_data:
+=======
+    driver: bridge
+
+volumes:
+  db_data:
+>>>>>>> c2e88bf770ac04746ac8d384c6632a58cb9c6fa5
