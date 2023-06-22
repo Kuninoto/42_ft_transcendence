@@ -39,6 +39,7 @@ export default function FriendsList(): JSX.Element {
 								</div>
 							</div>
 						</Link>
+
 						<Link className='group' href={'/'}>
 							<div className="relative border border-white roundend w-full place-content-around flex py-2 rounded">
 								<div>friend</div>
@@ -48,6 +49,7 @@ export default function FriendsList(): JSX.Element {
 								</div>
 							</div>
 						</Link>
+
 						<Link className='group' href={'/'}>
 							<div className="relative border border-white roundend w-full place-content-around flex py-2 rounded">
 								<div>friend</div>
