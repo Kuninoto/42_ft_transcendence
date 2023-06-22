@@ -1,189 +1,147 @@
-import { useEffect, useRef } from 'react'
-import { Press_Start_2P } from 'next/font/google'
+import { useEffect, useRef } from "react";
+import { Press_Start_2P } from "next/font/google";
 
-const pressStart = Press_Start_2P({ weight: '400', subsets: ['latin'] })
+import {
+  Paddle,
+  Ball,
+  PADDLE_HEIGHT,
+  PADDLE_WALL_OFFSET,
+  PADDLE_WIDTH,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+} from "./definitions";
 
-const KEYDOWN = 'ArrowDown'
-const KEYUP = 'ArrowUp'
+const pressStart = Press_Start_2P({ weight: "400", subsets: ["latin"] });
 
-const PADDLE_HEIGHT = 80
-const PADDLE_WALL_OFFSET = 16
-const PADDLE_WIDTH = 10
-const PADDLE_SPEED = 6
+const KEYDOWN = "ArrowDown";
+const KEYUP = "ArrowUp";
 
-const CANVAS_HEIGHT = 400
-const CANVAS_WIDTH = 800
+export default function Pong({
+  givePoint,
+}: {
+  givePoint: (rightPlayer: boolean) => void;
+}) {
+  // const [pow] = useSound("./sounds/pow.wav")
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const leftPaddle = new Paddle(PADDLE_WALL_OFFSET);
+  const rightPaddle = new Paddle(
+    CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
+  );
+  const ball = new Ball();
 
-class Paddle {
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-	position: { x: number, y: number }
-	fixedSpeed: number = 0
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas && canvas.getContext("2d");
 
-	constructor(offset: number) {
-		this.position = {
-			x: offset,
-			y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
-		}
-	}
+    const draw = () => {
+      if (context) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
 
-	get y(): number {
-		return this.position.y
-	}
+        context.fillStyle = "#FFF";
+        context.fillRect(
+          rightPaddle.x,
+          rightPaddle.y,
+          PADDLE_WIDTH,
+          PADDLE_HEIGHT
+        );
+        context.fillRect(
+          leftPaddle.x,
+          leftPaddle.y,
+          PADDLE_WIDTH,
+          PADDLE_HEIGHT
+        );
 
-	get x(): number {
-		return this.position.x
-	}
+        context.beginPath();
+        context.arc(ball.left, ball.top, ball.size, 0, Math.PI * 2);
+        context.fill();
+      }
+    };
 
-	reset() {
-		this.position.y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
-		this.fixedSpeed = 0
-	}
+    const reset = async (delayTime: number) => {
+      leftPaddle.reset();
+      rightPaddle.reset();
+      ball.reset();
 
-	move() {
-		if (this.fixedSpeed === 0) return
+      draw();
+      await delay(delayTime);
+      update();
+    };
 
-		const nextPosition = this.position.y + this.fixedSpeed
-		if ((nextPosition > 0 && nextPosition + PADDLE_HEIGHT < CANVAS_HEIGHT)) {
-			this.position.y += this.fixedSpeed
-		}
-	}
+    function update() {
+      leftPaddle.move();
+      rightPaddle.move();
+      ball.move();
 
-	allowMove(moveDown: boolean) {
-		if (moveDown) {
-			this.fixedSpeed = PADDLE_SPEED
-		} else {
-			this.fixedSpeed = -PADDLE_SPEED
-		}
-	}
+      const colideWithHorizontalWall =
+        ball.bottom > CANVAS_HEIGHT || ball.top < 0;
+      if (colideWithHorizontalWall) {
+        ball.ySpeed *= -1;
+      }
 
-	blockMove() { this.fixedSpeed = 0 }
+      if (
+        leftPaddle.isBallColliding(ball.speed, ball.left, ball.top) ||
+        rightPaddle.isBallColliding(ball.speed, ball.right, ball.top)
+      ) {
+        ball.verticalBounce();
 
-	isBallColliding(ballX: number, ballY: number): boolean {
-		return ballX >= this.position.x && ballX <= this.position.x + PADDLE_WIDTH && ballY <= this.position.y + PADDLE_HEIGHT && ballY >= this.position.y
-	}
+        let relativeIntersectY: number;
 
+        if (ball.left < CANVAS_WIDTH / 2) {
+          relativeIntersectY = leftPaddle.y + PADDLE_HEIGHT / 2 - ball.top;
+        } else {
+          relativeIntersectY = rightPaddle.y + PADDLE_HEIGHT / 2 - ball.top;
+        }
+
+        ball.ySpeed = (-relativeIntersectY / (PADDLE_HEIGHT / 2)) * 4;
+      } else if (ball.left > CANVAS_WIDTH || ball.right < 0) {
+        givePoint(ball.left < 0);
+        reset(3 * 1000);
+        return;
+      }
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    const handleKeyDown = ({ key }: KeyboardEvent) => {
+      if (key === "s" || key === "w") {
+        leftPaddle.allowMove(key === "s");
+      }
+
+      if (key === KEYDOWN || key === KEYUP) {
+        rightPaddle.allowMove(key === KEYDOWN);
+      }
+    };
+
+    const handleKeyUp = ({ key }: KeyboardEvent) => {
+      if (key === "s" || key === "w") {
+        leftPaddle.blockMove();
+      }
+
+      if (KEYDOWN === key || KEYUP === key) {
+        rightPaddle.blockMove();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keyup", handleKeyUp);
+
+    reset(1000);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [canvasRef]);
+
+  return (
+    <canvas
+      className="border mx-auto"
+      ref={canvasRef}
+      width={CANVAS_WIDTH}
+      height={CANVAS_HEIGHT}
+    ></canvas>
+  );
 }
-
-export default function Pong({ givePoint }: { givePoint: (rightPlayer: boolean) => void }) {
-
-	// const [pow] = useSound("./sounds/pow.wav")
-	const canvasRef = useRef<HTMLCanvasElement>(null)
-
-	const leftPaddle = new Paddle(PADDLE_WALL_OFFSET)
-	const rightPaddle = new Paddle(CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET)
-
-	const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
-
-	const ballSize = 4
-	let ballX = 0
-	let ballY = 0
-	let ballSpeed = {
-		x: 0,
-		y: 0
-	}
-
-	useEffect(() => {
-		const canvas = canvasRef.current
-		const context = canvas && canvas.getContext('2d')
-
-		const draw = () => {
-			if (context) {
-				context.clearRect(0, 0, canvas.width, canvas.height)
-
-				context.fillStyle = '#FFF'
-				context.fillRect(rightPaddle.x, rightPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT)
-				context.fillRect(leftPaddle.x, leftPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT)
-
-				context.beginPath()
-				context.arc(ballX, ballY, ballSize, 0, Math.PI * 2)
-				context.fill()
-			}
-		}
-
-		const reset = async (delayTime: number) => {
-			if (canvasRef.current) {
-				leftPaddle.reset()
-				rightPaddle.reset()
-				ballX = canvasRef.current.width / 2
-				ballY = canvasRef.current.height / 2
-				ballSpeed = {
-					x: Math.round(Math.random()) % 2 === 0 ? -4 : 4,
-					y: 0
-				}
-			}
-
-			draw()
-			await delay(delayTime)
-			update()
-		}
-
-		function update() {
-			leftPaddle.move()
-			rightPaddle.move()
-
-			ballX += ballSpeed.x
-			ballY += ballSpeed.y
-
-			const colideWithHorizontalWall = canvas && ballY + ballSize > canvas.height || ballY - ballSize < 0
-			if (colideWithHorizontalWall) {
-				ballSpeed.y *= -1
-			}
-
-			const passVerticalWall = canvas && ballX > canvas.width || ballX < 0
-			if (passVerticalWall) {
-				givePoint(ballX < 0)
-				reset(3000)
-				return
-			}
-
-			if (leftPaddle.isBallColliding(ballX + ballSize, ballY + ballSize) || rightPaddle.isBallColliding(ballX + ballSize, ballY + ballSize)) {
-				ballSpeed.x *= -1.1
-				ballSpeed.y *= 1.1
-
-				let relativeIntersectY: number
-
-				if (ballX < CANVAS_WIDTH / 2) {
-					relativeIntersectY = leftPaddle.y + PADDLE_HEIGHT / 2 - ballY
-				} else {
-					relativeIntersectY = rightPaddle.y + PADDLE_HEIGHT / 2 - ballY
-				}
-			}
-
-			draw()
-			requestAnimationFrame(update)
-		}
-
-		const handleKeyDown = ({ key }: KeyboardEvent) => {
-			if (key === 's' || key === 'w') {
-				leftPaddle.allowMove(key === 's')
-			}
-
-			if (key === KEYDOWN || key === KEYUP) {
-				rightPaddle.allowMove(key === KEYDOWN)
-			}
-		}
-
-		const handleKeyUp = ({ key }: KeyboardEvent) => {
-			if ('s' === key || 'w' === key) {
-				leftPaddle.blockMove()
-			}
-
-			if (KEYDOWN === key || KEYUP === key) {
-				rightPaddle.blockMove()
-			}
-		}
-
-		document.addEventListener('keydown', handleKeyDown)
-		document.addEventListener('keyup', handleKeyUp)
-
-		reset(1000)
-		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
-			document.removeEventListener('keyup', handleKeyUp)
-		}
-	}, [canvasRef])
-
-	return <canvas className='border mx-auto' ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
-}
-
