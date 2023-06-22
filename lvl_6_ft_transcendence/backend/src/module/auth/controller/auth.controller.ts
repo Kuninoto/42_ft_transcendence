@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Redirect } from '@nestjs/common';
+import { Controller, Get, Param, Redirect } from '@nestjs/common';
 import { AuthService } from '../service/auth.service';
 // take in count state equality check
 
@@ -6,8 +6,8 @@ import { AuthService } from '../service/auth.service';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get('login')
-  public userLogin(@Query('code') codeParam: string) {
+  @Get('/:CODE')
+  public userLogin(@Param('CODE') codeParam: string) {
     return this.authService.userLogin(codeParam);
   }
 }
