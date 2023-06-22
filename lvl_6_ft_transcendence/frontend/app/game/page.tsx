@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Pong from './pong'
 import { useEffect, useState } from 'react'
 
-export default function game() {
+export default function Game() {
 
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
@@ -18,12 +18,6 @@ export default function game() {
 			setLeftPlayerScore(leftPlayerScore => leftPlayerScore + 1)
 		}
 	}
-
-	useEffect(() => {
-
-
-
-	}, [leftPlayerScore, rightPlayerScore])
 
 	return (
 		<div className="flex flex-col h-full">
