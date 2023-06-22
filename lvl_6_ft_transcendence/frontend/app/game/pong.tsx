@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useRef } from 'react'
 import { Press_Start_2P } from 'next/font/google'
 
@@ -8,18 +6,72 @@ const pressStart = Press_Start_2P({ weight: '400', subsets: ['latin'] })
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
 
-const PADDLE_OFFSET = 16
 const PADDLE_HEIGHT = 80
+const PADDLE_WALL_OFFSET = 16
 const PADDLE_WIDTH = 10
 const PADDLE_SPEED = 6
+
+const CANVAS_HEIGHT = 400
+const CANVAS_WIDTH = 800
+
+
+class Paddle {
+
+	position: { x: number, y: number }
+	fixedSpeed: number = 0
+
+	constructor(offset: number) {
+		this.position = {
+			x: offset,
+			y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
+		}
+	}
+
+	get y(): number {
+		return this.position.y
+	}
+
+	get x(): number {
+		return this.position.x
+	}
+
+	reset() {
+		this.position.y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
+		this.fixedSpeed = 0
+	}
+
+	move() {
+		if (this.fixedSpeed === 0) return
+
+		const nextPosition = this.position.y + this.fixedSpeed
+		if ((nextPosition > 0 && nextPosition + PADDLE_HEIGHT < CANVAS_HEIGHT)) {
+			this.position.y += this.fixedSpeed
+		}
+	}
+
+	allowMove(moveDown: boolean) {
+		if (moveDown) {
+			this.fixedSpeed = PADDLE_SPEED
+		} else {
+			this.fixedSpeed = -PADDLE_SPEED
+		}
+	}
+
+	blockMove() { this.fixedSpeed = 0 }
+
+	isBallColliding(ballX: number, ballY: number): boolean {
+		return ballX >= this.position.x && ballX <= this.position.x + PADDLE_WIDTH && ballY <= this.position.y + PADDLE_HEIGHT && ballY >= this.position.y
+	}
+
+}
 
 export default function Pong({ givePoint }: { givePoint: (rightPlayer: boolean) => void }) {
 
 	// const [pow] = useSound("./sounds/pow.wav")
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	let leftPaddleY = canvasRef.current ? canvasRef.current.height / 2 - PADDLE_HEIGHT / 2 : 0
-	let rightPaddleY = canvasRef.current ? canvasRef.current.height / 2 - PADDLE_HEIGHT / 2 : 0
+	const leftPaddle = new Paddle(PADDLE_WALL_OFFSET)
+	const rightPaddle = new Paddle(CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET)
 
 	const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
 
@@ -30,7 +82,6 @@ export default function Pong({ givePoint }: { givePoint: (rightPlayer: boolean) 
 		x: 0,
 		y: 0
 	}
-	let paddleMoveDirection = 0
 
 	useEffect(() => {
 		const canvas = canvasRef.current
@@ -41,8 +92,8 @@ export default function Pong({ givePoint }: { givePoint: (rightPlayer: boolean) 
 				context.clearRect(0, 0, canvas.width, canvas.height)
 
 				context.fillStyle = '#FFF'
-				context.fillRect(canvas.width - PADDLE_WIDTH - PADDLE_OFFSET, rightPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT)
-				context.fillRect(0 + PADDLE_OFFSET, leftPaddleY, PADDLE_WIDTH, PADDLE_HEIGHT)
+				context.fillRect(rightPaddle.x, rightPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT)
+				context.fillRect(leftPaddle.x, leftPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT)
 
 				context.beginPath()
 				context.arc(ballX, ballY, ballSize, 0, Math.PI * 2)
@@ -52,8 +103,8 @@ export default function Pong({ givePoint }: { givePoint: (rightPlayer: boolean) 
 
 		const reset = async (delayTime: number) => {
 			if (canvasRef.current) {
-				leftPaddleY = canvasRef.current.height / 2 - PADDLE_HEIGHT / 2
-				rightPaddleY = canvasRef.current.height / 2 - PADDLE_HEIGHT / 2
+				leftPaddle.reset()
+				rightPaddle.reset()
 				ballX = canvasRef.current.width / 2
 				ballY = canvasRef.current.height / 2
 				ballSpeed = {
@@ -68,62 +119,59 @@ export default function Pong({ givePoint }: { givePoint: (rightPlayer: boolean) 
 		}
 
 		function update() {
-			movePaddle()
+			leftPaddle.move()
+			rightPaddle.move()
 
 			ballX += ballSpeed.x
 			ballY += ballSpeed.y
 
-			if (canvas && ballY + ballSize > canvas.height || ballY - ballSize < 0) {
+			const colideWithHorizontalWall = canvas && ballY + ballSize > canvas.height || ballY - ballSize < 0
+			if (colideWithHorizontalWall) {
 				ballSpeed.y *= -1
-
 			}
 
-			if (
-				canvas &&
-				ballX > canvas.width ||
-				ballX < 0
-			) {
+			const passVerticalWall = canvas && ballX > canvas.width || ballX < 0
+			if (passVerticalWall) {
 				givePoint(ballX < 0)
 				reset(3000)
 				return
-			} else if (
-				canvas &&
-				ballX + ballSize > canvas.width - PADDLE_WIDTH - PADDLE_OFFSET &&
-				ballX + ballSize < canvas.width - PADDLE_OFFSET &&
-				ballY + ballSize > rightPaddleY &&
-				ballY - ballSize < rightPaddleY + PADDLE_HEIGHT ||
-				ballX - ballSize < PADDLE_WIDTH + PADDLE_OFFSET &&
-				ballY + ballSize > leftPaddleY &&
-				ballY - ballSize < leftPaddleY + PADDLE_HEIGHT
-			) {
-				ballSpeed.x *= -1
-				const relativeIntersectY = leftPaddleY + PADDLE_HEIGHT / 2 - ballY
-				const normalizedIntersectY = relativeIntersectY / (PADDLE_HEIGHT / 2)
-				ballSpeed.y = -normalizedIntersectY * 4
 			}
+
+			if (leftPaddle.isBallColliding(ballX + ballSize, ballY + ballSize) || rightPaddle.isBallColliding(ballX + ballSize, ballY + ballSize)) {
+				ballSpeed.x *= -1.1
+				ballSpeed.y *= 1.1
+
+				let relativeIntersectY: number
+
+				if (ballX < CANVAS_WIDTH / 2) {
+					relativeIntersectY = leftPaddle.y + PADDLE_HEIGHT / 2 - ballY
+				} else {
+					relativeIntersectY = rightPaddle.y + PADDLE_HEIGHT / 2 - ballY
+				}
+			}
+
 			draw()
 			requestAnimationFrame(update)
 		}
 
 		const handleKeyDown = ({ key }: KeyboardEvent) => {
-			if (KEYDOWN === key || 's' === key) {
-				paddleMoveDirection = PADDLE_SPEED
-			} else if (KEYUP === key || 'w' === key) {
-				paddleMoveDirection = -PADDLE_SPEED
+			if (key === 's' || key === 'w') {
+				leftPaddle.allowMove(key === 's')
+			}
+
+			if (key === KEYDOWN || key === KEYUP) {
+				rightPaddle.allowMove(key === KEYDOWN)
 			}
 		}
 
 		const handleKeyUp = ({ key }: KeyboardEvent) => {
-			if (KEYDOWN === key || 's' === key || KEYUP === key || 'w' === key)
-				paddleMoveDirection = 0
-		}
+			if ('s' === key || 'w' === key) {
+				leftPaddle.blockMove()
+			}
 
-		const movePaddle = () => {
-			if (canvas && (leftPaddleY + paddleMoveDirection < 0 || leftPaddleY + paddleMoveDirection + PADDLE_HEIGHT > canvas.height))
-				return
-
-			leftPaddleY += paddleMoveDirection
-			rightPaddleY += paddleMoveDirection
+			if (KEYDOWN === key || KEYUP === key) {
+				rightPaddle.blockMove()
+			}
 		}
 
 		document.addEventListener('keydown', handleKeyDown)
@@ -136,6 +184,6 @@ export default function Pong({ givePoint }: { givePoint: (rightPlayer: boolean) 
 		}
 	}, [canvasRef])
 
-	return <canvas className='border mx-auto' ref={canvasRef} width={800} height={400}></canvas>
+	return <canvas className='border mx-auto' ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
 }
 
