@@ -39,6 +39,12 @@ fi
 # Allow non-root users to run Docker
 sudo chmod 666 /var/run/docker.sock
 
+# Create docker group
+sudo groupadd docker
+
+# Add current user to the Docker group
+sudo usermod -aG docker $USER
+
 # Install npm
 sudo apt-get install -yq npm nodejs
 

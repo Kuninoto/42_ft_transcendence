@@ -1,24 +1,35 @@
 version: "3.8"
 
-#networks:
-#  transcendence-network:
-#    name: transcendence-network
-#    driver: bridge
-
 services:
-  postgres:
-    container_name: postgres
-    image: postgres:latest
+  #frontend:
+  #  build:
+  #    context: frontend
+  #    target: development
+  #    depends_on:
+  #      - 
+
+  #backend:
+  #  build:
+  #    context: backend
+  #    target: development
+  #    depends_on:
+  #      - db
+
+  db:
+    container_name: db
+    image: postgres:15.3-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      # - /nfs/homes/$(USER)/Desktop/data/transcendence:/var/lib/postgresql/data
-      - /home/${USER}/data/transcendence:/var/lib/postgresql/data
-    env_file:
-      - .env.development
+      # - ./data/db:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-    #networks:
-    #  - transcendence-network
-    restart: on-failure
+    networks:
+      - app-net
+    restart: always
 
   frontend:
     container_name: frontend
@@ -54,3 +65,10 @@ services:
 #    ports:
 #      - 8001:8001
 #    restart: on-failure
+
+networks:
+  app-net:
+    name: app-net
+
+volumes:
+  db_data:
