@@ -1,56 +1,75 @@
 version: "3.8"
 
-#networks:
-#  transcendence-network:
-#    name: transcendence-network
-#    driver: bridge
-
 services:
+  #frontend:
+  #  build:
+  #    context: frontend
+  #    target: development
+  #    depends_on:
+  #      - 
+
+  backend:
+    container_name: transcendence_backend
+    build: ./backend
+    depends_on:
+      - postgres
+      - adminer
+      - nest
+
   postgres:
     container_name: postgres
-    image: postgres:latest
+    image: postgres:alpine
     volumes:
-      # - /nfs/homes/$(USER)/Desktop/data/transcendence:/var/lib/postgresql/data
-      - /home/${USER}/data/transcendence:/var/lib/postgresql/data
+    # - ./data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-net
     env_file:
-      - .env.development
-    ports:
-      - 5432:5432
-    #networks:
-    #  - transcendence-network
-    restart: on-failure
+      - ./backend/.env
+    restart: always
 
-  frontend:
-    container_name: frontend
-    image: node:latest
-    build: frontend/.
+  adminer:
+    container_name: adminer
+    image: adminer:latest
+    environment: 
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: hydra
     ports:
-      - 3000:3000
-    volumes:
-      - ./frontend/app:/app/app
-      - ./frontend/public:/app/public
-    restart: on-failure
+      - 8080:8080
+    networks:
+      - app-net
+    depends_on:
+      - postgres
+    restart: always
 
-#  adminer:
-#    container_name: adminer
-#    image: adminer:latest
-#    env_file:
-#      - .env.development
-#    ports:
-#      - 8080:8080
-#    networks:
-#      - transcendence-network
-#    depends_on:
-#      - postgresql
-#    restart: on-failure
-#
+  nest:
+      container_name: nest
+      build: ./backend/
+      depends_on:
+        - postgres
+      ports:
+        - 3000:3000
+      networks:
+        - app-net
+      env_file:
+      - ./backend/.env
+      restart: always
+
 #  nginx:
 #    container_name: nginx
-#    build: ./backend/
+#    build: ./frontend/
 #    volumes:
 #      - /frontend:/var/www/html
 #    depends_on:
-#      - postgresql
+#      - backend
 #    ports:
 #      - 8001:8001
-#    restart: on-failure
+#    restart: always
+
+networks:
+  app-net:
+    name: app-net
+    driver: bridge
+
+volumes:
+  db_data:
