@@ -6,32 +6,35 @@ services:
   #    context: frontend
   #    target: development
   #    depends_on:
-  #      - 
-
-  backend:
-    container_name: transcendence_backend
-    build: ./backend
-    depends_on:
-      - postgres
-      - adminer
-      - nest
-
+  #      -
   postgres:
     container_name: postgres
     image: postgres:alpine
     volumes:
-    # - ./data:/var/lib/postgresql/data
+      # - ./data/db:/var/lib/postgresql/data
       - db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
     networks:
       - app-net
     env_file:
       - ./backend/.env
     restart: always
 
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - 3001:3000
+    volumes:
+      - ./frontend/app:/app/app
+      - ./frontend/public:/app/public
+    restart: on-failure
+
   adminer:
     container_name: adminer
     image: adminer:latest
-    environment: 
+    environment:
       ADMINER_DEFAULT_SERVER: postgres
       ADMINER_DESIGN: hydra
     ports:
@@ -43,17 +46,17 @@ services:
     restart: always
 
   nest:
-      container_name: nest
-      build: ./backend/
-      depends_on:
-        - postgres
-      ports:
-        - 3000:3000
-      networks:
-        - app-net
-      env_file:
+    container_name: nest
+    build: ./backend/
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
+    networks:
+      - app-net
+    env_file:
       - ./backend/.env
-      restart: always
+    restart: always
 
 #  nginx:
 #    container_name: nginx
@@ -64,7 +67,7 @@ services:
 #      - backend
 #    ports:
 #      - 8001:8001
-#    restart: always
+#    restart: on-failure
 
 networks:
   app-net:

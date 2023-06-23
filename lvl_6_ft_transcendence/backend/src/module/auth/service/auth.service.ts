@@ -10,7 +10,7 @@ export class AuthService {
     // !TODO
     // check nestjs guards
     // and change this protection
-    if (!codeParam) return 'No codeParam buddy :(';
+
     // !TODO
     // wrap this on a try catch
     return await axios
@@ -20,7 +20,7 @@ export class AuthService {
           client_id: process.env.INTRA_CLIENT_UID,
           client_secret: process.env.INTRA_CLIENT_SECRET,
           code: codeParam,
-          redirect_uri: process.env.FRONTEND_URL + '/auth/login',
+          redirect_uri: process.env.FRONTEND_URL + '/auth',
         },
       })
       .then((response) => {
@@ -35,8 +35,6 @@ export class AuthService {
   private async requestUsersInfo(accessToken: string) {
     // !TODO
     // check nestjs guards
-    // and change this protection
-    if (!accessToken) return null;
 
     try {
       const response = await axios.get('https://api.intra.42.fr/v2/me', {
@@ -56,14 +54,15 @@ export class AuthService {
       const accessToken = await this.requestAccessToken(codeParam);
       const UsersInfo = await this.requestUsersInfo(accessToken);
 
-      // if (firstLogin)
-      return this.UsersService.createUser({
-        name: UsersInfo.login,
-        access_token: accessToken,
-        avatar_url: UsersInfo.image.versions.medium,
-      });
-      // else
-      //  this.UsersService.login()
+      if (!await this.UsersService.getUserByName(UsersInfo.login)) {
+        await this.UsersService.createUser({
+          name: UsersInfo.login,
+          access_token: accessToken,
+          avatar_url: UsersInfo.image.versions.medium,
+        });
+      }
+      console.log("User: " + UsersInfo.login + "logging in");
+      return await this.UsersService.getUserByName(UsersInfo.login); 
     } catch (error) {
       console.error('userLogin():\n' + error);
     }
