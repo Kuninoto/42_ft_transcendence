@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { UsersService } from '../../users/service/users.service';
+import passport, { Passport } from 'passport';
 
 @Injectable()
 export class AuthService {
