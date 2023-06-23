@@ -7,5 +7,5 @@ export default function NotFound() {
 				<p className="mt-24 text-xl">MOVE ALONG, THERE IS NOTHING TO SEE HERE</p>
 			</div>
 		</div >
-	)
+	);
 }
