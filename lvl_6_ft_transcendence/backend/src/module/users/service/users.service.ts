@@ -1,9 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { User } from 'src/typeorm';
 import { CreateUserDTO } from '../dto/CreateUser.dto';
 import { UpdateUserDTO } from '../dto/UpdateUser.dto';
+import { SupportInfo } from 'prettier';
 
 @Injectable()
 export class UsersService {
@@ -11,18 +12,20 @@ export class UsersService {
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
   ) {}
 
-  public async getUserByName(name: string) {
+  public async getUserByName(name: string): Promise<User> | undefined {
     return await this.usersRepository.findOneBy({ name: name });
   }
 
-  public async getUserById(id: number) {
+  public async getUserById(id: number): Promise<User> | undefined  {
+    // filter inside data so that it only returns the 'public'
+    // user info
     return await this.usersRepository.findOneBy({ id: id });
   }
 
   // !TODO
   // if nickname is already taken
   // don't create user
-  public async createUser(createUserDTO: CreateUserDTO) {
+  public async createUser(createUserDTO: CreateUserDTO): Promise<User> | undefined {
     //if (this.usersRepository.findOneBy({name: createUserDTO.name})) {
     //  return ?;
     //}
@@ -32,13 +35,13 @@ export class UsersService {
     return await this.usersRepository.save(newUsers);
   }
 
-  public async deleteUserByName(name: string) {
+  public async deleteUserByName(name: string): Promise<DeleteResult> {
     const user = await this.usersRepository.findOneBy({ name: name });
 
     return await this.usersRepository.delete(user);
   }
 
-  public async deleteUserById(id: number) {
+  public async deleteUserById(id: number): Promise<DeleteResult> {
     return await this.usersRepository.delete(id);
   }
 
@@ -50,14 +53,13 @@ export class UsersService {
     });
   }
 
-  public async getUserAvatarURLByName(name: string) {
+  public async getUserAvatarURLByName(name: string): Promise<string> | undefined {
     const user = await this.usersRepository.findOneBy({ name: name });
     return user.avatar_url;
   }
 
-  public async getUserAvatarURLById(id: number) {
-    const user = await this.usersRepository.findOneBy({ id: id });
-    return user.avatar_url;
+  public async getUserAvatarURLById(id: number): Promise<string> | undefined {
+    return (await this.usersRepository.findOneBy({ id: id })).avatar_url;
   }
 
   // !TODO

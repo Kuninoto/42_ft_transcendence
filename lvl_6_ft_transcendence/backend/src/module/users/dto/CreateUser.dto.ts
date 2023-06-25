@@ -8,9 +8,5 @@ export class CreateUserDTO {
 
   @ApiProperty()
   @IsNotEmpty()
-  readonly access_token: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
   readonly avatar_url: string;
 }
