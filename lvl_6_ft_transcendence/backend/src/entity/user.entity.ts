@@ -44,11 +44,5 @@ export class User {
     type: 'varchar',
     nullable: false,
   })
-  access_token: string;
-
-  @Column({
-    type: 'varchar',
-    nullable: false,
-  })
   avatar_url: string;
 }
