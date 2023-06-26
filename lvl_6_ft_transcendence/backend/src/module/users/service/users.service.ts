@@ -26,6 +26,7 @@ export class UsersService {
   // if nickname is already taken
   // don't create user
   public async createUser(createUserDTO: CreateUserDTO): Promise<User> | undefined {
+    console.log("createUser() ...");
     //if (this.usersRepository.findOneBy({name: createUserDTO.name})) {
     //  return ?;
     //}

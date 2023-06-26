@@ -23,13 +23,11 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    async validate(accessToken: string,
-                   refreshToken: string,
-                   profile: User42Info
-    ): Promise<User> {
+    async validate(accessToken: string, refreshToken: string, profile: User42Info): Promise<User> {
       const user = await this.usersService.getUserByName(profile.username);
 
       if (user) {
+        console.log('User' + user.name + ' already exists!');
         return user;
       }
   

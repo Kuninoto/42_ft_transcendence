@@ -1,4 +1,4 @@
-import { Controller, Request, Get, Param, Post, Redirect, UseGuards } from '@nestjs/common';
+import { Controller, Request, Response, Get, Param, Post, Redirect, UseGuards } from '@nestjs/common';
 import { AuthService } from '../service/auth.service';
 import { FortyTwoAuthGuard } from '../guard/fortytwo-guard';
 // take in count state equality check
@@ -7,10 +7,13 @@ import { FortyTwoAuthGuard } from '../guard/fortytwo-guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // POST /auth/login
+  // GET /auth/login
   @UseGuards(FortyTwoAuthGuard) 
   @Get('login')
   public userLogin(@Request() req): any {
+    console.log("usr log")
+    console.log("req.user = " + req.user);
+    // req.user == whatever is returned by validate()
     return req.user;
   }
 
