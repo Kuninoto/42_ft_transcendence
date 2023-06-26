@@ -6,7 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 import { FortyTwoStrategy } from 'src/module/auth/strategy/FortyTwo.strategy';
 
 @Module({
-  imports: [UsersModule, PassportModule],
+  imports: [UsersModule, PassportModule.register({ session: true })],
   providers: [AuthService, FortyTwoStrategy],
   controllers: [AuthController],
 })
