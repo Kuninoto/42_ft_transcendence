@@ -32,14 +32,14 @@ export class UsersController {
   @Get('/:ID')
   public async getUserById(
     @Param('ID', ParseIntPipe) id: number,
-  ): Promise<User> {
+  ): Promise<User | undefined> {
     return await this.usersService.getUserById(id);
   }
 
   // /users/:ID/delete
   // @Param lets us access the request parameters
   @Delete('/:ID/delete')
-  public deleteUserById(@Param('ID', ParseIntPipe) id: number) {
+  public deleteUserById(@Param('ID', ParseIntPipe) id: number): string {
     try {
       this.usersService.deleteUserById(id);
       return 'Successfully deleted user with ID: ' + id;
@@ -70,8 +70,8 @@ export class UsersController {
     @Param('ID') id: number,
     @Param('FILEID') fileId,
     @Res() res,
-  ): Promise<any> {
-    return res.sendFile(fileId, { root: 'upload/avatars' });
+  ) {
+    return await res.sendFile(fileId, { root: 'upload/avatars' });
   }
 
   // !TODO
