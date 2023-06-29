@@ -10,7 +10,7 @@ interface User42Info {
 }
 
 @Injectable()
-export class FortyTwoStrategy extends PassportStrategy(Strategy) {
+export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
     constructor(private usersService: UsersService) {
         super({
             clientID: process.env.INTRA_CLIENT_UID,
@@ -24,7 +24,11 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    async validate(accessToken: string, refreshToken: string, profile: User42Info): Promise<User> {
+    async validate(
+      accessToken: string,
+      refreshToken: string,
+      profile: User42Info
+    ): Promise<User> {
       console.log("validate() called")
       const user : User | undefined  = await this.usersService.getUserByName(profile.username);
 
@@ -32,7 +36,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy) {
         console.log('User' + user.name + ' already exists!');
         return user;
       }
-  
+
       return await this.usersService.createUser({
         name: profile.username,
         avatar_url: profile.avatar_url
