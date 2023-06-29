@@ -30,10 +30,10 @@ export class UsersService {
     //if (this.usersRepository.findOneBy({name: createUserDTO.name})) {
     //  return ?;
     //}
-    const newUsers = this.usersRepository.create(createUserDTO);
+    const newUser = this.usersRepository.create(createUserDTO);
+    newUser.created_at = newUser.last_updated_at = new Date();
 
-    newUsers.created_at = newUsers.last_updated_at = new Date();
-    return await this.usersRepository.save(newUsers);
+    return await this.usersRepository.save(newUser);
   }
 
   public async deleteUserByName(name: string): Promise<DeleteResult> {
