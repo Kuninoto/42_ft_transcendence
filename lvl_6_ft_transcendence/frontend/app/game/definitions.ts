@@ -9,35 +9,13 @@ export const CANVAS_WIDTH = 800
 const SPEED_CAP = 18
 
 export class Paddle {
-	#position: { x: number; y: number }
 	#fixedSpeed: number = 0
+	#position: { x: number; y: number }
 
 	constructor(offset: number) {
 		this.#position = {
 			x: offset,
 			y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
-		}
-	}
-
-	get y(): number {
-		return this.#position.y
-	}
-
-	get x(): number {
-		return this.#position.x
-	}
-
-	reset() {
-		this.#position.y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
-		this.#fixedSpeed = 0
-	}
-
-	move() {
-		if (this.#fixedSpeed === 0) return
-
-		const nextPosition = this.#position.y + this.#fixedSpeed
-		if (nextPosition > 0 && nextPosition + PADDLE_HEIGHT < CANVAS_HEIGHT) {
-			this.#position.y += this.#fixedSpeed
 		}
 	}
 
@@ -53,7 +31,12 @@ export class Paddle {
 		this.#fixedSpeed = 0
 	}
 
-	isBallColliding(left: boolean, ballSpeed: number, ballX: number, ballY: number): boolean {
+	isBallColliding(
+		left: boolean,
+		ballSpeed: number,
+		ballX: number,
+		ballY: number
+	): boolean {
 		if (left && ballSpeed < 0) {
 			return (
 				ballX + ballSpeed <= this.#position.x + PADDLE_WIDTH &&
@@ -70,47 +53,43 @@ export class Paddle {
 		}
 		return false
 	}
+
+	move() {
+		if (this.#fixedSpeed === 0) return
+
+		const nextPosition = this.#position.y + this.#fixedSpeed
+		if (nextPosition > 0 && nextPosition + PADDLE_HEIGHT < CANVAS_HEIGHT) {
+			this.#position.y += this.#fixedSpeed
+		}
+	}
+
+	reset() {
+		this.#position.y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
+		this.#fixedSpeed = 0
+	}
+
+	get x(): number {
+		return this.#position.x
+	}
+
+	get y(): number {
+		return this.#position.y
+	}
 }
 
 export class Ball {
+	#position: { x: number; y: number } = {
+		x: 0,
+		y: 0,
+	}
 	#size: number = 4
 	#speed: { x: number; y: number } = {
 		x: 0,
 		y: 0,
 	}
-	#position: { x: number; y: number } = {
-		x: 0,
-		y: 0,
-	}
-
-	constructor() { }
-
-	set ySpeed(speed: number) {
-		this.#speed.y = speed
-	}
-
-	get left(): number {
-		return this.#position.x
-	}
-
-	get top(): number {
-		return this.#position.y
-	}
-
-	get right(): number {
-		return this.#position.x + this.#size
-	}
 
 	get bottom(): number {
 		return this.#position.y + this.#size
-	}
-
-	get size(): number {
-		return this.#size
-	}
-
-	get speed(): number {
-		return this.#speed.x
 	}
 
 	bounceInX() {
@@ -126,6 +105,15 @@ export class Ball {
 		}
 	}
 
+	get left(): number {
+		return this.#position.x
+	}
+
+	move() {
+		this.#position.x += this.#speed.x
+		this.#position.y += this.#speed.y
+	}
+
 	reset() {
 		this.#position = {
 			x: CANVAS_WIDTH / 2,
@@ -133,13 +121,28 @@ export class Ball {
 		}
 		this.#speed = {
 			x: 0,
-			y: 0
+			y: 0,
 		}
 		this.#speed.x = Math.round(Math.random()) % 2 === 0 ? -4 : 4
 	}
 
-	move() {
-		this.#position.x += this.#speed.x
-		this.#position.y += this.#speed.y
+	get right(): number {
+		return this.#position.x + this.#size
+	}
+
+	get size(): number {
+		return this.#size
+	}
+
+	get speed(): number {
+		return this.#speed.x
+	}
+
+	get top(): number {
+		return this.#position.y
+	}
+
+	set ySpeed(speed: number) {
+		this.#speed.y = speed
 	}
 }
