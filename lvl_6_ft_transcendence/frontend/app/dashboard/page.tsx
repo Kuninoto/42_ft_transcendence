@@ -35,7 +35,7 @@ export default function dashboard() {
 						<div className="text-2xl">Play</div>
 						<div className="">play against someone </div>
 					</Card>
-					<Card path="/game">
+					<Card path="/leaderboard">
 						<div className="text-md">Leaderboard</div>
 						<div></div>
 					</Card>

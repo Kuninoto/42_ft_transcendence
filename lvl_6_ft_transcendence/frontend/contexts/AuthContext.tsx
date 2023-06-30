@@ -12,7 +12,7 @@ type authContextType = {
 
 const authContextDefaultValues: authContextType = {
 	user: {},
-	login: (code: string) => { },
+	login: function (code: string) { },
 }
 
 const AuthContext = createContext<authContextType>(authContextDefaultValues)
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		| {}
 	>({})
 
-	const login = async (code: string) => {
+	async function login (code: string) {
 		return await api
 			.get(`/auth/${code}`)
 			.then((result) => {

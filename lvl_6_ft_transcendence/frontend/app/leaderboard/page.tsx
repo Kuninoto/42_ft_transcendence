@@ -4,7 +4,7 @@ export default function Leaderboard() {
 	return (
 		<>
 			<header className="sticky flex justify-between px-8 py-6">
-				<Link className="fixed" href="/">
+				<Link className="fixed" href="/dashboard">
 					GO BACK
 				</Link>
 				<p className="mx-auto text-4xl">HIGH SCORE</p>
