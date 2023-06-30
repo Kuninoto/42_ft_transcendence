@@ -1,11 +1,15 @@
 'use client'
 
+import { useChat } from '@/contexts/ChatContext'
 import { ChangeEventHandler, useState } from 'react'
 import { GrFormClose } from 'react-icons/gr'
+import { IoIosSettings } from 'react-icons/io'
 
 export default function Chat() {
 	const [isOpen, setIsOpen] = useState(false)
 	const [message, setMessage] = useState('')
+
+	const { close, isOpen: exists } = useChat()
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value
@@ -17,6 +21,8 @@ export default function Chat() {
 			setMessage(event.target.value)
 		}
 	}
+
+	if (!exists) return <></>
 
 	return (
 		<div
@@ -30,9 +36,11 @@ export default function Chat() {
 				>
 					<p className="text-2xl">name</p>
 				</button>
-				<button onClick={() => alert('close')}>
+				<div className='flex'>
+				<button onClick={close}>
 					<GrFormClose size={32} />
 				</button>
+				</div>
 			</div>
 			<div className="relative h-full">
 				chat

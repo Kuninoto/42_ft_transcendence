@@ -63,11 +63,11 @@ export default function Profile() {
 				})}
 			</div>
 
-			<div className="mx-64 flex">
+			<div className="mx-80 flex">
 				{openTab === Tabs.status ? (
 					<Status />
 				) : openTab === Tabs.history ? (
-					<History />
+					 <History />
 				) : (
 					<Friends />
 				)}

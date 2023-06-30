@@ -5,12 +5,16 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
+import { CgShapeTriangle } from 'react-icons/cg'
+import { useChat } from '@/contexts/ChatContext'
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
 
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
+
+	const {open} = useChat()
 
 	return (
 		<div className="flex h-full w-full">
@@ -30,15 +34,14 @@ export default function FriendsList(): JSX.Element {
 						className="my-2 w-full border-b border-white text-start"
 						onClick={() => setOpenGroupsAccordean(!openGroupsAccordean)}
 					>
-						{' '}
-						Groups{' '}
+						Groups
 					</button>
 					<div
-						className={`space-y-2 overflow-hidden transition-all ${
+						className={`space-y-2 flex flex-col overflow-hidden transition-all ${
 							openGroupsAccordean ? 'max-h-full' : 'max-h-0'
 						}`}
 					>
-						<Link className="group" href={'/'}>
+						<button className="group" onClick={open}>
 							<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
 								<div>friend</div>
 								<div className="group-hover:invisible">members count</div>
@@ -46,7 +49,7 @@ export default function FriendsList(): JSX.Element {
 									akjgwe
 								</div>
 							</div>
-						</Link>
+						</button>
 
 						<Link className="group" href={'/'}>
 							<div className="roundend relative flex w-full place-content-around rounded border border-white py-2">
@@ -78,7 +81,7 @@ export default function FriendsList(): JSX.Element {
 						Friends{' '}
 					</button>
 					<div
-						className={`space-y-2 transition-all ${
+						className={`space-y-2 flex flex-col transition-all ${
 							openFriendsAccordean ? 'max-h-full' : 'max-h-0'
 						} overflow-hidden`}
 					>
