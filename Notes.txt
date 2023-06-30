@@ -1,4 +1,3 @@
-User names must have at least 3 chars
 User passwords on their plain text form must have at least 8 length
 
 Dev Adminer login:
@@ -7,3 +6,5 @@ Dev Adminer login:
     user123
     passwd123
     transcendence_db
+
+https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-b5dc96e149f80b24df624871658fdaa8d6610f1efc0a284afab94cbdb7d0420c&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin&response_type=code

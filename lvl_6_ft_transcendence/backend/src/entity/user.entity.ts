@@ -1,5 +1,11 @@
 import { PrimaryGeneratedColumn, Column, Entity } from "typeorm";
 
+export enum UserStatus {
+    ONLINE,
+    OFFLINE,
+    IN_MATCH,
+}
+
 @Entity('user')
 export class User {
     @PrimaryGeneratedColumn({
@@ -9,29 +15,40 @@ export class User {
     id: number;
 
     @Column({
+        type: 'varchar',
         unique: true,
         nullable: false,
     })
     name: string;
 
-    @Column({ default: true })
-    is_online: boolean;
-
+    @Column({
+        type: 'enum',
+        enum: UserStatus,
+        default: UserStatus.ONLINE,
+      })
+    status: UserStatus;
+    
     @Column({ default: true })
     is_auth: boolean;
 
     @Column({ default: false })
     has_2fa: boolean;
 
-    @Column({ default: false })
-    in_match: boolean;
-
     @Column({ type: 'timestamp' })
     created_at: Date;
 
     @Column({ type: 'timestamp' })
-    last_update_at: Date;
+    last_updated_at: Date;
 
-    @Column({ nullable: false })
+    @Column({
+        type: 'varchar',
+        nullable: false
+    })
     access_token: string;
+
+    @Column({
+        type: 'varchar',
+        nullable: false
+    })
+    avatar_url: string;
 }

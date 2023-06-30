@@ -6,7 +6,7 @@ import { Message } from 'src/typeorm';
 
 
 @Module({
-	imports: [TypeOrmModule.forFeature([Message]),],
+	imports: [TypeOrmModule.forFeature([Message])],
   providers: [MessagesGateway, MessagesService]
 })
 export class MessagesModule {}

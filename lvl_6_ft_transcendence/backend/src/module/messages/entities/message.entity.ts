@@ -8,12 +8,6 @@ export class Message {
 		})
 		id: number;
 
-		@Column({
-				unique: true,
-				nullable: false,
-			})
-			name: string;
-			
 		@Column({ nullable: false })
 			text: string;
 			
