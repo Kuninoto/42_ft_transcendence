@@ -1,17 +1,17 @@
-import { useEffect, useRef } from 'react'
 import { Press_Start_2P } from 'next/font/google'
+import { useEffect, useRef } from 'react'
 
 import {
-	Paddle,
 	Ball,
+	CANVAS_HEIGHT,
+	CANVAS_WIDTH,
+	Paddle,
 	PADDLE_HEIGHT,
 	PADDLE_WALL_OFFSET,
 	PADDLE_WIDTH,
-	CANVAS_HEIGHT,
-	CANVAS_WIDTH,
 } from './definitions'
 
-const pressStart = Press_Start_2P({ weight: '400', subsets: ['latin'] })
+const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
@@ -19,7 +19,7 @@ const KEYUP = 'ArrowUp'
 export default function Pong({
 	givePoint,
 }: {
-	givePoint: (rightPlayer: boolean) => void;
+	givePoint: (rightPlayer: boolean) => void
 }) {
 	// const [pow] = useSound("./sounds/pow.wav")
 	const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -139,10 +139,10 @@ export default function Pong({
 
 	return (
 		<canvas
-			className="border mx-auto"
+			className="mx-auto border"
+			height={CANVAS_HEIGHT}
 			ref={canvasRef}
 			width={CANVAS_WIDTH}
-			height={CANVAS_HEIGHT}
 		></canvas>
 	)
 }
