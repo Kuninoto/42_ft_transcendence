@@ -1,12 +1,14 @@
-import { IsNotEmpty, IsOptional, MinLength } from "class-validator";
+import { IsNotEmpty, IsOptional } from "class-validator";
 
 export class UpdateUserDTO {
   @IsNotEmpty()
   @IsOptional()
-  @MinLength(3)
   readonly name: string;
 
   @IsNotEmpty()
   @IsOptional()
-  readonly hashed_pass: string;
+  readonly avatar_url: string;
+
+  @IsNotEmpty()
+  last_updated_at: Date; 
 }

@@ -51,10 +51,14 @@ A website to host the might pong contest!
 [Frontend Overview](https://youtu.be/WG5ikvJ2TKA)  
 [Backend Overview](https://youtu.be/XBu54nfzxAQ)  
 
-[JavaScript 101](https://youtu.be/lkIFF4maKMU)  
-
 [SQL explained in 100 seconds](https://youtu.be/zsjvFFKOm3c)  
 [7 Databases Overview](https://youtu.be/W2Z7fbCLSTw)  
+
+[JavaScript 101](https://youtu.be/lkIFF4maKMU)  
+[Arrow functions in JavaScript](https://youtu.be/kzzkrhzGpkg)  
+[JavaScript Promises in 10 Minutes](https://youtu.be/DHvZLI7Db8E)  
+[JavaScript Promises in 10 Seconds](https://youtu.be/RvYYCGs45L4)  
+[Async Await and Promises](https://youtu.be/vn3tm0quoqE)  
 
 **React**  
 [React in 100 seconds](https://www.youtube.com/watch?v=Tn6-PIqc4UM)  

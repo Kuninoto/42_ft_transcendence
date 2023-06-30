@@ -32,19 +32,19 @@ Backend:
 
 - User 42 OAuth
     - intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
-    GET request part
-
-------------------------------------------- Currently at --------------------------------------
-    - Figure out how to make or call the userService to register a new user 
-    - Figure out what to retrieve from the 42 User and how the user registration should be
+    GET request part ✅
+    - Figure out how to make or call the userService to register a new user ✅
+    - Figure out what to retrieve from the 42 User and how the user registration should be ✅
         (database registering, which fields I want from the 42 API, should I save the avatar endpoint) 
         Should it be a redirect with the user's info as query params?
+    - Figure out why updateUserAvatar() is not being able to update users table
+------------------------------------------- Currently at --------------------------------------
+    - Figure out how to properly route user updates and how to properly link/save the avatar_url on the user database
     
+- Understand JWT and how to keep access_token
 
+- Add checks for when user doesn't exist in (probably) all user service functions
 - Understand NestJS Guards
-
-- Fix timestamp values and format (?) upon user creation
-- Update last_updated_at upon user data update (PATCH)
 
 - Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
 - Stress test misconfigs on JSON Objects

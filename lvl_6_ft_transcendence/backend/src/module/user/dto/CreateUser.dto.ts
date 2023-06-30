@@ -1,10 +1,12 @@
-import { IsNotEmpty, MinLength } from "class-validator";
+import { IsNotEmpty } from "class-validator";
 
 export class CreateUserDTO {
   @IsNotEmpty()
-  @MinLength(3)
   readonly name: string;
 
   @IsNotEmpty()
-  readonly avatar_endpoint: string;
+  readonly access_token: string;
+
+  @IsNotEmpty()
+  readonly avatar_url: string;
 }

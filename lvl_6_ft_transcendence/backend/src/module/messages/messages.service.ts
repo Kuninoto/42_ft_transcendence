@@ -25,12 +25,13 @@ export class MessagesService {
 		return this.clientToUser[clientId];
 	}
 
-	public async create(createMessageDto: CreateMessageDto) {
-		const message = this.msgRepository.create(createMessageDto); // TODO connect with username
-		return this.msgRepository.save(message);
+	async createMessage(createMessageDto: CreateMessageDto) {
+		const message = await this.msgRepository.create(createMessageDto); // TODO connect with username
+		console.log('Yo, I got here and will save the message now');
+		return await this.msgRepository.save(message);
 	}
 
-	public async findAll() {
+	async findAll() {
 		return await this.msgRepository.find();
 	}
 }
