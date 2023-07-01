@@ -15,10 +15,9 @@ const chatContextDefaultValues: chatContextType = {
 const ChatContext = createContext<chatContextType>(chatContextDefaultValues)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
-	const [ isOpen, setIsOpen ] = useState(true)
+	const [ isOpen, setIsOpen ] = useState(false)
 
     function open() {
-    console.log(isOpen)
         setIsOpen(true)
     }
 	

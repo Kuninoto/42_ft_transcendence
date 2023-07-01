@@ -58,7 +58,11 @@ export class Paddle {
 		if (this.#fixedSpeed === 0) return
 
 		const nextPosition = this.#position.y + this.#fixedSpeed
-		if (nextPosition > 0 && nextPosition + PADDLE_HEIGHT < CANVAS_HEIGHT) {
+		if (nextPosition < 0){
+			this.#position.y = 0
+		} else if (nextPosition + PADDLE_HEIGHT > CANVAS_HEIGHT){
+			this.#position.y = CANVAS_HEIGHT - PADDLE_HEIGHT
+		} else {
 			this.#position.y += this.#fixedSpeed
 		}
 	}
@@ -97,7 +101,6 @@ export class Ball {
 	}
 
 	bounceInY() {
-		console.log(this.#speed.x)
 		if (Math.abs(this.#speed.x) >= SPEED_CAP) {
 			this.#speed.x *= -1
 		} else {
