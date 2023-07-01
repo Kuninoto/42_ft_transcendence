@@ -33,10 +33,11 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
       const user : User | undefined  = await this.usersService.getUserByName(profile.username);
 
       if (user) {
-        console.log('User' + user.name + ' already exists!');
+        console.log('User \"' + user.name + '\" already exists!');
         return user;
       }
 
+      console.log('Creating user \"' + profile.username + '\"...');
       return await this.usersService.createUser({
         name: profile.username,
         avatar_url: profile.avatar_url

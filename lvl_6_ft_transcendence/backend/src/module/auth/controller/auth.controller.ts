@@ -11,7 +11,6 @@ export class AuthController {
 
   // GET /auth/login
   @Get('login')
-  @UseGuards(FortyTwoAuthGuard)
   public login(): void {}
 
   @UseGuards(FortyTwoAuthGuard)

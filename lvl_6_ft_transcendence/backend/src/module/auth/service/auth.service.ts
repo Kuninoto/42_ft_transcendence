@@ -20,4 +20,15 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  async verify(token: string): Promise<boolean> {
+    try {
+      const isAuth = await this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 }
