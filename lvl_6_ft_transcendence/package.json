@@ -25,6 +25,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.24.3",
     "@nestjs/core": "^9.4.2",
     "@nestjs/jwt": "^10.0.3",
     "typeorm": "^0.3.16"

@@ -13,7 +13,7 @@ export default function Leaderboard() {
 
 	return (
 		<div className="h-full flex">	
-		<div className="m-auto space-y-10 text-2xl items-center flex flex-col">
+		<div className="m-auto space-y-10 text-4xl items-center flex flex-col">
 			<div className="flex space-x-12">
 			<p>Name</p>
 			<p>vs</p>
@@ -21,7 +21,7 @@ export default function Leaderboard() {
 			</div>
 			<Image
 				alt={'cats playing pong(loading screen)'}
-				className="mx-auto w-80 rounded"
+				className="mx-auto w-96 rounded"
 				height="0"
 				sizes="100vw"
 				src={'/catpong.gif'}
