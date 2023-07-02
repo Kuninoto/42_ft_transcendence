@@ -16,25 +16,22 @@ export class UsersService {
     return await this.usersRepository.find();
   }
 
-  public async findUserByName(name: string): Promise<User> | undefined {
+  public async findUserByName(name: string): Promise<User> | null {
     return await this.usersRepository.findOneBy({ name: name });
   }
 
   // !TODO
-  public async findUserById(id: number): Promise<User> | undefined  {
-    // filter inside data so that it only returns the 'public'
-    // user info
+  public async findUserById(id: number): Promise<User> | null  {
     return await this.usersRepository.findOneBy({ id: id });
   }
 
   // !TODO
-  // if nickname is already taken
-  // don't create user
-  public async createUser(createUserDTO: CreateUserDTO): Promise<User> | undefined {
-    console.log("createUser() ...");
-    //if (this.usersRepository.findOneBy({name: createUserDTO.name})) {
-    //  return ?;
-    //}
+  public async createUser(createUserDTO: CreateUserDTO): Promise<User> | null {
+    // If nickname is already taken don't create user and return null
+    if (this.usersRepository.findOneBy({name: createUserDTO.name})) {
+      return null;
+    }
+
     const newUser = this.usersRepository.create(createUserDTO);
     newUser.created_at = newUser.last_updated_at = new Date();
 
@@ -59,12 +56,12 @@ export class UsersService {
     });
   }
 
-  public async findUserAvatarURLByName(name: string): Promise<string> | undefined {
+  public async findUserAvatarURLByName(name: string): Promise<string> | null {
     const user = await this.usersRepository.findOneBy({ name: name });
     return user.avatar_url;
   }
 
-  public async findUserAvatarURLById(id: number): Promise<string> | undefined {
+  public async findUserAvatarURLById(id: number): Promise<string> | null {
     return (await this.usersRepository.findOneBy({ id: id })).avatar_url;
   }
 

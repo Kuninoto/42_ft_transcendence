@@ -12,7 +12,7 @@ export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'user_id',
+    name: 'id',
   })
   id: number;
 
