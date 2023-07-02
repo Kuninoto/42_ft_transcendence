@@ -4,6 +4,10 @@ import { PassportStrategy } from "@nestjs/passport";
 import { User } from "src/typeorm";
 import { UsersService } from "src/module/users/service/users.service";
 
+// Because we'll specify which info
+// we want from the whole 'me' endpoint
+// of 42's API we need this interface
+// to represent what we'll receive
 interface User42Info {
   username: string;
   avatar_url: string
@@ -12,16 +16,21 @@ interface User42Info {
 @Injectable()
 export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
     constructor(private usersService: UsersService) {
-        super({
-            clientID: process.env.INTRA_CLIENT_UID,
-            clientSecret: process.env.INTRA_CLIENT_SECRET,
-            callbackURL: process.env.INTRA_REDIRECT_URI,
-            profileFields: {
-                'username': 'login',
-                'avatar_url': 'image.versions.medium'
-            },
-            scope: 'public'
-        });
+
+      console.log("INTRA_CLIENT_UID= " + process.env.INTRA_CLIENT_UID);
+      console.log("INTRA_CLIENT_SECRET= " + process.env.INTRA_CLIENT_SECRET);
+      console.log("INTRA_REDIRECT_URI= " + process.env.INTRA_REDIRECT_URI);
+
+      super({
+          clientID: process.env.INTRA_CLIENT_UID,
+          clientSecret: process.env.INTRA_CLIENT_SECRET,
+          callbackURL: process.env.INTRA_REDIRECT_URI,
+          profileFields: {
+              'username': 'login',
+              'avatar_url': 'image.versions.medium'
+          },
+          scope: 'public'
+      });
     }
 
     async validate(
@@ -30,14 +39,14 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
       profile: User42Info
     ): Promise<User> {
       console.log("validate() called")
-      const user : User | undefined  = await this.usersService.getUserByName(profile.username);
+      const user: User | undefined  = await this.usersService.findUserByName(profile.username);
 
       if (user) {
         console.log('User \"' + user.name + '\" already exists!');
         return user;
       }
 
-      console.log('Creating user \"' + profile.username + '\"...');
+      console.log('Creating user \"' + profile.username + '\"');
       return await this.usersService.createUser({
         name: profile.username,
         avatar_url: profile.avatar_url

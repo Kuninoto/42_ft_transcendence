@@ -1,12 +1,6 @@
 version: "3.8"
 
 services:
-  #frontend:
-  #  build:
-  #    context: frontend
-  #    target: development
-  #    depends_on:
-  #      -
   postgres:
     container_name: postgres
     image: postgres:alpine
@@ -56,6 +50,8 @@ services:
       - app-net
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend:/app
     restart: always
 
 #  nginx:

@@ -3,16 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { UsersService } from 'src/module/users/service/users.service';
 
-export interface TokenPayload {
-  iat: number;
-  exp: number;
-  login: string;
-  has_2fa: boolean;
-  is_2fa_auth?: boolean;
-}
-
-export interface Payload {
-  login: string;
+export interface PayloadWithAccessToken {
+  id: number;
   access_token: string;
 }
 
@@ -25,10 +17,8 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: TokenPayload) {
-    console.log(payload);
-
-    const user = await this.usersService.getUserByName(payload.login);
+  async validate(payload: PayloadWithAccessToken) {
+    const user = await this.usersService.findUserById(payload.id);
 
     if (!user) {
       throw new UnauthorizedException();

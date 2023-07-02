@@ -2,8 +2,8 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
 import { User } from 'src/typeorm';
-import { CreateUserDTO } from '../dto/CreateUser.dto';
-import { UpdateUserDTO } from '../dto/UpdateUser.dto';
+import { CreateUserDTO } from '../dto/create-user.dto';
+import { UpdateUserDTO } from '../dto/update-user.dto';
 import { SupportInfo } from 'prettier';
 
 @Injectable()
@@ -12,11 +12,16 @@ export class UsersService {
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
   ) {}
 
-  public async getUserByName(name: string): Promise<User> | undefined {
+  public async findAll(): Promise<User[]> {
+    return await this.usersRepository.find();
+  }
+
+  public async findUserByName(name: string): Promise<User> | undefined {
     return await this.usersRepository.findOneBy({ name: name });
   }
 
-  public async getUserById(id: number): Promise<User> | undefined  {
+  // !TODO
+  public async findUserById(id: number): Promise<User> | undefined  {
     // filter inside data so that it only returns the 'public'
     // user info
     return await this.usersRepository.findOneBy({ id: id });
@@ -54,12 +59,12 @@ export class UsersService {
     });
   }
 
-  public async getUserAvatarURLByName(name: string): Promise<string> | undefined {
+  public async findUserAvatarURLByName(name: string): Promise<string> | undefined {
     const user = await this.usersRepository.findOneBy({ name: name });
     return user.avatar_url;
   }
 
-  public async getUserAvatarURLById(id: number): Promise<string> | undefined {
+  public async findUserAvatarURLById(id: number): Promise<string> | undefined {
     return (await this.usersRepository.findOneBy({ id: id })).avatar_url;
   }
 

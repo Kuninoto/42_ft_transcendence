@@ -4,23 +4,15 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 // !TODO
-// remove this, it's just for testing purposes
-// to allow different hosts to communicate
-// i.e a test frontend will run on localhost:8080
-// and the backend on localhost:3000
-// this allows them to communicate
+// Review cors utility
 import * as cors from 'cors';
+import * as session from 'express-session';
+import * as passport from 'passport';
+
+console.log("EXPRESS_SESSION_SECRET= " + process.env.EXPRESS_SESSION_SECRET);
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  app.use(cors());
-
-  //app.enableCors({
-  //  origin: process.env.FRONTEND_URL,
-  //  credentials: true,
-  //  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
-  //});
 
   const config = new DocumentBuilder()
     .setTitle('Transcendence API')
@@ -31,7 +23,24 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('help', app, document);
 
+  app.enableCors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'DELETE', 'PATCH'],
+  });
+
+  app.use(
+    session({
+      secret: process.env.EXPRESS_SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   app.useGlobalPipes(new ValidationPipe());
+
 // app.setGlobalPrefix('api');
   await app.listen(3000);
 }

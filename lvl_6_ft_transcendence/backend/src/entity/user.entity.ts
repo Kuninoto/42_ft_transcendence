@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
 
 export enum UserStatus {
@@ -8,12 +9,14 @@ export enum UserStatus {
 
 @Entity('User')
 export class User {
+  @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
     name: 'user_id',
   })
   id: number;
 
+  @ApiProperty()
   @Column({
     type: 'varchar',
     unique: true,
@@ -21,6 +24,7 @@ export class User {
   })
   name: string;
 
+  @ApiProperty()
   @Column({
     type: 'enum',
     enum: UserStatus,
@@ -28,18 +32,23 @@ export class User {
   })
   status: UserStatus;
 
+  @ApiProperty()
   @Column({ default: true })
   is_auth: boolean;
 
+  @ApiProperty()
   @Column({ default: false })
   has_2fa: boolean;
 
+  @ApiProperty()
   @Column({ type: 'timestamp' })
   created_at: Date;
 
+  @ApiProperty()
   @Column({ type: 'timestamp' })
   last_updated_at: Date;
 
+  @ApiProperty()
   @Column({
     type: 'varchar',
     nullable: false,
