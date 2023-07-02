@@ -8,23 +8,23 @@ export class SessionSerializer extends PassportSerializer {
     super();
   }
 
-  serializeUser(user: any, done: (err: Error, user: any) => void): any {
-    console.log(user);
-    done(null, user.login);
+  public serializeUser(
+    user: any,
+    done: (err: Error, user: any) => void
+  ): any {
+    done(null, user.id);
   }
 
-  async deserializeUser(
+  public async deserializeUser(
     payload: any,
-    done: (err: Error, user: any) => void,
+    done: (err: Error, user: any) => void
   ): Promise<any> {
-    console.log('\nDeserialize');
-    console.log(payload);
-
-    const user = await this.usersService.getUserByName(payload.login);
+    const user = await this.usersService.findUserById(payload.id);
 
     if (!user) {
       done(null, null);
     }
+
     done(null, user);
   }
 }

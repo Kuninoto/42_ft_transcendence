@@ -2,26 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/module/users/service/users.service';
 import { User } from 'src/typeorm';
+import { PayloadWithAccessToken } from '../strategy/jwt-auth.strategy';
+
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly UsersService: UsersService,
     private jwtService: JwtService
   ) {}
 
-  async login(user: User) {
-    const payload = {
-      login: user.name,
-    };
-
+  public login(user: User): PayloadWithAccessToken {
     return {
-      login: payload.login,
-      access_token: this.jwtService.sign(payload),
+      id: user.id,
+      access_token: this.jwtService.sign({id: user.id}),
     };
   }
 
-  async verify(token: string): Promise<boolean> {
+  public async verify(token: string): Promise<boolean> {
     try {
       const isAuth = await this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
