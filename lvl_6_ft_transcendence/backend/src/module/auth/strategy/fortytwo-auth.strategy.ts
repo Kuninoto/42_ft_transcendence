@@ -1,13 +1,14 @@
-import { Strategy } from 'passport-42';
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
+import { Strategy } from 'passport-42';
 import { User } from "src/typeorm";
 import { UsersService } from "src/module/users/service/users.service";
 
 // Because we'll specify which info
 // we want from the whole 'me' endpoint
-// of 42's API we need this interface
-// to represent what we'll receive
+// of 42's API we need this interface,
+// instead of the Profile object from passport-42, to
+// represent the info what we'll in fact receive
 interface User42Info {
   username: string;
   avatar_url: string
@@ -38,7 +39,6 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
       refreshToken: string,
       profile: User42Info
     ): Promise<User> {
-      console.log("validate() called")
       const user: User | undefined  = await this.usersService.findUserByName(profile.username);
 
       if (user) {

@@ -21,14 +21,19 @@ import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // GET /users/:id
+  /**
+   * GET /api/users/:id
+   * 
+   * This is the route to visit to retrieve user's
+   * (indentified by id) info
+   */
   @ApiOkResponse({ type: User, description: "Returns user's info with the id equal to the id parameter" })
   @ApiNotFoundResponse()
   @UseGuards(JwtAuthGuard)
   @Get('/:id')
   public async getUserById(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<User | null> {
+  ): Promise<User> {
     const user = await this.usersService.findUserById(id);
 
     if (!user) {
@@ -61,9 +66,13 @@ export class UsersController {
   //) {
   //  return await res.sendFile(fileId, { root: 'upload/avatars' });
   //}
-
   
-  // PATCH /users/:ID
+  /**
+  * PATCH /api/users/:id
+  * 
+  * This is the route to visit to update any user's
+  * (indentified by id) info
+  */
   @ApiOkResponse({ description: "Updates user info (name or avatar)" })
   @UseGuards(JwtAuthGuard)
   @Patch('/:id')
@@ -74,7 +83,12 @@ export class UsersController {
     return await this.usersService.updateUserById(id, updateUserDTO);
   }
 
-  // DELETE /users/:id
+  /**
+  * DELETE /api/users/:id
+  * 
+  * This is the route to visit to delete any user's
+  * (indentified by id) info from the database
+  */
   @ApiOkResponse({ description: "Deletes the user with the id equal to the id parameter" })
   @UseGuards(JwtAuthGuard)
   @Delete('/:id')

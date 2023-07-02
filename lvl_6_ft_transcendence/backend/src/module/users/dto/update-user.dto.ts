@@ -12,11 +12,11 @@ export class UpdateUserDTO {
   @IsOptional()
   readonly avatar_url?: string;
 
-  @ApiProperty()
   @IsNotEmpty()
   @IsOptional()
-  readonly has_2fa?: boolean;
+  readonly secret_2fa?: string;
 
   @IsNotEmpty()
+  @IsOptional()
   last_updated_at?: Date;
 }

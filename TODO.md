@@ -39,6 +39,7 @@ User Auth:
 
 ------------------------------------------- Currently at --------------------------------------
         - How to keep JWT access_token
+        - Review current session/token security (https://stackoverflow.com/questions/21978658/invalidating-json-web-tokens)
         - Figure out how to store/serve avatars
 
     Google (2fa):
@@ -51,4 +52,4 @@ User Auth:
 
 - Hash the passwords with salt (on the frontend)
 
-- Review the routes architecture (take as an example the routes of full-grown sites)
+- Develop docs perhaps a flowchart

@@ -35,7 +35,7 @@ A website to host the might pong contest!
 3- Navigate to _lvl_6_ft_transcendence_ 
 
     cd 42_ft_transcendence/lvl_6_ft_transcendence
-4- Write a .env file like the one on srcs/.env.example to use your very own configurations  
+4- Write a .env file on ./backend and ./frontend like the .env.example to use your very own configurations  
 
 ###  Subject (v12.1): [ft_transcendence en_subject](./extras/en.subject_ft_transcendence.pdf)
 
@@ -79,6 +79,7 @@ A website to host the might pong contest!
 [JWT usage vs. Session](https://stackoverflow.com/questions/43452896/authentication-jwt-usage-vs-session)  
 [JWT vs. Opaque tokens](https://zitadel.com/blog/jwt-vs-opaque-tokens)  
 [Passportjs serializerUser and deserializeUser](https://stackoverflow.com/questions/29066348/passportjs-serializeuser-and-deserializeuser-execution-flow)  
+[2fa with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
 
 **PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  

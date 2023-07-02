@@ -41,12 +41,15 @@ export class User {
   has_2fa: boolean;
 
   @ApiProperty()
-  @Column({ type: 'timestamp' })
-  created_at: Date;
+  @Column({ default: false })
+  is_2fa_authed: boolean;
 
   @ApiProperty()
-  @Column({ type: 'timestamp' })
-  last_updated_at: Date;
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  secret_2fa: string;
 
   @ApiProperty()
   @Column({
@@ -54,4 +57,12 @@ export class User {
     nullable: false,
   })
   avatar_url: string;
+
+  @ApiProperty()
+  @Column({ type: 'timestamp' })
+  created_at: Date;
+
+  @ApiProperty()
+  @Column({ type: 'timestamp' })
+  last_updated_at: Date;
 }
