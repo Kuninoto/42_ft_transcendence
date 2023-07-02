@@ -15,7 +15,6 @@
 <img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL" alt="PostgreSQL Logo" width="50" height="50" />&nbsp; 
 <img src="https://github.com/devicons/devicon/blob/master/icons/docker/docker-original.svg" title="Docker" alt="Docker Logo" width="65" height="65" />  
 
-
 ### Overview
 A website to host the might pong contest!
 
@@ -77,6 +76,9 @@ A website to host the might pong contest!
 [Nest.JS Tutorial - Setting up Passport, OAuth2, TypeORM, Sessions, Session Store, Database](https://www.youtube.com/watch?v=vGafqCNCCSs)  
 [Introduction to JWT](https://jwt.io/introduction/)  
 [JWT Authentication best practices](https://blog.logrocket.com/jwt-authentication-best-practices/)  
+[JWT usage vs. Session](https://stackoverflow.com/questions/43452896/authentication-jwt-usage-vs-session)  
+[JWT vs. Opaque tokens](https://zitadel.com/blog/jwt-vs-opaque-tokens)  
+[Passportjs serializerUser and deserializeUser](https://stackoverflow.com/questions/29066348/passportjs-serializeuser-and-deserializeuser-execution-flow)  
 
 **PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  

@@ -5,8 +5,8 @@ import { AuthGuard } from "@nestjs/passport";
 export class FortyTwoAuthGuard extends AuthGuard('42') implements CanActivate { 
 
     async canActivate(context: ExecutionContext) : Promise<boolean> {
-        const result = (await super.canActivate(context)) as boolean;
-        const request = context.switchToHttp().getRequest();
+        const result: boolean = (await super.canActivate(context)) as boolean;
+        const request: any = context.switchToHttp().getRequest();
 
         await super.logIn(request);
         return result;
