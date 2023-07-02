@@ -40,8 +40,8 @@ async function bootstrap() {
   app.use(passport.session());
 
   app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('api');
 
-// app.setGlobalPrefix('api');
   await app.listen(3000);
 }
 

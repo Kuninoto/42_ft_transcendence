@@ -8,10 +8,13 @@ import { User } from 'src/typeorm';
 // - User id (which we signed before)
 // - Issued at (automatic jwt info)
 // - Expiration dates (automatic jwt info)
-export interface JwtPayload {
+export interface TokenPayload {
   id: number;
-  iat: number;
-  exp: number;
+  has_2fa: boolean,
+  is_auth: boolean,
+  is_2fa_authed: boolean,
+  iat?: number;
+  exp?: number;
 }
 
 @Injectable()
@@ -24,7 +27,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: TokenPayload) {
     const user: User | null = await this.usersService.findUserById(payload.id);
     console.log(user);
 
@@ -32,6 +35,11 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    return user;
+    // if user doesn't have 2fa or has 2fa and is 2f authenticated, return user
+    if (!payload.has_2fa || payload.has_2fa && payload.is_2fa_authed) {
+      return user;
+    } else {
+      throw new UnauthorizedException();
+    }
   }
 }
