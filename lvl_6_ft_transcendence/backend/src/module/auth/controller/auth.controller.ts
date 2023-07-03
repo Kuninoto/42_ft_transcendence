@@ -2,10 +2,10 @@ import { Controller, Req, Res, Body, Get, Post, UseGuards, UnauthorizedException
 import { AuthService, twoFactorAuthDTO } from '../service/auth.service';
 import { FortyTwoAuthGuard } from '../guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
+import { AuthenticatedGuard } from '../guard/authenticated.guard';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/module/users/service/users.service';
 import { User } from 'src/typeorm';
-import { throws } from 'assert';
 
 /**
  * Guards act as Middleware of validation
