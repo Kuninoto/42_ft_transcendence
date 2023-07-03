@@ -32,17 +32,17 @@ GET POST DELETE PATCH on User Module ✅
 Understand NestJS Guards ✅
 
 User Auth:
+    Google Authenticator (2fa) ✅
     42:
         intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
         - 42's Auth using passport-42 ✅
         - Understand JWT ✅
 
-------------------------------------------- Currently at --------------------------------------
         - How to keep JWT access_token
+------------------------------------------- Currently at --------------------------------------
+        - Understand/Review the session logic, login/logout and figure out how to 
         - Review current session/token security (https://stackoverflow.com/questions/21978658/invalidating-json-web-tokens)
         - Figure out how to store/serve avatars
-
-    Google (2fa):
 
 
 - Add checks for when user doesn't exist in (probably) all user service functions
