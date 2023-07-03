@@ -4,6 +4,13 @@ import { FortyTwoAuthGuard } from '../guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/module/users/service/users.service';
+import { User } from 'src/typeorm';
+
+/**
+ * Guards act as Middleware of validation
+ * and also make the user binded to that JWT
+ * available at req.user
+ */
 
 @ApiTags('auth')
 @Controller('auth')
@@ -24,6 +31,16 @@ export class AuthController {
   public login() {
     return;
   };
+
+  // passport flow
+  // request -> guard -> strategy -> session serializer
+
+  // !TODO
+  // Figure out how to login with 2fa
+  // i.e glue the pieces of the 2fa 
+  // with the login
+  // JwtAuthGuard checks them both
+  // so that could be a good option 
 
   /**
    * GET /api/auth/login/callback
@@ -50,52 +67,94 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('logout')
-  public logout() {
+  public logout(@Req() req: any, @Res() res: any) {
+    const userName = req.user.name;
 
+    return req.logOut(() => {
+      res.json({
+        user: userName,
+        message: 'User has been logged out!',
+      });
+    });
   };
 
-  // TODO
+/**
+ * 2fa FLOW above the hood
+ * 
+ * Install Google Authenticator
+ * Open the app and scan the QRCode product of POST /api/auth/2fa/generate
+ * POST /api/auth/2fa/enable WITH the one-time code to update the user's info on db
+ *
+ * Side note for life quality: twoFactorAuthCode must be in all glued together
+ * even if the code on the app looks like: 123 456 it should be passed as 123456
+ */
+
   /**
-   * POST /api/auth/2fa/turn-on
+   * POST /api/auth/2fa/enable
    * 
-   * 
-   * @returns 
+   * Enables two factor authentication
+   * Must be called AFTER a POST /api/auth/2fa/generate is made
    */
   @UseGuards(JwtAuthGuard)
-  @Post('2fa/turn-on')
-  public async turnOn2fa(@Req() req: any, @Body() body: any): Promise<void> {
-    const is2faCodeValid = this.authService.is2faCodeValid(body._2faAuthCode, req.user._2faSecret);
+  @Post('2fa/enable')
+  public async enable2fa(
+    @Req() req: { user: User },
+    @Body() body: { twoFactorAuthCode: string }
+  ): Promise<void> {
+    const is2faCodeValid = this.authService.is2faCodeValid(body.twoFactorAuthCode, req.user.secret_2fa);
     if (!is2faCodeValid) {
       throw new UnauthorizedException("Wrong authentication code");
     }
 
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
+    this.authService.login2fa(req.user);
   }
 
+  /**
+   * POST /api/auth/2fa/disable
+   * 
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa/disable')
+  public async disable2fa(
+    @Req() req: { user: User },
+  ): Promise<void> {
+    await this.usersService.disable2fa(req.user.id);
+  }
+
+  /**
+   * POST /api/auth/2fa/generate
+   * 
+   * This route returns a QRCode that,
+   * when read with Google Authenticator,
+   * registers our App; so that later
+   * the user can use the codes as a 2fa method 
+   * @returns QRCode for Google Authenticator
+   */
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
-  async generate2fa(@Res() res, @Req() req) {
-    const info_2fa: twoFactorAuthDTO = await this.authService.generate2faSecret();
+  async generate2fa(@Res() res: any, @Req() req: { user: User }) {
+    const info2fa: twoFactorAuthDTO = await this.authService.generate2faSecret();
 
-    await this.usersService.updateUserById(req.user.id, { secret_2fa: info_2fa.secret });
+    await this.usersService.updateUserById(req.user.id, { secret_2fa: info2fa.secret });
 
     return res.json(
-      await this.authService.generateQRCodeDataURL(info_2fa.otpAuthURL),
+      await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL),
     );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('2fa/authenticate')
-  async auth2fa(@Req() request, @Body() body) {
+  async auth2fa(@Req() req: { user: User }, @Body() body: { twoFactorAuthCode: string }) {
     const isCodeValid = this.authService.is2faCodeValid(
-      body.twoFactorAuthenticationCode,
-      request.user,
+      body.twoFactorAuthCode,
+      req.user.secret_2fa,
     );
 
     if (!isCodeValid) {
       throw new UnauthorizedException('Wrong authentication code');
     }
 
-    return this.authService.login(request.user);
+    return this.authService.login(req.user);
   }
 }

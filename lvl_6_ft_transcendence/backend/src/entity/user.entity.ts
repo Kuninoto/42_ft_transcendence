@@ -33,16 +33,8 @@ export class User {
   status: UserStatus;
 
   @ApiProperty()
-  @Column({ default: true })
-  is_auth: boolean;
-
-  @ApiProperty()
   @Column({ default: false })
   has_2fa: boolean;
-
-  @ApiProperty()
-  @Column({ default: false })
-  is_2fa_authed: boolean;
 
   @ApiProperty()
   @Column({

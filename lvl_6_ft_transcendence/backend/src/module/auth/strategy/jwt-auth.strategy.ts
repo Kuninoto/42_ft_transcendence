@@ -5,14 +5,15 @@ import { UsersService } from 'src/module/users/service/users.service';
 import { User } from 'src/typeorm';
 
 // JWT Payload
-// - User id (which we signed before)
+// - User id
+// - Has 2 Factor Authentication
+// - Is 2 Factor Authenticated
 // - Issued at (automatic jwt info)
 // - Expiration dates (automatic jwt info)
 export interface TokenPayload {
   id: number;
   has_2fa: boolean,
-  is_auth: boolean,
-  is_2fa_authed: boolean,
+  is_2fa_authed?: boolean,
   iat?: number;
   exp?: number;
 }
