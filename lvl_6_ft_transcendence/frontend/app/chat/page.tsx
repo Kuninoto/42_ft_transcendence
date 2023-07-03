@@ -36,10 +36,10 @@ export default function Chat() {
 				>
 					<p className="text-2xl">name</p>
 				</button>
-				<div className='flex'>
-				<button onClick={close}>
-					<GrFormClose size={32} />
-				</button>
+				<div className="flex">
+					<button onClick={close}>
+						<GrFormClose size={32} />
+					</button>
 				</div>
 			</div>
 			<div className="relative h-full">
@@ -50,7 +50,7 @@ export default function Chat() {
 				className={`mx-2 mb-2 ${message.length === 0 ? 'max-h-10' : 'max-h-24'} 
 				resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none transition-all duration-500`}
 				cols={2}
-				onChange={handleChange}
+						onChange={handleChange}
 				placeholder="Write something beutiful"
 				value={message}
 			/>

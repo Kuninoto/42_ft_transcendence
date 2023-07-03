@@ -67,7 +67,7 @@ export default function Profile() {
 				{openTab === Tabs.status ? (
 					<Status />
 				) : openTab === Tabs.history ? (
-					 <History />
+					<History />
 				) : (
 					<Friends />
 				)}

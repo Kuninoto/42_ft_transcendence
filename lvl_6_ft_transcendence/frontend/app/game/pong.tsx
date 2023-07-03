@@ -96,7 +96,9 @@ export default function Pong({
 					relativeIntersectY = rightPaddle.y + PADDLE_HEIGHT / 2 - ball.top
 				}
 
-				ball.ySpeed = (-relativeIntersectY / (PADDLE_HEIGHT / 2) ) * 6 + (-1 + Math.random() * 2)
+				ball.ySpeed =
+					(-relativeIntersectY / (PADDLE_HEIGHT / 2)) * 6 +
+					(-1 + Math.random() * 2)
 			} else if (ball.left > CANVAS_WIDTH || ball.right < 0) {
 				givePoint(ball.left < 0)
 				reset(3 * 1000)

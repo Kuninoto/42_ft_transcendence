@@ -1,90 +1,105 @@
 import {
   Controller,
   Get,
-  Post,
   Delete,
   Patch,
   Body,
   Param,
-  Res,
-  Query,
-  UsePipes,
   ParseIntPipe,
-  ValidationPipe,
-  UploadedFile,
-  UseInterceptors,
+  NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from '../service/users.service';
-import { CreateUserDTO } from '../dto/CreateUser.dto';
-// import { UpdateUserDTO } from '../dto/UpdateUser.dto';
 import { User } from '../../../entity/user.entity';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { multerConfig } from '../middleware/multer/multer.config';
+import { ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { UpdateUserDTO } from '../dto/update-user.dto';
+import { UpdateResult } from 'typeorm';
+import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // !TODO
-  // Should it be a route or with params?
-
-  // GET /users/id
-  @Get('/:ID')
+  /**
+   * GET /api/users/:id
+   * 
+   * This is the route to visit to retrieve user's
+   * (indentified by id) info
+   */
+  @ApiOkResponse({ type: User, description: "Returns user's info with the id equal to the id parameter" })
+  @ApiNotFoundResponse()
+  @UseGuards(JwtAuthGuard)
+  @Get('/:id')
   public async getUserById(
-    @Param('ID', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<User> {
-    return await this.usersService.getUserById(id);
-  }
+    const user = await this.usersService.findUserById(id);
 
-  // /users/:ID/delete
-  // @Param lets us access the request parameters
-  @Delete('/:ID/delete')
-  public deleteUserById(@Param('ID', ParseIntPipe) id: number) {
-    try {
-      this.usersService.deleteUserById(id);
-      return 'Successfully deleted user with ID: ' + id;
-    } catch (err) {
-      return 'Failed to delete user with ID: ' + id;
+    if (!user) {
+      throw new NotFoundException(); 
     }
+
+    return user;
   }
 
   // !TODO
   // users/:ID/edit/avatar
-  @Post('/:ID/edit/avatar')
-  @UseInterceptors(FileInterceptor('avatar', multerConfig))
-  public async updateUserAvatarByName(
-    @Param('ID') id: number,
-    @UploadedFile() avatar,
-  ) {
-    const avatarURL = '../upload/avatars/' + avatar.filename;
+  //@Post('/:ID/edit/avatar')
+  //@UseInterceptors(FileInterceptor('avatar', multerConfig))
+  //public async updateUserAvatarById(
+  //  @Param('ID') id: number,
+  //  @UploadedFile() avatar,
+  //) {
+  //  const avatarURL = '../upload/avatars/' + avatar.filename;
 
-    return await this.usersService.updateUserById(id, {
-      name: undefined,
-      avatar_url: avatarURL,
-      last_updated_at: undefined,
-    });
+  //  return await this.usersService.updateUserById(id, {
+  //    avatar_url: avatarURL,
+  //  });
+  //}
+
+  //@Get('/avatars/:FILEID')
+  //public async serveAvatar(
+  //  @Param('ID') id: number,
+  //  @Param('FILEID') fileId,
+  //  @Res() res,
+  //) {
+  //  return await res.sendFile(fileId, { root: 'upload/avatars' });
+  //}
+  
+  /**
+  * PATCH /api/users/:id
+  * 
+  * This is the route to visit to update any user's
+  * (indentified by id) info
+  */
+  @ApiOkResponse({ description: "Updates user info (name or avatar)" })
+  @UseGuards(JwtAuthGuard)
+  @Patch('/:id')
+  public async updateUserById(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDTO: UpdateUserDTO,
+  ) : Promise<UpdateResult> {
+    return await this.usersService.updateUserById(id, updateUserDTO);
   }
 
-  @Get('/avatars/:FILEID')
-  public async serveAvatar(
-    @Param('ID') id: number,
-    @Param('FILEID') fileId,
-    @Res() res,
-  ): Promise<any> {
-    return res.sendFile(fileId, { root: 'upload/avatars' });
-  }
-
-  // !TODO
-  // users/:ID/edit/name
-  @Patch('/:ID/edit/name')
-  public async updateUserByName(
-    @Param('ID') id: number,
-    @Body('name') newName: string,
-  ) {
-    return await this.usersService.updateUserById(id, {
-      name: newName,
-      last_updated_at: undefined,
-      avatar_url: undefined,
-    });
+  /**
+  * DELETE /api/users/:id
+  * 
+  * This is the route to visit to delete any user's
+  * (indentified by id) info from the database
+  */
+  @ApiOkResponse({ description: "Deletes the user with the id equal to the id parameter" })
+  @UseGuards(JwtAuthGuard)
+  @Delete('/:id')
+  public async deleteUserById(
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<string> {
+    try {
+      await this.usersService.deleteUserById(id);
+      return 'Successfully deleted user with id: ' + id;
+    } catch (err) {
+      return 'Failed to delete user with ID: ' + id;
+    }
   }
 }

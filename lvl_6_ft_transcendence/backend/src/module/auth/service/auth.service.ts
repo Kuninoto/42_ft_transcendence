@@ -1,70 +1,84 @@
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
-import { UsersService } from '../../users/service/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/typeorm';
+import { authenticator } from 'otplib';
+import { toDataURL } from 'qrcode';
+import { TokenPayload } from '../strategy/jwt-auth.strategy';
+
+export interface twoFactorAuthDTO {
+  secret: string,
+  otpAuthURL: string
+}
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly UsersService: UsersService) {}
+  constructor(
+    private jwtService: JwtService
+  ) {}
 
-  private async requestAccessToken(codeParam: string) {
-    // !TODO
-    // check nestjs guards
-    // and change this protection
-
-    // !TODO
-    // wrap this on a try catch
-    return await axios
-      .post('https://api.intra.42.fr/oauth/token', null, {
-        params: {
-          grant_type: 'authorization_code',
-          client_id: process.env.INTRA_CLIENT_UID,
-          client_secret: process.env.INTRA_CLIENT_SECRET,
-          code: codeParam,
-          redirect_uri: process.env.FRONTEND_URL + '/auth',
-        },
-      })
-      .then((response) => {
-        return response.data.access_token;
-      })
-      .catch((error) => {
-        console.error('requestAccessToken():\n' + error);
-        return error;
-      });
+  // Return the signed JWT as access_token
+  public login(user: User): { access_token: string } {
+    const payload: TokenPayload = {
+      id: user.id,
+      has_2fa: user.has_2fa
+    }
+    console.log("User \"" + user.name + "\" logging in with 42...");
+    return {
+      access_token: this.jwtService.sign(payload)
+    };
   }
 
-  private async requestUsersInfo(accessToken: string) {
-    // !TODO
-    // check nestjs guards
+  // Return the signed JWT as access_token
+  public authenticate2fa(user: User): { access_token: string } {
+    const payload: TokenPayload = {
+      id: user.id,
+      has_2fa: true,
+      is_2fa_authed: true
+    }
+    console.log("User \"" + user.name + "\" authenticated with Google's 2fa...");
+    return {
+      access_token: this.jwtService.sign(payload)
+    };
+  }
 
+  // Verifies if the JWT is valid
+  public async verify(token: string): Promise<boolean> {
+    // verify() throws if the token is invalid
     try {
-      const response = await axios.get('https://api.intra.42.fr/v2/me', {
-        headers: {
-          Authorization: 'Bearer ' + accessToken,
-        },
-      });
-      return response.data;
+      await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+
+      return true;
     } catch (error) {
-      console.error('requestUsersInfo():\n' + error);
+      return false;
     }
   }
 
-  // !TODO
-  public async userLogin(codeParam: string) {
-    try {
-      const accessToken = await this.requestAccessToken(codeParam);
-      const UsersInfo = await this.requestUsersInfo(accessToken);
+  public async generate2faSecret(): Promise<twoFactorAuthDTO> {
+    const secret = authenticator.generateSecret();
 
-      if (!await this.UsersService.getUserByName(UsersInfo.login)) {
-        await this.UsersService.createUser({
-          name: UsersInfo.login,
-          access_token: accessToken,
-          avatar_url: UsersInfo.image.versions.medium,
-        });
-      }
-      console.log("User: " + UsersInfo.login + "logging in");
-      return await this.UsersService.getUserByName(UsersInfo.login); 
-    } catch (error) {
-      console.error('userLogin():\n' + error);
-    }
+    const otpAuthURL = authenticator.keyuri(
+      process.env.GOOGLE_AUTH_APP_NAME,
+      process.env.GOOGLE_AUTH_APP_NAME,
+      secret
+    );
+
+    return {
+      secret,
+      otpAuthURL
+    };
+  }
+
+  public generateQRCodeDataURL(otpAuthURL: string) {
+    return toDataURL(otpAuthURL);
+  }
+
+  public is2faCodeValid(twoFactorAuthCode: string, secret_2fa: string): boolean {
+    console.log("token = " + twoFactorAuthCode);
+    console.log("secret = " + secret_2fa);
+
+    return authenticator.verify({
+      token: twoFactorAuthCode,
+      secret: secret_2fa
+    });
   }
 }
