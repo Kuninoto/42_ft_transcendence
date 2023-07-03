@@ -1,10 +1,11 @@
-import { Controller, Req, Res, Body, Get, Post, UseGuards, UnauthorizedException } from '@nestjs/common';
+import { Controller, Req, Res, Body, Get, Post, UseGuards, UnauthorizedException, HttpCode } from '@nestjs/common';
 import { AuthService, twoFactorAuthDTO } from '../service/auth.service';
 import { FortyTwoAuthGuard } from '../guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/module/users/service/users.service';
 import { User } from 'src/typeorm';
+import { throws } from 'assert';
 
 /**
  * Guards act as Middleware of validation
@@ -47,13 +48,12 @@ export class AuthController {
    * 
    * This is the route that the OAuth2 Provider (42) will
    * call after the user is authenticated
-   * @returns access_token
+   * @returns JWT's access_token
    */
   @ApiOkResponse({ description: "New user's login access token" })
   @UseGuards(FortyTwoAuthGuard)
   @Get('login/callback')
   public async loginCallback(@Req() req: any): Promise<{ access_token: string }> {
-    console.log(req.user);
     const jwt: { access_token: string } = this.authService.login(req.user);
     console.log("payload.access_token = " + jwt.access_token);
     return jwt;
@@ -62,12 +62,11 @@ export class AuthController {
   /**
    * GET /api/auth/logout
    * 
-   * Logging out the user
-   * @returns 
+   * Logs out the user
    */
   @UseGuards(JwtAuthGuard)
   @Get('logout')
-  public logout(@Req() req: any, @Res() res: any) {
+  public logout(@Req() req: any, @Res() res: any): any {
     const userName = req.user.name;
 
     return req.logOut(() => {
@@ -92,10 +91,17 @@ export class AuthController {
   /**
    * POST /api/auth/2fa/enable
    * 
-   * Enables two factor authentication
+   * Enables two factor authentication.
    * Must be called AFTER a POST /api/auth/2fa/generate is made
+   * because /generate generates the secret and is the only way
+   * for the user to get the one-time codes that he'll need,
+   * inclusively here.
    */
+  @ApiOkResponse({
+    description: "Enable two factor authentication"
+  })
   @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
   @Post('2fa/enable')
   public async enable2fa(
     @Req() req: { user: User },
@@ -107,14 +113,17 @@ export class AuthController {
     }
 
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
-    this.authService.login2fa(req.user);
+    this.authService.authenticate2fa(req.user);
   }
 
   /**
    * POST /api/auth/2fa/disable
    * 
+   * Disables two factor authentication.
    */
+  @ApiOkResponse({ description: "Disable two factor authentication" })
   @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
   @Post('2fa/disable')
   public async disable2fa(
     @Req() req: { user: User },
@@ -125,15 +134,20 @@ export class AuthController {
   /**
    * POST /api/auth/2fa/generate
    * 
-   * This route returns a QRCode that,
-   * when read with Google Authenticator,
-   * registers our App; so that later
-   * the user can use the codes as a 2fa method 
+   * Generates a secret, store it 
+   * in the user's table and returns
+   * a QRCode that, when scanned with
+   * Google Authenticator, registers our App;
+   * So that later the user can use the one-time
+   * codes for 2fa auth.
    * @returns QRCode for Google Authenticator
    */
+  @ApiOkResponse({
+    description: "Return the QRCode that enables app registration on Google Authenticator"
+  })
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
-  async generate2fa(@Res() res: any, @Req() req: { user: User }) {
+  public async generate2fa(@Res() res: any, @Req() req: { user: User }) {
     const info2fa: twoFactorAuthDTO = await this.authService.generate2faSecret();
 
     await this.usersService.updateUserById(req.user.id, { secret_2fa: info2fa.secret });
@@ -143,9 +157,23 @@ export class AuthController {
     );
   }
 
+   /**
+   * POST /api/auth/2fa/authenticate
+   * 
+   * This route serves for 2fa authentication.
+   * Validates the Google Authenticator's one-time
+   * code and if it is valid, signs a JWT access_token
+   * and returns it else throws.
+   * @returns JWT's access_token
+   */
+  @ApiOkResponse({ description: "" })
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @Post('2fa/authenticate')
-  async auth2fa(@Req() req: { user: User }, @Body() body: { twoFactorAuthCode: string }) {
+  public auth2fa(
+    @Req() req: { user: User },
+    @Body() body: { twoFactorAuthCode: string }
+  ): any {
     const isCodeValid = this.authService.is2faCodeValid(
       body.twoFactorAuthCode,
       req.user.secret_2fa,
@@ -155,6 +183,6 @@ export class AuthController {
       throw new UnauthorizedException('Wrong authentication code');
     }
 
-    return this.authService.login(req.user);
+    return this.authService.authenticate2fa(req.user);
   }
 }

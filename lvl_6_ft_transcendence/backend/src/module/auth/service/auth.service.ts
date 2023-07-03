@@ -29,7 +29,7 @@ export class AuthService {
   }
 
   // Return the signed JWT as access_token
-  public login2fa(user: User): { access_token: string } {
+  public authenticate2fa(user: User): { access_token: string } {
     const payload: TokenPayload = {
       id: user.id,
       has_2fa: true,
