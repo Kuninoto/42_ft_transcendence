@@ -40,7 +40,7 @@ User Auth:
 
         - How to keep JWT access_token
 ------------------------------------------- Currently at --------------------------------------
-        - Figure out how to invalidate JWT's or if it is to use sessions
+        - Figure out how to invalidate JWT's or change Authentication to be session-based
         - /me controller
         - Understand/Review the session logic, login/logout and figure out how to 
         - Review current session/token security (https://stackoverflow.com/questions/21978658/invalidating-json-web-tokens)
