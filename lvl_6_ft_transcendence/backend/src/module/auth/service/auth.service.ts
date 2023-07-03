@@ -17,19 +17,25 @@ export class AuthService {
   ) {}
 
   // Return the signed JWT as access_token
-  // Contains:
-  //  - id
-  //  - has_2fa
-  //  - is_auth
-  //  - is_2fa_authed
   public login(user: User): { access_token: string } {
     const payload: TokenPayload = {
       id: user.id,
-      has_2fa: user.has_2fa,
-      is_auth: user.is_auth,
-      is_2fa_authed: user.is_2fa_authed
+      has_2fa: user.has_2fa
     }
-    console.log("login()");
+    console.log("User \"" + user.name + "\" logging in with 42...");
+    return {
+      access_token: this.jwtService.sign(payload)
+    };
+  }
+
+  // Return the signed JWT as access_token
+  public login2fa(user: User): { access_token: string } {
+    const payload: TokenPayload = {
+      id: user.id,
+      has_2fa: true,
+      is_2fa_authed: true
+    }
+    console.log("User \"" + user.name + "\" authenticated with Google's 2fa...");
     return {
       access_token: this.jwtService.sign(payload)
     };
@@ -54,7 +60,7 @@ export class AuthService {
       process.env.GOOGLE_AUTH_APP_NAME,
       process.env.GOOGLE_AUTH_APP_NAME,
       secret
-    ); 
+    );
 
     return {
       secret,
@@ -66,10 +72,13 @@ export class AuthService {
     return toDataURL(otpAuthURL);
   }
 
-  public is2faCodeValid(_2faCode: string, _2faSecret: string): boolean {
+  public is2faCodeValid(twoFactorAuthCode: string, secret_2fa: string): boolean {
+    console.log("token = " + twoFactorAuthCode);
+    console.log("secret = " + secret_2fa);
+
     return authenticator.verify({
-      token: _2faCode,
-      secret: _2faSecret
+      token: twoFactorAuthCode,
+      secret: secret_2fa
     });
   }
 }

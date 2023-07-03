@@ -92,25 +92,29 @@ export class UsersService {
   // !TODO
   public async updateUserById(id: number, updateUserDTO: UpdateUserDTO)
   : Promise<UpdateResult> | null {
-    // somewhy updating without id doesnt update the user
-    // const user: User = await this.usersRepository.findOneBy({ id: id });
-    // if (!user) {
-    //   return null;
-    // }
-  
-    updateUserDTO.last_updated_at = new Date();
-    return await this.usersRepository.update(id, updateUserDTO);
-  }
-
-  public async enable2fa(id: number, secret_2fa: string) {
     const user: User = await this.usersRepository.findOneBy({ id: id });
     if (!user) {
       return null;
     }
   
-    return await this.usersRepository.update(user, {
+    updateUserDTO.last_updated_at = new Date();
+    return await this.usersRepository.update(id, updateUserDTO);
+  }
+
+  public async enable2fa(id: number, secret_2fa: string): Promise<UpdateResult> {
+    console.log("Enabling 2fa for user with id = " + id);
+    return await this.usersRepository.update(id, {
       has_2fa: true,
       secret_2fa: secret_2fa,
+      last_updated_at: new Date()
+    });
+  }
+
+  public async disable2fa(id: number): Promise<UpdateResult> {
+    console.log("Disabling 2fa for user with id = " + id);
+    return await this.usersRepository.update(id, {
+      has_2fa: false,
+      secret_2fa: '',
       last_updated_at: new Date()
     });
   }
