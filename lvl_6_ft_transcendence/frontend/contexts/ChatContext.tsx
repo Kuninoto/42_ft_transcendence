@@ -1,34 +1,34 @@
-import { ReactNode, createContext, useContext, useState } from 'react'
+import { createContext, ReactNode, useContext, useState } from 'react'
 
 type chatContextType = {
-    close: () => void,
-    open: () => void,
-    isOpen: boolean
-};
+	close: () => void
+	isOpen: boolean
+	open: () => void
+}
 
 const chatContextDefaultValues: chatContextType = {
-    close: function () {},
-    open: function () {},
-    isOpen: false,
+	close: function () {},
+	isOpen: false,
+	open: function () {},
 }
 
 const ChatContext = createContext<chatContextType>(chatContextDefaultValues)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
-	const [ isOpen, setIsOpen ] = useState(false)
+	const [isOpen, setIsOpen] = useState(false)
 
-    function open() {
-        setIsOpen(true)
-    }
-	
+	function open() {
+		setIsOpen(true)
+	}
+
 	function close() {
 		setIsOpen(false)
 	}
 
 	const value: chatContextType = {
 		close,
-        open,
-        isOpen
+		isOpen,
+		open,
 	}
 
 	return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
@@ -37,3 +37,4 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 export function useChat() {
 	return useContext(ChatContext)
 }
+

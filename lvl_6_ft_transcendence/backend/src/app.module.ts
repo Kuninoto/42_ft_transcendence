@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from './module/users/users.module';
-import { AuthModule } from './module/auth/auth.module';
-import { ChatModule } from './module/chat/chat.module';
-import entities from './typeorm/index';
+import { UsersModule } from 'src/module/users/users.module';
+import { AuthModule } from 'src/module/auth/auth.module';
+import { ChatModule } from 'src/module/chat/chat.module';
+import entities from 'src/typeorm/index';
 import 'dotenv/config';
 
 @Module({

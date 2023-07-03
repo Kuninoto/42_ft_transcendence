@@ -1,18 +1,18 @@
 import { api } from '@/api/api'
-import { ReactNode, createContext, useContext, useState } from 'react'
+import { createContext, ReactNode, useContext, useState } from 'react'
 
 interface IUser {
-	name?: string;
+	name?: string
 }
 
 type authContextType = {
-	user: IUser;
-	login: (code: string) => Promise<boolean> | void;
-};
+	login: (code: string) => Promise<boolean> | void
+	user: IUser
+}
 
 const authContextDefaultValues: authContextType = {
+	login: function (code: string) {},
 	user: {},
-	login: function (code: string) { },
 }
 
 const AuthContext = createContext<authContextType>(authContextDefaultValues)
@@ -20,12 +20,12 @@ const AuthContext = createContext<authContextType>(authContextDefaultValues)
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<
 		| {
-			name: string;
-		}
+				name: string
+		  }
 		| {}
 	>({})
 
-	async function login (code: string) {
+	async function login(code: string) {
 		return await api
 			.get(`/auth/${code}`)
 			.then((result) => {
@@ -40,8 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	const value: authContextType = {
-		user,
 		login,
+		user,
 	}
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
