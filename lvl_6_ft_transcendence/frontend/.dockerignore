@@ -4,6 +4,7 @@ README.md
 package-lock.json
 .dockerignore
 index.html
+Dockerfile
 
 .next
 node_modules
