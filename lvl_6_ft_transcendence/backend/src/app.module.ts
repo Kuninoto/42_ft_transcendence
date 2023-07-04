@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './module/user/user.module';
 import { AuthModule } from './module/auth/auth.module';
 import entities from './typeorm/index';
-import { MessagesModule } from './module/messages/messages.module';
+import { ChatModule } from './module/chat/chat.module';
 
 @Module({
     imports: [
@@ -27,7 +27,7 @@ import { MessagesModule } from './module/messages/messages.module';
       }),
       UserModule,
       AuthModule,
-	  MessagesModule,
+	  ChatModule,
     ],
     controllers: [],
     providers: [],
