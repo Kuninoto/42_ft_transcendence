@@ -27,10 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	async function login(code: string) {
 		return await api
-			.get(`/auth/${code}`)
-			.then((result) => {
-				console.log(result.data)
-				setUser(result.data)
+			.get(`/auth/login/callback?code=${code}`)
+			.then(async function (result) {
+				//				.get(/me()
+				localStorage.setItem('pong.token', result.data.access_token)
+				console.log(localStorage.getItem('pong.token'))
+
+				await api.get(`/users/1`).then(function (newUser) {
+					setUser(newUser.data)
+					console.log(newUser.data)
+				})
+
 				return true
 			})
 			.catch((err) => {
