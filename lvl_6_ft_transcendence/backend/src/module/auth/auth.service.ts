@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/typeorm';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
-import { TokenPayload } from '../strategy/jwt-auth.strategy';
+import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 export interface twoFactorAuthDTO {
   secret: string,
@@ -68,14 +68,11 @@ export class AuthService {
     };
   }
 
-  public generateQRCodeDataURL(otpAuthURL: string) {
+  public generateQRCodeDataURL(otpAuthURL: string): string {
     return toDataURL(otpAuthURL);
   }
 
   public is2faCodeValid(twoFactorAuthCode: string, secret_2fa: string): boolean {
-    console.log("token = " + twoFactorAuthCode);
-    console.log("secret = " + secret_2fa);
-
     return authenticator.verify({
       token: twoFactorAuthCode,
       secret: secret_2fa

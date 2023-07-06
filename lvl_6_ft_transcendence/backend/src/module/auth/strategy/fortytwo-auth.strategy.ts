@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from 'passport-42';
 import { User } from "src/typeorm";
-import { UsersService } from "src/module/users/service/users.service";
+import { UsersService } from "src/module/users/users.service";
 
 // Because we'll specify which info
 // we want from the whole 'me' endpoint
