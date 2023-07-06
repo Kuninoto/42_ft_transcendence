@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
-import { UsersService } from '../users/service/users.service';
+import { UsersService } from '../users/users.service';
 import { User } from 'src/typeorm';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class SessionSerializer extends PassportSerializer {
     payload: any,
     done: (err: Error, user: User) => void
   ): Promise<any> {
-    const user = await this.usersService.findUserById(payload.id);
+    const user = await this.usersService.findUserByUID(payload.id);
   
     return user ? done(null, user) : done(null, null);
   }

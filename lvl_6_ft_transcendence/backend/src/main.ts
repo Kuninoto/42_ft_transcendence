@@ -2,12 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
-// !TODO
-// Review cors utility
-import * as cors from 'cors';
 import * as session from 'express-session';
 import * as passport from 'passport';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { corsOption } from './common/options/cors.option';
 
 console.log("EXPRESS_SESSION_SECRET= " + process.env.EXPRESS_SESSION_SECRET);
 
@@ -42,28 +40,29 @@ function checkRequiredEnvVariables() {
 async function bootstrap() {
   checkRequiredEnvVariables();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  const config = new DocumentBuilder()
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('Transcendence API')
-    .setDescription('API for transcendence project')
+    .setDescription('The API for the transcendence project')
     .setVersion('1.0')
+    .addTag('Transcendence')
     .build();
-
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('help', app, document);
 
-  app.enableCors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-    methods: ['GET', 'POST', 'DELETE', 'PATCH'],
-  });
+  // !TODO
+  // Review cors utility
+  app.enableCors(corsOption);
 
   const oneDay: number = 86400000;
   app.use(
     session({
       cookie: {
         maxAge: oneDay,
+        // We'll be using HTTP
+        secure: false,
+        httpOnly: true,
       },
       secret: process.env.EXPRESS_SESSION_SECRET,
       resave: false,

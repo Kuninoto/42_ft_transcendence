@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from 'src/module/users/users.module';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { ChatModule } from 'src/module/chat/chat.module';
+import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
+import { join } from 'path';
 import entities from 'src/typeorm/index';
 import 'dotenv/config';
 
@@ -21,10 +23,18 @@ import 'dotenv/config';
         database: process.env.POSTGRES_DB,
         entities: entities,
         autoLoadEntities: true,
-        //  !TODO: turn off during prod
+        // !TODO
+        // Turn off during prod
         synchronize: true,
       }),
       inject: [ConfigService],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/api/users/avatars/', // The base URL path to serve the images from
+      // Do not display a directory index
+      // Do not redirect to a similar file if the requested one isn't found
+      serveStaticOptions: { index: false, redirect: false },
     }),
     UsersModule,
     AuthModule,
