@@ -95,7 +95,7 @@ export class UsersController {
   @Get('/me')
   public async getMyInfo(
     @Req() req: { user: User },
-  ): Promise<User> {
+  ): Promise<User | null> {
     Logger.log("User id=" + req.user.id + " requested his info using /me");
 
     return await this.usersService.findUserByUID(req.user.id);
@@ -113,7 +113,7 @@ export class UsersController {
   public async updateMyUsername(
     @Req() req: { user: User },
     @Body() body: { newUsername: string }
-  ): Promise<SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     Logger.log("Updating user id=" + req.user.id + " username");
   
     return await this.usersService.updateUsernameByUID(req.user.id, body.newUsername);
@@ -125,8 +125,10 @@ export class UsersController {
    * This is the route to visit to update the user's
    * avatar.
    * Stores the uploaded file (the new avatar) at
-   * /src/public/ and updates the avatar on the
-   * user's table
+   * /src/public/ and updates the avatar_url on the
+   * user's table to the url that later allows requesting
+   * e.g http://localhost:3000/api/users/avatars/<hashed_filename>.png
+   *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
    */
   @UseInterceptors(FileInterceptor('avatar', multerConfig))
   @ApiConsumes('multipart/form-data')
@@ -149,11 +151,10 @@ export class UsersController {
 
     Logger.log("Updating user id=" + req.user.id + " avatar");
 
-    await this.usersService.updateUserAvatarByUID(
+    return await this.usersService.updateUserAvatarByUID(
       req.user.id,
       process.env.BACKEND_URL + "/api/users/avatars/" + file.filename
     );
-    return { message: "Successfully updated user avatar" };
   }
 
   /**
@@ -169,7 +170,6 @@ export class UsersController {
     : Promise<SuccessResponse> {
     Logger.log("Deleting user id=" + req.user.id + " account");
 
-    await this.usersService.deleteUserByUID(req.user.id);
-    return { message: "Successfully deleted user" };
+    return await this.usersService.deleteUserByUID(req.user.id);
   }
 }

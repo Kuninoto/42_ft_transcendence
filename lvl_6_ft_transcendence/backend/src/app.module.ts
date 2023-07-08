@@ -13,7 +13,7 @@ import 'dotenv/config';
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: () => ({
         type: 'postgres',
         host: process.env.POSTGRES_HOST,
         port: 5432,

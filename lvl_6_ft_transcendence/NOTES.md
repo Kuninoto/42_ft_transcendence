@@ -1,5 +1,3 @@
-user avatars can be retrieved with
+user avatars can be retrieved with a to <avatar_url>
 
-GET /api/users/avatars/<avatar>
-
-avatar can be found on the user's table
+avatar_url can be found on the user's table
