@@ -40,7 +40,9 @@ function checkRequiredEnvVariables() {
 async function bootstrap() {
   checkRequiredEnvVariables();
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: ['verbose']   
+  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Transcendence API')

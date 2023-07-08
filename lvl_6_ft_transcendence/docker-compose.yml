@@ -55,17 +55,6 @@ services:
       - ./backend:/app
     restart: always
 
-#  nginx:
-#    container_name: nginx
-#    build: ./frontend/
-#    volumes:
-#      - /frontend:/var/www/html
-#    depends_on:
-#      - backend
-#    ports:
-#      - 8001:8001
-#    restart: on-failure
-
 networks:
   app-net:
     name: app-net

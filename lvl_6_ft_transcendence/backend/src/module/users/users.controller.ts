@@ -4,14 +4,12 @@ import {
   Delete,
   Patch,
   Body,
-  Param,
-  ParseIntPipe,
-  NotFoundException,
   UseGuards,
   Req,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Logger
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'
 import {
@@ -19,23 +17,22 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOkResponse,
-  ApiPayloadTooLargeResponse,
-  ApiTags,
-  ApiUnsupportedMediaTypeResponse } from '@nestjs/swagger';
+  ApiTags
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { User } from '../../entity/user.entity';
-import { UpdateUserDTO } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { Express } from 'express'
 import { multerConfig } from './middleware/multer/multer.config';
 import { ErrorResponseDTO } from 'src/common/dto/error-response.dto';
-import { SuccessResponseDTO } from 'src/common/dto/success-response.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+  ) { }
 
   /* DEBUGGING ROUTES */
 
@@ -48,7 +45,7 @@ export class UsersController {
   /*
   @Get('/:id')
   public async getUserByUID(
-    @Param('id', ParseIntPipe) userID: number,
+    @Param('id', ParseIntPipe) userID=number,
   ): Promise<User> {
     const user = await this.usersService.findUserByUID(userID);
 
@@ -67,7 +64,7 @@ export class UsersController {
   */
   /*
   public async updateUserByUID(
-    userID: number,
+    userID=number,
     updateUserDTO: UpdateUserDTO,
   ): Promise<SuccessResponseDTO> {
     return await this.usersService.updateUserByUID(userID, updateUserDTO);
@@ -82,7 +79,7 @@ export class UsersController {
   /*
   @Delete('/:id')
   public async deleteUserByUID(
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseIntPipe) id=number
   ): Promise<SuccessResponse> {
     return await this.usersService.deleteUserByUID(id);
   } */
@@ -98,6 +95,8 @@ export class UsersController {
   public async getMyInfo(
     @Req() req: { user: User },
   ): Promise<User> {
+    Logger.log("User id=" + req.user.id + " requested his info using /me");
+
     return await this.usersService.findUserByUID(req.user.id);
   }
 
@@ -114,6 +113,8 @@ export class UsersController {
     @Req() req: { user: User },
     @Body() body: { newUsername: string }
   ): Promise<SuccessResponse> {
+    Logger.log("Updating user id=" + req.user.id + " username");
+  
     return await this.usersService.updateUsernameByUID(req.user.id, body.newUsername);
   }
 
@@ -123,7 +124,7 @@ export class UsersController {
    * This is the route to visit to update the user's
    * avatar.
    * Stores the uploaded file (the new avatar) at
-   * /src/public/ and updates the avatar_url on the
+   * /src/public/ and updates the avatar on the
    * user's table
    */
   @UseInterceptors(FileInterceptor('avatar', multerConfig))
@@ -131,19 +132,26 @@ export class UsersController {
   @ApiBody({ schema: { type: 'object', required: ["avatar"], properties: { image: { type: 'string', format: 'binary' } } } })
   @ApiBadRequestResponse({
     type: ErrorResponseDTO,
-    description: 'If the uploaded image is not a png, jpg or jpeg or if its size exceeds the max size'
+    description: "If the uploaded image is not a png, jpg or jpeg or if its size exceeds the max size"
   })
-  @ApiOkResponse({ description: "Stores the uploaded new avatar and updates the avatar_url on the user's table" })
+  @ApiOkResponse({ description: "Stores the uploaded new avatar and updates the avatar on the user's table" })
   @UseGuards(JwtAuthGuard)
   @Patch('/me/avatar')
   public async updateMyAvatar(
     @Req() req: { user: User },
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse> {
-    if (!file)
+    if (!file) {
+      Logger.error("User id=" + req.user.id + " failed to upload its avatar");
       throw new BadRequestException("Invalid file");
+    }
 
-    await this.usersService.updateUserAvatarByUID(req.user.id, file.path);
+    Logger.log("Updating user id=" + req.user.id + " avatar");
+
+    await this.usersService.updateUserAvatarByUID(
+      req.user.id,
+      process.env.BACKEND_URL + "/api/users/avatars/" + file.filename
+    );
     return { message: "Successfully updated user avatar" };
   }
 
@@ -157,8 +165,10 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Delete('/me')
   public async deleteMyAccount(@Req() req: { user: User })
-  : Promise<SuccessResponse> {
-   await this.usersService.deleteUserByUID(req.user.id);
-   return { message: "Successfully deleted user" };
+    : Promise<SuccessResponse> {
+    Logger.log("Deleting user id=" + req.user.id + " account");
+
+    await this.usersService.deleteUserByUID(req.user.id);
+    return { message: "Successfully deleted user" };
   }
 }

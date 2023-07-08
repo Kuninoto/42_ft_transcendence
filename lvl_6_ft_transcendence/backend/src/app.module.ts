@@ -3,7 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from 'src/module/users/users.module';
 import { AuthModule } from 'src/module/auth/auth.module';
-import { ChatModule } from 'src/module/chat/chat.module';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
 import { join } from 'path';
 import entities from 'src/typeorm/index';
@@ -38,7 +37,6 @@ import 'dotenv/config';
     }),
     UsersModule,
     AuthModule,
-    ChatModule,
   ],
   controllers: [],
   providers: [],

@@ -43,13 +43,12 @@ User Auth:
         - Understand/Review the session/login/logout logic ❌
 
         - Figure out how to store/serve avatars ✅
+        - /me routes ✅
+	- Review the differences between requesting the 42's avatar (from avatar on user's table) vs. requesting a user updated avatar ✅
 ------------------------------------------- Currently at --------------------------------------
-        - /me routes (missing avatar updation.
-            Avatar upload and retrieve is working but database avatar_url updation is not tested)
+	- user relations (friendships, blocked etc.)
 
-
-
-- Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
+Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
 - Stress test misconfigs on JSON Objects
 
 - Hash the passwords with salt (on the frontend)

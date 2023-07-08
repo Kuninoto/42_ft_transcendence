@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
 
 export enum UserStatus {
-  ONLINE,
   OFFLINE,
+  ONLINE,
   IN_MATCH,
 }
 

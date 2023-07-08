@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/typeorm';
 import { authenticator } from 'otplib';
@@ -13,7 +13,7 @@ export interface twoFactorAuthDTO {
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   // Return the signed JWT as access_token
@@ -22,7 +22,8 @@ export class AuthService {
       id: user.id,
       has_2fa: user.has_2fa
     }
-    console.log("User \"" + user.name + "\" logging in with 42...");
+
+    Logger.log("User \"" + user.name + "\" logged in with 42!");
     return {
       access_token: this.jwtService.sign(payload)
     };
@@ -35,7 +36,8 @@ export class AuthService {
       has_2fa: true,
       is_2fa_authed: true
     }
-    console.log("User \"" + user.name + "\" authenticated with Google's 2fa...");
+    
+    Logger.log("User \"" + user.name + "\" authenticated with Google's 2fa!");
     return {
       access_token: this.jwtService.sign(payload)
     };
