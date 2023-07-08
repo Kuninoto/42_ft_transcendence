@@ -11,7 +11,7 @@ export class UpdateUserDTO {
   @ApiProperty()
   @IsNotEmpty()
   @IsOptional()
-  readonly avatar?: string;
+  readonly avatar_url?: string;
 
   @IsNotEmpty()
   @IsOptional()
