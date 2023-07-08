@@ -1,20 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
-import { SuccessResponseDTO } from 'src/common/dto/success-response.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) { }
+  ) {}
 
   public async findAll(): Promise<User[]> {
     return await this.usersRepository.find();
@@ -31,21 +31,19 @@ export class UsersService {
 
   // !TODO
   public async createUser(createUserDTO: CreateUserDTO)
-    : Promise<User> {
+  : Promise<User> {
     const newUser = this.usersRepository.create(createUserDTO);
-    newUser.created_at = newUser.last_updated_at = new Date();
-
     return await this.usersRepository.save(newUser);
   }
 
   public async deleteUserByUID(userID: number)
-    : Promise<SuccessResponseDTO> {
+  : Promise<SuccessResponse> {
     await this.usersRepository.delete(userID);
     return { message: 'Successfully deleted user' };
   }
 
   public async updateUserByUID(userID: number, updateUserDTO: UpdateUserDTO)
-    : Promise<SuccessResponseDTO> {
+  : Promise<SuccessResponse> {
     updateUserDTO.last_updated_at = new Date();
     await this.usersRepository.update(userID, updateUserDTO);
     return { message: 'Successfully updated user' };
@@ -70,7 +68,14 @@ export class UsersService {
     } */
 
   public async updateUsernameByUID(userID: number, newName: string)
-    : Promise<SuccessResponseDTO> {
+  : Promise<SuccessResponse | ErrorResponse> {
+    const user: User | null = await this.usersRepository.findOneBy({ name: newName });
+
+    // A user already exists with that name
+    if (user !== null) {
+      throw new ConflictException("Name is already taken");
+    }
+
     await this.usersRepository.update(userID, {
       name: newName,
       last_updated_at: new Date()
@@ -80,7 +85,7 @@ export class UsersService {
 
   // !TODO
   public async updateUserAvatarByUID(userID: number, newAvatarURL: string)
-    : Promise<SuccessResponseDTO> {
+  : Promise<SuccessResponse> {
     const currentAvatarURL = (await this.usersRepository.findOneBy({ id: userID })).avatar_url; 
     const currentAvatarName = currentAvatarURL.slice(currentAvatarURL.lastIndexOf('/'));
     const absoluteAvatarPath = path.join(__dirname, '../../../public', currentAvatarName);
@@ -90,6 +95,7 @@ export class UsersService {
 
     await this.usersRepository.update(userID, {
       avatar_url: newAvatarURL,
+      last_updated_at: new Date(),
     });
     return { message: 'Successfully updated user avatar!' };
   }

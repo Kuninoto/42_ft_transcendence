@@ -10,5 +10,5 @@ export class CreateUserDTO {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  readonly avatar: string;
+  readonly avatar_url: string;
 }

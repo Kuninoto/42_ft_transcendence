@@ -26,6 +26,7 @@ import { Express } from 'express'
 import { multerConfig } from './middleware/multer/multer.config';
 import { ErrorResponseDTO } from 'src/common/dto/error-response.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
 
 @ApiTags('users')
 @Controller('users')
@@ -46,7 +47,7 @@ export class UsersController {
   @Get('/:id')
   public async getUserByUID(
     @Param('id', ParseIntPipe) userID=number,
-  ): Promise<User> {
+  ): Promise<User | ErrorResponse> {
     const user = await this.usersService.findUserByUID(userID);
 
     if (!user) {
@@ -140,7 +141,7 @@ export class UsersController {
   public async updateMyAvatar(
     @Req() req: { user: User },
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     if (!file) {
       Logger.error("User id=" + req.user.id + " failed to upload its avatar");
       throw new BadRequestException("Invalid file");

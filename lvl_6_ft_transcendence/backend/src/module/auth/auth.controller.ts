@@ -18,6 +18,7 @@ import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
 import { UserStatus } from 'src/entity/user.entity';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
 
 /**
  * Guards act as Middleware of validation
@@ -86,7 +87,7 @@ export class AuthController {
     @Req() req: any,
   ): Promise<SuccessResponse> {
     await this.usersService.updateUserByUID(req.user.id, { status: UserStatus.OFFLINE });
-    console.log("User id: " + req.user.id + " logged out");
+    Logger.log("User id: " + req.user.id + " logged out");
 
     req.logOut(() => {});
 
@@ -126,7 +127,7 @@ export class AuthController {
   public async enable2fa(
     @Req() req: { user: User },
     @Body() body: { twoFactorAuthCode: string }
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ access_token: string } | ErrorResponse> {
     const is2faCodeValid =
       this.authService.is2faCodeValid(body.twoFactorAuthCode, req.user.secret_2fa);
     if (!is2faCodeValid) {
@@ -200,7 +201,7 @@ export class AuthController {
   public auth2fa(
     @Req() req: { user: User },
     @Body() body: { twoFactorAuthCode: string }
-  ): { access_token: string } {
+  ): { access_token: string } | ErrorResponse {
     const isCodeValid = this.authService.is2faCodeValid(
       body.twoFactorAuthCode,
       req.user.secret_2fa,

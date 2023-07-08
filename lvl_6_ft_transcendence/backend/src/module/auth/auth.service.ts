@@ -48,7 +48,6 @@ export class AuthService {
     // verify() throws if the token is invalid
     try {
       await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-
       return true;
     } catch (error) {
       return false;

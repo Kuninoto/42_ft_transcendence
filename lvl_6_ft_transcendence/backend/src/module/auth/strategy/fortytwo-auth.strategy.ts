@@ -49,7 +49,7 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
   
     return await this.usersService.createUser({
       name: profile.username,
-      avatar: profile.avatar
+      avatar_url: profile.avatar
     });
   }
 }
