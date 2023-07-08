@@ -14,36 +14,34 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   public async findAll(): Promise<User[]> {
     return await this.usersRepository.find();
   }
 
-  public async findUserByName(name: string): Promise<User> | null {
+  public async findUserByName(name: string): Promise<User | null> {
     return await this.usersRepository.findOneBy({ name: name });
   }
 
-  // !TODO
-  public async findUserByUID(userID: number): Promise<User> | null {
+  public async findUserByUID(userID: number): Promise<User | null> {
     return await this.usersRepository.findOneBy({ id: userID });
   }
 
-  // !TODO
   public async createUser(createUserDTO: CreateUserDTO)
-  : Promise<User> {
+    : Promise<User> {
     const newUser = this.usersRepository.create(createUserDTO);
     return await this.usersRepository.save(newUser);
   }
 
   public async deleteUserByUID(userID: number)
-  : Promise<SuccessResponse> {
+    : Promise<SuccessResponse> {
     await this.usersRepository.delete(userID);
     return { message: 'Successfully deleted user' };
   }
 
   public async updateUserByUID(userID: number, updateUserDTO: UpdateUserDTO)
-  : Promise<SuccessResponse> {
+    : Promise<SuccessResponse> {
     updateUserDTO.last_updated_at = new Date();
     await this.usersRepository.update(userID, updateUserDTO);
     return { message: 'Successfully updated user' };
@@ -68,7 +66,7 @@ export class UsersService {
     } */
 
   public async updateUsernameByUID(userID: number, newName: string)
-  : Promise<SuccessResponse | ErrorResponse> {
+    : Promise<SuccessResponse | ErrorResponse> {
     const user: User | null = await this.usersRepository.findOneBy({ name: newName });
 
     // A user already exists with that name
@@ -85,8 +83,8 @@ export class UsersService {
 
   // !TODO
   public async updateUserAvatarByUID(userID: number, newAvatarURL: string)
-  : Promise<SuccessResponse> {
-    const currentAvatarURL = (await this.usersRepository.findOneBy({ id: userID })).avatar_url; 
+    : Promise<SuccessResponse> {
+    const currentAvatarURL = (await this.usersRepository.findOneBy({ id: userID })).avatar_url;
     const currentAvatarName = currentAvatarURL.slice(currentAvatarURL.lastIndexOf('/'));
     const absoluteAvatarPath = path.join(__dirname, '../../../public', currentAvatarName);
 
@@ -97,20 +95,22 @@ export class UsersService {
       avatar_url: newAvatarURL,
       last_updated_at: new Date(),
     });
-    return { message: 'Successfully updated user avatar!' };
+    return { message: 'Successfully updated user avatar' };
   }
 
   public async enable2fa(userID: number, secret_2fa: string)
-    : Promise<UpdateResult> {
+    : Promise<SuccessResponse> {
     Logger.log("Enabling 2fa for user with id = " + userID);
-    return await this.usersRepository.update(userID, {
+    await this.usersRepository.update(userID, {
       has_2fa: true,
       secret_2fa: secret_2fa,
       last_updated_at: new Date()
     });
+    return { message: "Successfully disabled two factor authentication" };
   }
 
   public async disable2fa(userID: number): Promise<SuccessResponse> {
+    Logger.log("Disabling 2fa for user with id = " + userID);
     await this.usersRepository.update(userID, {
       has_2fa: false,
       secret_2fa: '',

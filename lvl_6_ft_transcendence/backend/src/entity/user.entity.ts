@@ -3,9 +3,9 @@ import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
 import { Friendship } from './friendship.entity';
 
 export enum UserStatus {
-  OFFLINE,
-  ONLINE,
-  IN_MATCH,
+  OFFLINE = "offline",
+  ONLINE = "online",
+  IN_MATCH = "in match",
 }
 
 @Entity('User')
@@ -27,11 +27,11 @@ export class User {
 
   @ApiProperty()
   @Column({
-    type: 'enum',
-    enum: UserStatus,
+    type: 'varchar',
     default: UserStatus.ONLINE,
+    nullable: false,
   })
-  status: UserStatus;
+  status: string;
 
   @ApiProperty()
   @Column({ default: false })
