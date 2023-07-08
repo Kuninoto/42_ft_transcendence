@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { User } from 'src/typeorm';
@@ -6,13 +6,14 @@ import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
 import { SuccessResponseDTO } from 'src/common/dto/success-response.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private readonly usersRepository: Repository<User>
+    private readonly usersRepository: Repository<User>,
   ) { }
 
   public async findAll(): Promise<User[]> {
@@ -47,7 +48,7 @@ export class UsersService {
     : Promise<SuccessResponseDTO> {
     updateUserDTO.last_updated_at = new Date();
     await this.usersRepository.update(userID, updateUserDTO);
-    return { message: 'Successfully updated user!' };
+    return { message: 'Successfully updated user' };
   }
 
   /* // !TODO
@@ -74,15 +75,18 @@ export class UsersService {
       name: newName,
       last_updated_at: new Date()
     });
-    return { message: 'Successfully updated username!' };
+    return { message: 'Successfully updated username' };
   }
 
   // !TODO
   public async updateUserAvatarByUID(userID: number, newAvatarURL: string)
     : Promise<SuccessResponseDTO> {
+    const currentAvatarURL = (await this.usersRepository.findOneBy({ id: userID })).avatar_url; 
+    const currentAvatarName = currentAvatarURL.slice(currentAvatarURL.lastIndexOf('/'));
+    const absoluteAvatarPath = path.join(__dirname, '../../../public', currentAvatarName);
+
     // Delete the previous avatar from the file system
-    //const currentAvatarPath = (await this.usersRepository.findOneBy({id: userID})).avatar_url;
-    await fs.unlink('../../../public' + "ae3fb9ed7796b10e9210cf49e107df01466.png", () => {});
+    fs.unlink(absoluteAvatarPath, () => { });
 
     await this.usersRepository.update(userID, {
       avatar_url: newAvatarURL,
@@ -90,10 +94,10 @@ export class UsersService {
     return { message: 'Successfully updated user avatar!' };
   }
 
-  public async enable2fa(id: number, secret_2fa: string)
+  public async enable2fa(userID: number, secret_2fa: string)
     : Promise<UpdateResult> {
-    console.log("Enabling 2fa for user with id = " + id);
-    return await this.usersRepository.update(id, {
+    Logger.log("Enabling 2fa for user with id = " + userID);
+    return await this.usersRepository.update(userID, {
       has_2fa: true,
       secret_2fa: secret_2fa,
       last_updated_at: new Date()

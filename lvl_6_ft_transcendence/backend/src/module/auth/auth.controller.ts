@@ -7,7 +7,8 @@ import {
   Post,
   UseGuards,
   UnauthorizedException,
-  HttpCode
+  HttpCode,
+  Logger
 } from '@nestjs/common';
 import { AuthService, twoFactorAuthDTO } from './auth.service';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
@@ -16,6 +17,7 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
+import { UserStatus } from 'src/entity/user.entity';
 
 /**
  * Guards act as Middleware of validation
@@ -66,7 +68,9 @@ export class AuthController {
   @Get('login/callback')
   public async loginCallback(@Req() req: any): Promise<{ access_token: string }> {
     const jwt: { access_token: string } = this.authService.login(req.user);
-    console.log("Issued a jwt = " + jwt.access_token);
+    await this.usersService.updateUserByUID(req.user.id, { status: UserStatus.ONLINE });
+  
+    Logger.log("Issued a jwt = " + jwt.access_token);
     return jwt;
   };
 
@@ -78,18 +82,15 @@ export class AuthController {
   @ApiOkResponse({ description: "Logs out the user" })
   @UseGuards(JwtAuthGuard)
   @Get('logout')
-  public logout(
+  public async logout(
     @Req() req: any,
-    @Res() res: any
-  ): any {
-    const userName = req.user.name;
+  ): Promise<SuccessResponse> {
+    await this.usersService.updateUserByUID(req.user.id, { status: UserStatus.OFFLINE });
+    console.log("User id: " + req.user.id + " logged out");
 
-    return req.logOut(() => {
-      res.json({
-        user: userName,
-        message: 'User has been logged out!',
-      });
-    });
+    req.logOut(() => {});
+
+    return { message: "Successfully logged out!" };
   };
 
   /**
@@ -134,7 +135,7 @@ export class AuthController {
 
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
     const jwt: { access_token: string } = this.authService.authenticate2fa(req.user);
-    console.log("Issued a 2fa jwt = " + jwt.access_token);
+    Logger.log("Issued a 2fa jwt = " + jwt.access_token);
     return jwt;
   }
 
