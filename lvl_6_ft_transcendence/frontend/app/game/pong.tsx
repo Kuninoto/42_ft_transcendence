@@ -1,4 +1,3 @@
-import { Press_Start_2P } from 'next/font/google'
 import { useEffect, useRef } from 'react'
 
 import {
@@ -11,8 +10,6 @@ import {
 	PADDLE_WIDTH,
 } from './definitions'
 
-const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
-
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
 
@@ -21,10 +18,8 @@ export default function Pong({
 }: {
 	givePoint: (rightPlayer: boolean) => void
 }) {
-	// const [pow] = useSound("./sounds/pow.wav")
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	let touch = false
 	const leftPaddle = new Paddle(PADDLE_WALL_OFFSET)
 	const rightPaddle = new Paddle(
 		CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
@@ -132,7 +127,7 @@ export default function Pong({
 		document.addEventListener('keydown', handleKeyDown)
 		document.addEventListener('keyup', handleKeyUp)
 
-		reset(1000)
+		reset(5000)
 		return () => {
 			document.removeEventListener('keydown', handleKeyDown)
 			document.removeEventListener('keyup', handleKeyUp)

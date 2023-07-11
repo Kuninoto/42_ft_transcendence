@@ -1,12 +1,12 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { useChat } from '@/contexts/ChatContext'
 import Link from 'next/link'
 import { useState } from 'react'
 import { BiUser } from 'react-icons/bi'
-import { LuSwords } from 'react-icons/lu'
 import { CgShapeTriangle } from 'react-icons/cg'
-import { useChat } from '@/contexts/ChatContext'
+import { LuSwords } from 'react-icons/lu'
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
@@ -14,7 +14,7 @@ export default function FriendsList(): JSX.Element {
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
 
-	const {open} = useChat()
+	const { open } = useChat()
 
 	return (
 		<div className="flex h-full w-full">
@@ -37,9 +37,8 @@ export default function FriendsList(): JSX.Element {
 						Groups
 					</button>
 					<div
-						className={`space-y-2 flex flex-col overflow-hidden transition-all ${
-							openGroupsAccordean ? 'max-h-full' : 'max-h-0'
-						}`}
+						className={`flex flex-col space-y-2 overflow-hidden transition-all 
+						${openGroupsAccordean ? 'max-h-full' : 'max-h-0'}`}
 					>
 						<button className="group" onClick={open}>
 							<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
@@ -81,7 +80,7 @@ export default function FriendsList(): JSX.Element {
 						Friends{' '}
 					</button>
 					<div
-						className={`space-y-2 flex flex-col transition-all ${
+						className={`flex flex-col space-y-2 transition-all ${
 							openFriendsAccordean ? 'max-h-full' : 'max-h-0'
 						} overflow-hidden`}
 					>

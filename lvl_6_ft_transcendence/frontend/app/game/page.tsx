@@ -2,8 +2,29 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
+import { useTimer } from 'react-timer-hook'
 
 import Pong from './pong'
+
+function Timer() {
+	const time: Date = new Date()
+	time.setSeconds(time.getSeconds() + 5 * 60 + 5)
+
+	const { minutes, seconds } = useTimer({
+		onExpire: () => console.warn('onExpire called'),
+		time,
+	})
+
+	return (
+		<div style={{ textAlign: 'center' }}>
+			<span>{minutes}</span>:
+			<span>
+				{seconds < 10 ? '0' : ''}
+				{seconds}
+			</span>
+		</div>
+	)
+}
 
 export default function Game() {
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
@@ -53,7 +74,9 @@ export default function Game() {
 				</div>
 			</div>
 
-			<div className="mx-auto"> 2:30 </div>
+			<div className="mx-auto">
+				<Timer />
+			</div>
 
 			<Pong givePoint={givePoint} />
 		</div>
