@@ -1,6 +1,5 @@
 'use client'
 
-import { api } from '@/api/api'
 import Image from 'next/image'
 
 export default function page() {

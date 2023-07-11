@@ -11,7 +11,7 @@ type authContextType = {
 }
 
 const authContextDefaultValues: authContextType = {
-	login: function (code: string) {},
+	login: function(code: string) { },
 	user: {},
 }
 
@@ -20,20 +20,20 @@ const AuthContext = createContext<authContextType>(authContextDefaultValues)
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<
 		| {
-				name: string
-		  }
+			name: string
+		}
 		| {}
 	>({})
 
 	async function login(code: string) {
 		return await api
 			.get(`/auth/login/callback?code=${code}`)
-			.then(async function (result) {
+			.then(async function(result) {
 				//				.get(/me()
 				localStorage.setItem('pong.token', result.data.access_token)
 				console.log(localStorage.getItem('pong.token'))
 
-				await api.get(`/users/1`).then(function (newUser) {
+				await api.get(`/users/1`).then(function(newUser) {
 					setUser(newUser.data)
 					console.log(newUser.data)
 				})

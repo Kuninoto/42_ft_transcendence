@@ -58,9 +58,9 @@ export class Paddle {
 		if (this.#fixedSpeed === 0) return
 
 		const nextPosition = this.#position.y + this.#fixedSpeed
-		if (nextPosition < 0){
+		if (nextPosition < 0) {
 			this.#position.y = 0
-		} else if (nextPosition + PADDLE_HEIGHT > CANVAS_HEIGHT){
+		} else if (nextPosition + PADDLE_HEIGHT > CANVAS_HEIGHT) {
 			this.#position.y = CANVAS_HEIGHT - PADDLE_HEIGHT
 		} else {
 			this.#position.y += this.#fixedSpeed
