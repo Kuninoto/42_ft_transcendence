@@ -5,30 +5,16 @@ import { useState } from 'react'
 import { useTimer } from 'react-timer-hook'
 
 import Pong from './pong'
-
-function Timer() {
-	const time: Date = new Date()
-	time.setSeconds(time.getSeconds() + 5 * 60 + 5)
-
-	const { minutes, seconds } = useTimer({
-		onExpire: () => console.warn('onExpire called'),
-		time,
-	})
-
-	return (
-		<div style={{ textAlign: 'center' }}>
-			<span>{minutes}</span>:
-			<span>
-				{seconds < 10 ? '0' : ''}
-				{seconds}
-			</span>
-		</div>
-	)
-}
+import moment from 'moment'
 
 export default function Game() {
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
+
+	const { minutes, seconds, restart } = useTimer({
+		onExpire: () => console.warn('onExpire called'),
+		expiryTimestamp : moment().add(5, 'm').add(5, 's').toDate(),
+	})
 
 	const givePoint = (rigthPlayer: boolean): void => {
 		if (rigthPlayer) {
@@ -75,7 +61,12 @@ export default function Game() {
 			</div>
 
 			<div className="mx-auto">
-				<Timer />
+				<span>{minutes}</span>
+				:
+				<span>
+					{seconds < 10 ? '0' : ''}
+					{seconds}
+				</span>
 			</div>
 
 			<Pong givePoint={givePoint} />

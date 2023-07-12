@@ -1,44 +1,54 @@
 import { api } from '@/api/api'
-import { createContext, ReactNode, useContext, useState } from 'react'
+import axios from 'axios'
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
-interface IUser {
-	name?: string
-}
+export interface IUser {
+	name: string
+	avatar_url: string
+	created_at: Date
+	has_2fa: boolean
+} 
 
-type authContextType = {
+interface AuthContextType {
 	login: (code: string) => Promise<boolean> | void
-	user: IUser
+	user: IUser | {}
 }
 
-const authContextDefaultValues: authContextType = {
-	login: function(code: string) { },
-	user: {},
-}
-
-const AuthContext = createContext<authContextType>(authContextDefaultValues)
+const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-	const [user, setUser] = useState<
-		| {
-			name: string
-		}
-		| {}
-	>({})
+	const [user, setUser] = useState<IUser | {}>({})
+
+	useEffect(() => {
+		const token = localStorage.getItem('pong.token')
+		if (token)
+		{
+			api.get("/users/me")
+			.then((result) => setUser(result.data))
+			.catch((error) => console.error(error) )
+		}	
+
+	}, [])
 
 	async function login(code: string) {
-		return await api
-			.get(`/auth/login/callback?code=${code}`)
+		return await axios
+			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
 			.then(async function(result) {
-				//				.get(/me()
-				localStorage.setItem('pong.token', result.data.access_token)
-				console.log(localStorage.getItem('pong.token'))
 
-				await api.get(`/users/1`).then(function(newUser) {
+				localStorage.setItem('pong.token', result.data.access_token)
+				return await api.get(`/users/me`, {
+					headers: {
+						"Authorization" : `Bearer ${localStorage.getItem('pong.token')}`
+					}
+				}).then(function(newUser) {
 					setUser(newUser.data)
-					console.log(newUser.data)
+					return true
+				})
+				.catch((error) => {
+					console.log(error)
+					return false
 				})
 
-				return true
 			})
 			.catch((err) => {
 				console.error(err)
@@ -46,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			})
 	}
 
-	const value: authContextType = {
+	const value: AuthContextType = {
 		login,
 		user,
 	}
