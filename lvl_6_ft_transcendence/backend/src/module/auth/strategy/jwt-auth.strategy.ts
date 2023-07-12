@@ -1,7 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { UsersService } from 'src/module/users/service/users.service';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
+import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
 
 // JWT Payload
@@ -28,19 +29,18 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: TokenPayload) {
-    const user: User | null = await this.usersService.findUserById(payload.id);
-    console.log(user);
-
+  async validate(payload: TokenPayload): Promise<User | ErrorResponse> {
+    const user: User | null = await this.usersService.findUserByUID(payload.id);
+    
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Unauthenticated request');
     }
 
     // if user doesn't have 2fa or has 2fa and is 2f authenticated, return user
     if (!payload.has_2fa || payload.has_2fa && payload.is_2fa_authed) {
       return user;
     } else {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Unauthenticated request');
     }
   }
 }

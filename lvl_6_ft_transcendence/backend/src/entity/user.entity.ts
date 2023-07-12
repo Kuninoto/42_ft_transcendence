@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
+import { Friendship } from './friendship.entity';
 
 export enum UserStatus {
-  ONLINE,
-  OFFLINE,
-  IN_MATCH,
+  OFFLINE = "offline",
+  ONLINE = "online",
+  IN_MATCH = "in match",
 }
 
 @Entity('User')
@@ -26,11 +27,11 @@ export class User {
 
   @ApiProperty()
   @Column({
-    type: 'enum',
-    enum: UserStatus,
+    type: 'varchar',
     default: UserStatus.ONLINE,
+    nullable: false,
   })
-  status: UserStatus;
+  status: string;
 
   @ApiProperty()
   @Column({ default: false })
@@ -51,10 +52,20 @@ export class User {
   avatar_url: string;
 
   @ApiProperty()
-  @Column({ type: 'timestamp' })
+  @Column({
+    type: 'timestamp',
+    default: new Date()
+  })
   created_at: Date;
 
   @ApiProperty()
-  @Column({ type: 'timestamp' })
+  @Column({
+    type: 'timestamp',
+    default: new Date()
+  })
   last_updated_at: Date;
+
+  @ApiProperty()
+  @OneToMany(() => Friendship, friendship => friendship.user)
+  friendships: Friendship[];
 }

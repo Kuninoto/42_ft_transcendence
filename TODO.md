@@ -37,17 +37,18 @@ User Auth:
         intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
         - 42's Auth using passport-42 ✅
         - Understand JWT ✅
+        - How to keep JWT access_token ✅
 
-        - How to keep JWT access_token
+        - Figure out how to invalidate JWT's or change Authentication to be session-based ❌
+        - Understand/Review the session/login/logout logic ❌
+
+        - Figure out how to store/serve avatars ✅
+        - /me routes ✅
+	- Review the differences between requesting the 42's avatar (from avatar on user's table) vs. requesting a user updated avatar ✅
 ------------------------------------------- Currently at --------------------------------------
-        - Understand/Review the session logic, login/logout and figure out how to 
-        - Review current session/token security (https://stackoverflow.com/questions/21978658/invalidating-json-web-tokens)
-        - Figure out how to store/serve avatars
+	- user relations (friendships, blocked etc.)
 
-
-- Add checks for when user doesn't exist in (probably) all user service functions
-
-- Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
+Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
 - Stress test misconfigs on JSON Objects
 
 - Hash the passwords with salt (on the frontend)
