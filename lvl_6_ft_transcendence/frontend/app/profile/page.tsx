@@ -41,7 +41,7 @@ export default function Profile() {
 						className="mx-auto aspect-square w-36 rounded-full"
 						height="0"
 						sizes="100vw"
-						src={'https://picsum.photos/200'}
+						src={user.avatar_url}
 						width="0"
 					/>
 					<p className="text-3xl">{user.name}</p>

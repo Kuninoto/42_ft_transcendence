@@ -9,15 +9,17 @@ import {
 	PADDLE_WALL_OFFSET,
 	PADDLE_WIDTH,
 } from './definitions'
+import moment from 'moment'
 
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
 
-export default function Pong({
-	givePoint,
-}: {
+type props = {
 	givePoint: (rightPlayer: boolean) => void
-}) {
+}
+
+export default function Pong({ givePoint }: props ) {
+
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	const leftPaddle = new Paddle(PADDLE_WALL_OFFSET)
