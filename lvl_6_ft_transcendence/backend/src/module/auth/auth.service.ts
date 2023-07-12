@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/typeorm';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
-import { TokenPayload } from '../strategy/jwt-auth.strategy';
+import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 export interface twoFactorAuthDTO {
   secret: string,
@@ -13,7 +13,7 @@ export interface twoFactorAuthDTO {
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   // Return the signed JWT as access_token
@@ -22,7 +22,8 @@ export class AuthService {
       id: user.id,
       has_2fa: user.has_2fa
     }
-    console.log("User \"" + user.name + "\" logging in with 42...");
+
+    Logger.log("User \"" + user.name + "\" logged in with 42!");
     return {
       access_token: this.jwtService.sign(payload)
     };
@@ -35,7 +36,8 @@ export class AuthService {
       has_2fa: true,
       is_2fa_authed: true
     }
-    console.log("User \"" + user.name + "\" authenticated with Google's 2fa...");
+    
+    Logger.log("User \"" + user.name + "\" authenticated with Google's 2fa!");
     return {
       access_token: this.jwtService.sign(payload)
     };
@@ -46,7 +48,6 @@ export class AuthService {
     // verify() throws if the token is invalid
     try {
       await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-
       return true;
     } catch (error) {
       return false;
@@ -68,14 +69,11 @@ export class AuthService {
     };
   }
 
-  public generateQRCodeDataURL(otpAuthURL: string) {
+  public generateQRCodeDataURL(otpAuthURL: string): string {
     return toDataURL(otpAuthURL);
   }
 
   public is2faCodeValid(twoFactorAuthCode: string, secret_2fa: string): boolean {
-    console.log("token = " + twoFactorAuthCode);
-    console.log("secret = " + secret_2fa);
-
     return authenticator.verify({
       token: twoFactorAuthCode,
       secret: secret_2fa
