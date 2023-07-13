@@ -1,6 +1,7 @@
 import { api } from '@/api/api'
 import axios from 'axios'
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export interface IUser {
 	name: string
@@ -11,12 +12,14 @@ export interface IUser {
 
 interface AuthContextType {
 	login: (code: string) => Promise<boolean> | void
+	logout: () => void
 	user: IUser | {}
 }
-
+ 
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+	const router = useRouter()
 	const [user, setUser] = useState<IUser | {}>({})
 
 	useEffect(() => {
@@ -25,10 +28,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		{
 			api.get("/users/me")
 			.then((result) => setUser(result.data))
-			.catch((error) => console.error(error) )
+			.catch(() => logout() )
 		}	
 
 	}, [])
+
+	if (localStorage.getItem('pong.token'))
+		router.push("/")
+
+	function logout() {
+		router.push("/")
+		localStorage.removeItem('pong.token')
+	}
 
 	async function login(code: string) {
 		return await axios
@@ -59,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const value: AuthContextType = {
 		login,
 		user,
+		logout
 	}
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
