@@ -9,7 +9,10 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
-  Logger
+  Logger,
+  Post,
+  Param,
+  HttpCode,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'
 import {
@@ -27,8 +30,14 @@ import { multerConfig } from './middleware/multer/multer.config';
 import { ErrorResponseDTO } from 'src/common/dto/error-response.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
+import { meUserInfo } from './types/meUserInfo.interface';
+import { FriendRequest, FriendRequestStatus } from 'src/entity/friend-request.entity';
+import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
+import { FriendRequestResponseValidationPipe } from './pipe/friend-request-response-validation.pipe';
+import { Friendship } from 'src/typeorm';
 
 @ApiTags('users')
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(
@@ -46,7 +55,7 @@ export class UsersController {
   /*
   @Get('/:id')
   public async getUserByUID(
-    @Param('id', ParseIntPipe) userID=number,
+    @Param('id', NonNegativeIntPipe) userID: number,
   ): Promise<User | ErrorResponse> {
     const user = await this.usersService.findUserByUID(userID);
 
@@ -61,11 +70,11 @@ export class UsersController {
   * PATCH /api/users/:id
   * 
   * This is the route to visit to update any user's
-  * (indentified by id) info
+  * (identified by id) info
   */
   /*
   public async updateUserByUID(
-    userID=number,
+    userID: number,
     updateUserDTO: UpdateUserDTO,
   ): Promise<SuccessResponseDTO> {
     return await this.usersService.updateUserByUID(userID, updateUserDTO);
@@ -80,7 +89,7 @@ export class UsersController {
   /*
   @Delete('/:id')
   public async deleteUserByUID(
-    @Param('id', ParseIntPipe) id=number
+    @Param('id', NonNegativeIntPipe) id=number
   ): Promise<SuccessResponse> {
     return await this.usersService.deleteUserByUID(id);
   } */
@@ -88,34 +97,45 @@ export class UsersController {
   /**
    * GET /api/users/me
    * 
-   * Finds and returns the 'me' user info
+   * Finds and returns the 'me' user's info
    */
-  @ApiOkResponse({ description: "Finds and returns 'me' user info" })
-  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
   @Get('/me')
   public async getMyInfo(
     @Req() req: { user: User },
-  ): Promise<User | null> {
-    Logger.log("User id=" + req.user.id + " requested his info using /me");
+  ): Promise<meUserInfo> {
+    Logger.log("User \"" + req.user.name + "\" requested his info using /me");
 
-    return await this.usersService.findUserByUID(req.user.id);
+    // Destructure user's info so that we can filter "private" info
+    const { name, avatar_url, intra_profile_url, has_2fa, created_at } = req.user;
+  
+    // Get from the friend requests table the requests that were issued to the 'me' user
+    const friend_requests: FriendRequest[] = await this.usersService.getMyFriendRequests(req.user);
+
+    const meInfo: meUserInfo = { name, avatar_url, intra_profile_url, has_2fa, created_at, friend_requests };
+    return meInfo;
   }
 
   /**
    * PATCH /api/me/username
    * 
    * This is the route to visit to update 'me'
-   * user username.
+   * user's username.
+   * 
+   * Expects the new username as a field of a JSON on the body
+   * 
+   * {
+   *  "newUsername":"<new_username>"
+   * }
    */
-  @ApiOkResponse({ description: "Updates 'me' user username" })
-  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ description: "Updates 'me' user's username\nExpects the new username as the \"newUsername\" field of a JSON on the body" })
   @Patch('/me/username')
   public async updateMyUsername(
     @Req() req: { user: User },
     @Body() body: { newUsername: string }
   ): Promise<SuccessResponse | ErrorResponse> {
-    Logger.log("Updating user id=" + req.user.id + " username");
-  
+    Logger.log("Updating \"" + req.user.name + "\"'s username");
+
     return await this.usersService.updateUsernameByUID(req.user.id, body.newUsername);
   }
 
@@ -137,19 +157,18 @@ export class UsersController {
     type: ErrorResponseDTO,
     description: "If the uploaded image is not a png, jpg or jpeg or if its size exceeds the max size"
   })
-  @ApiOkResponse({ description: "Stores the uploaded new avatar and updates the avatar on the user's table" })
-  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ description: "Stores the uploaded new avatar and updates the avatar_url on the user's table" })
   @Patch('/me/avatar')
   public async updateMyAvatar(
     @Req() req: { user: User },
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!file) {
-      Logger.error("User id=" + req.user.id + " failed to upload its avatar");
+      Logger.error("\"" + req.user.name + "\" failed to upload his avatar");
       throw new BadRequestException("Invalid file");
     }
 
-    Logger.log("Updating user id=" + req.user.id + " avatar");
+    Logger.log("Updating \"" + req.user.name + "\"'s avatar");
 
     return await this.usersService.updateUserAvatarByUID(
       req.user.id,
@@ -163,13 +182,40 @@ export class UsersController {
   * This is the route to visit to delete 'me' user's
   * account from the database
   */
-  @ApiOkResponse({ description: "Deletes 'me' user account" })
-  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ description: "Deletes 'me' user's account" })
   @Delete('/me')
   public async deleteMyAccount(@Req() req: { user: User })
     : Promise<SuccessResponse> {
-    Logger.log("Deleting user id=" + req.user.id + " account");
+    Logger.log("Deleting \"" + req.user.name + "\"'s account");
 
     return await this.usersService.deleteUserByUID(req.user.id);
+  }
+
+  @ApiOkResponse({ description: "Returns the status of the friend request" })
+  @Get('friend-request/status/:receiverId')
+  public async getFriendRequestStatus(
+    @Req() req: { user: User },
+    @Param('receiverId', NonNegativeIntPipe) receiverUID: number
+  ): Promise<FriendRequestStatus> {    
+    return await this.usersService.getFriendRequestStatus(req.user, receiverUID);
+  }
+
+  @ApiOkResponse({ description: "Sends a friend request to the user which id=receiverId" })
+  @HttpCode(200)
+  @Post('friend-request/send/:receiverId')
+  public async sendFriendRequest(
+    @Req() req: { user: User },
+    @Param('receiverId', NonNegativeIntPipe) receiverUID: number
+  ): Promise<SuccessResponse | ErrorResponse> {
+    return await this.usersService.sendFriendRequest(req.user, receiverUID);
+  }
+
+  @ApiOkResponse({ description: "Updates the friend request status according to the response sent on the body ('accepted' or 'declined')" })
+  @Patch('friend-request/respond/:friendRequestId')
+  public async respondToFriendRequest(
+    @Param('friendRequestId', NonNegativeIntPipe) friendRequestID: number,
+    @Body(new FriendRequestResponseValidationPipe) body: { response: FriendRequestStatus }
+  ): Promise<SuccessResponse> {
+    return await this.usersService.respondToFriendRequest(friendRequestID, body.response); 
   }
 }

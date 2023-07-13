@@ -49,7 +49,8 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
   
     return await this.usersService.createUser({
       name: profile.username,
-      avatar_url: profile.avatar
+      avatar_url: profile.avatar,
+      intra_profile_url: "https://profile.intra.42.fr/users/" + profile.username,
     });
   }
 }
