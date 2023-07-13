@@ -23,7 +23,7 @@ export class AuthService {
       has_2fa: user.has_2fa
     }
 
-    Logger.log("User \"" + user.name + "\" logged in with 42!");
+    Logger.log("User \"" + user.name + "\" logged in with 42 auth!");
     return {
       access_token: this.jwtService.sign(payload)
     };
@@ -37,7 +37,7 @@ export class AuthService {
       is_2fa_authed: true
     }
     
-    Logger.log("User \"" + user.name + "\" authenticated with Google's 2fa!");
+    Logger.log("User \"" + user.name + "\" authenticated with Google's 2FA!");
     return {
       access_token: this.jwtService.sign(payload)
     };

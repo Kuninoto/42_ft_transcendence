@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional } from 'class-validator';
-import { User, UserStatus } from 'src/entity/user.entity';
+import { UserStatus } from 'src/entity/user.entity';
 
 export class UpdateUserDTO {
   @ApiProperty()

@@ -19,6 +19,13 @@ export class Friendship {
   created_at: Date;
 
   @ApiProperty()
+  @Column({
+    type: 'boolean',
+    default: false
+  })
+  blocked: boolean
+
+  @ApiProperty()
   @ManyToOne(() => User, user => user.friendships)
   user: User;
 }

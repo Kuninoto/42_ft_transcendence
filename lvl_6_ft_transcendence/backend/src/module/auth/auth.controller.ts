@@ -35,18 +35,6 @@ export class AuthController {
     private readonly usersService: UsersService
   ) {}
 
-  /**
-   * GET /api/auth/login/
-   * 
-   * This is the route that the user will visit
-   * to authenticate
-   */
-  @UseGuards(FortyTwoAuthGuard)
-  @Get('login')
-  public login() {
-    return;
-  };
-
   // passport flow
   // request -> guard -> strategy -> session serializer
 
@@ -61,7 +49,8 @@ export class AuthController {
    * GET /api/auth/login/callback
    * 
    * This is the route that the OAuth2 Provider (42) 
-   * will call after the user is authenticated
+   * will call (with the code param) after the user
+   * is authenticated
    * @returns JWT's access_token
    */
   @ApiOkResponse({ description: "The access token of the logged in user" })
@@ -134,9 +123,12 @@ export class AuthController {
       throw new UnauthorizedException("Wrong authentication code");
     }
 
+    Logger.log("Enabling 2fa for user \"" + req.user.name + "\"");
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
+
     const jwt: { access_token: string } = this.authService.authenticate2fa(req.user);
     Logger.log("Issued a 2fa jwt = " + jwt.access_token);
+
     return jwt;
   }
 
@@ -152,6 +144,8 @@ export class AuthController {
   public async disable2fa(
     @Req() req: { user: User },
   ): Promise<SuccessResponse> {
+    Logger.log("Disabling 2fa for \"" + req.user.name + "\"");
+
     return await this.usersService.disable2fa(req.user.id);
   }
 
@@ -172,7 +166,7 @@ export class AuthController {
   })
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
-  public async generate2fa(
+  public async generate2faQRCodeAndSecret(
     @Req() req: { user: User },
     @Res() res: any
   ) {
