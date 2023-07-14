@@ -1,12 +1,6 @@
 version: "3.8"
 
 services:
-  #frontend:
-  #  build:
-  #    context: frontend
-  #    target: development
-  #    depends_on:
-  #      -
   postgres:
     container_name: postgres
     image: postgres:alpine
@@ -21,15 +15,16 @@ services:
       - ./backend/.env
     restart: always
 
-  frontend:
-    container_name: frontend
-    build: ./frontend
-    ports:
-      - 3001:3000
-    volumes:
-      - ./frontend/app:/app/app
-      - ./frontend/public:/app/public
-    restart: on-failure
+  #frontend:
+  #  container_name: frontend
+  #  build: ./frontend
+  #  ports:
+  #    - 3001:3000
+  #  volumes:
+  #    - ./frontend/app:/app/app
+  #    - ./frontend/public:/app/public
+  #    - ./frontend/contexts:/app/contexts
+  #  restart: on-failure
 
   adminer:
     container_name: adminer
@@ -56,18 +51,9 @@ services:
       - app-net
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend/src:/app/src
     restart: always
-
-#  nginx:
-#    container_name: nginx
-#    build: ./frontend/
-#    volumes:
-#      - /frontend:/var/www/html
-#    depends_on:
-#      - backend
-#    ports:
-#      - 8001:8001
-#    restart: on-failure
 
 networks:
   app-net:
