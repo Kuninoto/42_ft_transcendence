@@ -27,29 +27,73 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	constructor(private chatService: ChatService, private authService: AuthService, private roomService: RoomService, private userService: UsersService) {}
 
-	@UseGuards(JwtAuthGuard)
+
+	//TODO Middleware in socket for auth
+	// STEP BY STEP
+	
+	// !jwt-auth.strategy.ts
+	// 1st validate token (which will be on socket.handshake.headers.authorization)
+	// 2nd exchange the token for the user
+
+	// io.use(function(socket, next){
+	// 	var joinServerParameters = JSON.parse(socket.handshake.query.joinServerParameters);
+	// 	if (joinServerParameters.token == "xxx" ){
+	// 	  next();          
+	// 	} else {
+	// 	  //next(new Error('Authentication error'));                  
+	// 	}
+	// 	return;       
+	//   });
+
+ /*  To be used only by io.use (does the same as a guard) */
+ /*
+  public async exchangeJWTforUser(token: string) {
+	const isTokenValid: boolean = await this.verify(token);
+
+	if (!isTokenValid) {
+      throw new UnauthorizedException();
+	}
+
+	// Decode JWT (saerch a function to do that)
+
+	const payload: TokenPayload = decode
+
+	const user: User = JwtAuthStrategy.validate()
+  }
+*/
+
 	// Check for connection and print the socket id
-	async handleConnection(socket: Socket, @Req() req: any) {
+	async handleConnection(socket: Socket) {
 		// console.log('Connecting ' + req.user);
 		// TODO use auth module to do verification
 		// check if user already exists
-		// try {
-		// 	const user: UserI = await this.userService.findUserById(req.user.id);
-		// 	if (!user) {
-		// 		console.log('No user');
-		// 		return this.disconnect(socket);
-		// 	} else {
-		// 		console.log('Connect Sucessful');
-		// 		socket.data.user = user;
-		// 		const rooms = await this.roomService.getRoomsForUser(user.id, {page: 1, limit: 10});
+		const jwt: string = socket.handshake.headers.authorization;
+		// socket.handshake.query.token;
 
-		// 		// Only emit rooms to the specific connected client
-		// 		return this.server.to(socket.id).emit('rooms', rooms);
-		// 	}
-		// } catch {
-		// 	console.log('Error on user auth');
-		// 	return this.disconnect(socket);
-		// }
+		// TODO test this
+		const isTokenValid: boolean = await this.authService.verify(jwt);
+		if (!isTokenValid) {
+			console.log('Error on user auth');
+			return this.disconnect(socket);
+		}
+
+		try {
+			const user: UserI = await this.userService.findUserById(socket.user.id);
+			if (!user) {
+				console.log('No user');
+				return this.disconnect(socket);
+			} else {
+				console.log('Connect Sucessful');
+				socket.data.user = user;
+				const rooms = await this.roomService.getRoomsForUser(user.id, {page: 1, limit: 10});
+
+				// Only emit rooms to the specific connected client
+				return this.server.to(socket.id).emit('rooms', rooms);
+			}
+		} catch {
+			console.log('Error on user auth');
+			return this.disconnect(socket);
+		}
 
 	}
 

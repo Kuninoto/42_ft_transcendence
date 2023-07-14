@@ -28,6 +28,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  // AFTER ALGO VALIDATION
   async validate(payload: TokenPayload) {
     const user: User | null = await this.usersService.findUserById(payload.id);
     console.log(user);
