@@ -27,31 +27,30 @@ Backend:
         createdAt DATE,
     );
 
-- Setup NestJS <-> Database connection ✅
-- GET POST DELETE PATCH on User Module ✅
+Setup NestJS <-> Database connection ✅
+GET POST DELETE PATCH on User Module ✅
+Understand NestJS Guards ✅
 
-- User 42 OAuth
-    - intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
-    GET request part ✅
-    - Figure out how to make or call the userService to register a new user ✅
-    - Figure out what to retrieve from the 42 User and how the user registration should be ✅
-        (database registering, which fields I want from the 42 API, should I save the avatar endpoint) 
-        Should it be a redirect with the user's info as query params?
-    - Figure out why updateUserAvatar() is not being able to update users table
+User Auth:
+    Google Authenticator (2fa) ✅
+    42:
+        intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
+        - 42's Auth using passport-42 ✅
+        - Understand JWT ✅
+        - How to keep JWT access_token ✅
+
+        - Figure out how to invalidate JWT's or change Authentication to be session-based ❌
+        - Understand/Review the session/login/logout logic ❌
+
+        - Figure out how to store/serve avatars ✅
+        - /me routes ✅
+	- Review the differences between requesting the 42's avatar (from avatar on user's table) vs. requesting a user updated avatar ✅
 ------------------------------------------- Currently at --------------------------------------
-    - Test all the user routes
-    - Figure out how to serve a locally stored avatar
+	- user relations (friendships, blocked etc.)
 
-    
-- Change 42's Auth to use passportjs oauth2
-- Understand JWT and how to keep access_token
-
-- Add checks for when user doesn't exist in (probably) all user service functions
-- Understand NestJS Guards
-
-- Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
+Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
 - Stress test misconfigs on JSON Objects
 
 - Hash the passwords with salt (on the frontend)
 
-- Review the routes architecture (take as an example the routes of full-grown sites)
+- Develop docs perhaps a flowchart
