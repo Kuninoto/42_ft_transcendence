@@ -1,0 +1,11 @@
+README.md
+.env.example
+.gitignore
+package-lock.json
+.dockerignore
+index.html
+
+.next
+node_modules
+public
+app

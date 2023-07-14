@@ -1,17 +1,19 @@
 COMPOSE_FILE_PATH=./docker-compose.yml
 
-all: build up_detached ps
+all: build up_detached ps logs
 
 build:
-	@if ! [ -f "./.env" ]; then \
+#	@if ! [ -f "./backend/.env" ] || ! [ -f "./frontend/.env" ]; then \
+
+	@if ! [ -f "./backend/.env" ]; then \
 		echo "ft_transcendence: error: .env file not found, please provide one like the example \".env.example\""; \
 		exit 1; \
 	fi
 
-	@if ! [ -d "./data/db" ]; then \
-		mkdir -p ./data; \
-		mkdir -p ./data/db; \
-	fi
+#	@if ! [ -d "./data/db" ]; then \
+#		mkdir -p ./data; \
+#		mkdir -p ./data/db; \
+#	fi
 
 	docker-compose -f $(COMPOSE_FILE_PATH) build --progress=plain
 
@@ -42,7 +44,10 @@ rmi: stop
 
 delete_volumes:
 	docker-compose -f $(COMPOSE_FILE_PATH) down --volumes
-	sudo rm -rf ./data
+#	rm -rf ./data
+
+logs:
+	docker-compose logs --follow
 
 system_prune:
 	docker system prune

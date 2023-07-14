@@ -1,54 +1,65 @@
-import { PrimaryGeneratedColumn, Column, Entity } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger';
+import { ChatRoom } from 'src/typeorm';
+import { PrimaryGeneratedColumn, Column, Entity, JoinTable, ManyToOne } from 'typeorm';
 
 export enum UserStatus {
-    ONLINE,
-    OFFLINE,
-    IN_MATCH,
+  ONLINE,
+  OFFLINE,
+  IN_MATCH,
 }
 
-@Entity('user')
+@Entity('User')
 export class User {
-    @PrimaryGeneratedColumn({
-        type: 'bigint',
-        name: 'user_id',
-    })
-    id: number;
+  @ApiProperty()
+  @PrimaryGeneratedColumn({
+    type: 'bigint',
+    name: 'id',
+  })
+  id: number;
 
-    @Column({
-        type: 'varchar',
-        unique: true,
-        nullable: false,
-    })
-    name: string;
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    unique: true,
+    nullable: false,
+  })
+  name: string;
 
-    @Column({
-        type: 'enum',
-        enum: UserStatus,
-        default: UserStatus.ONLINE,
-      })
-    status: UserStatus;
-    
-    @Column({ default: true })
-    is_auth: boolean;
+  @ApiProperty()
+  @Column({
+    type: 'enum',
+    enum: UserStatus,
+    default: UserStatus.ONLINE,
+  })
+  status: UserStatus;
 
-    @Column({ default: false })
-    has_2fa: boolean;
+  @ApiProperty()
+  @Column({ default: false })
+  has_2fa: boolean;
 
-    @Column({ type: 'timestamp' })
-    created_at: Date;
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  secret_2fa: string;
 
-    @Column({ type: 'timestamp' })
-    last_updated_at: Date;
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    nullable: false,
+  })
+  avatar_url: string;
 
-    @Column({
-        type: 'varchar',
-        nullable: false
-    })
-    access_token: string;
+  @ApiProperty()
+  @Column({ type: 'timestamp' })
+  created_at: Date;
 
-    @Column({
-        type: 'varchar',
-        nullable: false
-    })
-    avatar_url: string;
+  @ApiProperty()
+  @Column({ type: 'timestamp' })
+  last_updated_at: Date;
+
+  @JoinTable()
+  @ManyToOne(() => ChatRoom, (room: ChatRoom) => room.messages)
+  room: ChatRoom;
 }
