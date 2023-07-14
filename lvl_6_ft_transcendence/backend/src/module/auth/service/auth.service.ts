@@ -1,64 +1,84 @@
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
-import { UserService } from '../../user/service/user.service';
+import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/typeorm';
+import { authenticator } from 'otplib';
+import { toDataURL } from 'qrcode';
+import { TokenPayload } from '../strategy/jwt-auth.strategy';
+
+export interface twoFactorAuthDTO {
+  secret: string,
+  otpAuthURL: string
+}
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly userService: UserService) {}
+  constructor(
+    private jwtService: JwtService
+  ) {}
 
-    private async requestAccessToken(codeParam: string) {
-        // !TODO
-        // check nestjs guards
-        // and change this protection
-        if (!codeParam) return 'No codeParam buddy :(';
-        // !TODO
-        // wrap this on a try catch
-        return await axios.post('https://api.intra.42.fr/oauth/token', null, { params: {
-            grant_type: 'authorization_code',
-            client_id: process.env.INTRA_CLIENT_UID,
-            client_secret: process.env.INTRA_CLIENT_SECRET,
-            code: codeParam,
-            redirect_uri: process.env.FRONTEND_URL + '/auth/login',
-        }}).then((response) => {
-            return response.data.access_token;
-        }).catch((error) => {
-            console.error('requestAccessToken():\n' + error);
-            return error;
-        });
+  // Return the signed JWT as access_token
+  public login(user: User): { access_token: string } {
+    const payload: TokenPayload = {
+      id: user.id,
+      has_2fa: user.has_2fa
     }
+    console.log("User \"" + user.name + "\" logging in with 42...");
+    return {
+      access_token: this.jwtService.sign(payload)
+    };
+  }
 
-    private async requestUserInfo(accessToken: string) {
-        // !TODO
-        // check nestjs guards
-        // and change this protection
-        if (!accessToken) return null;
-
-        try {
-            const response = await axios.get('https://api.intra.42.fr/v2/me', { headers: {
-                                Authorization: 'Bearer ' + accessToken,
-                            }});
-            return response.data;
-        } catch (error) {
-            console.error('requestUserInfo():\n' + error);
-        }
+  // Return the signed JWT as access_token
+  public authenticate2fa(user: User): { access_token: string } {
+    const payload: TokenPayload = {
+      id: user.id,
+      has_2fa: true,
+      is_2fa_authed: true
     }
+    console.log("User \"" + user.name + "\" authenticated with Google's 2fa...");
+    return {
+      access_token: this.jwtService.sign(payload)
+    };
+  }
 
-    // !TODO
-    public async userLogin(codeParam: string) {
-      try {
-        const accessToken = await this.requestAccessToken(codeParam);
-        const userInfo = await this.requestUserInfo(accessToken);
+  // Verifies if the JWT is valid
+  public async verify(token: string): Promise<boolean> {
+    // verify() throws if the token is invalid
+    try {
+      await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
 
-        // if (firstLogin)
-            return this.userService.createUser({
-              name: userInfo.login,
-              access_token: accessToken,
-              avatar_url: userInfo.image.versions.medium,
-            });
-        // else
-        //  this.userService.login()
-      } catch (error) {
-        console.error('userLogin():\n' + error);
-      }
+      return true;
+    } catch (error) {
+      return false;
     }
+  }
+
+  public async generate2faSecret(): Promise<twoFactorAuthDTO> {
+    const secret = authenticator.generateSecret();
+
+    const otpAuthURL = authenticator.keyuri(
+      process.env.GOOGLE_AUTH_APP_NAME,
+      process.env.GOOGLE_AUTH_APP_NAME,
+      secret
+    );
+
+    return {
+      secret,
+      otpAuthURL
+    };
+  }
+
+  public generateQRCodeDataURL(otpAuthURL: string) {
+    return toDataURL(otpAuthURL);
+  }
+
+  public is2faCodeValid(twoFactorAuthCode: string, secret_2fa: string): boolean {
+    console.log("token = " + twoFactorAuthCode);
+    console.log("secret = " + secret_2fa);
+
+    return authenticator.verify({
+      token: twoFactorAuthCode,
+      secret: secret_2fa
+    });
+  }
 }

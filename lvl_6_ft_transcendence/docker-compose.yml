@@ -1,60 +1,74 @@
 version: "3.8"
 
 services:
-  #frontend:
-  #  build:
-  #    context: frontend
-  #    target: development
-  #    depends_on:
-  #      - 
-
-  #backend:
-  #  build:
-  #    context: backend
-  #    target: development
-  #    depends_on:
-  #      - db
-
-  db:
-    container_name: db
-    image: postgres:15.3-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+  postgres:
+    container_name: postgres
+    image: postgres:alpine
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      # - ./data/db:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     networks:
       - app-net
+    env_file:
+      - ./backend/.env
     restart: always
+
+#  frontend:
+#    container_name: frontend
+#    build: ./frontend
+#    ports:
+#      - 3001:3000
+#    volumes:
+#      - ./frontend/app:/app/app
+#      - ./frontend/public:/app/public
+#    restart: on-failure
 
   adminer:
     container_name: adminer
     image: adminer:latest
-    environment: 
-      ADMINER_DEFAULT_SERVER: db
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
       ADMINER_DESIGN: hydra
     ports:
       - 8080:8080
     networks:
       - app-net
     depends_on:
-      - db
+      - postgres
     restart: always
-#
+
+  nest:
+    container_name: nest
+    build: ./backend/
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
+    networks:
+      - app-net
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    restart: always
+
 #  nginx:
 #    container_name: nginx
-#    build: ./backend/
+#    build: ./frontend/
 #    volumes:
 #      - /frontend:/var/www/html
 #    depends_on:
-#      - postgresql
+#      - backend
 #    ports:
 #      - 8001:8001
-#    restart: always
+#    restart: on-failure
 
 networks:
   app-net:
     name: app-net
+    driver: bridge
+
+volumes:
+  db_data:

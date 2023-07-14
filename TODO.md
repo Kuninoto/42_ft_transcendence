@@ -27,26 +27,31 @@ Backend:
         createdAt DATE,
     );
 
-- Setup NestJS <-> Database connection ✅
-- GET POST DELETE PATCH on User Module ✅
+Setup NestJS <-> Database connection ✅
+GET POST DELETE PATCH on User Module ✅
+Understand NestJS Guards ✅
 
-- User 42 OAuth
-    - intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
-    GET request part ✅
-    - Figure out how to make or call the userService to register a new user ✅
-    - Figure out what to retrieve from the 42 User and how the user registration should be ✅
-        (database registering, which fields I want from the 42 API, should I save the avatar endpoint) 
-        Should it be a redirect with the user's info as query params?
-    - Figure out why updateUserAvatar() is not being able to update users table
+User Auth:
+    Google Authenticator (2fa) ✅
+    42:
+        intra link -> auth -> code param -> access_token -> GET request to retrieve info about the authenticated user
+        - 42's Auth using passport-42 ✅
+        - Understand JWT ✅
+
+        - How to keep JWT access_token
 ------------------------------------------- Currently at --------------------------------------
-    - Figure out how to properly route user updates and how to properly link/save the avatar_url on the user database
-    
-- Understand JWT and how to keep access_token
+        - Figure out how to invalidate JWT's or change Authentication to be session-based
+        - /me controller
+        - Understand/Review the session logic, login/logout and figure out how to 
+        - Review current session/token security (https://stackoverflow.com/questions/21978658/invalidating-json-web-tokens)
+        - Figure out how to store/serve avatars
+
 
 - Add checks for when user doesn't exist in (probably) all user service functions
-- Understand NestJS Guards
 
 - Handle gracefully Internal errors such as duplicate names, misconfigs on JSON's etc.
 - Stress test misconfigs on JSON Objects
 
 - Hash the passwords with salt (on the frontend)
+
+- Develop docs perhaps a flowchart

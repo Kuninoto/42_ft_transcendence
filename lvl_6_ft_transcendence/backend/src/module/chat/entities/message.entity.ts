@@ -15,7 +15,7 @@ export class Message {
 		@Column({ type: 'timestamp'})
 		created_at?: Date;
 
-		// @JoinTable()
-		// @ManyToOne(() => ChatRoom, (room: ChatRoom) => room.messages)
-		// room: ChatRoom;
+		@JoinTable()
+		@ManyToOne(() => ChatRoom, (room: ChatRoom) => room.messages)
+		room: ChatRoom;
 }
