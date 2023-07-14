@@ -1,11 +1,11 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
-import { FriendRequestStatus } from 'src/entity/friend-request.entity';
+import { FriendshipStatus } from 'src/entity/friendship.entity';
 
 @Injectable()
 export class FriendRequestResponseValidationPipe implements PipeTransform<any> {
-  readonly allowedResponses = ['accepted', 'declined'];
+  readonly allowedResponses = ['accepted', 'declined', 'blocked', 'canceled'];
 
-  transform(value: { response: FriendRequestStatus }, metadata: ArgumentMetadata) {
+  transform(value: { response: FriendshipStatus }, metadata: ArgumentMetadata) {
     if (!value || !value.response || !this.allowedResponses.includes(value.response)) {
       throw new BadRequestException('Invalid response to a friend request');
     }

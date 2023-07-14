@@ -8,14 +8,14 @@ import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
 import { SessionSerializer } from './session.serializer';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from '../users/users.service';
-import { FriendRequest, Friendship, User } from 'src/typeorm';
+import { Friendship, User } from 'src/typeorm';
 
 console.log("JWT_SECRET= " + process.env.JWT_SECRET);
 console.log("JWT_EXPIRES_IN= " + process.env.JWT_EXPIRES_IN);
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Friendship, FriendRequest]),
+    TypeOrmModule.forFeature([User, Friendship]),
     PassportModule.register({ session: true }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,

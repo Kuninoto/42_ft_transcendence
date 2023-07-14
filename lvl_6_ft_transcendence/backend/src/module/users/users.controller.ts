@@ -31,7 +31,7 @@ import { ErrorResponseDTO } from 'src/common/dto/error-response.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { meUserInfo } from './types/meUserInfo.interface';
-import { FriendRequest, FriendRequestStatus } from 'src/entity/friend-request.entity';
+import { FriendshipStatus } from 'src/entity/friendship.entity';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { FriendRequestResponseValidationPipe } from './pipe/friend-request-response-validation.pipe';
 import { Friendship } from 'src/typeorm';
@@ -109,10 +109,10 @@ export class UsersController {
     // Destructure user's info so that we can filter "private" info
     const { name, avatar_url, intra_profile_url, has_2fa, created_at } = req.user;
   
-    // Get from the friend requests table the requests that were issued to the 'me' user
-    const friend_requests: FriendRequest[] = await this.usersService.getMyFriendRequests(req.user);
+    const friend_requests: Friendship[] = await this.usersService.getMyFriendRequests(req.user);
+    const friendships: Friendship[] = await this.usersService.getMyFriends(req.user);
 
-    const meInfo: meUserInfo = { name, avatar_url, intra_profile_url, has_2fa, created_at, friend_requests };
+    const meInfo: meUserInfo = { name, avatar_url, intra_profile_url, has_2fa, created_at, friend_requests, friendships };
     return meInfo;
   }
 
@@ -193,11 +193,11 @@ export class UsersController {
 
   @ApiOkResponse({ description: "Returns the status of the friend request" })
   @Get('friend-request/status/:receiverId')
-  public async getFriendRequestStatus(
+  public async getFriendshipStatus(
     @Req() req: { user: User },
     @Param('receiverId', NonNegativeIntPipe) receiverUID: number
-  ): Promise<FriendRequestStatus> {    
-    return await this.usersService.getFriendRequestStatus(req.user, receiverUID);
+  ): Promise<FriendshipStatus> {    
+    return await this.usersService.getFriendshipStatus(req.user, receiverUID);
   }
 
   @ApiOkResponse({ description: "Sends a friend request to the user which id=receiverId" })
@@ -214,7 +214,7 @@ export class UsersController {
   @Patch('friend-request/respond/:friendRequestId')
   public async respondToFriendRequest(
     @Param('friendRequestId', NonNegativeIntPipe) friendRequestID: number,
-    @Body(new FriendRequestResponseValidationPipe) body: { response: FriendRequestStatus }
+    @Body(new FriendRequestResponseValidationPipe) body: { response: FriendshipStatus }
   ): Promise<SuccessResponse> {
     return await this.usersService.respondToFriendRequest(friendRequestID, body.response); 
   }

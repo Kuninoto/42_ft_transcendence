@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
-import { FriendRequest, Friendship, User } from 'src/typeorm';
+import { Friendship, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
@@ -9,15 +9,13 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { CreateFriendRequestDTO } from './dto/create-friend-request.dto';
-import { FriendRequestStatus } from 'src/entity/friend-request.entity';
+import { FriendshipStatus } from 'src/entity/friendship.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    @InjectRepository(FriendRequest)
-    private readonly friendRequestRepository: Repository<FriendRequest>,
     @InjectRepository(Friendship)
     private readonly friendshipRepository: Repository<Friendship>
   ) { }
@@ -120,22 +118,26 @@ export class UsersService {
   *              Friends              *
   ************************************/
 
-  public async getMyFriendRequests(meUser: User): Promise<FriendRequest[]> {
-    return await this.friendRequestRepository.findBy({
-      receiver: meUser
+  public async getMyFriendRequests(meUser: User): Promise<Friendship[]> {
+    return await this.friendshipRepository.findBy({
+      receiver: meUser,
+      status: FriendshipStatus.PENDING
     });
   }
 
-
-  // !TODO
-  public async getMyFriendships(meUser: User): Promise<Friendship[]> {
-    //return ;
+  public async getMyFriends(meUser: User): Promise<Friendship[]> {
+    return await this.friendshipRepository.find({
+      where: [
+        { receiver: meUser, status: FriendshipStatus.ACCEPTED },
+        { sender: meUser, status: FriendshipStatus.ACCEPTED },
+      ]
+    });
   }
 
-  public async getFriendRequestStatus(sender: User, receiverUID: number)
-    : Promise<FriendRequestStatus> {
+  public async getFriendshipStatus(sender: User, receiverUID: number)
+    : Promise<FriendshipStatus> {
     const receiver = await this.findUserByUID(receiverUID);
-    const friendRequest = await this.friendRequestRepository.findOneBy({
+    const friendRequest = await this.friendshipRepository.findOneBy({
       sender: sender,
       receiver: receiver
     });
@@ -149,9 +151,9 @@ export class UsersService {
 
     // Check if a friend request between the two users
     // has already been made by one of the parts
-    const friendRequest: FriendRequest = await this.friendRequestRepository.findOneBy([
-      { sender: sender, receiver: receiver }, // sender -> receiver
-      { sender: receiver, receiver: sender }, // receiver -> sender
+    const friendRequest: Friendship = await this.friendshipRepository.findOneBy([
+      { sender: sender, receiver: receiver, status: FriendshipStatus.PENDING }, // sender -> receiver
+      { sender: receiver, receiver: sender, status: FriendshipStatus.PENDING }, // receiver -> sender
     ]);
 
     return friendRequest ? true : false;
@@ -172,35 +174,21 @@ export class UsersService {
 
     Logger.log("\"" + sender.name + "\" sent a friend request to \"" + receiver.name + "\"");
 
-    await this.friendRequestRepository.save({
+    await this.friendshipRepository.save({
       sender: sender,
       receiver: receiver
     });
     return { message: "Friend request successfully sent" };
   }
 
-  // !TODO
-  private async createFriendship(sender: User, receiver: User): Promise<void> {
-    // return ;
-  }
-
   public async respondToFriendRequest(
     friendRequestID: number,
-    responseToFriendRequest: FriendRequestStatus,
+    responseToFriendRequest: FriendshipStatus,
   ): Promise<SuccessResponse> {
-    const friendRequest = await this.friendRequestRepository.findOneBy({ id: friendRequestID });
+    const friendRequest = await this.friendshipRepository.findOneBy({ id: friendRequestID });
     friendRequest.status = responseToFriendRequest;
 
-    if (responseToFriendRequest === FriendRequestStatus.ACCEPTED) {
-      await this.createFriendship(friendRequest.sender, friendRequest.receiver);
-
-      // Delete this request because it was accepted
-      // and we already estabilished the friendship
-      await this.friendRequestRepository.delete(friendRequest);
-    }
-    else {
-      await this.friendRequestRepository.save(friendRequest);
-    }
+    await this.friendshipRepository.save(friendRequest);
 
     return { message: "Successfully responded to friend request" };
   }

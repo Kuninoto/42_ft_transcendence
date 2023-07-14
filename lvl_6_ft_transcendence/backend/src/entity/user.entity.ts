@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
 import { Friendship } from './friendship.entity';
-import { FriendRequest } from './friend-request.entity';
 
 export enum UserStatus {
   OFFLINE = "offline",
@@ -73,22 +72,4 @@ export class User {
     default: new Date()
   })
   last_updated_at: Date;
-
-  @ApiProperty()
-  @OneToMany(
-    () => FriendRequest,
-    (friendRequest) => friendRequest.sender
-  )
-  sent_friend_requests: FriendRequest[];
-
-  @ApiProperty()
-  @OneToMany(
-    () => FriendRequest,
-    (friendRequest) => friendRequest.receiver
-  )
-  received_friend_requests: FriendRequest[];
-
-  @ApiProperty()
-  @OneToMany(() => Friendship, friendship => friendship.user)
-  friendships: Friendship[];
 }
