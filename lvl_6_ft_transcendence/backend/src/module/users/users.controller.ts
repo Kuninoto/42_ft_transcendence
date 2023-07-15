@@ -13,6 +13,7 @@ import {
   Post,
   Param,
   HttpCode,
+  Query
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'
 import {
@@ -35,6 +36,7 @@ import { FriendshipStatus } from 'src/entity/friendship.entity';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { FriendRequestResponseValidationPipe } from './pipe/friend-request-response-validation.pipe';
 import { Friendship } from 'src/typeorm';
+import { FriendInterface } from './types/FriendInterface.interface';
 
 @ApiTags('users')
 @UseGuards(JwtAuthGuard)
@@ -110,9 +112,9 @@ export class UsersController {
     const { name, avatar_url, intra_profile_url, has_2fa, created_at } = req.user;
   
     const friend_requests: Friendship[] = await this.usersService.getMyFriendRequests(req.user);
-    const friendships: Friendship[] = await this.usersService.getMyFriends(req.user);
+    const friends: FriendInterface[] = await this.usersService.getMyFriends(req.user);
 
-    const meInfo: meUserInfo = { name, avatar_url, intra_profile_url, has_2fa, created_at, friend_requests, friendships };
+    const meInfo: meUserInfo = { name, avatar_url, intra_profile_url, has_2fa, created_at, friend_requests, friends };
     return meInfo;
   }
 
@@ -191,6 +193,10 @@ export class UsersController {
     return await this.usersService.deleteUserByUID(req.user.id);
   }
 
+  /************************************
+  *              Friends              *
+  ************************************/
+
   @ApiOkResponse({ description: "Returns the status of the friend request" })
   @Get('friend-request/status/:receiverId')
   public async getFriendshipStatus(
@@ -211,11 +217,11 @@ export class UsersController {
   }
 
   @ApiOkResponse({ description: "Updates the friend request status according to the response sent on the body ('accepted' or 'declined')" })
-  @Patch('friend-request/respond/:friendRequestId')
+  @Patch('friend-request/update/:friendRequestId')
   public async respondToFriendRequest(
     @Param('friendRequestId', NonNegativeIntPipe) friendRequestID: number,
-    @Body(new FriendRequestResponseValidationPipe) body: { response: FriendshipStatus }
+    @Query('response') response: FriendshipStatus
   ): Promise<SuccessResponse> {
-    return await this.usersService.respondToFriendRequest(friendRequestID, body.response); 
+    return await this.usersService.updateFriendshipStatus(friendRequestID, response); 
   }
 }

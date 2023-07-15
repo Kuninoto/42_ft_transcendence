@@ -6,7 +6,9 @@ export enum FriendshipStatus {
   DECLINED = "declined",
   ACCEPTED = "accepted",
   PENDING = "pending",
-  BLOCKED = "blocked"
+  BLOCKED = "blocked",
+  UNBLOCKED = "unblocked",
+  CANCEL = "canceled"
 }
 
 @Entity('friendship')

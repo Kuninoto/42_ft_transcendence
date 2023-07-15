@@ -8,8 +8,9 @@ import { SuccessResponse } from 'src/common/types/success-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { CreateFriendRequestDTO } from './dto/create-friend-request.dto';
 import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { meUserInfo } from './types/meUserInfo.interface';
+import { FriendInterface } from './types/FriendInterface.interface';
 
 @Injectable()
 export class UsersService {
@@ -125,13 +126,37 @@ export class UsersService {
     });
   }
 
-  public async getMyFriends(meUser: User): Promise<Friendship[]> {
-    return await this.friendshipRepository.find({
+  public async getMyFriends(meUser: User): Promise<FriendInterface[]> {
+    const myFriendships: Friendship[] = await this.friendshipRepository.find({
       where: [
         { receiver: meUser, status: FriendshipStatus.ACCEPTED },
         { sender: meUser, status: FriendshipStatus.ACCEPTED },
-      ]
+      ],
+      relations: ['sender', 'receiver'],
     });
+
+    const myFriendsIDs: number[] = [];
+
+    myFriendships.forEach((friend: Friendship) => {
+      if (friend.sender.id === meUser.id) {
+        myFriendsIDs.push(friend.receiver.id);
+      } else if (friend.receiver.id === meUser.id) {
+        myFriendsIDs.push(friend.sender.id);
+      }
+    });
+  
+    const myFriends: User[] = await this.usersRepository.findByIds(myFriendsIDs); 
+
+    const myFriendsInterfaces: FriendInterface[] = [];
+
+    myFriends.forEach(friend => {
+      myFriendsInterfaces.push({
+        name: friend.name,
+        avatar_url: friend.avatar_url,
+        status: friend.status
+      })
+    })
+    return myFriendsInterfaces;
   }
 
   public async getFriendshipStatus(sender: User, receiverUID: number)
@@ -181,15 +206,20 @@ export class UsersService {
     return { message: "Friend request successfully sent" };
   }
 
-  public async respondToFriendRequest(
-    friendRequestID: number,
-    responseToFriendRequest: FriendshipStatus,
+  public async updateFriendshipStatus(
+    friendshipId: number,
+    newFriendshipStatus: FriendshipStatus,
   ): Promise<SuccessResponse> {
-    const friendRequest = await this.friendshipRepository.findOneBy({ id: friendRequestID });
-    friendRequest.status = responseToFriendRequest;
+    if (newFriendshipStatus == FriendshipStatus.CANCEL) {      
+      const friendshipToCancel = await this.friendshipRepository.findOneBy({ id: friendshipId });
 
-    await this.friendshipRepository.save(friendRequest);
-
-    return { message: "Successfully responded to friend request" };
+      await this.friendshipRepository.delete(friendshipToCancel);
+    } else {
+      const friendRequest = await this.friendshipRepository.findOneBy({ id: friendshipId });
+      friendRequest.status = newFriendshipStatus;
+      
+      await this.friendshipRepository.save(friendRequest);
+    }
+    return { message: "Successfully updated friendship status" };
   }
 }
