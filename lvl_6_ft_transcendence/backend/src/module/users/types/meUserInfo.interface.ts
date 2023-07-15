@@ -1,4 +1,5 @@
 import { Friendship } from "src/typeorm";
+import { FriendInterface } from "./FriendInterface.interface";
 
 export interface meUserInfo {
     name: string;
@@ -7,6 +8,6 @@ export interface meUserInfo {
     has_2fa: boolean;
     created_at: Date;
     friend_requests: Friendship[];
-    friendships: Friendship[];
+    friends: FriendInterface[];
     // wins: number;
 }
