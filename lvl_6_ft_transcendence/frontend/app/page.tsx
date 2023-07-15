@@ -22,10 +22,8 @@ export default function page() {
 					width={100}
 				/>
 				<a
-					href={
-						'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-b5dc96e149f80b24df624871658fdaa8d6610f1efc0a284afab94cbdb7d0420c&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fauth&response_type=code'
-					}
 					className="group flex h-auto w-10"
+					href={process.env.NEXT_PUBLIC_API_URL}
 				>
 					<div className="h-auto w-8 rounded-md border-8 border-[#413F3F] bg-black"></div>
 					<Image
