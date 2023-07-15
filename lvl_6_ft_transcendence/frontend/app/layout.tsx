@@ -3,19 +3,17 @@
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { ChatProvider } from '@/contexts/ChatContext'
 import { Press_Start_2P } from 'next/font/google'
+import { usePathname } from 'next/navigation'
 import { FullScreen, useFullScreenHandle } from 'react-full-screen'
-import type { GetServerSideProps } from 'next'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
-import { usePathname } from 'next/navigation'
 
 import Chat from './chat/page'
 import './globals.css'
 
 const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
-function FixedPanel({ handle }: { handle: any} ){
-
+function FixedPanel({ handle }: { handle: any }) {
 	const path = usePathname()
 
 	const { logout } = useAuth()
@@ -32,11 +30,11 @@ function FixedPanel({ handle }: { handle: any} ){
 				</button>
 			)}
 
-			{ path !== '/' && path !== '/game' &&
+			{path !== '/' && path !== '/game' && (
 				<button onClick={logout}>
-					<MdOutlineExitToApp size={48}/>
-				</button> }
-
+					<MdOutlineExitToApp size={48} />
+				</button>
+			)}
 		</div>
 	)
 }
@@ -59,7 +57,7 @@ export default function RootLayout({
 								<Chat />
 							</div>
 
-							<FixedPanel handle={handle}/>
+							<FixedPanel handle={handle} />
 						</FullScreen>
 					</body>
 				</html>

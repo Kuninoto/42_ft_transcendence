@@ -1,19 +1,19 @@
 'use client'
 
+import moment from 'moment'
 import Image from 'next/image'
 import { useState } from 'react'
 import { useTimer } from 'react-timer-hook'
 
 import Pong from './pong'
-import moment from 'moment'
 
 export default function Game() {
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 
-	const { minutes, seconds, restart } = useTimer({
+	const { minutes, restart, seconds } = useTimer({
+		expiryTimestamp: moment().add(5, 'm').add(5, 's').toDate(),
 		onExpire: () => console.warn('onExpire called'),
-		expiryTimestamp : moment().add(5, 'm').add(5, 's').toDate(),
 	})
 
 	const givePoint = (rigthPlayer: boolean): void => {
@@ -61,8 +61,7 @@ export default function Game() {
 			</div>
 
 			<div className="mx-auto">
-				<span>{minutes}</span>
-				:
+				<span>{minutes}</span>:
 				<span>
 					{seconds < 10 ? '0' : ''}
 					{seconds}

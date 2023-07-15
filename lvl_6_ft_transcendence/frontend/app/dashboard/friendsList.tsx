@@ -1,8 +1,8 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import Image from 'next/image'
 import { useChat } from '@/contexts/ChatContext'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { BiUser } from 'react-icons/bi'
@@ -22,12 +22,13 @@ export default function FriendsList(): JSX.Element {
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
 					<div className="flex w-full rounded-t-md px-4 py-2">
-						<Image 
-						src={user.avatar_url || "/coin.png"}
-						alt={"avatar"}
-						width={64}
-						height={64}
-						className="aspect-square rounded-full"/>
+						<Image
+							alt={'avatar'}
+							className="aspect-square rounded-full"
+							height={64}
+							src={user.avatar_url || '/coin.png'}
+							width={64}
+						/>
 						<div className="mx-4 my-auto">
 							<div className="text-xl">{user.name}</div>
 							<div>rank wins</div>
