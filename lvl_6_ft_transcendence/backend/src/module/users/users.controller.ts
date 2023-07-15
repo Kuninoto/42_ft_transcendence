@@ -34,7 +34,7 @@ import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { meUserInfo } from './types/meUserInfo.interface';
 import { FriendshipStatus } from 'src/entity/friendship.entity';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { FriendRequestResponseValidationPipe } from './pipe/friend-request-response-validation.pipe';
+import { FriendshipStatusUpdateValidationPipe } from './pipe/friend-request-response-validation.pipe';
 import { Friendship } from 'src/typeorm';
 import { FriendInterface } from './types/FriendInterface.interface';
 
@@ -198,7 +198,7 @@ export class UsersController {
   ************************************/
 
   @ApiOkResponse({ description: "Returns the status of the friend request" })
-  @Get('friend-request/status/:receiverId')
+  @Get('friendship/:receiverId/status/')
   public async getFriendshipStatus(
     @Req() req: { user: User },
     @Param('receiverId', NonNegativeIntPipe) receiverUID: number
@@ -208,7 +208,7 @@ export class UsersController {
 
   @ApiOkResponse({ description: "Sends a friend request to the user which id=receiverId" })
   @HttpCode(200)
-  @Post('friend-request/send/:receiverId')
+  @Post('friendship/send-request/:receiverId')
   public async sendFriendRequest(
     @Req() req: { user: User },
     @Param('receiverId', NonNegativeIntPipe) receiverUID: number
@@ -216,12 +216,21 @@ export class UsersController {
     return await this.usersService.sendFriendRequest(req.user, receiverUID);
   }
 
-  @ApiOkResponse({ description: "Updates the friend request status according to the response sent on the body ('accepted' or 'declined')" })
-  @Patch('friend-request/update/:friendRequestId')
-  public async respondToFriendRequest(
-    @Param('friendRequestId', NonNegativeIntPipe) friendRequestID: number,
-    @Query('response') response: FriendshipStatus
+  @ApiOkResponse({ description: "Updates the friendship status according to the response sent on the query parameter \"response\"" })
+  @Patch('friendship/:friendshipId/update')
+  public async updateFriendshipStatus(
+    @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
+    @Query('response', FriendshipStatusUpdateValidationPipe) response: FriendshipStatus
   ): Promise<SuccessResponse> {
-    return await this.usersService.updateFriendshipStatus(friendRequestID, response); 
+    return await this.usersService.updateFriendshipStatus(friendshipId, response); 
+  }
+
+  @ApiOkResponse({ description: "Deletes the friendship status according to the response sent on the body ('accepted' or 'declined')" })
+  @Patch('friendship/:friendshipId/delete')
+  public async deleteFriendship(
+    @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
+    @Query('response', FriendshipStatusUpdateValidationPipe) response: FriendshipStatus
+  ): Promise<SuccessResponse> {
+    return await this.usersService.updateFriendshipStatus(friendshipId, response); 
   }
 }
