@@ -14,12 +14,13 @@ export class FriendshipStatusUpdateValidationPipe implements PipeTransform<any> 
     'canceled'
   ];
 
-  transform(value: any): FriendshipStatus {
-    const response = value;
+  transform(value: { newStatus: FriendshipStatus }): FriendshipStatus {
+    const response = value.newStatus;
     
     if (!response || !this.allowedResponses.includes(response)) {
       throw new BadRequestException('Invalid response to a friend request');
     }
+
     return response;
   }
 }

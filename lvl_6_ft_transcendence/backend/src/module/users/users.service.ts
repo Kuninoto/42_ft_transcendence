@@ -1,17 +1,22 @@
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Friendship, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
+import { FriendshipDTO } from './dto/friendship.dto';
+import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { FriendInterface } from './types/FriendInterface.interface';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { FriendshipStatus } from 'src/entity/friendship.entity';
-import { meUserInfo } from './types/meUserInfo.interface';
-import { FriendInterface } from './types/FriendInterface.interface';
-import { FriendshipDTO } from './dto/friendship.dto';
 
 @Injectable()
 export class UsersService {
@@ -175,16 +180,6 @@ export class UsersService {
     return myFriendsInterfaces;
   }
 
-  public async getFriendshipStatus(sender: User, receiverUID: number)
-    : Promise<FriendshipStatus> {
-    const receiver = await this.findUserByUID(receiverUID);
-    const friendRequest = await this.friendshipRepository.findOneBy({
-      sender: sender,
-      receiver: receiver
-    });
-    return friendRequest.status;
-  }
-
   private async hasFriendRequestBeenSentAlready(
     sender: User,
     receiver: User
@@ -200,6 +195,20 @@ export class UsersService {
     return friendRequest ? true : false;
   }
 
+  /* Searches for a friendship where sender = sender,
+     receiver = receiver and status == BLOCKED */ 
+  private async isSenderBlocked(
+    sender: User,
+    receiver: User
+  ): Promise<boolean> {
+
+    const friendShip: Friendship = await this.friendshipRepository.findOneBy([
+      { sender: sender, receiver: receiver, status: FriendshipStatus.BLOCKED } // sender -> receiver
+    ]);
+
+    return friendShip ? true : false;
+  }
+
   public async sendFriendRequest(sender: User, receiverUID: number)
     : Promise<SuccessResponse | ErrorResponse> {
     if (receiverUID == sender.id) {
@@ -207,8 +216,13 @@ export class UsersService {
     }
 
     const receiver: User = await this.findUserByUID(receiverUID);
-    const hasBeenSentAlready: boolean = await this.hasFriendRequestBeenSentAlready(sender, receiver);
 
+    const isSenderBlocked: boolean = await this.isSenderBlocked(sender, receiver)
+    if (isSenderBlocked) {
+      throw new ForbiddenException("You are blocked by the recipient and cannot send a friend request");
+    }
+
+    const hasBeenSentAlready: boolean = await this.hasFriendRequestBeenSentAlready(sender, receiver);
     if (hasBeenSentAlready) {
       throw new ConflictException("A friend request has already been sent (to) or received (on) your account");
     }
@@ -228,7 +242,7 @@ export class UsersService {
   ): Promise<SuccessResponse> {
     const friendship = await this.friendshipRepository.findOneBy({ id: friendshipId });
     
-    if (newFriendshipStatus == FriendshipStatus.CANCEL) {      
+    if (newFriendshipStatus == FriendshipStatus.CANCEL || newFriendshipStatus == FriendshipStatus.UNFRIEND) {      
       await this.friendshipRepository.delete(friendship);
     } else {
       friendship.status = newFriendshipStatus;

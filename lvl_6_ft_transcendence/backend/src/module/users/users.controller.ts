@@ -124,13 +124,14 @@ export class UsersController {
    * This is the route to visit to update 'me'
    * user's username.
    * 
-   * Expects the new username as a field of a JSON on the body
+   * Expects the new username as a the "newUsername" field of a JSON on the body
    * 
    * {
    *  "newUsername":"<new_username>"
    * }
    */
   @ApiOkResponse({ description: "Updates 'me' user's username\nExpects the new username as the \"newUsername\" field of a JSON on the body" })
+  @ApiBody({ type: { properties: { newUsername: { type: 'string' } }, required: ['newUsername'] } })
   @Patch('/me/username')
   public async updateMyUsername(
     @Req() req: { user: User },
@@ -197,15 +198,15 @@ export class UsersController {
   *              Friends              *
   ************************************/
 
-  @ApiOkResponse({ description: "Returns the status of the friend request" })
-  @Get('friendship/:receiverId/status/')
-  public async getFriendshipStatus(
-    @Req() req: { user: User },
-    @Param('receiverId', NonNegativeIntPipe) receiverUID: number
-  ): Promise<FriendshipStatus> {    
-    return await this.usersService.getFriendshipStatus(req.user, receiverUID);
-  }
-
+  /**
+  * POST /api/users/friendship/send-request/:receiverId
+  * 
+  * Sends a friend request to the user which id=receiverId
+  * - Checks if:
+  *   - receiverID == senderID (to not allow self requesting)
+  *   - received has blocked the sender (cannot request if blocked)
+  * And finally creates a new entry on the friendship table
+  */
   @ApiOkResponse({ description: "Sends a friend request to the user which id=receiverId" })
   @HttpCode(200)
   @Post('friendship/send-request/:receiverId')
@@ -216,21 +217,31 @@ export class UsersController {
     return await this.usersService.sendFriendRequest(req.user, receiverUID);
   }
 
-  @ApiOkResponse({ description: "Updates the friendship status according to the response sent on the query parameter \"response\"" })
+  /**
+  * PATCH /api/users/friendship/friendship/:friendshipId/update
+  * 
+  * Updates the friendship status according to the "newStatus"
+  * field of the JSON sent on the body
+  * 
+  * {
+  *   "newStatus":"accepted"
+  * }
+  */
+  @ApiOkResponse({ description: "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body" })
+  @ApiBody({ type: { properties: { newStatus: { type: 'string' } }, required: ['newStatus'] } })
   @Patch('friendship/:friendshipId/update')
   public async updateFriendshipStatus(
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
-    @Query('response', FriendshipStatusUpdateValidationPipe) response: FriendshipStatus
+    @Body(new FriendshipStatusUpdateValidationPipe) newStatus: FriendshipStatus
   ): Promise<SuccessResponse> {
-    return await this.usersService.updateFriendshipStatus(friendshipId, response); 
+    return await this.usersService.updateFriendshipStatus(friendshipId, newStatus);
   }
 
-  @ApiOkResponse({ description: "Deletes the friendship status according to the response sent on the body ('accepted' or 'declined')" })
+  @ApiOkResponse({ description: "Deletes the friendship with id=friendshipId" })
   @Patch('friendship/:friendshipId/delete')
   public async deleteFriendship(
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
-    @Query('response', FriendshipStatusUpdateValidationPipe) response: FriendshipStatus
   ): Promise<SuccessResponse> {
-    return await this.usersService.updateFriendshipStatus(friendshipId, response); 
+    return await this.usersService.updateFriendshipStatus(friendshipId, FriendshipStatus.UNFRIEND); 
   }
 }
