@@ -11,6 +11,7 @@ import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { FriendshipStatus } from 'src/entity/friendship.entity';
 import { meUserInfo } from './types/meUserInfo.interface';
 import { FriendInterface } from './types/FriendInterface.interface';
+import { FriendshipDTO } from './dto/friendship.dto';
 
 @Injectable()
 export class UsersService {
@@ -135,27 +136,42 @@ export class UsersService {
       relations: ['sender', 'receiver'],
     });
 
-    const myFriendsIDs: number[] = [];
+    const myFriendshipsInfo: FriendshipDTO[] = [];
 
+    // loop thru every friendship and save the friendship_id
+    // alongside the id of the friend in an array
     myFriendships.forEach((friend: Friendship) => {
-      if (friend.sender.id === meUser.id) {
-        myFriendsIDs.push(friend.receiver.id);
-      } else if (friend.receiver.id === meUser.id) {
-        myFriendsIDs.push(friend.sender.id);
-      }
-    });
+      let friendshipDTO: FriendshipDTO = {
+        friend_uid: undefined,
+        friendship_id: undefined
+      };
   
-    const myFriends: User[] = await this.usersRepository.findByIds(myFriendsIDs); 
+      friendshipDTO.friendship_id = friend.id;
+      if (meUser.id === friend.sender.id) {
+        friendshipDTO.friend_uid = friend.receiver.id; 
+      } else if (meUser.id === friend.receiver.id) {
+        friendshipDTO.friend_uid = friend.sender.id; 
+      }
+    
+      myFriendshipsInfo.push(friendshipDTO);
+    });
 
     const myFriendsInterfaces: FriendInterface[] = [];
 
-    myFriends.forEach(friend => {
+    // generate friendInterfaces with the friendshipDTO info
+    // + some fields from the user (friend)
+    await Promise.all(myFriendshipsInfo.map(async (friendshipInfo) => {
+      const friend: User = await this.usersRepository.findOneBy({ id: friendshipInfo.friend_uid });
+    
       myFriendsInterfaces.push({
+        friendship_id: friendshipInfo.friendship_id,
+        friend_uid: friendshipInfo.friend_uid,
         name: friend.name,
         avatar_url: friend.avatar_url,
-        status: friend.status
-      })
-    })
+        status: friend.status,
+      });
+    }));
+
     return myFriendsInterfaces;
   }
 
@@ -186,7 +202,7 @@ export class UsersService {
 
   public async sendFriendRequest(sender: User, receiverUID: number)
     : Promise<SuccessResponse | ErrorResponse> {
-    if (receiverUID === sender.id) {
+    if (receiverUID == sender.id) {
       throw new BadRequestException("You cannot add yourself as a friend");
     }
 
@@ -210,15 +226,13 @@ export class UsersService {
     friendshipId: number,
     newFriendshipStatus: FriendshipStatus,
   ): Promise<SuccessResponse> {
+    const friendship = await this.friendshipRepository.findOneBy({ id: friendshipId });
+    
     if (newFriendshipStatus == FriendshipStatus.CANCEL) {      
-      const friendshipToCancel = await this.friendshipRepository.findOneBy({ id: friendshipId });
-
-      await this.friendshipRepository.delete(friendshipToCancel);
+      await this.friendshipRepository.delete(friendship);
     } else {
-      const friendRequest = await this.friendshipRepository.findOneBy({ id: friendshipId });
-      friendRequest.status = newFriendshipStatus;
-      
-      await this.friendshipRepository.save(friendRequest);
+      friendship.status = newFriendshipStatus;
+      await this.friendshipRepository.save(friendship);
     }
     return { message: "Successfully updated friendship status" };
   }
