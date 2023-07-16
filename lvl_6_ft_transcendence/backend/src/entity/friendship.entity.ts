@@ -1,13 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 
 export enum FriendshipStatus {
   DECLINED = "declined",
   ACCEPTED = "accepted",
   PENDING = "pending",
-  BLOCKED = "blocked",
-  UNBLOCKED = "unblocked",
   CANCEL = "canceled",
   UNFRIEND = "unfriend"
 }
@@ -31,9 +29,11 @@ export class Friendship {
 
   @ApiProperty()
   @ManyToOne(() => User)
+  @JoinColumn()
   sender: User;
 
   @ApiProperty()
   @ManyToOne(() => User)
+  @JoinColumn()
   receiver: User;
 }

@@ -8,12 +8,13 @@ import {
   UseGuards,
   UnauthorizedException,
   HttpCode,
-  Logger
+  Logger,
+  BadRequestException
 } from '@nestjs/common';
 import { AuthService, twoFactorAuthDTO } from './auth.service';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
@@ -76,7 +77,7 @@ export class AuthController {
     @Req() req: any,
   ): Promise<SuccessResponse> {
     await this.usersService.updateUserByUID(req.user.id, { status: UserStatus.OFFLINE });
-    Logger.log("User id: " + req.user.id + " logged out");
+    Logger.log("User \"" + req.user.name + "\" logged out");
 
     req.logOut(() => {});
 
@@ -110,6 +111,7 @@ export class AuthController {
       (registering the app on Google Authenticator) that he'll need,\
       \ninclusively here."
   })
+  @ApiBadRequestResponse({ description: "If the OTP is invalid" })
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @Post('2fa/enable')
@@ -120,7 +122,7 @@ export class AuthController {
     const is2faCodeValid =
       this.authService.is2faCodeValid(body.twoFactorAuthCode, req.user.secret_2fa);
     if (!is2faCodeValid) {
-      throw new UnauthorizedException("Wrong authentication code");
+      throw new BadRequestException("Wrong authentication code");
     }
 
     Logger.log("Enabling 2fa for user \"" + req.user.name + "\"");
@@ -175,7 +177,7 @@ export class AuthController {
     await this.usersService.updateUserByUID(req.user.id, { secret_2fa: info2fa.secret });
 
     return res.json(
-      await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL),
+      this.authService.generateQRCodeDataURL(info2fa.otpAuthURL),
     );
   }
 
@@ -189,6 +191,7 @@ export class AuthController {
   * @returns JWT's access_token
   */
   @ApiOkResponse({ description: "A new access_token that proves that the user is two factor authenticated" })
+  @ApiUnauthorizedResponse({ description: "If the OTP is invalid" })
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @Post('2fa/authenticate')
@@ -202,7 +205,7 @@ export class AuthController {
     );
 
     if (!isCodeValid) {
-      throw new UnauthorizedException('Wrong authentication code');
+      throw new UnauthorizedException("Wrong authentication code");
     }
 
     return this.authService.authenticate2fa(req.user);

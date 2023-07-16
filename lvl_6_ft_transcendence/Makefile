@@ -49,8 +49,8 @@ delete_volumes:
 system_prune:
 	docker system prune
 
-re: fclean all ps
-
 fclean: stop rm delete_volumes rmi
+
+re: fclean all ps
 
 .PHONY: all build up_detached down start stop ps rm delete_volumes

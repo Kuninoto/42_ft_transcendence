@@ -81,6 +81,9 @@ A website to host the might pong contest!
 [Passportjs serializerUser and deserializeUser](https://stackoverflow.com/questions/29066348/passportjs-serializeuser-and-deserializeuser-execution-flow)  
 [2fa with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
 
+**User Relations**
+[Difference between one-to-many and many-to-one](https://stackoverflow.com/questions/4601703/difference-between-one-to-many-and-many-to-one-relationship)  
+
 **PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  
 [How to use Postgre Official Docker Image](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/)  
