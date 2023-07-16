@@ -5,10 +5,10 @@ import { Friendship } from './friendship.entity';
 export enum UserStatus {
   OFFLINE = "offline",
   ONLINE = "online",
-  IN_MATCH = "in match",
+  IN_MATCH = "in match"
 }
 
-@Entity('User')
+@Entity('user')
 export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
@@ -20,8 +20,9 @@ export class User {
   @ApiProperty()
   @Column({
     type: 'varchar',
+    length: 10,
     unique: true,
-    nullable: false,
+    nullable: false
   })
   name: string;
 
@@ -29,7 +30,7 @@ export class User {
   @Column({
     type: 'varchar',
     default: UserStatus.ONLINE,
-    nullable: false,
+    nullable: false
   })
   status: string;
 
@@ -40,16 +41,23 @@ export class User {
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: true,
+    nullable: true
   })
   secret_2fa: string;
 
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: false,
+    nullable: false
   })
   avatar_url: string;
+
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    nullable: false
+  })
+  intra_profile_url: string;
 
   @ApiProperty()
   @Column({
@@ -64,8 +72,4 @@ export class User {
     default: new Date()
   })
   last_updated_at: Date;
-
-  @ApiProperty()
-  @OneToMany(() => Friendship, friendship => friendship.user)
-  friendships: Friendship[];
 }

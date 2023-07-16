@@ -11,4 +11,9 @@ export class CreateUserDTO {
   @IsNotEmpty()
   @IsString()
   readonly avatar_url: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  readonly intra_profile_url: string;
 }

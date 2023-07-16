@@ -2,7 +2,17 @@ import { ApiProperty } from '@nestjs/swagger';
 import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity('Friendship')
+export enum FriendshipStatus {
+  DECLINED = "declined",
+  ACCEPTED = "accepted",
+  PENDING = "pending",
+  BLOCKED = "blocked",
+  UNBLOCKED = "unblocked",
+  CANCEL = "canceled",
+  UNFRIEND = "unfriend"
+}
+
+@Entity('friendship')
 export class Friendship {
   @ApiProperty()
   @PrimaryGeneratedColumn({
@@ -13,12 +23,17 @@ export class Friendship {
 
   @ApiProperty()
   @Column({
-    type: 'timestamp',
-    default: new Date()
+    type: 'varchar',
+    default: FriendshipStatus.PENDING,
+    nullable: false
   })
-  created_at: Date;
+  status: FriendshipStatus;
 
   @ApiProperty()
-  @ManyToOne(() => User, user => user.friendships)
-  user: User;
+  @ManyToOne(() => User)
+  sender: User;
+
+  @ApiProperty()
+  @ManyToOne(() => User)
+  receiver: User;
 }
