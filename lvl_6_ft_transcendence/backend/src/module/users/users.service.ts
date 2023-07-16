@@ -1,23 +1,44 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, UpdateResult } from 'typeorm';
-import { User } from 'src/typeorm';
+import { Repository } from 'typeorm';
+import { Friendship, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
+import { FriendshipDTO } from './dto/friendship.dto';
+import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { FriendInterface } from './types/FriendInterface.interface';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Friendship)
+    private readonly friendshipRepository: Repository<Friendship>
   ) { }
 
   public async findAll(): Promise<User[]> {
     return await this.usersRepository.find();
+  }
+
+  /****************************
+  *         User CRUD         *
+  *****************************/
+
+  public async createUser(createUserDTO: CreateUserDTO)
+    : Promise<User> {
+    const newUser = this.usersRepository.create(createUserDTO);
+    return await this.usersRepository.save(newUser);
   }
 
   public async findUserByName(name: string): Promise<User | null> {
@@ -28,18 +49,6 @@ export class UsersService {
     return await this.usersRepository.findOneBy({ id: userID });
   }
 
-  public async createUser(createUserDTO: CreateUserDTO)
-    : Promise<User> {
-    const newUser = this.usersRepository.create(createUserDTO);
-    return await this.usersRepository.save(newUser);
-  }
-
-  public async deleteUserByUID(userID: number)
-    : Promise<SuccessResponse> {
-    await this.usersRepository.delete(userID);
-    return { message: 'Successfully deleted user' };
-  }
-
   public async updateUserByUID(userID: number, updateUserDTO: UpdateUserDTO)
     : Promise<SuccessResponse> {
     updateUserDTO.last_updated_at = new Date();
@@ -47,31 +56,17 @@ export class UsersService {
     return { message: 'Successfully updated user' };
   }
 
-  /* // !TODO
-    public async updateUserByName(name: string, updateUserDTO: UpdateUserDTO)
-    : Promise<UpdateResult> | null {
-      const user = await this.usersRepository.findOneBy({
-        name: name,
-      });
-  
-      // If the user doesn't exist or if the incoming
-      // update would update the name and an user with
-      // that name already exists (we found it above), return null
-      if (!user || updateUserDTO.name && name === user.name) {
-        return null;
-      }
-  
-      updateUserDTO.last_updated_at = new Date();
-      return this.usersRepository.update(user, updateUserDTO);
-    } */
-
   public async updateUsernameByUID(userID: number, newName: string)
     : Promise<SuccessResponse | ErrorResponse> {
+    if (newName.length > 10) {
+      throw new BadRequestException("Usernames must not be longer than 10 characters");
+    }
+
     const user: User | null = await this.usersRepository.findOneBy({ name: newName });
 
     // A user already exists with that name
     if (user !== null) {
-      throw new ConflictException("Name is already taken");
+      throw new ConflictException("Username is already taken");
     }
 
     await this.usersRepository.update(userID, {
@@ -81,7 +76,6 @@ export class UsersService {
     return { message: 'Successfully updated username' };
   }
 
-  // !TODO
   public async updateUserAvatarByUID(userID: number, newAvatarURL: string)
     : Promise<SuccessResponse> {
     const currentAvatarURL = (await this.usersRepository.findOneBy({ id: userID })).avatar_url;
@@ -98,9 +92,18 @@ export class UsersService {
     return { message: 'Successfully updated user avatar' };
   }
 
+  public async deleteUserByUID(userID: number)
+    : Promise<SuccessResponse> {
+    await this.usersRepository.delete(userID);
+    return { message: 'Successfully deleted user' };
+  }
+
+  /**********************************
+  *               2FA               *
+  **********************************/
+
   public async enable2fa(userID: number, secret_2fa: string)
     : Promise<SuccessResponse> {
-    Logger.log("Enabling 2fa for user with id = " + userID);
     await this.usersRepository.update(userID, {
       has_2fa: true,
       secret_2fa: secret_2fa,
@@ -110,12 +113,141 @@ export class UsersService {
   }
 
   public async disable2fa(userID: number): Promise<SuccessResponse> {
-    Logger.log("Disabling 2fa for user with id = " + userID);
     await this.usersRepository.update(userID, {
       has_2fa: false,
-      secret_2fa: '',
+      secret_2fa: null,
       last_updated_at: new Date()
     });
     return { message: "Successfully disabled two factor authentication" };
+  }
+
+  /************************************
+  *              Friends              *
+  ************************************/
+
+  public async getMyFriendRequests(meUser: User): Promise<Friendship[]> {
+    return await this.friendshipRepository.findBy({
+      receiver: meUser,
+      status: FriendshipStatus.PENDING
+    });
+  }
+
+  public async getMyFriends(meUser: User): Promise<FriendInterface[]> {
+    const myFriendships: Friendship[] = await this.friendshipRepository.find({
+      where: [
+        { receiver: meUser, status: FriendshipStatus.ACCEPTED },
+        { sender: meUser, status: FriendshipStatus.ACCEPTED },
+      ],
+      relations: ['sender', 'receiver'],
+    });
+
+    const myFriendshipsInfo: FriendshipDTO[] = [];
+
+    // loop thru every friendship and save the friendship_id
+    // alongside the id of the friend in an array
+    myFriendships.forEach((friend: Friendship) => {
+      let friendshipDTO: FriendshipDTO = {
+        friend_uid: undefined,
+        friendship_id: undefined
+      };
+  
+      friendshipDTO.friendship_id = friend.id;
+      if (meUser.id === friend.sender.id) {
+        friendshipDTO.friend_uid = friend.receiver.id; 
+      } else if (meUser.id === friend.receiver.id) {
+        friendshipDTO.friend_uid = friend.sender.id; 
+      }
+    
+      myFriendshipsInfo.push(friendshipDTO);
+    });
+
+    const myFriendsInterfaces: FriendInterface[] = [];
+
+    // generate friendInterfaces with the friendshipDTO info
+    // + some fields from the user (friend)
+    await Promise.all(myFriendshipsInfo.map(async (friendshipInfo) => {
+      const friend: User = await this.usersRepository.findOneBy({ id: friendshipInfo.friend_uid });
+    
+      myFriendsInterfaces.push({
+        friendship_id: friendshipInfo.friendship_id,
+        friend_uid: friendshipInfo.friend_uid,
+        name: friend.name,
+        avatar_url: friend.avatar_url,
+        status: friend.status,
+      });
+    }));
+
+    return myFriendsInterfaces;
+  }
+
+  private async hasFriendRequestBeenSentAlready(
+    sender: User,
+    receiver: User
+  ): Promise<boolean> {
+
+    // Check if a friend request between the two users
+    // has already been made by one of the parts
+    const friendRequest: Friendship = await this.friendshipRepository.findOneBy([
+      { sender: sender, receiver: receiver, status: FriendshipStatus.PENDING }, // sender -> receiver
+      { sender: receiver, receiver: sender, status: FriendshipStatus.PENDING }, // receiver -> sender
+    ]);
+
+    return friendRequest ? true : false;
+  }
+
+  /* Searches for a friendship where sender = sender,
+     receiver = receiver and status == BLOCKED */ 
+  private async isSenderBlocked(
+    sender: User,
+    receiver: User
+  ): Promise<boolean> {
+
+    const friendShip: Friendship = await this.friendshipRepository.findOneBy([
+      { sender: sender, receiver: receiver, status: FriendshipStatus.BLOCKED } // sender -> receiver
+    ]);
+
+    return friendShip ? true : false;
+  }
+
+  public async sendFriendRequest(sender: User, receiverUID: number)
+    : Promise<SuccessResponse | ErrorResponse> {
+    if (receiverUID == sender.id) {
+      throw new BadRequestException("You cannot add yourself as a friend");
+    }
+
+    const receiver: User = await this.findUserByUID(receiverUID);
+
+    const isSenderBlocked: boolean = await this.isSenderBlocked(sender, receiver)
+    if (isSenderBlocked) {
+      throw new ForbiddenException("You are blocked by the recipient and cannot send a friend request");
+    }
+
+    const hasBeenSentAlready: boolean = await this.hasFriendRequestBeenSentAlready(sender, receiver);
+    if (hasBeenSentAlready) {
+      throw new ConflictException("A friend request has already been sent (to) or received (on) your account");
+    }
+
+    Logger.log("\"" + sender.name + "\" sent a friend request to \"" + receiver.name + "\"");
+
+    await this.friendshipRepository.save({
+      sender: sender,
+      receiver: receiver
+    });
+    return { message: "Friend request successfully sent" };
+  }
+
+  public async updateFriendshipStatus(
+    friendshipId: number,
+    newFriendshipStatus: FriendshipStatus,
+  ): Promise<SuccessResponse> {
+    const friendship = await this.friendshipRepository.findOneBy({ id: friendshipId });
+    
+    if (newFriendshipStatus == FriendshipStatus.CANCEL || newFriendshipStatus == FriendshipStatus.UNFRIEND) {      
+      await this.friendshipRepository.delete(friendship);
+    } else {
+      friendship.status = newFriendshipStatus;
+      await this.friendshipRepository.save(friendship);
+    }
+    return { message: "Successfully updated friendship status" };
   }
 }
