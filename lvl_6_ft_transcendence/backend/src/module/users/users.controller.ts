@@ -131,7 +131,7 @@ export class UsersController {
    * }
    */
   @ApiOkResponse({ description: "Updates 'me' user's username\nExpects the new username as the \"newUsername\" field of a JSON on the body" })
-  @ApiBody({ type: { properties: { newUsername: { type: 'string' } }, required: ['newUsername'] } })
+  @ApiBody({ schema: { type: 'object', required: ['newUsername'], properties: { newUsername: { type: 'string' } } } })
   @Patch('/me/username')
   public async updateMyUsername(
     @Req() req: { user: User },
@@ -228,7 +228,7 @@ export class UsersController {
   * }
   */
   @ApiOkResponse({ description: "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body" })
-  @ApiBody({ type: { properties: { newStatus: { type: 'string' } }, required: ['newStatus'] } })
+  @ApiBody({ schema: { type: 'object', required: ['newStatus'], properties: { newStatus: { type: 'string' } } } })
   @Patch('friendship/:friendshipId/update')
   public async updateFriendshipStatus(
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
