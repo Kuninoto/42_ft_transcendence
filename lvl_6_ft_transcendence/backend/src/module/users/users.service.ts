@@ -119,11 +119,11 @@ export class UsersService {
   *          BLOCKED USERS          *
   **********************************/
 
-  public async getMyBlockedUsers(meUID: number): Promise<BlockedUser[]> {
+  public async getMyBlockedUsersInfo(meUID: number): Promise<BlockedUser[]> {
     const meUser: User = await this.usersRepository.findOne({
       where: { id: meUID },
-      relations: ['blockedUsers']
+      relations: ['blocked_users', 'blocked_users.blockedUser']
     })
-    return meUser.blockedUsers;
+    return meUser.blocked_users;
   }
 }

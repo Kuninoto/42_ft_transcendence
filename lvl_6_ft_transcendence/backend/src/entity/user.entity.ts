@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
-import { Friendship } from './friendship.entity';
+import { PrimaryGeneratedColumn, Column, Entity, OneToMany, JoinColumn } from 'typeorm';
 import { BlockedUser } from './blocked-user.entity';
 
 export enum UserStatus {
@@ -62,7 +61,8 @@ export class User {
 
   @ApiProperty()
   @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.userWhoBlocked)
-  blockedUsers: BlockedUser[];
+  @JoinColumn({ name: 'blocked_users' })
+  blocked_users: BlockedUser[];
 
   @ApiProperty()
   @Column({

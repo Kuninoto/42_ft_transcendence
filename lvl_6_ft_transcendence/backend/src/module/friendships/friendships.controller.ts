@@ -76,8 +76,8 @@ export class FriendshipsController {
   *****************************/
 
   @ApiOkResponse({ description: "Estabilishes a block relationship between sender and the user which id=userToBlockId" })
+  @ApiConflictResponse({ description: "If user tries to block itself or if user which id=userToBlockId is already blocked" })
   @ApiNotFoundResponse({ description: "If user with id=userToBlockId doesn't exist" })
-  @ApiConflictResponse({ description: "User which id=userToBlockId is already blocked" })
   @HttpCode(200)
   @Post('block/:userToBlockId')
   public async blockUser(
@@ -88,8 +88,8 @@ export class FriendshipsController {
   }
 
   @ApiOkResponse({ description: "Breaks the block relationship between sender and the user which id=userToUnblockId" })
-  @ApiNotFoundResponse({ description: "If user with id=userToUnblockId doesn't exist" })
   @ApiConflictResponse({ description: "User which id=userToUnblockId is already unblocked or if the sender tries to unblock itself" })
+  @ApiNotFoundResponse({ description: "If user with id=userToUnblockId doesn't exist" })
   @Patch('unblock/:userToUnblockId')
   public async unblockUser(
     @Req() req: { user: User },
