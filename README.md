@@ -79,7 +79,10 @@ A website to host the might pong contest!
 [JWT usage vs. Session](https://stackoverflow.com/questions/43452896/authentication-jwt-usage-vs-session)  
 [JWT vs. Opaque tokens](https://zitadel.com/blog/jwt-vs-opaque-tokens)  
 [Passportjs serializerUser and deserializeUser](https://stackoverflow.com/questions/29066348/passportjs-serializeuser-and-deserializeuser-execution-flow)  
-[2fa with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
+[2FA with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
+
+**File upload & serve**
+[Serve Static NestJS Docs](https://docs.nestjs.com/recipes/serve-static)  
 
 **User Relations**
 [Difference between one-to-many and many-to-one](https://stackoverflow.com/questions/4601703/difference-between-one-to-many-and-many-to-one-relationship)  

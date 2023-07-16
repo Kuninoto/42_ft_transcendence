@@ -6,7 +6,7 @@ import { BlockedUser } from './blocked-user.entity';
 export enum UserStatus {
   OFFLINE = "offline",
   ONLINE = "online",
-  IN_MATCH = "in match"
+  IN_GAME = "in game"
 }
 
 @Entity('user')
