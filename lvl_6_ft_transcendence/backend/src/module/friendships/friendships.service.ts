@@ -160,7 +160,7 @@ export class FriendshipsService {
     user: User,
     friendshipId: number,
     newFriendshipStatus: FriendshipStatus,
-  ): Promise<SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     const friendship: Friendship = await this.friendshipRepository.findOne({
       where: { id: friendshipId },
       relations: ['sender'],

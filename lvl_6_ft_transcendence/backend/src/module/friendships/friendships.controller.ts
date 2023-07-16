@@ -8,7 +8,7 @@ import {
   Patch,
   Post
 } from '@nestjs/common';
-import { ApiTags, ApiOkResponse, ApiForbiddenResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOkResponse, ApiForbiddenResponse, ApiBody, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
@@ -36,6 +36,10 @@ export class FriendshipsController {
   * And finally creates a new entry on the friendships table
   */
   @ApiOkResponse({ description: "Sends a friend request to the user which id=receiverId" })
+  @ApiBadRequestResponse({ description: "If the sender == receiver i.e if the user tries to add itself as a friend" })
+  @ApiForbiddenResponse({ description: "If the sender is blocked by the recipient" })
+  @ApiConflictResponse({ description: "If there's already a friend request between the two users (sender & receiver)" })
+  @ApiConflictResponse({ description: "If sender & receiver are already friends" })
   @HttpCode(200)
   @Post('send-request/:receiverId')
   public async sendFriendRequest(
@@ -56,14 +60,15 @@ export class FriendshipsController {
   * }
   */
   @ApiOkResponse({ description: "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body" })
-  @ApiForbiddenResponse({ description: "If a blocked user tries to update the state of the friendship" })
+  @ApiNotFoundResponse({ description: "If a friendship which id=friendshipId doesn't exist" })
+  @ApiBadRequestResponse({ description: "If the sender tries to update the friend request that he has sent" })
   @ApiBody({ schema: { type: 'object', required: ['newStatus'], properties: { newStatus: { type: 'string', enum: Object.values(FriendshipStatus) } } } })
   @Patch(':friendshipId/update')
   public async updateFriendshipStatus(
     @Req() req: { user: User },
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
     @Body(new FriendshipStatusUpdateValidationPipe) newStatus: FriendshipStatus
-  ): Promise<SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     return await this.friendshipsService.updateFriendshipStatus(req.user, friendshipId, newStatus);
   }
 }
