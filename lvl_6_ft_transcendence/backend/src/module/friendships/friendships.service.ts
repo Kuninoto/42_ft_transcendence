@@ -98,7 +98,10 @@ export class FriendshipsService {
       throw new BadRequestException("You cannot add yourself as a friend");
     }
 
-    const receiver: User = await this.usersService.findUserByUID(receiverUID);
+    const receiver: User | null = await this.usersService.findUserByUID(receiverUID);
+    if (!receiver) {
+      throw new BadRequestException("User with id=" + receiverUID + " doesn't exist");
+    }
 
     const isSenderBlocked: boolean = await this.isSenderBlocked(sender, receiver)
     if (isSenderBlocked) {
