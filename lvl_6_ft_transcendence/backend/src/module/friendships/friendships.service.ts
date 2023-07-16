@@ -6,15 +6,16 @@ import {
   ForbiddenException,
   NotFoundException
 } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User, Friendship, BlockedUser } from 'src/typeorm';
+import { UsersService } from '../users/users.service';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
+import { FriendInterface } from './types/friend-interface.interface';
+import { BlockedUserInterface } from 'src/common/types/blocked-user-interface.interface';
 import { FriendshipStatus } from 'src/entity/friendship.entity';
-import { User, Friendship, BlockedUser } from 'src/typeorm';
-import { FriendshipDTO } from './dto/friendship.dto';
-import { FriendInterface } from '../../common/types/FriendInterface.interface';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UsersService } from '../users/users.service';
+import { FriendRequestInterface } from './types/friend-request.interface';
 
 @Injectable()
 export class FriendshipsService {
@@ -26,11 +27,26 @@ export class FriendshipsService {
     private readonly blockedUserRepository: Repository<BlockedUser>
   ) { }
 
-  public async getMyFriendRequests(meUser: User): Promise<Friendship[]> {
-    return await this.friendshipRepository.findBy({
-      receiver: meUser,
-      status: FriendshipStatus.PENDING
+  public async getMyFriendRequests(meUser: User): Promise<FriendRequestInterface[]> {
+    const myFriendRequests: Friendship[] = await this.friendshipRepository.find({
+      where: [
+        { receiver: meUser, status: FriendshipStatus.PENDING },
+      ],
+      relations: ['sender'],
     });
+
+    const myFriendRequestsInterfaces: FriendRequestInterface[]
+      = myFriendRequests.map((friendrequest: Friendship) => {
+        return {
+          friendship_id: friendrequest.id,
+          friend_uid: friendrequest.sender.id,
+          friend_name: friendrequest.sender.name,
+          friend_avatar_url: friendrequest.sender.avatar_url,
+          friendship_status: friendrequest.sender.status,
+        }
+      });
+
+    return myFriendRequestsInterfaces;
   }
 
   public async getMyFriends(meUser: User): Promise<FriendInterface[]> {
@@ -42,86 +58,37 @@ export class FriendshipsService {
       relations: ['sender', 'receiver'],
     });
 
-    const myFriendshipsInfo: FriendshipDTO[] = [];
-
-    // loop thru every friendship and save the friendship_id
-    // alongside the id of the friend in an array
-    myFriendships.forEach((friend: Friendship) => {
-      let friendshipDTO: FriendshipDTO = {
-        friend_uid: undefined,
-        friendship_id: undefined
-      };
-
-      friendshipDTO.friendship_id = friend.id;
-      if (meUser.id === friend.sender.id) {
-        friendshipDTO.friend_uid = friend.receiver.id;
-      } else if (meUser.id === friend.receiver.id) {
-        friendshipDTO.friend_uid = friend.sender.id;
+    const myFriendsInterfaces: FriendInterface[] = myFriendships.map((friendship: Friendship) => {
+      let friend: User;
+      if (meUser.id === friendship.sender.id) {
+        friend = friendship.receiver;
+      } else if (meUser.id === friendship.receiver.id) {
+        friend = friendship.sender;
       }
 
-      myFriendshipsInfo.push(friendshipDTO);
+      return {
+        friendship_id: friendship.id,
+        friend_uid: friend.id,
+        friend_name: friend.name,
+        friend_avatar_url: friend.avatar_url,
+        friend_status: friend.status,
+      };
     });
-
-    const myFriendsInterfaces: FriendInterface[] = [];
-
-    // generate friendInterfaces with the friendshipDTO info
-    // + some fields from the user (friend)
-    await Promise.all(myFriendshipsInfo.map(async (friendshipInfo) => {
-      const friend: User = await this.usersService.findUserByUID(friendshipInfo.friend_uid);
-
-      myFriendsInterfaces.push({
-        friendship_id: friendshipInfo.friendship_id,
-        friend_uid: friendshipInfo.friend_uid,
-        name: friend.name,
-        avatar_url: friend.avatar_url,
-        status: friend.status,
-      });
-    }));
 
     return myFriendsInterfaces;
   }
 
-  private async hasFriendshipBeenEstabilishedAlready(
-    sender: User,
-    receiver: User
-  ): Promise<boolean> {
+  public async getMyBlockedUsers(meUID: number): Promise<BlockedUserInterface[]> {
+    const myBlockedUsers: BlockedUser[] = await this.usersService.getMyBlockedUsers(meUID);
+    const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsers.map((blockedUserEntry) => {
+      return {
+        blocked_uid: blockedUserEntry.blockedUser.id,
+        name: blockedUserEntry.blockedUser.name,
+        avatar_url: blockedUserEntry.blockedUser.avatar_url
+      }
+    });
 
-    // Check if a friend request between the two users
-    // has already been made by one of the parts
-    const friendRequest: Friendship = await this.friendshipRepository.findOneBy([
-      { sender: sender, receiver: receiver, status: FriendshipStatus.PENDING }, // sender -> receiver
-      { sender: receiver, receiver: sender, status: FriendshipStatus.PENDING }, // receiver -> sender
-    ]);
-
-    return friendRequest ? true : false;
-  }
-
-  private async areTheyFriendsAlready(
-    sender: User,
-    receiver: User
-  ): Promise<boolean> {
-
-    // Check if a friendship exists between the two users
-    const friendship: Friendship = await this.friendshipRepository.findOneBy([
-      { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver
-      { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED }, // receiver -> sender
-    ]);
-
-    return friendship ? true : false;
-  }
-
-  /* Searches for an entry on the blocked_user table
-  where blockedUser = sender && userWhoBlocked = receiver */
-  private async isSenderBlocked(
-    sender: User,
-    receiver: User
-  ): Promise<boolean> {
-
-    const blockedUserEntry: BlockedUser = await this.blockedUserRepository.findOneBy([
-      { blockedUser: sender, userWhoBlocked: receiver } // sender is the blockedUser
-    ]);
-
-    return blockedUserEntry ? true : false;
+    return myBlockedUsersInterfaces;
   }
 
   public async sendFriendRequest(sender: User, receiverUID: number)
@@ -173,17 +140,142 @@ export class FriendshipsService {
     // Sender trying to answer the friend request he sent
     if (user.id === friendship.sender.id
       && (newFriendshipStatus == FriendshipStatus.ACCEPTED
-      ||  newFriendshipStatus == FriendshipStatus.DECLINED)) {
+        || newFriendshipStatus == FriendshipStatus.DECLINED)) {
       throw new BadRequestException("You cannot answer a friend request that you have sent");
     }
 
     if (newFriendshipStatus == FriendshipStatus.CANCEL
-    ||  newFriendshipStatus == FriendshipStatus.UNFRIEND) {
+      || newFriendshipStatus == FriendshipStatus.UNFRIEND) {
       await this.friendshipRepository.delete(friendship);
     } else {
       friendship.status = newFriendshipStatus;
       await this.friendshipRepository.save(friendship);
     }
+
+    Logger.log(user.name + " " + newFriendshipStatus + " the friendship with " + friendship.sender.name);
     return { message: "Successfully updated friendship status" };
+  }
+
+  public async blockUserByUID(
+    sender: User,
+    userToBlockId: number
+  ): Promise<SuccessResponse | ErrorResponse> {
+    const userToBlock: User | null = await this.usersService.findUserByUID(userToBlockId);
+    if (!userToBlock) {
+      throw new NotFoundException("User with id=" + userToBlockId + " doesn't exist");
+    }
+
+    if (sender == userToBlock) {
+      throw new ConflictException("You cannot block yourself");
+    }
+
+    await this.blockAndDeleteFriendship(sender, userToBlock);
+
+    Logger.log("\"" + sender.name + "\" blocked \"" + userToBlock.name + "\"")
+    return { message: "Successfully blocked " + userToBlock.name };
+  }
+
+  public async unblockUserByUID(
+    sender: User,
+    userToUnblockId: number
+  ): Promise<SuccessResponse | ErrorResponse> {
+    if (sender.id == userToUnblockId) {
+      throw new ConflictException("You cannot unblock yourself");
+    }
+
+    const userToUnblock: User | null = await this.usersService.findUserByUID(userToUnblockId);
+    if (!userToUnblock) {
+      throw new NotFoundException("User with id=" + userToUnblockId + " doesn't exist");
+    }
+
+    await this.blockedUserRepository.delete({ userWhoBlocked: sender, blockedUser: userToUnblock });
+
+    Logger.log("\"" + sender.name + "\" unblocked \"" + userToUnblock.name + "\"")
+    return { message: "Successfully unblocked " + userToUnblock.name };
+  }
+
+  private async hasFriendshipBeenEstabilishedAlready(
+    sender: User,
+    receiver: User
+  ): Promise<boolean> {
+
+    // Check if a friend request between the two users
+    // has already been made by one of the parts
+    const friendRequest: Friendship = await this.friendshipRepository.findOneBy([
+      { sender: sender, receiver: receiver, status: FriendshipStatus.PENDING }, // sender -> receiver
+      { sender: receiver, receiver: sender, status: FriendshipStatus.PENDING }, // receiver -> sender
+    ]);
+
+    return friendRequest ? true : false;
+  }
+
+  private async areTheyFriendsAlready(
+    sender: User,
+    receiver: User
+  ): Promise<boolean> {
+
+    // Check if a friendship exists between the two users
+    const friendship: Friendship = await this.friendshipRepository.findOneBy([
+      { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver
+      { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED }, // receiver -> sender
+    ]);
+
+    return friendship ? true : false;
+  }
+
+  /* Searches for an entry on the blocked_user table
+  where blockedUser = sender && userWhoBlocked = receiver */
+  private async isSenderBlocked(
+    sender: User,
+    receiver: User
+  ): Promise<boolean> {
+
+    const blockedUserEntry: BlockedUser = await this.blockedUserRepository.findOneBy([
+      { userWhoBlocked: receiver, blockedUser: sender } // sender is the blockedUser
+    ]);
+
+    return blockedUserEntry ? true : false;
+  }
+
+  private async isReceiverAlreadyBlocked(
+    sender: User,
+    receiver: User
+  ): Promise<boolean> {
+
+    const blockedUserEntry: BlockedUser = await this.blockedUserRepository.findOneBy([
+      { userWhoBlocked: sender, blockedUser: receiver } // sender is the blockedUser
+    ]);
+
+    return blockedUserEntry ? true : false;
+  }
+
+  private async findFriendShipBySenderAndReceiver(
+    sender: User,
+    receiver: User
+  ): Promise<Friendship | null> {
+    return await this.friendshipRepository.findOneBy([
+      { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver
+      { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED } // receiver -> sender
+    ]);
+  }
+
+  private async blockAndDeleteFriendship(
+    userWhoIsBlocking: User,
+    userToBlock: User
+  ): Promise<void> {
+    const isAlreadyBlocked: boolean = await this.isReceiverAlreadyBlocked(userWhoIsBlocking, userToBlock);
+    if (isAlreadyBlocked) {
+      throw new ConflictException(userToBlock.name + " is already blocked");
+    }
+
+    const friendshipToBreak: Friendship = await this.findFriendShipBySenderAndReceiver(userWhoIsBlocking, userToBlock);
+    if (friendshipToBreak) {
+      await this.friendshipRepository.delete(friendshipToBreak);
+    }
+
+    await this.blockedUserRepository.save({
+      userWhoBlocked: userWhoIsBlocking,
+      blockedUser: userToBlock
+    })
   }
 }

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from 'src/typeorm';
+import { BlockedUser, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
@@ -113,5 +113,17 @@ export class UsersService {
       last_updated_at: new Date()
     });
     return { message: "Successfully disabled two factor authentication" };
+  }
+
+  /**********************************
+  *          BLOCKED USERS          *
+  **********************************/
+
+  public async getMyBlockedUsers(meUID: number): Promise<BlockedUser[]> {
+    const meUser: User = await this.usersRepository.findOne({
+      where: { id: meUID },
+      relations: ['blockedUsers']
+    })
+    return meUser.blockedUsers;
   }
 }

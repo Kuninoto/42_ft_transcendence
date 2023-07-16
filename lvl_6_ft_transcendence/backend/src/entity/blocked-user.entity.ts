@@ -3,17 +3,17 @@ import { User } from './user.entity';
 
 @Entity()
 export class BlockedUser {
-    @PrimaryGeneratedColumn({
-        type: 'bigint',
-        name: 'id',
-    })
-    id: number;
+  @PrimaryGeneratedColumn({
+    type: 'bigint',
+    name: 'id',
+  })
+  id: number;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    userWhoBlocked: User;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  userWhoBlocked: User;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    blockedUser: User;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  blockedUser: User;
 }

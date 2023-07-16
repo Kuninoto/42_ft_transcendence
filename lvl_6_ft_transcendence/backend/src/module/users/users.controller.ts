@@ -10,10 +10,6 @@ import {
   UploadedFile,
   BadRequestException,
   Logger,
-  Post,
-  Param,
-  HttpCode,
-  Query
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'
 import {
@@ -21,7 +17,6 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiConsumes,
-  ApiForbiddenResponse,
   ApiOkResponse,
   ApiTags
 } from '@nestjs/swagger';
@@ -33,10 +28,11 @@ import { multerConfig } from './middleware/multer/multer.config';
 import { ErrorResponseDTO } from 'src/common/dto/error-response.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { meUserInfo } from '../../common/types/meUserInfo.interface';
+import { meUserInfo } from './types/me-user-info.interface';
 import { Friendship } from 'src/typeorm';
-import { FriendInterface } from '../../common/types/FriendInterface.interface';
+import { FriendInterface } from '../friendships/types/friend-interface.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
+import { FriendRequestInterface } from '../friendships/types/friend-request.interface';
 
 @ApiTags('users')
 @UseGuards(JwtAuthGuard)
@@ -112,10 +108,18 @@ export class UsersController {
     // Destructure user's info so that we can filter "private" info
     const { name, avatar_url, intra_profile_url, has_2fa, created_at } = req.user;
 
-    const friend_requests: Friendship[] = await this.friendshipsService.getMyFriendRequests(req.user);
+    const friend_requests: FriendRequestInterface[] = await this.friendshipsService.getMyFriendRequests(req.user);
     const friends: FriendInterface[] = await this.friendshipsService.getMyFriends(req.user);
 
-    const meInfo: meUserInfo = { name, avatar_url, intra_profile_url, has_2fa, created_at, friend_requests, friends };
+    const meInfo: meUserInfo = {
+      name,
+      avatar_url,
+      intra_profile_url,
+      has_2fa,
+      created_at,
+      friend_requests,
+      friends
+    };
     return meInfo;
   }
 
