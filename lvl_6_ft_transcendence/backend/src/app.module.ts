@@ -5,6 +5,7 @@ import { UsersModule } from 'src/module/users/users.module';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
 import { join } from 'path';
+import { FriendshipsModule } from './module/friendships/friendships.module';
 import entities from 'src/typeorm/index';
 import 'dotenv/config';
 
@@ -35,8 +36,9 @@ import 'dotenv/config';
       // Do not redirect to a similar file if the requested one isn't found
       serveStaticOptions: { index: false, redirect: false },
     }),
-    UsersModule,
     AuthModule,
+    FriendshipsModule,
+    UsersModule
   ],
   controllers: [],
   providers: [],

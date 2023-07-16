@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
 import { Friendship } from './friendship.entity';
+import { BlockedUser } from './blocked-user.entity';
 
 export enum UserStatus {
   OFFLINE = "offline",
@@ -58,6 +59,10 @@ export class User {
     nullable: false
   })
   intra_profile_url: string;
+
+  @ApiProperty()
+  @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.userWhoBlocked)
+  blockedUsers: BlockedUser[];
 
   @ApiProperty()
   @Column({
