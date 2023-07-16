@@ -9,8 +9,7 @@ export class FriendshipStatusUpdateValidationPipe implements PipeTransform<any> 
   readonly allowedResponses = [
     'declined',
     'accepted',
-    'blocked',
-    'unblocked',
+    'unfriend',
     'canceled'
   ];
 
@@ -18,7 +17,7 @@ export class FriendshipStatusUpdateValidationPipe implements PipeTransform<any> 
     const response = value.newStatus;
     
     if (!response || !this.allowedResponses.includes(response)) {
-      throw new BadRequestException('Invalid response to a friend request');
+      throw new BadRequestException('Invalid friendship status');
     }
 
     return response;
