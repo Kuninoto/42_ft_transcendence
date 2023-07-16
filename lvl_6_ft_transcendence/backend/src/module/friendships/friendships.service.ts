@@ -83,7 +83,7 @@ export class FriendshipsService {
 
     const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsersInfo.map((blockedUserEntry) => {
       return {
-        blocked_uid: blockedUserEntry.id,
+        blocked_uid: blockedUserEntry.blockedUser.id,
         name: blockedUserEntry.blockedUser.name,
         avatar_url: blockedUserEntry.blockedUser.avatar_url
       }
@@ -105,17 +105,22 @@ export class FriendshipsService {
 
     const isSenderBlocked: boolean = await this.isSenderBlocked(sender, receiver)
     if (isSenderBlocked) {
-      throw new ForbiddenException("You are blocked by the recipient");
+      throw new ForbiddenException("You are blocked by the recipient of this friend request");
     }
 
-    const hasBeenSentAlready: boolean = await this.hasFriendshipBeenEstabilishedAlready(sender, receiver);
+    const isReceiverBlocked: boolean = await this.isReceiverBlocked(sender, receiver)
+    if (isReceiverBlocked) {
+      throw new ForbiddenException("You've blocked the user that you're trying to send a friend request to");
+    }
+
+    const hasBeenSentAlready: boolean = await this.hasFriendRequestBeenSentAlready(sender, receiver);
     if (hasBeenSentAlready) {
       throw new ConflictException("A friend request has already been sent (to) or received (on) your account");
     }
 
     const areTheyFriends: boolean = await this.areTheyFriendsAlready(sender, receiver);
     if (areTheyFriends) {
-      throw new ConflictException("You're already friends")
+      throw new ConflictException("You're friends already")
     }
 
     Logger.log("\"" + sender.name + "\" sent a friend request to \"" + receiver.name + "\"");
@@ -199,7 +204,7 @@ export class FriendshipsService {
     return { message: "Successfully unblocked " + userToUnblock.name };
   }
 
-  private async hasFriendshipBeenEstabilishedAlready(
+  private async hasFriendRequestBeenSentAlready(
     sender: User,
     receiver: User
   ): Promise<boolean> {
@@ -242,7 +247,7 @@ export class FriendshipsService {
     return blockedUserEntry ? true : false;
   }
 
-  private async isReceiverAlreadyBlocked(
+  private async isReceiverBlocked(
     sender: User,
     receiver: User
   ): Promise<boolean> {
@@ -268,7 +273,7 @@ export class FriendshipsService {
     userWhoIsBlocking: User,
     userToBlock: User
   ): Promise<void> {
-    const isAlreadyBlocked: boolean = await this.isReceiverAlreadyBlocked(userWhoIsBlocking, userToBlock);
+    const isAlreadyBlocked: boolean = await this.isReceiverBlocked(userWhoIsBlocking, userToBlock);
     if (isAlreadyBlocked) {
       throw new ConflictException(userToBlock.name + " is already blocked");
     }
