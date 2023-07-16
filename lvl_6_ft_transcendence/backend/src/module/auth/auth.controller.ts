@@ -76,7 +76,7 @@ export class AuthController {
     @Req() req: any,
   ): Promise<SuccessResponse> {
     await this.usersService.updateUserByUID(req.user.id, { status: UserStatus.OFFLINE });
-    Logger.log("User id: " + req.user.id + " logged out");
+    Logger.log("User \"" + req.user.name + "\" logged out");
 
     req.logOut(() => {});
 
