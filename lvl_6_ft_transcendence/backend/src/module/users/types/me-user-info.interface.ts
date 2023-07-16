@@ -1,6 +1,7 @@
 import { Friendship } from "src/typeorm";
 import { FriendInterface } from "../../friendships/types/friend-interface.interface";
 import { FriendRequestInterface } from "src/module/friendships/types/friend-request.interface";
+import { BlockedUserInterface } from "src/common/types/blocked-user-interface.interface";
 
 export interface meUserInfo {
     name: string;
@@ -10,5 +11,6 @@ export interface meUserInfo {
     created_at: Date;
     friend_requests: FriendRequestInterface[];
     friends: FriendInterface[];
+    blocked_users: BlockedUserInterface[];
     // wins: number;
 }

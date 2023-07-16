@@ -33,6 +33,7 @@ import { Friendship } from 'src/typeorm';
 import { FriendInterface } from '../friendships/types/friend-interface.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { FriendRequestInterface } from '../friendships/types/friend-request.interface';
+import { BlockedUserInterface } from 'src/common/types/blocked-user-interface.interface';
 
 @ApiTags('users')
 @UseGuards(JwtAuthGuard)
@@ -103,13 +104,14 @@ export class UsersController {
   public async getMyInfo(
     @Req() req: { user: User },
   ): Promise<meUserInfo> {
-    Logger.log("User \"" + req.user.name + "\" requested his info using /me");
+    Logger.log("\"" + req.user.name + "\" requested his info using /me");
 
     // Destructure user's info so that we can filter "private" info
     const { name, avatar_url, intra_profile_url, has_2fa, created_at } = req.user;
 
     const friend_requests: FriendRequestInterface[] = await this.friendshipsService.getMyFriendRequests(req.user);
     const friends: FriendInterface[] = await this.friendshipsService.getMyFriends(req.user);
+    const blocked_users: BlockedUserInterface[] = await this.friendshipsService.getMyBlockedUsers(req.user.id);
 
     const meInfo: meUserInfo = {
       name,
@@ -118,7 +120,8 @@ export class UsersController {
       has_2fa,
       created_at,
       friend_requests,
-      friends
+      friends,
+      blocked_users
     };
     return meInfo;
   }

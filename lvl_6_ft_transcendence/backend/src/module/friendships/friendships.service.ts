@@ -79,10 +79,11 @@ export class FriendshipsService {
   }
 
   public async getMyBlockedUsers(meUID: number): Promise<BlockedUserInterface[]> {
-    const myBlockedUsers: BlockedUser[] = await this.usersService.getMyBlockedUsers(meUID);
-    const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsers.map((blockedUserEntry) => {
+    const myBlockedUsersInfo: BlockedUser[] = await this.usersService.getMyBlockedUsersInfo(meUID);
+
+    const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsersInfo.map((blockedUserEntry) => {
       return {
-        blocked_uid: blockedUserEntry.blockedUser.id,
+        blocked_uid: blockedUserEntry.id,
         name: blockedUserEntry.blockedUser.name,
         avatar_url: blockedUserEntry.blockedUser.avatar_url
       }
@@ -160,13 +161,14 @@ export class FriendshipsService {
     sender: User,
     userToBlockId: number
   ): Promise<SuccessResponse | ErrorResponse> {
+    if (sender.id === userToBlockId) {
+      throw new ConflictException("You cannot block yourself");
+    }
+    
     const userToBlock: User | null = await this.usersService.findUserByUID(userToBlockId);
+
     if (!userToBlock) {
       throw new NotFoundException("User with id=" + userToBlockId + " doesn't exist");
-    }
-
-    if (sender == userToBlock) {
-      throw new ConflictException("You cannot block yourself");
     }
 
     await this.blockAndDeleteFriendship(sender, userToBlock);

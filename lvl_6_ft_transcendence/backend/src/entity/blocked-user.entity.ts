@@ -10,10 +10,8 @@ export class BlockedUser {
   id: number;
 
   @ManyToOne(() => User)
-  @JoinColumn()
   userWhoBlocked: User;
 
   @ManyToOne(() => User)
-  @JoinColumn()
   blockedUser: User;
 }
