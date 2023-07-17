@@ -1,16 +1,16 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import FriendsModal from './friendsModal'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { BiUser } from 'react-icons/bi'
-import { FiUser } from 'react-icons/fi'
 import { AiOutlineUserAdd } from 'react-icons/ai'
-import { RxTriangleUp } from 'react-icons/rx'
+import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
+import { RxTriangleUp } from 'react-icons/rx'
+
+import FriendsModal from './friendsModal'
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
@@ -23,8 +23,7 @@ export default function FriendsList(): JSX.Element {
 
 	return (
 		<div className="flex h-full w-full">
-
-   			{openModal && <FriendsModal closeModal={() => setOpenModal(false)}/> }
+			{openModal && <FriendsModal closeModal={() => setOpenModal(false)} />}
 
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
@@ -46,26 +45,30 @@ export default function FriendsList(): JSX.Element {
 				<div className="my-2">
 					<>
 						<button
-							className="my-2 place-content-between px-4 py-1 flex w-full border-b border-white text-start"
+							className="my-2 flex w-full place-content-between border-b border-white px-4 py-1 text-start"
 							onClick={() => setOpenFriendsAccordean(!openFriendsAccordean)}
 						>
-								Friends
-							<div className='flex'>
-								<button onClick={ (e) => {
-									e.preventDefault()
-									e.stopPropagation()
-									setOpenModal(true)
-								}
-								} >
-									<AiOutlineUserAdd className="" size={22}/>
+							Friends
+							<div className="flex">
+								<button
+									onClick={(e) => {
+										e.preventDefault()
+										e.stopPropagation()
+										setOpenModal(true)
+									}}
+								>
+									<AiOutlineUserAdd className="" size={22} />
 								</button>
-								<RxTriangleUp className={`transition-all duration-200 ${openFriendsAccordean && "-rotate-180"}`} size={24}/>
+								<RxTriangleUp
+									className={`transition-all duration-200 ${openFriendsAccordean && '-rotate-180'
+										}`}
+									size={24}
+								/>
 							</div>
 						</button>
 						<div
-							className={`flex flex-col space-y-2 transition-all ${
-								openFriendsAccordean ? 'max-h-full' : 'max-h-0'
-							} overflow-hidden`}
+							className={`flex flex-col space-y-2 transition-all ${openFriendsAccordean ? 'max-h-full' : 'max-h-0'
+								} overflow-hidden`}
 						>
 							<div className="roundend group relative flex rounded border border-white py-2">
 								<Link className="flex w-full place-content-around" href={'/'}>
@@ -84,50 +87,53 @@ export default function FriendsList(): JSX.Element {
 						</div>
 					</>
 					<>
-					<button
-						className="my-2 place-content-between px-4 py-1 flex w-full border-b border-white text-start"
-						onClick={() => setOpenGroupsAccordean(!openGroupsAccordean)}
-					>
-						Groups
-						<RxTriangleUp className={`transition-all duration-200 ${openGroupsAccordean && "-rotate-180"}`} size={24}/>
-					</button>
-					<div
-						className={`flex flex-col space-y-2 overflow-hidden transition-all 
-						${openGroupsAccordean ? 'max-h-full' : 'max-h-0'}`}
-					>
-						<button className="group" onClick={open}>
-							<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
-								<div>friend</div>
-								<div className="group-hover:invisible">members count</div>
-								<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
-									akjgwe
-								</div>
-							</div>
+						<button
+							className="my-2 flex w-full place-content-between border-b border-white px-4 py-1 text-start"
+							onClick={() => setOpenGroupsAccordean(!openGroupsAccordean)}
+						>
+							Groups
+							<RxTriangleUp
+								className={`transition-all duration-200 ${openGroupsAccordean && '-rotate-180'
+									}`}
+								size={24}
+							/>
 						</button>
-
-						<Link className="group" href={'/'}>
-							<div className="roundend relative flex w-full place-content-around rounded border border-white py-2">
-								<div>friend</div>
-								<div className="group-hover:invisible">wins</div>
-								<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
-									akjgwe
+						<div
+							className={`flex flex-col space-y-2 overflow-hidden transition-all 
+						${openGroupsAccordean ? 'max-h-full' : 'max-h-0'}`}
+						>
+							<button className="group" onClick={open}>
+								<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
+									<div>friend</div>
+									<div className="group-hover:invisible">members count</div>
+									<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
+										akjgwe
+									</div>
 								</div>
-							</div>
-						</Link>
+							</button>
 
-						<Link className="group" href={'/'}>
-							<div className="roundend relative flex w-full place-content-around rounded border border-white py-2">
-								<div>friend</div>
-								<div className="group-hover:invisible">wins</div>
-								<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
-									akjgwe
-									<button></button>
+							<Link className="group" href={'/'}>
+								<div className="roundend relative flex w-full place-content-around rounded border border-white py-2">
+									<div>friend</div>
+									<div className="group-hover:invisible">wins</div>
+									<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
+										akjgwe
+									</div>
 								</div>
-							</div>
-						</Link>
-					</div>
+							</Link>
+
+							<Link className="group" href={'/'}>
+								<div className="roundend relative flex w-full place-content-around rounded border border-white py-2">
+									<div>friend</div>
+									<div className="group-hover:invisible">wins</div>
+									<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
+										akjgwe
+										<button></button>
+									</div>
+								</div>
+							</Link>
+						</div>
 					</>
-
 				</div>
 			</div>
 		</div>
