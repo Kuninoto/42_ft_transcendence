@@ -5,7 +5,7 @@ import {
   Injectable
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { BlockedUser, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
@@ -13,6 +13,7 @@ import { SuccessResponse } from 'src/common/types/success-response.interface';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
+import { UserProfile } from './types/user-profile.interface';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +24,24 @@ export class UsersService {
 
   public async findAll(): Promise<User[]> {
     return await this.usersRepository.find();
+  }
+
+  public async findUsersByUsernameProximity(usernameQuery: string)
+  : Promise<UserProfile[]> {
+    // Find users which name starts with <usernameQuery> and keep only up to ten of those
+    const Users: User[] = (await this.usersRepository.findBy({ name: Like(usernameQuery+'%') })).slice(0, 5);
+
+    // Generate UserProfiles from Users info
+    const UserProfiles: UserProfile[] = Users.map((user: User) => {
+      return {
+        id: user.id,
+        name: user.name,
+        avatar_url: user.avatar_url,
+        intra_profile_url: user.intra_profile_url,
+        created_at: user.created_at,
+      }
+    })
+    return UserProfiles;
   }
 
   /****************************

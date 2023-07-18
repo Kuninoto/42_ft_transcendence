@@ -49,6 +49,7 @@ async function bootstrap() {
     .setDescription('The API for the transcendence project')
     .setVersion('1.0')
     .addTag('Transcendence')
+//  .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('help', app, document);
