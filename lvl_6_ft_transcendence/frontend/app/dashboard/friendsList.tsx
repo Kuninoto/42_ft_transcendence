@@ -28,13 +28,17 @@ export default function FriendsList(): JSX.Element {
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
 					<div className="flex w-full rounded-t-md px-4 py-2">
-						<Image
-							alt={'avatar'}
-							className="aspect-square rounded-full"
-							height={64}
-							src={user.avatar_url || '/coin.png'}
-							width={64}
-						/>
+						<div className="relative aspect-square w-12">
+							<Image
+								alt={'avatar'}
+								className="aspect-square rounded-full"
+								height={0}
+								layout="fill"
+								objectFit="cover"
+								src={user.avatar_url || '/placeholder.jpg'}
+								width={0}
+							/>
+						</div>
 						<div className="mx-4 my-auto">
 							<div className="text-xl">{user.name}</div>
 							<div>rank wins</div>
@@ -57,18 +61,18 @@ export default function FriendsList(): JSX.Element {
 										setOpenModal(true)
 									}}
 								>
-									<AiOutlineUserAdd className="" size={22} />
+									<AiOutlineUserAdd className="" size={24} />
 								</button>
 								<RxTriangleUp
-									className={`transition-all duration-200 ${openFriendsAccordean && '-rotate-180'
-										}`}
+									className={`transition-all duration-200
+									${openFriendsAccordean && '-rotate-180'}`}
 									size={24}
 								/>
 							</div>
 						</button>
 						<div
-							className={`flex flex-col space-y-2 transition-all ${openFriendsAccordean ? 'max-h-full' : 'max-h-0'
-								} overflow-hidden`}
+							className={`flex flex-col space-y-2 transition-all
+							${openFriendsAccordean ? 'max-h-full' : 'max-h-0'} overflow-hidden`}
 						>
 							<div className="roundend group relative flex rounded border border-white py-2">
 								<Link className="flex w-full place-content-around" href={'/'}>
@@ -93,8 +97,9 @@ export default function FriendsList(): JSX.Element {
 						>
 							Groups
 							<RxTriangleUp
-								className={`transition-all duration-200 ${openGroupsAccordean && '-rotate-180'
-									}`}
+								className={`transition-all duration-200 ${
+									openGroupsAccordean && '-rotate-180'
+								}`}
 								size={24}
 							/>
 						</button>

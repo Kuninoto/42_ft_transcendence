@@ -7,7 +7,6 @@ import { useState } from 'react'
 
 import Friends from './friends'
 import History from './history'
-import Status from './status'
 
 enum Tabs {
 	status,
@@ -16,61 +15,79 @@ enum Tabs {
 }
 
 export default function Profile() {
-	const [openTab, setOpenTab] = useState(Tabs.status)
 	const { user } = useAuth()
 
-	const buttons = [
-		{ label: 'Status', value: Tabs.status },
-		{ label: 'Match history', value: Tabs.history },
-		{ label: 'Friends', value: Tabs.friends },
-	]
+	const [showMatchHistory, setShowMatchHistory] = useState(true)
 
 	return (
-		<div className="flex flex-col space-y-8 py-12">
-			<div className="flex w-full">
-				<Link
-					className="fixed left-12 top-12 hover:underline"
-					href={'/dashboard'}
-				>
-					GO BACK
-				</Link>
+		<div className="h-full py-12">
+			<Link
+				className="fixed left-12 top-12 hover:underline"
+				href={'/dashboard'}
+			>
+				GO BACK
+			</Link>
 
-				<div className="mx-auto flex flex-col space-y-4 text-center">
-					<Image
-						alt={'player profile picutre'}
-						className="mx-auto aspect-square w-36 rounded-full"
-						height="0"
-						sizes="100vw"
-						src={user.avatar_url}
-						width="0"
-					/>
-					<p className="text-3xl">{user.name}</p>
-				</div>
-			</div>
+			<div className="mx-64 grid h-full grid-cols-2">
+				<div className="mx-auto flex h-full flex-col place-content-center items-center space-y-6 text-center">
+					<div className="relative aspect-square w-52 place-content-center items-center overflow-hidden rounded-full">
+						<Image
+							alt={'player profile picutre'}
+							className="h-max w-max"
+							height={0}
+							layout="fill"
+							objectFit="cover"
+							src={user.avatar_url || '/placeholder.jpg'}
+							width={0}
+						/>
+					</div>
 
-			<div className="mx-auto flex space-x-12 text-2xl">
-				{buttons.map((tab) => {
-					return (
-						<button
-							className={`border-b-2 border-white px-16 py-2 text-white
-					${openTab === tab.value ? 'opacity-100' : 'opacity-25 hover:opacity-100'}`}
-							key={tab.value}
-							onClick={() => setOpenTab(tab.value)}
-						>
-							{tab.label}
+					<p className="text-3xl">{user.name || 'Loading...'}</p>
+
+					<div className="space-x-2">
+						<button className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black">
+							Add friend
 						</button>
-					)
-				})}
-			</div>
+						<button className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black">
+							Block
+						</button>
+					</div>
 
-			<div className="mx-80 flex">
-				{openTab === Tabs.status ? (
-					<Status />
-				) : openTab === Tabs.history ? (
-					<History />
-				) : (
-					<Friends />
-				)}
+					<div>
+						<span>#1</span>
+						<span>120w</span>
+					</div>
+					<div>
+						<span>#1</span>
+						<span>120w</span>
+					</div>
+					<div>
+						<span>#1</span>
+						<span>120w</span>
+					</div>
+				</div>
+
+				<div className="pb-12">
+					<div className="-mb-0.5 flex w-full place-content-center space-x-2 text-2xl ">
+						<button
+							className={`mr-0.5 border border-white px-3 py-1 hover:border-white hover:text-white
+							${showMatchHistory ? 'mix-blend-exclusion' : 'border-white/50 text-white/50'}`}
+							onClick={() => setShowMatchHistory(true)}
+						>
+							Match history
+						</button>
+						<button
+							className={`mr-0.5 border border-white px-3 py-1 hover:border-white hover:text-white
+							${showMatchHistory ? 'border-white/50 text-white/50' : 'mix-blend-exclusion'}`}
+							onClick={() => setShowMatchHistory(false)}
+						>
+							Friends
+						</button>
+					</div>
+					<div className="h-full border border-white p-4">
+						<History />
+					</div>
+				</div>
 			</div>
 		</div>
 	)

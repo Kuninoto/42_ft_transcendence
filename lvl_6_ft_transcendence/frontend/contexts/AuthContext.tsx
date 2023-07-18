@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	if (!localStorage.getItem('pong.token')) router.push('/')
+	if (localStorage.getItem('pong.token')) router.push('/')
 
 	function logout() {
 		router.push('/')
