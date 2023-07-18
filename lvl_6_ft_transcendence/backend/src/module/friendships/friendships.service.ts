@@ -253,7 +253,7 @@ export class FriendshipsService {
   ): Promise<boolean> {
 
     const blockedUserEntry: BlockedUser = await this.blockedUserRepository.findOneBy([
-      { userWhoBlocked: sender, blockedUser: receiver } // sender is the blockedUser
+      { userWhoBlocked: sender, blockedUser: receiver } // receiver is the blockedUser
     ]);
 
     return blockedUserEntry ? true : false;

@@ -1,4 +1,3 @@
-import { Friendship } from "src/typeorm";
 import { FriendInterface } from "../../friendships/types/friend-interface.interface";
 import { FriendRequestInterface } from "src/module/friendships/types/friend-request.interface";
 import { BlockedUserInterface } from "src/common/types/blocked-user-interface.interface";
