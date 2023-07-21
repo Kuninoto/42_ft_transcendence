@@ -4,6 +4,7 @@ import {
   Res,
   Body,
   Get,
+  Patch,
   Post,
   UseGuards,
   UnauthorizedException,
@@ -41,6 +42,8 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  private readonly logger: Logger = new Logger(AuthController.name);
+
   // passport flow
   // request -> guard -> strategy -> session serializer
 
@@ -70,7 +73,7 @@ export class AuthController {
       status: UserStatus.ONLINE,
     });
 
-    Logger.log('Issued a jwt = ' + jwt.access_token);
+    this.logger.log('Issued a jwt = ' + jwt.access_token);
     return jwt;
   }
 
@@ -87,7 +90,7 @@ export class AuthController {
       req.user.id,
       UserStatus.OFFLINE,
     );
-    Logger.log('User "' + req.user.name + '" logged out');
+    this.logger.log('User "' + req.user.name + '" logged out');
 
     req.logOut(() => {});
 
@@ -125,7 +128,7 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'If the OTP is invalid' })
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
-  @Post('2fa/enable')
+  @Patch('2fa/enable')
   public async enable2fa(
     @Req() req: { user: User },
     @Body() body: { twoFactorAuthCode: string },
@@ -138,30 +141,28 @@ export class AuthController {
       throw new BadRequestException('Wrong authentication code');
     }
 
-    Logger.log('Enabling 2fa for user "' + req.user.name + '"');
+    this.logger.log('Enabling 2fa for user "' + req.user.name + '"');
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
 
     const jwt: { access_token: string } = this.authService.authenticate2fa(
       req.user,
     );
-    Logger.log('Issued a 2fa jwt = ' + jwt.access_token);
 
     return jwt;
   }
 
   /**
-   * POST /api/auth/2fa/disable
+   * PATCH /api/auth/2fa/disable
    *
    * Disables two factor authentication.
    */
   @ApiOkResponse({ description: 'Disables two factor authentication' })
-  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
-  @Post('2fa/disable')
+  @Patch('2fa/disable')
   public async disable2fa(
     @Req() req: { user: User },
   ): Promise<SuccessResponse> {
-    Logger.log('Disabling 2fa for "' + req.user.name + '"');
+    this.logger.log('Disabling 2fa for "' + req.user.name + '"');
 
     return await this.usersService.disable2fa(req.user.id);
   }
@@ -212,8 +213,8 @@ export class AuthController {
       'A new access_token that proves that the user is two factor authenticated',
   })
   @ApiUnauthorizedResponse({ description: 'If the OTP is invalid' })
-  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
   @Post('2fa/authenticate')
   public auth2fa(
     @Req() req: { user: User },

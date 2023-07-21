@@ -6,7 +6,8 @@ import {
   Param,
   HttpCode,
   Patch,
-  Post
+  Post,
+  Delete
 } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiForbiddenResponse, ApiBody, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
@@ -90,7 +91,7 @@ export class FriendshipsController {
   @ApiOkResponse({ description: "Breaks the block relationship between sender and the user which id=userToUnblockId" })
   @ApiConflictResponse({ description: "User which id=userToUnblockId is already unblocked or if the sender tries to unblock itself" })
   @ApiNotFoundResponse({ description: "If user with id=userToUnblockId doesn't exist" })
-  @Patch('unblock/:userToUnblockId')
+  @Delete('block/:userToUnblockId')
   public async unblockUser(
     @Req() req: { user: User },
     @Param('userToUnblockId', NonNegativeIntPipe) userToUnblockId: number

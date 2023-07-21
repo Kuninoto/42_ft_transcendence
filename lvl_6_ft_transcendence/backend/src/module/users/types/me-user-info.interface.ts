@@ -11,5 +11,4 @@ export interface meUserInfo {
     friend_requests: FriendRequestInterface[];
     friends: FriendInterface[];
     blocked_users: BlockedUserInterface[];
-    // wins: number;
 }

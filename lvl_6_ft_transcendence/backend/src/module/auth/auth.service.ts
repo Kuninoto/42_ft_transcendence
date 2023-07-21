@@ -19,6 +19,8 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
+  private readonly logger: Logger = new Logger(AuthService.name);
+
   // Return the signed JWT as access_token
   public login(user: User): { access_token: string } {
     const payload: TokenPayload = {
@@ -26,7 +28,7 @@ export class AuthService {
       has_2fa: user.has_2fa,
     };
 
-    Logger.log('User "' + user.name + '" logged in with 42 auth!');
+    this.logger.log('User "' + user.name + '" logged in with 42 auth!');
     return {
       access_token: this.jwtService.sign(payload),
     };
@@ -40,7 +42,7 @@ export class AuthService {
       is_2fa_authed: true,
     };
 
-    Logger.log('User "' + user.name + '" authenticated with Google\'s 2FA!');
+    this.logger.log('User "' + user.name + '" authenticated with Google\'s 2FA!');
     return {
       access_token: this.jwtService.sign(payload),
     };
@@ -100,17 +102,14 @@ export class AuthService {
         secret: process.env.JWT_SECRET,
       });
       const userId: number = payload.id;
-      
+
       return this.usersService.findUserByUID(userId);
-    }
-    catch (error) {
+    } catch (error) {
       return null;
     }
   }
 
-  public async isClientAuthenticated(
-    client: Socket,
-  ): Promise<boolean> {
+  public async isClientAuthenticated(client: Socket): Promise<boolean> {
     const authHeader: string = client.handshake.headers.authorization;
     if (!authHeader) {
       return false;

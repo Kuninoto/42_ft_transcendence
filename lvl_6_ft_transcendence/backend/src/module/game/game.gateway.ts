@@ -2,21 +2,20 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
   WsException,
-  WsResponse,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Logger } from '@nestjs/common';
-import { GameDataDTO } from './dto/game-data.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
-export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class GameGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   public server: Server;
 
@@ -25,22 +24,28 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly authService: AuthService,
   ) {}
 
+  private readonly logger: Logger = new Logger(GameGateway.name);
+
   afterInit(server: Server) {
-    Logger.log("Game-gateway Initialized");
+    this.logger.log('Game-gateway Initialized');
   }
 
   // On socket connection checks if the user is authenticated
-  async handleConnection(client: Socket, ...args: any[]) {
-    const isClientAuth: boolean = await this.authService.isClientAuthenticated(client);
+  async handleConnection(client: Socket) {
+    const isClientAuth: boolean = await this.authService.isClientAuthenticated(
+      client,
+    );
+
     if (!isClientAuth) {
       client.disconnect();
-      throw new WsException("Unauthorized");
+      throw new WsException('Unauthorized');
     }
-    Logger.log("Client connected " + client.id);
+
+    this.logger.log('Client connected ' + client.id);
   }
 
   async handleDisconnect(client: Socket) {
-    Logger.log("Client disconnected " + client.id);
+    this.logger.log('Client disconnected ' + client.id);
   }
 
   // Listen for 'queue-to-ladder' events
