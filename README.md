@@ -87,6 +87,11 @@ A website to host the might pong contest!
 **User Relations**
 [Difference between one-to-many and many-to-one](https://stackoverflow.com/questions/4601703/difference-between-one-to-many-and-many-to-one-relationship)  
 
+**Chat & Game**
+[A Beginner's Guide to WebSockets](https://www.youtube.com/watch?v=8ARodQ4Wlf4)  
+[WebSockets in 100 Seconds & Beyond with Socket.io](https://www.youtube.com/watch?v=1BfCnjr_Vjg)  
+[NestJS WebSockets Tutorial Playlist](https://www.youtube.com/watch?v=0zyYhm5MjJ4&list=PLBHzlq7ILbsaL1sZxJIxrc4ofSPAMSTzr&pp=iAQB)  
+
 **PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  
 [How to use Postgre Official Docker Image](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/)  
