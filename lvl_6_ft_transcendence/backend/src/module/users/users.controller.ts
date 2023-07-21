@@ -147,7 +147,7 @@ export class UsersController {
   }
 
   /**
-   * PATCH /api/me/username
+   * PATCH /api/users/me/username
    * 
    * This is the route to visit to update 'me'
    * user's username.
@@ -173,7 +173,7 @@ export class UsersController {
   }
 
   /**
-   * PATCH /api/me/avatar
+   * PATCH /api/users/me/avatar
    * 
    * This is the route to visit to update the user's
    * avatar.

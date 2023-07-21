@@ -35,17 +35,16 @@ import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
 
       // The base URL path to serve the images from
       serveRoot: '/api/users/avatars/',
-      
+
       // Do not display a directory index
       // Do not redirect to a similar file if the requested one isn't found
       serveStaticOptions: { index: false, redirect: false },
     }),
     AuthModule,
     FriendshipsModule,
-    UsersModule
+    UsersModule,
   ],
   controllers: [],
   providers: [JwtAuthGuard],
 })
-
 export class AppModule {}
