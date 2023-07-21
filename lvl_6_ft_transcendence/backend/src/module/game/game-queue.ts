@@ -8,7 +8,6 @@ export class GameQueue {
   private game_queue: Set<number> = new Set();
 
   public enqueue(userId: number): void {
-    this.usersService
     this.game_queue.add(userId);
   }
 
