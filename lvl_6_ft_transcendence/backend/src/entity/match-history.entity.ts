@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
@@ -19,8 +20,8 @@ export class MatchHistory {
   id: number;
 
   @ApiProperty()
-  @Column()
-  game_history: GameInfo[];
+  @OneToMany(() => GameInfo, (gameInfo) => gameInfo.id)
+  game_history: GameInfo;
 
   @OneToOne(() => User, (user) => user.user_record)
   @JoinColumn()

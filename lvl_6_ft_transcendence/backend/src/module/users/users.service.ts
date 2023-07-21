@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
@@ -15,6 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { UserProfile } from './types/user-profile.interface';
 import { UserStatus } from 'src/entity/user.entity';
+import { UserSearchInfo } from './types/user-search-info.interface';
 
 @Injectable()
 export class UsersService {
@@ -27,26 +29,24 @@ export class UsersService {
     return await this.usersRepository.find();
   }
 
-  public async findUsersByUsernameProximity(
+  public async findUsersSearchInfoByUsernameProximity(
     usernameQuery: string,
-  ): Promise<UserProfile[]> {
-    // Find users which name starts with <usernameQuery> and keep only up to ten of those
-    const Users: User[] = (
+  ): Promise<UserSearchInfo[]> {
+    // Find users which name starts with <usernameQuery> and keep only up to 5 of those
+    const users: User[] = (
       await this.usersRepository.findBy({ name: Like(usernameQuery + '%') })
     ).slice(0, 5);
 
     // Generate UserProfiles from Users info
-    const UserProfiles: UserProfile[] = Users.map((user: User) => {
+    const usersSearchInfo: UserSearchInfo[] = users.map((user: User) => {
       return {
         id: user.id,
         name: user.name,
         avatar_url: user.avatar_url,
-        intra_profile_url: user.intra_profile_url,
-        created_at: user.created_at,
-        record: user.user_record,
       };
     });
-    return UserProfiles;
+
+    return usersSearchInfo;
   }
 
   /****************************
@@ -64,6 +64,27 @@ export class UsersService {
 
   public async findUserByUID(userID: number): Promise<User | null> {
     return await this.usersRepository.findOneBy({ id: userID });
+  }
+
+  public async findUserProfileByUID(
+    userID: number,
+  ): Promise<UserProfile | null> {
+    const user: User | null = await this.usersRepository.findOneBy({
+      id: userID,
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatar_url: user.avatar_url,
+      intra_profile_url: user.intra_profile_url,
+      created_at: user.created_at,
+      record: user.user_record,
+    };
   }
 
   public async updateUserByUID(
@@ -175,7 +196,7 @@ export class UsersService {
   public async getMyBlockedUsersInfo(meUID: number): Promise<BlockedUser[]> {
     const meUser: User = await this.usersRepository.findOne({
       where: { id: meUID },
-      relations: ['blocked_users', 'blocked_users.blockedUser'],
+      relations: ['blocked_users', 'blocked_users.blocked_user'],
     });
     return meUser.blocked_users;
   }

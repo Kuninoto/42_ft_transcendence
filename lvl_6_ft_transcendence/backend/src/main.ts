@@ -38,6 +38,8 @@ function checkRequiredEnvVariables() {
 }
 
 async function bootstrap() {
+  const logger: Logger = new Logger("NestApplication");
+
   checkRequiredEnvVariables();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -79,7 +81,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix('api');
 
-  await app.listen(3000, () => Logger.log('Listening on port 3000'));
+  await app.listen(3000, () => logger.log('Listening on port 3000'));
 }
 
 bootstrap();

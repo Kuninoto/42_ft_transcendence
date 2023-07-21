@@ -91,9 +91,9 @@ export class FriendshipsService {
     const myBlockedUsersInterfaces: BlockedUserInterface[] =
       myBlockedUsersInfo.map((blockedUserEntry) => {
         return {
-          blocked_uid: blockedUserEntry.blockedUser.id,
-          name: blockedUserEntry.blockedUser.name,
-          avatar_url: blockedUserEntry.blockedUser.avatar_url,
+          blocked_uid: blockedUserEntry.blocked_user.id,
+          name: blockedUserEntry.blocked_user.name,
+          avatar_url: blockedUserEntry.blocked_user.avatar_url,
         };
       });
 
@@ -252,7 +252,7 @@ export class FriendshipsService {
 
     await this.blockedUserRepository.delete({
       user_who_blocked: sender,
-      blockedUser: userToUnblock,
+      blocked_user: userToUnblock,
     });
 
     Logger.log('"' + sender.name + '" unblocked "' + userToUnblock.name + '"');
@@ -304,7 +304,7 @@ export class FriendshipsService {
   ): Promise<boolean> {
     const blockedUserEntry: BlockedUser =
       await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: receiver, blockedUser: sender }, // sender is the blockedUser
+        { user_who_blocked: receiver, blocked_user: sender }, // sender is the blockedUser
       ]);
 
     return blockedUserEntry ? true : false;
@@ -316,7 +316,7 @@ export class FriendshipsService {
   ): Promise<boolean> {
     const blockedUserEntry: BlockedUser =
       await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: sender, blockedUser: receiver }, // receiver is the blockedUser
+        { user_who_blocked: sender, blocked_user: receiver }, // receiver is the blockedUser
       ]);
 
     return blockedUserEntry ? true : false;

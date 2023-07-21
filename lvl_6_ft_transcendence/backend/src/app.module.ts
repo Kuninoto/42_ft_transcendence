@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from 'src/module/users/users.module';
@@ -9,6 +9,8 @@ import { FriendshipsModule } from './module/friendships/friendships.module';
 import entities from 'src/typeorm/index';
 import 'dotenv/config';
 import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
+import { MeModule } from './module/me/me.module';
+import { GameModule } from './module/game/game.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
     AuthModule,
     FriendshipsModule,
     UsersModule,
+    MeModule,
+    GameModule,
   ],
   controllers: [],
   providers: [JwtAuthGuard],
