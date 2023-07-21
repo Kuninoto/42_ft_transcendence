@@ -5,7 +5,7 @@ import { User } from 'src/typeorm';
 export class CreateBlockedUsertDTO {
   @ApiProperty()
   @IsNotEmpty()
-  readonly userWhoBlocked: User;
+  readonly user_who_blocked: User;
 
   @ApiProperty()
   @IsNotEmpty()

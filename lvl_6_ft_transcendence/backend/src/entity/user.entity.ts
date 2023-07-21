@@ -1,11 +1,21 @@
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  OneToMany,
+  JoinColumn,
+  OneToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity, OneToMany, JoinColumn } from 'typeorm';
 import { BlockedUser } from './blocked-user.entity';
+import { UserRecord } from './user-record.entity';
+import { MatchHistory } from './match-history.entity';
 
 export enum UserStatus {
-  OFFLINE = "offline",
-  ONLINE = "online",
-  IN_GAME = "in game"
+  OFFLINE = 'offline',
+  ONLINE = 'online',
+  IN_QUEUE = 'in queue',
+  IN_GAME = 'in game',
 }
 
 @Entity('user')
@@ -22,7 +32,7 @@ export class User {
     type: 'varchar',
     length: 10,
     unique: true,
-    nullable: false
+    nullable: false,
   })
   name: string;
 
@@ -30,7 +40,7 @@ export class User {
   @Column({
     type: 'varchar',
     default: UserStatus.ONLINE,
-    nullable: false
+    nullable: false,
   })
   status: string;
 
@@ -41,40 +51,48 @@ export class User {
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: true
+    nullable: true,
   })
   secret_2fa: string;
 
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   avatar_url: string;
 
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   intra_profile_url: string;
 
   @ApiProperty()
-  @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.userWhoBlocked)
+  @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.user_who_blocked)
   @JoinColumn({ name: 'blocked_users' })
   blocked_users: BlockedUser[];
 
   @ApiProperty()
+  @OneToOne(() => UserRecord, (userRecord) => userRecord.user)
+  user_record: UserRecord;
+
+  @ApiProperty()
+  @OneToOne(() => MatchHistory, (matchHistory) => matchHistory.user)
+  match_history: MatchHistory;
+
+  @ApiProperty()
   @Column({
     type: 'timestamp',
-    default: new Date()
+    default: new Date(),
   })
   created_at: Date;
 
   @ApiProperty()
   @Column({
     type: 'timestamp',
-    default: new Date()
+    default: new Date(),
   })
   last_updated_at: Date;
 }
