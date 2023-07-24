@@ -74,20 +74,24 @@ export default function FriendsList(): JSX.Element {
 							className={`flex flex-col space-y-2 transition-all
 							${openFriendsAccordean ? 'max-h-full' : 'max-h-0'} overflow-hidden`}
 						>
-							<div className="roundend group relative flex rounded border border-white py-2">
-								<Link className="flex w-full place-content-around" href={'/'}>
-									<div>friend</div>
-									<div className="visible group-hover:invisible">wins</div>
-								</Link>
-								<div className="invisible absolute right-4 flex group-hover:visible">
-									<Link className="hover:text-pink-400" href={'/'}>
-										<BiUser size={24} />
+							{ user?.friends?.map(friend => 
+								<div 
+								key={friend.friend_uid}
+								className="roundend group relative flex rounded border border-white py-2">
+									<Link className="flex w-full place-content-around" href={'/'}>
+										<div>{friend.friend_name}</div>
+										<div className="visible group-hover:invisible">wins</div>
 									</Link>
-									<button className="hover:text-pink-400">
-										<LuSwords size={24} />
-									</button>
+									<div className="invisible absolute right-4 flex group-hover:visible">
+										<Link className="hover:text-pink-400" href={`/profile?id=${friend.friend_uid}`}>
+											<BiUser size={24} />
+										</Link>
+										<button className="hover:text-pink-400">
+											<LuSwords size={24} />
+										</button>
+									</div>
 								</div>
-							</div>
+							)}
 						</div>
 					</>
 					<>
