@@ -1,24 +1,67 @@
 'use client'
 
 import { api } from '@/api/api'
+import { useAuth } from '@/contexts/AuthContext'
+import { MdOutlineBlock, MdOutlineClear, MdOutlineDone  } from "react-icons/md"
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-export default function FriendsModal({
-	closeModal,
-}: {
-	closeModal: () => void
-}) {
+type IUSER = {
+	id: number,
+	avatar_url: string,
+	name: string,
+}
+
+export default function FriendsModal({ closeModal }: { closeModal: () => void }) {
+
+	const { user } = useAuth()
+
 	const [search, setSearch] = useState('')
+	const [users, setUsers] = useState<IUSER[]>([])
+
+	function accept(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, requestId: number) {
+		e.preventDefault()
+		e.stopPropagation()
+		
+		api.patch(`/friendships/${requestId}/update`, {
+			newStatus: "accepted"	
+		})
+	}
+
+	function decline(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, requestId: number) {
+		e.preventDefault()
+		e.stopPropagation()
+
+		api.patch(`/friendships/${requestId}/update`, {
+			newStatus: "declined"	
+		})
+	}
+
+	function block(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, id: number) {
+		e.preventDefault()
+		e.stopPropagation()
+
+		api.post(`/friendships/block/${id}`)
+	}
+
+	function sendRequest(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, id: number) {
+		e.preventDefault()
+		e.stopPropagation()
+		api.post(`/friendships/send-request/${id}`)
+			.then(result => console.log(result))
+			.catch(error => console.error(error))
+	}
 
 	useEffect(() => {
-		//api.get
-	}, [])
+		api.get(`/users/search?username=${search}`)
+		.then(result => {
+			console.log(result.data)
+			setUsers(result.data)
+		}).catch(error => console.error(error))
 
-	useEffect(() => {
-		api.get(`/users/`)
 	}, [search])
+
 	return (
 		<div className="reltaive absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
 			<button
@@ -40,75 +83,77 @@ export default function FriendsModal({
 
 						<div className="mt-8 h-56 space-y-3 overflow-scroll border-none ">
 							{!!search ? (
-								<div className="mb-4">
-									Searching for &quot;
-									<span className="text-[#FB37FF]">{search}</span>
-									&quot;
-								</div>
+								<>
+									<div className="mb-4">
+										Searching for &quot;
+										<span className="text-[#FB37FF]">{search}</span>
+										&quot;
+									</div>
+
+        							{ users.map(user => {
+										return (
+										<Link key={user.id}
+											className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
+											href={`/profile?id=${user.id}`}
+										>
+											<div className="flex space-x-6">
+												<Image
+													alt="profile picture"
+													className="aspect-square w-8 rounded-full"
+													height={0}
+													sizes="100%"
+													src={user?.avatar_url || "/placeholder.jpg"}
+													width={0}
+												/>
+												<span className="text-xl">{user.name}</span>
+											</div>
+											<button onClick={(e) => sendRequest(e,user.id)} className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
+												Add friend
+											</button>
+										</Link>
+									)})}
+								</>
 							) : (
+								<>
 								<div>Friend requests</div>
+{ console.log(user.friend_requests)}
+								{ user?.friend_requests?.map(request =>
+										<Link 
+											key={request?.friend_uid}
+											className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
+											href={`/profile?id=${request?.friend_uid}`}
+										>
+											<div className="flex space-x-6">
+												<Image
+													alt="profile picture"
+													className="aspect-square w-8 rounded-full"
+													height={0}
+													sizes="100%"
+													src={request?.friend_avatar_url || "/placeholder.jpg"}
+													width={0}
+												/>
+												<span className="text-xl">{request?.friend_name}</span>
+											</div>
+											<div className='flex space-x-2'>
+												<button onClick={(e) => accept(e, request?.friendship_id)} className="flex group/button space-x-2 items-center rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
+													<MdOutlineDone size={24}/>
+													<span className='group-hover/button:flex hidden'>Accept</span>
+												</button>
+												<button onClick={(e) => decline(e, request?.friendship_id)} className="flex group/button space-x-2 items-center rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
+													<MdOutlineClear size={24}/>
+													<span className='group-hover/button:flex hidden'>Decline</span>
+												</button>
+												<button onClick={(e) => block(e, request?.friend_uid)} className="flex group/button space-x-2 items-center rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
+													<MdOutlineBlock size={24}/>
+													<span className='group-hover/button:flex hidden'>Block</span>
+												</button>
+
+											</div>
+										</Link>
+										)}
+								</>
+
 							)}
-							<Link
-								className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-								href="/"
-							>
-								<div className="flex space-x-6">
-									<Image
-										alt="profile picture"
-										className="aspect-square w-8"
-										height={0}
-										sizes="100vw"
-										src="/coin.png"
-										width={0}
-									/>
-									<span className="text-xl">monkey</span>
-								</div>
-								<button className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
-									Add friend
-								</button>
-							</Link>
-							<Link
-								className="flex items-center space-x-6 rounded border border-white/50 px-4 py-2 text-white text-white/50 "
-								href="/"
-							>
-								<Image
-									alt="profile picture"
-									className="aspect-square w-8"
-									height={0}
-									sizes="100vw"
-									src="/coin.png"
-									width={0}
-								/>
-								<span className="text-xl">monkey</span>
-							</Link>
-							<Link
-								className="flex items-center space-x-6 rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-								href="/"
-							>
-								<Image
-									alt="profile picture"
-									className="aspect-square w-8"
-									height={0}
-									sizes="100vw"
-									src="/coin.png"
-									width={0}
-								/>
-								<span className="text-xl">monkey</span>
-							</Link>
-							<Link
-								className="flex items-center space-x-6 rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-								href="/"
-							>
-								<Image
-									alt="profile picture"
-									className="aspect-square w-8"
-									height={0}
-									sizes="100vw"
-									src="/coin.png"
-									width={0}
-								/>
-								<span className="text-xl">monkey</span>
-							</Link>
 						</div>
 					</div>
 				</div>

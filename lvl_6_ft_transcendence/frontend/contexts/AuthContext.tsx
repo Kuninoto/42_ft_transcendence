@@ -10,10 +10,15 @@ import {
 } from 'react'
 
 interface IUser {
+	id?: number
 	avatar_url?: string
+	intra_profile_url?: string
 	created_at?: Date
 	has_2fa?: boolean
 	name?: string
+	blocked_users?: []
+	friends? : []
+	friend_requests?: []
 }
 
 interface AuthContextType {
@@ -30,14 +35,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		const token = localStorage.getItem('pong.token')
 		if (token) {
-			api
-				.get('/users/me')
-				.then((result) => setUser(result.data))
+			api.get('/me')
+				.then((result) => 
+				{console.log(result.data)
+					setUser(result.data)})
 				.catch(() => logout())
 		}
+		else {
+			router.push('/')
+		}
 	}, [])
-
-	if (!localStorage.getItem('pong.token')) router.push('/')
 
 	function logout() {
 		router.push('/')
@@ -50,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			.then(async function (result) {
 				localStorage.setItem('pong.token', result.data.access_token)
 				return await api
-					.get(`/users/me`, {
+					.get(`/me`, {
 						headers: {
 							Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
 						},
@@ -60,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						return true
 					})
 					.catch((error) => {
-						console.log(error)
+						console.error(error)
 						return false
 					})
 			})
