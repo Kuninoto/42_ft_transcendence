@@ -6,7 +6,8 @@ export class FortyTwoAuthGuard extends AuthGuard('42') implements CanActivate {
     constructor() {
         super();
     }
-    async canActivate(context: ExecutionContext) : Promise<boolean> {
+
+    async canActivate(context: ExecutionContext): Promise<boolean> {
         const result: boolean = (await super.canActivate(context)) as boolean;
         const request: any = context.switchToHttp().getRequest();
 

@@ -1,13 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 export enum FriendshipStatus {
-  DECLINED = "declined",
-  ACCEPTED = "accepted",
-  PENDING = "pending",
-  CANCEL = "canceled",
-  UNFRIEND = "unfriend"
+  DECLINED = 'declined',
+  ACCEPTED = 'accepted',
+  PENDING = 'pending',
+  CANCEL = 'canceled',
+  UNFRIEND = 'unfriend',
 }
 
 @Entity('friendship')
@@ -23,7 +29,7 @@ export class Friendship {
   @Column({
     type: 'varchar',
     default: FriendshipStatus.PENDING,
-    nullable: false
+    nullable: false,
   })
   status: FriendshipStatus;
 

@@ -1,19 +1,17 @@
-import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
 export class BlockedUser {
-    @PrimaryGeneratedColumn({
-        type: 'bigint',
-        name: 'id',
-    })
-    id: number;
+  @PrimaryGeneratedColumn({
+    type: 'bigint',
+    name: 'id',
+  })
+  id: number;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    userWhoBlocked: User;
+  @ManyToOne(() => User)
+  user_who_blocked: User;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    blockedUser: User;
+  @ManyToOne(() => User)
+  blocked_user: User;
 }

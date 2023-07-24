@@ -9,18 +9,19 @@ import { SessionSerializer } from './session.serializer';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from '../users/users.service';
 import { BlockedUser, Friendship, User } from 'src/typeorm';
+import { UsersModule } from '../users/users.module';
 
-console.log("JWT_SECRET= " + process.env.JWT_SECRET);
-console.log("JWT_EXPIRES_IN= " + process.env.JWT_EXPIRES_IN);
+console.log('JWT_SECRET= ' + process.env.JWT_SECRET);
+console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Friendship, BlockedUser]),
     PassportModule.register({ session: true }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
     }),
+    UsersModule
   ],
   controllers: [AuthController],
   providers: [
@@ -28,7 +29,6 @@ console.log("JWT_EXPIRES_IN= " + process.env.JWT_EXPIRES_IN);
     FortyTwoAuthStrategy,
     JwtAuthStrategy,
     SessionSerializer,
-    UsersService
   ],
   exports: [AuthService],
 })
