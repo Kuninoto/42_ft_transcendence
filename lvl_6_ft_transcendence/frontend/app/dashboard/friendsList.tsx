@@ -48,8 +48,8 @@ export default function FriendsList(): JSX.Element {
 
 				<div className="my-2">
 					<>
-						<button
-							className="my-2 flex w-full place-content-between border-b border-white px-4 py-1 text-start"
+						<div
+							className="my-2 flex w-full hover:cursor-pointer place-content-between border-b border-white px-4 py-1 text-start"
 							onClick={() => setOpenFriendsAccordean(!openFriendsAccordean)}
 						>
 							Friends
@@ -69,7 +69,7 @@ export default function FriendsList(): JSX.Element {
 									size={24}
 								/>
 							</div>
-						</button>
+						</div>
 						<div
 							className={`flex flex-col space-y-2 transition-all
 							${openFriendsAccordean ? 'max-h-full' : 'max-h-0'} overflow-hidden`}

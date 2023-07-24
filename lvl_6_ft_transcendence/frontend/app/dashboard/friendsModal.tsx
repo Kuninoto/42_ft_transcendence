@@ -1,8 +1,9 @@
 'use client'
 
+import { api } from '@/api/api'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function FriendsModal({
 	closeModal,
@@ -11,6 +12,13 @@ export default function FriendsModal({
 }) {
 	const [search, setSearch] = useState('')
 
+	useEffect(() => {
+		//api.get
+	}, [])
+
+	useEffect(() => {
+		api.get(`/users/`)
+	}, [search])
 	return (
 		<div className="reltaive absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
 			<button
