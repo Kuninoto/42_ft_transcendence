@@ -5,14 +5,16 @@ import {
   Query,
   NotFoundException,
   Param,
+  Req,
 } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { UserProfile } from './types/user-profile.interface';
+import { UserProfile } from '../types/user-profile.interface';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { UserSearchInfo } from './types/user-search-info.interface';
+import { UserSearchInfo } from '../types/user-search-info.interface';
+import { User } from 'src/typeorm';
 
 @ApiTags('users')
 @UseGuards(JwtAuthGuard)
@@ -60,13 +62,15 @@ export class UsersController {
    */
   @ApiOkResponse({
     description:
-      'Finds users by username proximity and returns a UserProfile[] with up to 5 elements, if no <username> is provided finds any users',
+      'Finds users by username proximity and returns a UserProfile[] with up to 5 elements, if no <username> is provided finds any users.\nIgnores blocked users and friends',
   })
   @Get('/search')
   public async getUsersByUsernameProximity(
+    @Req() req: { user: User },
     @Query('username') query: string,
   ): Promise<UserSearchInfo[]> {
     return await this.usersService.findUsersSearchInfoByUsernameProximity(
+      req.user,
       query,
     );
   }
@@ -83,13 +87,14 @@ export class UsersController {
   @ApiNotFoundResponse({ description: "If user with id=userId doesn't exist " })
   @Get('/:userId')
   public async getUserProfileByUID(
+    @Req() req: { user: User },
     @Param('userId', NonNegativeIntPipe) userID: number,
   ): Promise<UserProfile | ErrorResponse> {
     const userProfile: UserProfile | null =
-      await this.usersService.findUserProfileByUID(userID);
+      await this.usersService.findUserProfileByUID(req.user, userID);
 
     if (!userProfile) {
-      throw new NotFoundException();
+      throw new NotFoundException('User with id= ' + userID + "doesn't exist");
     }
 
     return userProfile;

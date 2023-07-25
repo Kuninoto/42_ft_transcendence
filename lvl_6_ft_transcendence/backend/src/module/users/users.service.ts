@@ -1,26 +1,30 @@
 import {
-  Logger,
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
-  NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
-import { BlockedUser, User } from 'src/typeorm';
+import { Repository } from 'typeorm';
+import { BlockedUser, Friendship, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
-import { UserProfile } from './types/user-profile.interface';
+import { UserProfile } from '../types/user-profile.interface';
 import { UserStatus } from 'src/entity/user.entity';
-import { UserSearchInfo } from './types/user-search-info.interface';
+import { UserSearchInfo } from '../types/user-search-info.interface';
+import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { FriendshipsService } from '../friendships/friendships.service';
 
 @Injectable()
 export class UsersService {
   constructor(
+    @Inject(forwardRef(() => FriendshipsService))
+    private readonly friendshipsService: FriendshipsService,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
@@ -30,11 +34,47 @@ export class UsersService {
   }
 
   public async findUsersSearchInfoByUsernameProximity(
+    meUser: User,
     usernameQuery: string,
   ): Promise<UserSearchInfo[]> {
+    const meUserId = meUser.id;
+
     // Find users which name starts with <usernameQuery> and keep only up to 5 of those
+    // ignoring blocked users and friends
     const users: User[] = (
-      await this.usersRepository.findBy({ name: Like(usernameQuery + '%') })
+      await this.usersRepository
+        .createQueryBuilder('user')
+        .where('user.name LIKE :usernameProximity', {
+          usernameProximity: usernameQuery + '%',
+        })
+        .andWhere((qb) => {
+          const subqueryBlocked = qb
+            .subQuery()
+            .select('*')
+            .from(BlockedUser, 'blockedUser')
+            .where(
+              'blockedUser.blocked_user = user.id AND blockedUser.user_who_blocked = :meUserId',
+              { meUserId },
+            )
+            .getQuery();
+          return `NOT EXISTS ${subqueryBlocked}`;
+        })
+        .andWhere((qb) => {
+          const subqueryFriend = qb
+            .subQuery()
+            .select('*')
+            .from(Friendship, 'friendship')
+            .where(
+              '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
+              { meUserId },
+            )
+            .andWhere('friendship.status = :status', {
+              status: FriendshipStatus.ACCEPTED,
+            })
+            .getQuery();
+          return `NOT EXISTS ${subqueryFriend}`;
+        })
+        .getMany()
     ).slice(0, 5);
 
     // Generate UserProfiles from Users info
@@ -67,6 +107,7 @@ export class UsersService {
   }
 
   public async findUserProfileByUID(
+    meUser: User,
     userID: number,
   ): Promise<UserProfile | null> {
     const user: User | null = await this.usersRepository.findOneBy({
@@ -77,12 +118,20 @@ export class UsersService {
       return null;
     }
 
+    const friendship: Friendship | null = await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
+    const isBlocked = await this.friendshipsService.isThereABlockRelationship(
+      meUser,
+      userID,
+    );
+
     return {
       id: user.id,
       name: user.name,
       avatar_url: user.avatar_url,
       intra_profile_url: user.intra_profile_url,
       created_at: user.created_at,
+      friendship_status: friendship ? friendship.status : null,
+      is_blocked: isBlocked,
       record: user.user_record,
     };
   }
