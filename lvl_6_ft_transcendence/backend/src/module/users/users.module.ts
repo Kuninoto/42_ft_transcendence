@@ -1,26 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import {
-  BlockedUser,
-  Friendship,
-  MatchHistory,
   User,
   UserRecord,
+  MatchHistory,
 } from 'src/typeorm';
-import { FriendshipsService } from '../friendships/friendships.service';
 import { FriendshipsModule } from '../friendships/friendships.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      BlockedUser,
-      MatchHistory,
-      UserRecord,
-      User,
-    ]),
-    FriendshipsModule
+    TypeOrmModule.forFeature([User, UserRecord, MatchHistory]),
+    forwardRef(() => FriendshipsModule),
   ],
   controllers: [UsersController],
   providers: [UsersService],

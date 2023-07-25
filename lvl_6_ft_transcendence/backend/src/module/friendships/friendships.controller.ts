@@ -32,13 +32,17 @@ export class FriendshipsController {
   * 
   * Sends a friend request to the user which id=receiverId
   * - Checks if:
-  *   - receiverID == senderID (to not allow self requesting)
-  *   - received has blocked the sender (cannot request if blocked)
+  *   - The sender is the receiver (self friend request)
+  *   - The receiver exists
+  *   - The sender is blocked by the receiver
+  *   - The receiver is blocked by the sender (Must first unblock the receiver)
+  *   - A friend request has already been made between those two users
+  *   - They're friends already
   * And finally creates a new entry on the friendships table
   */
   @ApiOkResponse({ description: "Sends a friend request to the user which id=receiverId" })
-  @ApiBadRequestResponse({ description: "If the sender == receiver i.e if the user tries to add itself as a friend" })
-  @ApiForbiddenResponse({ description: "If the sender is blocked by the recipient" })
+  @ApiBadRequestResponse({ description: "If the sender == receiver i.e self friend-request" })
+  @ApiForbiddenResponse({ description: "If the sender is blocked by the receiver or if the receiver is blocked by the sender" })
   @ApiConflictResponse({ description: "If there's already a friend request between the two users (sender & receiver) or if sender & receiver are already friends" })
   @HttpCode(200)
   @Post('send-request/:receiverId')
