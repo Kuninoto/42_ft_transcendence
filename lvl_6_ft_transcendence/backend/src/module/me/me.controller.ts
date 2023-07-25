@@ -23,11 +23,11 @@ import {
 import { BlockedUserInterface } from 'src/common/types/blocked-user-interface.interface';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
-import { User } from 'src/typeorm';
-import { FriendInterface } from '../friendships/types/friend-interface.interface';
-import { FriendRequestInterface } from '../friendships/types/friend-request.interface';
+import { Friendship, User } from 'src/typeorm';
+import { FriendInterface } from '../types/friend-interface.interface';
+import { FriendRequestInterface } from '../types/friend-request.interface';
 import { multerConfig } from '../users/middleware/multer/multer.config';
-import { meUserInfo } from '../users/types/me-user-info.interface';
+import { meUserInfo } from '../types/me-user-info.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
@@ -55,10 +55,6 @@ export class MeController {
     const { name, avatar_url, intra_profile_url, has_2fa, created_at } =
       req.user;
 
-    const friend_requests: FriendRequestInterface[] =
-      await this.friendshipsService.getMyFriendRequests(req.user);
-    const friends: FriendInterface[] =
-      await this.friendshipsService.getMyFriends(req.user);
     const blocked_users: BlockedUserInterface[] =
       await this.friendshipsService.getMyBlockedUsers(req.user.id);
 
@@ -68,11 +64,53 @@ export class MeController {
       intra_profile_url,
       has_2fa,
       created_at,
-      friend_requests,
-      friends,
       blocked_users,
     };
     return meInfo;
+  }
+
+  /**
+   * GET /api/me/friends
+   *
+   * Finds and returns the 'me' user's friends
+   */
+  @ApiOkResponse({ description: "Finds and returns the 'me' user's friends" })
+  @Get('friends')
+  public async getMyFriends(
+    @Req() req: { user: User },
+  ): Promise<FriendInterface[]> {
+    Logger.log(
+      '"' + req.user.name + '" requested his friends info using /me/friends',
+    );
+
+    const friendList: FriendInterface[] =
+      await this.friendshipsService.getMyFriends(req.user);
+
+    return friendList;
+  }
+
+  /**
+   * GET /api/me/friend-request
+   *
+   * Finds and returns the 'me' user's friend-requests
+   */
+  @ApiOkResponse({
+    description: "Finds and returns the 'me' user's friend-requests",
+  })
+  @Get('friend-request')
+  public async getMyFriendRequests(
+    @Req() req: { user: User },
+  ): Promise<FriendRequestInterface[]> {
+    Logger.log(
+      '"' +
+        req.user.name +
+        '" requested his friend-requests info using /me/friend-requests',
+    );
+
+    const friendRequests: FriendRequestInterface[] =
+      await this.friendshipsService.getMyFriendRequests(req.user);
+
+    return friendRequests;
   }
 
   /**
