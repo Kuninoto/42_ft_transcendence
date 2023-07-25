@@ -5,6 +5,8 @@ import {
   ConflictException,
   ForbiddenException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,14 +14,15 @@ import { User, Friendship, BlockedUser } from 'src/typeorm';
 import { UsersService } from '../users/users.service';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { SuccessResponse } from 'src/common/types/success-response.interface';
-import { FriendInterface } from './types/friend-interface.interface';
+import { FriendInterface } from '../types/friend-interface.interface';
 import { BlockedUserInterface } from 'src/common/types/blocked-user-interface.interface';
 import { FriendshipStatus } from 'src/entity/friendship.entity';
-import { FriendRequestInterface } from './types/friend-request.interface';
+import { FriendRequestInterface } from '../types/friend-request.interface';
 
 @Injectable()
 export class FriendshipsService {
   constructor(
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     @InjectRepository(Friendship)
     private readonly friendshipRepository: Repository<Friendship>,
@@ -41,10 +44,10 @@ export class FriendshipsService {
       myFriendRequests.map((friendrequest: Friendship) => {
         return {
           friendship_id: friendrequest.id,
-          friend_uid: friendrequest.sender.id,
-          friend_name: friendrequest.sender.name,
-          friend_avatar_url: friendrequest.sender.avatar_url,
-          friendship_status: friendrequest.sender.status,
+          uid: friendrequest.sender.id,
+          name: friendrequest.sender.name,
+          avatar_url: friendrequest.sender.avatar_url,
+          status: friendrequest.sender.status,
         };
       });
 
@@ -71,10 +74,10 @@ export class FriendshipsService {
 
         return {
           friendship_id: friendship.id,
-          friend_uid: friend.id,
-          friend_name: friend.name,
-          friend_avatar_url: friend.avatar_url,
-          friend_status: friend.status,
+          uid: friend.id,
+          name: friend.name,
+          avatar_url: friend.avatar_url,
+          status: friend.status,
         };
       },
     );
@@ -98,6 +101,18 @@ export class FriendshipsService {
       });
 
     return myBlockedUsersInterfaces;
+  }
+
+  public async isThereABlockRelationship(
+    meUser: User,
+    user2UID: number,
+  ): Promise<boolean> {
+    const user2: User = await this.usersService.findUserByUID(user2UID);
+
+    return (
+      (await this.isSenderBlocked(meUser, user2)) ||
+      (await this.isReceiverBlocked(meUser, user2))
+    );
   }
 
   public async sendFriendRequest(
@@ -227,6 +242,8 @@ export class FriendshipsService {
       );
     }
 
+    console.log(JSON.stringify(userToBlock, null, 2));
+
     await this.blockAndDeleteFriendship(sender, userToBlock);
 
     Logger.log('"' + sender.name + '" blocked "' + userToBlock.name + '"');
@@ -257,6 +274,41 @@ export class FriendshipsService {
 
     Logger.log('"' + sender.name + '" unblocked "' + userToUnblock.name + '"');
     return { message: 'Successfully unblocked ' + userToUnblock.name };
+  }
+
+  public async findFriendshipBetween2Users(
+    user1: User,
+    user2: User,
+  ): Promise<Friendship | null> {
+    return await this.friendshipRepository.findOneBy([
+      { sender: user1, receiver: user2 }, // user1 -> user2
+      { sender: user2, receiver: user1 }, // user2 -> user1
+    ]);
+  }
+
+  /* Searches for an entry on the blocked_user table
+  where blockedUser = sender && user_who_blocked = receiver */
+  private async isSenderBlocked(sender: User, receiver: User): Promise<boolean> {
+    const blockedUserEntry: BlockedUser =
+      await this.blockedUserRepository.findOneBy([
+        { user_who_blocked: receiver, blocked_user: sender }, // sender is the blockedUser
+      ]);
+
+    return blockedUserEntry ? true : false;
+  }
+
+  /* Searches for an entry on the blocked_user table
+  where blockedUser = receiver && user_who_blocked = sender */
+  private async isReceiverBlocked(
+    sender: User,
+    receiver: User,
+  ): Promise<boolean> {
+    const blockedUserEntry: BlockedUser =
+      await this.blockedUserRepository.findOneBy([
+        { user_who_blocked: sender, blocked_user: receiver }, // receiver is the blockedUser
+      ]);
+
+    return blockedUserEntry ? true : false;
   }
 
   private async hasFriendRequestBeenSentAlready(
@@ -296,33 +348,7 @@ export class FriendshipsService {
     return friendship ? true : false;
   }
 
-  /* Searches for an entry on the blocked_user table
-  where blockedUser = sender && user_who_blocked = receiver */
-  private async isSenderBlocked(
-    sender: User,
-    receiver: User,
-  ): Promise<boolean> {
-    const blockedUserEntry: BlockedUser =
-      await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: receiver, blocked_user: sender }, // sender is the blockedUser
-      ]);
-
-    return blockedUserEntry ? true : false;
-  }
-
-  private async isReceiverBlocked(
-    sender: User,
-    receiver: User,
-  ): Promise<boolean> {
-    const blockedUserEntry: BlockedUser =
-      await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: sender, blocked_user: receiver }, // receiver is the blockedUser
-      ]);
-
-    return blockedUserEntry ? true : false;
-  }
-
-  private async findFriendShipBySenderAndReceiver(
+  private async findFriendsBySenderAndReceiver(
     sender: User,
     receiver: User,
   ): Promise<Friendship | null> {
@@ -345,17 +371,14 @@ export class FriendshipsService {
     }
 
     const friendshipToBreak: Friendship =
-      await this.findFriendShipBySenderAndReceiver(
-        userWhoIsBlocking,
-        userToBlock,
-      );
+      await this.findFriendsBySenderAndReceiver(userWhoIsBlocking, userToBlock);
     if (friendshipToBreak) {
       await this.friendshipRepository.delete(friendshipToBreak);
     }
 
     await this.blockedUserRepository.save({
       user_who_blocked: userWhoIsBlocking,
-      blockedUser: userToBlock,
+      blocked_user: userToBlock,
     });
   }
 }
