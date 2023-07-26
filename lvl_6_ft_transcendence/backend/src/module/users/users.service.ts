@@ -47,6 +47,7 @@ export class UsersService {
         .where('user.name LIKE :usernameProximity', {
           usernameProximity: usernameQuery + '%',
         })
+        .andWhere('user.id != :meUserId', { meUserId })
         .andWhere((qb) => {
           const subqueryBlocked = qb
             .subQuery()
