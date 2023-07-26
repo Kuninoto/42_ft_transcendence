@@ -9,21 +9,19 @@ import Friends from './friends'
 import History from './history'
 import { api } from '@/api/api'
 import { useAuth } from '@/contexts/AuthContext'
-import { SearchUserInfo } from '@/common/types'
+import { UserProfile } from '@/common/types/user-profile.interface'
 
 export default function Profile() {
 
 	const { user: loggedUser } = useAuth()
 
-	const [ user, setUser ] = useState<SearchUserInfo>()
+	const [ user, setUser ] = useState<UserProfile>()
 	const searchParams = useSearchParams()
 	const id = searchParams.get('id') || loggedUser.id
-
 
 	const [showMatchHistory, setShowMatchHistory] = useState(true)
 
 	useEffect(() => {
-
 		api.get(`/users/${id}`)
 		.then((result) => {
 			console.log(result.data)
@@ -32,8 +30,7 @@ export default function Profile() {
 		.catch((error) => {
 			console.error(error)
 		})
-
-	}, [])
+	}, [id])
 
 	return (
 		<div className="h-full py-12">
@@ -101,7 +98,11 @@ export default function Profile() {
 						</button>
 					</div>
 					<div className="h-full border border-white p-4">
-						<History />
+						{ showMatchHistory ? 
+							<History />
+						:
+							<Friends friends={user?.friends}/>
+						}
 					</div>
 				</div>
 			</div>

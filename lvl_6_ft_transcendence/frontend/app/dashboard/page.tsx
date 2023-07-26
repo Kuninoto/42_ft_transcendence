@@ -10,6 +10,7 @@ import {
 } from 'react-icons/hi2'
 
 import FriendsList from './friendsList'
+import { useAuth } from '@/contexts/AuthContext'
 
 function Card({ children, path }: { children: JSX.Element[]; path: string }) {
 	return (
@@ -27,6 +28,8 @@ function Card({ children, path }: { children: JSX.Element[]; path: string }) {
 
 export default function Dashboard() {
 	const router = useRouter()
+
+	const { user } = useAuth()
 
 	function gotoThemes(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
 		e.preventDefault()
@@ -64,7 +67,7 @@ export default function Dashboard() {
 							SEE EVERYONE <br /> BETTER THAN U
 						</div>
 					</Card>
-					<Card path="/profile">
+					<Card path={`/profile?id=${user?.id}`}>
 						<div className="text-2xl">Profile</div>
 						<HiOutlineUserCircle size={128} />
 						<div>
