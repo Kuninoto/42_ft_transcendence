@@ -38,8 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
 			.then(async function (result) {
 				localStorage.setItem('pong.token', result.data.access_token)
-				return await api
-					.get(`/me`, {
+				return await api.get(`/me`, {
 						headers: {
 							Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
 						},
