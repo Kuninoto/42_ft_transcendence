@@ -20,10 +20,10 @@ import {
   ApiBody,
   ApiConsumes,
 } from '@nestjs/swagger';
-import { BlockedUserInterface } from '../common/types/types/blocked-user-interface.interface';
-import { ErrorResponse } from '../common/types/types/error-response.interface';
-import { SuccessResponse } from '../common/types/types/success-response.interface';
 import { User } from 'src/typeorm';
+import { BlockedUserInterface } from '../../../../common/types/blocked-user-interface.interface';
+import { ErrorResponse } from '../../../../common/types/error-response.interface';
+import { SuccessResponse } from '../../../../common/types/success-response.interface';
 import { FriendInterface } from '../../../../common/types/friend-interface.interface';
 import { FriendRequestInterface } from '../../../../common/types/friend-request.interface';
 import { multerConfig } from '../users/middleware/multer/multer.config';
@@ -31,7 +31,7 @@ import { meUserInfo } from '../../../../common/types/me-user-info.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { GameThemes } from '../../../../common/types/game-themes.enum.ts'
+import { GameThemes } from '../../../../common/types/game-themes.enum'
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
@@ -212,13 +212,13 @@ export class MeController {
   @Patch('game-theme')
   public async updateMyGameTheme(
     @Req() req: { user: User },
-    @Body() body: { newGameTheme: string },
+    @Body(new GameThemeUpdateValidationPipe) newGameTheme: GameThemes,
   ): Promise<SuccessResponse | ErrorResponse> {
       Logger.log('Updating "' + req.user.name + '"\'s username');
   
     return await this.usersService.updateGameThemeByUID(
       req.user.id,
-      body.newGameTheme,
+      newGameTheme,
     );
   }
 
