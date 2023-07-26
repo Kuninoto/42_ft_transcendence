@@ -19,6 +19,7 @@ import { UserSearchInfo } from '../../common/types/user-search-info.interface';
 import { FriendshipStatus } from '../../common/types/friendship-status.enum';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { GameThemes } from '../../common/types/game-themes.enum';
+import { FriendInterface } from 'src/common/types/friend-interface.interface';
 
 @Injectable()
 export class UsersService {
@@ -126,6 +127,8 @@ export class UsersService {
       userID,
     );
 
+    const friends: FriendInterface[] = await this.friendshipsService.getMyFriends(user);
+
     return {
       id: user.id,
       name: user.name,
@@ -133,6 +136,7 @@ export class UsersService {
       intra_profile_url: user.intra_profile_url,
       created_at: user.created_at,
       friendship_status: friendship ? friendship.status : null,
+      friends: friends,
       is_blocked: isBlocked,
       record: user.user_record,
     };
@@ -191,7 +195,7 @@ export class UsersService {
     newGameTheme: GameThemes,
   ): Promise<SuccessResponse> {
     await this.usersRepository.update(userID, {
-      game_type: newGameTheme,
+      game_theme: newGameTheme,
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated game theme' };
