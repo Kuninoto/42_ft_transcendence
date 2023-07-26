@@ -72,7 +72,7 @@ export class UsersController {
     if (!query) {
       return [];
     }
-  
+
     return await this.usersService.findUsersSearchInfoByUsernameProximity(
       req.user,
       query,

@@ -1,3 +1,1 @@
-export interface GameDataDTO {
-
-}
+export interface GameDataDTO {}
