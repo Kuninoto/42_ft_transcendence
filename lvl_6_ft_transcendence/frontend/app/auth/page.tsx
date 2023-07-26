@@ -14,6 +14,7 @@ export default function Auth() {
 		const code = searchParams.get('code')
 		if (code && login(code)) {
 			router.push('/dashboard')
+
 		} else {
 			console.error('Error logging in!')
 			router.push('/')
