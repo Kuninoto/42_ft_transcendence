@@ -22,17 +22,17 @@ import {
 } from '@nestjs/swagger';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 import { User } from 'src/typeorm';
-import { BlockedUserInterface } from '../../../../common/types/blocked-user-interface.interface';
-import { ErrorResponse } from '../../../../common/types/error-response.interface';
-import { SuccessResponse } from '../../../../common/types/success-response.interface';
-import { FriendInterface } from '../../../../common/types/friend-interface.interface';
-import { FriendRequestInterface } from '../../../../common/types/friend-request.interface';
+import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
+import { ErrorResponse } from '../../common/types/error-response.interface';
+import { SuccessResponse } from '../../common/types/success-response.interface';
+import { FriendInterface } from '../../common/types/friend-interface.interface';
+import { FriendRequestInterface } from '../../common/types/friend-request.interface';
 import { multerConfig } from '../users/middleware/multer/multer.config';
-import { meUserInfo } from '../../../../common/types/me-user-info.interface';
+import { meUserInfo } from '../../common/types/me-user-info.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { GameThemes } from '../../../../common/types/game-themes.enum'
+import { GameThemes } from '../../common/types/game-themes.enum'
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)

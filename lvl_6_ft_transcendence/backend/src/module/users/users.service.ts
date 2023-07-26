@@ -9,16 +9,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BlockedUser, Friendship, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
-import { SuccessResponse } from '../../../../common/types/success-response.interface';
-import { ErrorResponse } from '../../../../common/types/error-response.interface';
+import { SuccessResponse } from '../../common/types/success-response.interface';
+import { ErrorResponse } from '../../common/types/error-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
-import { UserProfile } from '../../../../common/types/user-profile.interface';
-import { UserStatus } from '../../../../common/types/user-status.enum';
-import { UserSearchInfo } from '../../../../common/types/user-search-info.interface';
-import { FriendshipStatus } from '../../../../common/types/friendship-status.enum';
+import { UserProfile } from '../../common/types/user-profile.interface';
+import { UserStatus } from '../../common/types/user-status.enum';
+import { UserSearchInfo } from '../../common/types/user-search-info.interface';
+import { FriendshipStatus } from '../../common/types/friendship-status.enum';
 import { FriendshipsService } from '../friendships/friendships.service';
-import { GameThemes } from '../../../../common/types/game-themes.enum';
+import { GameThemes } from '../../common/types/game-themes.enum';
 
 @Injectable()
 export class UsersService {
