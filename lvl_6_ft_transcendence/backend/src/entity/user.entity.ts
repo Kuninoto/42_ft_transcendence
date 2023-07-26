@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ChatRoom } from 'src/typeorm';
-import { PrimaryGeneratedColumn, Column, Entity, JoinTable, ManyToOne } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, Entity, JoinTable, ManyToOne, ManyToMany } from 'typeorm';
 
 export enum UserStatus {
   ONLINE,
@@ -59,7 +59,6 @@ export class User {
   @Column({ type: 'timestamp' })
   last_updated_at: Date;
 
-  @JoinTable()
-  @ManyToOne(() => ChatRoom, (room: ChatRoom) => room.messages)
-  room: ChatRoom;
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users)
+  room: ChatRoom[];
 }

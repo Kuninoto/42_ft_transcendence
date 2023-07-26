@@ -23,7 +23,7 @@ export class ChatService {
 		return await this.messageRepository.save(message);
 	}
 
-	async findAll() {
+	async findAllMessages() {
 		return await this.messageRepository.find();
 	}
 

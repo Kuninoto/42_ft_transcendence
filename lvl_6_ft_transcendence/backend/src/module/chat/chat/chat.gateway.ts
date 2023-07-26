@@ -10,91 +10,49 @@ import { Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { RoomI } from '../entities/room.interface';
 import { RoomDto } from './dto/room.dto';
+import { User } from 'src/entity/user.entity';
+import { Logger } from '@nestjs/common'
 
 // ! the first number defines the socket PORT
 // Cross-Origin Resource Sharing (CORS) configures the behavior for the WebSocket gateway.
 // origin option defines who can connect to the socket. (i.e., domain or IP address)
 // In this case any origin is allowed
-@WebSocketGateway(
-	{
+@WebSocketGateway({
+	namespace: '/chat',
 	cors: {
 		origin: '*',
 	},
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-	@WebSocketServer()
-	server: Server;
+	@WebSocketServer() server: Server;
 
 	constructor(private chatService: ChatService, private authService: AuthService, private roomService: RoomService, private userService: UsersService) {}
 
-
-	//TODO Middleware in socket for auth
-	// STEP BY STEP
-	
-	// !jwt-auth.strategy.ts
-	// 1st validate token (which will be on socket.handshake.headers.authorization)
-	// 2nd exchange the token for the user
-
-	// io.use(function(socket, next){
-	// 	var joinServerParameters = JSON.parse(socket.handshake.query.joinServerParameters);
-	// 	if (joinServerParameters.token == "xxx" ){
-	// 	  next();          
-	// 	} else {
-	// 	  //next(new Error('Authentication error'));                  
-	// 	}
-	// 	return;       
-	//   });
-
- /*  To be used only by io.use (does the same as a guard) */
- /*
-  public async exchangeJWTforUser(token: string) {
-	const isTokenValid: boolean = await this.verify(token);
-
-	if (!isTokenValid) {
-      throw new UnauthorizedException();
-	}
-
-	// Decode JWT (saerch a function to do that)
-
-	const payload: TokenPayload = decode
-
-	const user: User = JwtAuthStrategy.validate()
-  }
-*/
-
 	// Check for connection and print the socket id
 	async handleConnection(socket: Socket) {
-		// console.log('Connecting ' + req.user);
-		// TODO use auth module to do verification
-		// check if user already exists
-		const jwt: string = socket.handshake.headers.authorization;
-		// socket.handshake.query.token;
-
-		// TODO test this
-		const isTokenValid: boolean = await this.authService.verify(jwt);
-		if (!isTokenValid) {
-			console.log('Error on user auth');
-			return this.disconnect(socket);
-		}
-
+		// Check user token
 		try {
-			const user: UserI = await this.userService.findUserById(socket.user.id);
-			if (!user) {
-				console.log('No user');
-				return this.disconnect(socket);
-			} else {
-				console.log('Connect Sucessful');
-				socket.data.user = user;
-				const rooms = await this.roomService.getRoomsForUser(user.id, {page: 1, limit: 10});
+			Logger.debug('Starting token verification');
+			const token = socket.handshake.headers.authorization;
 
-				// Only emit rooms to the specific connected client
-				return this.server.to(socket.id).emit('rooms', rooms);
+			// throws if the token is not valid
+			const decoded = await this.authService.verifyJwt(token);
+			
+			Logger.debug('Trying to find user');
+			// make sure user exists
+			const user: User = await this.userService.findUserById(decoded[1]);
+			
+			Logger.debug('User found!');
+			if (user) {
+				socket.data.user = user;
+			} else {
+				throw new Error('error with user');
 			}
-		} catch {
-			console.log('Error on user auth');
+		}
+		catch {
 			return this.disconnect(socket);
 		}
-
+		Logger.log(socket.data.user.name + ' connected to the chat socket');
 	}
 
 	// Check for disconnection and print the socket id
@@ -102,25 +60,45 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	private disconnect(socket: Socket) {
-		console.log('Disconnecting user');
+		Logger.log('Disconnecting');
 		socket.emit('Error', new UnauthorizedException());
 		socket.disconnect();
 	}
 
 	@SubscribeMessage('createRoom')
-	async onCreateRoom(socket: Socket, room: RoomDto): Promise<RoomDto> {
+	async onCreateRoom(socket: Socket, room: RoomI): Promise<RoomI> {
 		// TODO verify room users after creation
-		// TODO delete console.logs and verify if current user is working
-		console.log('user: ' + socket.data.user);
-		console.log('room name: ' + room.name);
-		console.log('room owner: ' + room.owner);
-		return this.roomService.createRoom(room/*, socket.data.user*/);
+		// TODO delete Logger.logs and verify if current user is working
+		Logger.debug('------------ Creating room ------------');
+		Logger.debug('user: ' + JSON.stringify(socket.data.user, null, 2));
+		Logger.debug('room name: ' + room.name);
+		Logger.debug('room owner: ' + room.owner);
+		Logger.debug('---------------------------------------');
+		return this.roomService.createRoom(room, socket.data.user);
+	}
+
+	@SubscribeMessage('joinRoom')
+	async onJoinRoom(socket: Socket, roomName: string) {
+		// TODO
+		Logger.log('------------ Joining room ------------');
+		Logger.log('user: ' + JSON.stringify(socket.data.user, null, 2));
+		Logger.log('room name: ' + roomName);
+		Logger.log('--------------------------------------');
+		const room = this.roomService.joinRoom(roomName, socket.data.user);
+		const userName = socket.data.user
+
+		if (room) {
+			socket.join((await room).name);
+			this.server.to((await room).name).emit('joinedRoom', {roomName, userName})
+		} else {
+			Logger.log('The room with "' + roomName + '" name doesn\'t exist');
+		}
 	}
 
 	// When recwiving a message create it in the database and emit to everyone
 	@SubscribeMessage('newMessage')
 	async create(@MessageBody() MessageDto: MessageDto) {
-		console.log(MessageDto);
+		Logger.log(MessageDto);
 
 		const message = await this.chatService.createMessage(MessageDto);
 
@@ -129,7 +107,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('findAllMessages')
 	findAll() {
-		return this.chatService.findAll();
+		return this.chatService.findAllMessages();
 	}
 
 }

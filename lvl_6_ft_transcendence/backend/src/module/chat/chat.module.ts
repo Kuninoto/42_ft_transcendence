@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ChatService } from './chat/chat.service';
 import { ChatGateway } from './chat/chat.gateway';
 import { TypeOrmModule } from '@nestjs/typeorm';

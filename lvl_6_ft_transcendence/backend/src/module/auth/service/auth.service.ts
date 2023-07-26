@@ -53,6 +53,10 @@ export class AuthService {
     }
   }
 
+  verifyJwt(jwt: string): Promise<any> {
+    return this.jwtService.verifyAsync(jwt);
+  }
+
   public async generate2faSecret(): Promise<twoFactorAuthDTO> {
     const secret = authenticator.generateSecret();
 
