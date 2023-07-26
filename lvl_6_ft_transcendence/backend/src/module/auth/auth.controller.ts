@@ -23,9 +23,9 @@ import {
 } from '@nestjs/swagger';
 import { User } from 'src/typeorm';
 import { UsersService } from 'src/module/users/users.service';
-import { ErrorResponse } from '../../../../common/types/error-response.interface';
-import { SuccessResponse } from '../../../../common/types/success-response.interface';
-import { UserStatus } from '../../../../common/types/user-status.enum';
+import { ErrorResponse } from '../../common/types/error-response.interface';
+import { SuccessResponse } from '../../common/types/success-response.interface';
+import { UserStatus } from '../../common/types/user-status.enum';
 
 /**
  * Guards act as Middleware of validation
