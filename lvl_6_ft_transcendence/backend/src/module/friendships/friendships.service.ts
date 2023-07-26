@@ -348,13 +348,16 @@ export class FriendshipsService {
     return friendship ? true : false;
   }
 
-  private async findFriendsBySenderAndReceiver(
+  private async findFriendshipBySenderAndReceiver(
     sender: User,
     receiver: User,
   ): Promise<Friendship | null> {
     return await this.friendshipRepository.findOneBy([
-      { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver
-      { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED }, // receiver -> sender
+      { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver && ACCEPTED
+      { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED }, // receiver -> sender && ACCEPTED
+  
+      { sender: sender, receiver: receiver, status: FriendshipStatus.PENDING }, // sender -> receiver && PENDING
+      { sender: receiver, receiver: sender, status: FriendshipStatus.PENDING }, // receiver -> sender && PENDING
     ]);
   }
 
@@ -371,7 +374,7 @@ export class FriendshipsService {
     }
 
     const friendshipToBreak: Friendship =
-      await this.findFriendsBySenderAndReceiver(userWhoIsBlocking, userToBlock);
+      await this.findFriendshipBySenderAndReceiver(userWhoIsBlocking, userToBlock);
     if (friendshipToBreak) {
       await this.friendshipRepository.delete(friendshipToBreak);
     }
