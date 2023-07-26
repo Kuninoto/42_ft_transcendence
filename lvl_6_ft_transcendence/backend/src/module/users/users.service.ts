@@ -54,10 +54,7 @@ export class UsersService {
             .subQuery()
             .select('*')
             .from(BlockedUser, 'blockedUser')
-            .where(
-              'blockedUser.blocked_user = :meUserId',
-              { meUserId },
-            )
+            .where('blockedUser.blocked_user = :meUserId', { meUserId })
             .getQuery();
           return `NOT EXISTS ${subqueryBlockedMe}`;
         })
@@ -127,7 +124,8 @@ export class UsersService {
       userID,
     );
 
-    const friends: FriendInterface[] = await this.friendshipsService.getMyFriends(user);
+    const friends: FriendInterface[] =
+      await this.friendshipsService.getMyFriends(user);
 
     return {
       id: user.id,

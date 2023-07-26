@@ -18,7 +18,7 @@ console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
     }),
-    UsersModule
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [

@@ -4,4 +4,3 @@ export enum UserStatus {
   IN_QUEUE = 'in queue',
   IN_GAME = 'in game',
 }
-  

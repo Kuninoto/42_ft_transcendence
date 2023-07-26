@@ -1,8 +1,4 @@
-import {
-  PipeTransform,
-  Injectable,
-  BadRequestException
-} from '@nestjs/common';
+import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 import { GameThemes } from 'src/common/types/game-themes.enum';
 
 @Injectable()
@@ -14,12 +10,12 @@ export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
     'monke',
     'melo',
     'miki',
-    'mikao'
+    'mikao',
   ];
 
   transform(value: { newGameTheme: GameThemes }): GameThemes {
     const response = value.newGameTheme;
-    
+
     if (!response || !this.themes.includes(response)) {
       throw new BadRequestException('Invalid game theme');
     }

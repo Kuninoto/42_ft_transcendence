@@ -2,6 +2,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
   WsException,
@@ -35,10 +36,8 @@ export class GameGateway
     const isClientAuth: boolean = await this.authService.isClientAuthenticated(
       client,
     );
-
     if (!isClientAuth) {
       client.disconnect();
-      throw new WsException('Unauthorized');
     }
 
     this.logger.log('Client connected ' + client.id);
@@ -49,17 +48,11 @@ export class GameGateway
   }
 
   // Listen for 'queue-to-ladder' events
-  /* @SubscribeMessage('queue-to-ladder')
-  queueToLadder(): void {
+  //@SubscribeMessage('queue-to-ladder')
+  //queueToLadder(): void {
+  //  this.gameService.queueToLadder();
 
-    // !TODO
-    // How's queue gonna work?
-    // Simple FIFO?
-    // One user joins queue just waiting for another one to also join the queue to be matched?
-
-    const opponent = await this.gameService.queueToLadder();
-
-  } */
+  //}
 
   /* broadcastGameData(): void {
     const gameData: GameData = ;

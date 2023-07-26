@@ -11,7 +11,7 @@ export class GameController {
 
   /**
    * GET /api/game/:gameId
-   * 
+   *
    */
   // @Get('/:gameId')
 }

@@ -69,7 +69,10 @@ export class AuthController {
     @Req() req: any,
   ): Promise<{ access_token: string }> {
     const jwt: { access_token: string } = this.authService.login(req.user);
-    await this.usersService.updateUserStatusByUID(req.user.id, UserStatus.ONLINE);
+    await this.usersService.updateUserStatusByUID(
+      req.user.id,
+      UserStatus.ONLINE,
+    );
 
     this.logger.log('Issued a jwt = ' + jwt.access_token);
     return jwt;

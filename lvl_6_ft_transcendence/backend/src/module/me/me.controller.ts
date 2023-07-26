@@ -32,7 +32,7 @@ import { meUserInfo } from '../../common/types/me-user-info.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { GameThemes } from '../../common/types/game-themes.enum'
+import { GameThemes } from '../../common/types/game-themes.enum';
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
@@ -54,8 +54,15 @@ export class MeController {
     Logger.log('"' + req.user.name + '" requested his info using /me');
 
     // Destructure user's info so that we can filter info that doesn't belong to meUserInfo
-    const { id, name, avatar_url, intra_profile_url, has_2fa, game_theme, created_at } =
-      req.user;
+    const {
+      id,
+      name,
+      avatar_url,
+      intra_profile_url,
+      has_2fa,
+      game_theme,
+      created_at,
+    } = req.user;
 
     const meInfo: meUserInfo = {
       id,
@@ -107,7 +114,7 @@ export class MeController {
         '" requested his friend-requests info using /me/friend-requests',
     );
 
-    return await this.friendshipsService.getMyFriendRequests(req.user);;
+    return await this.friendshipsService.getMyFriendRequests(req.user);
   }
 
   /**
@@ -115,19 +122,19 @@ export class MeController {
    *
    * Finds and returns the 'me' user's blocklist
    */
-   @ApiOkResponse({ description: "Finds and returns the 'me' user's blocklist" })
-   @Get('blocklist')
-   public async getMyBlockedUsers(
-     @Req() req: { user: User },
-   ): Promise<BlockedUserInterface[]> {
-     Logger.log(
-       '"' + 
-       req.user.name + 
-       '" requested his blocklist info using /me/blocklist',
-     );
- 
-     return await this.friendshipsService.getMyBlocklist(req.user.id);;
-   }
+  @ApiOkResponse({ description: "Finds and returns the 'me' user's blocklist" })
+  @Get('blocklist')
+  public async getMyBlockedUsers(
+    @Req() req: { user: User },
+  ): Promise<BlockedUserInterface[]> {
+    Logger.log(
+      '"' +
+        req.user.name +
+        '" requested his blocklist info using /me/blocklist',
+    );
+
+    return await this.friendshipsService.getMyBlocklist(req.user.id);
+  }
 
   /**
    * DELETE /api/me
@@ -199,7 +206,7 @@ export class MeController {
    */
   @ApiOkResponse({
     description:
-    "Updates 'me' user's game theme\nExpects the new game theme as the \"newGameTheme\" field of a JSON on the body",
+      "Updates 'me' user's game theme\nExpects the new game theme as the \"newGameTheme\" field of a JSON on the body",
   })
   @ApiBadRequestResponse({
     description: "If the theme doesn't exist",
@@ -214,10 +221,10 @@ export class MeController {
   @Patch('game-theme')
   public async updateMyGameTheme(
     @Req() req: { user: User },
-    @Body(new GameThemeUpdateValidationPipe) newGameTheme: GameThemes,
+    @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
   ): Promise<SuccessResponse | ErrorResponse> {
-      Logger.log('Updating "' + req.user.name + '"\'s username');
-  
+    Logger.log('Updating "' + req.user.name + '"\'s username');
+
     return await this.usersService.updateGameThemeByUID(
       req.user.id,
       newGameTheme,
