@@ -12,12 +12,12 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, Friendship, BlockedUser } from 'src/typeorm';
 import { UsersService } from '../users/users.service';
-import { ErrorResponse } from '../common/types/types/error-response.interface';
-import { SuccessResponse } from '../common/types/types/success-response.interface';
+import { ErrorResponse } from '../../../../common/types/error-response.interface';
+import { SuccessResponse } from '../../../../common/types/success-response.interface';
 import { FriendInterface } from '../../../../common/types/friend-interface.interface';
-import { BlockedUserInterface } from '../common/types/types/blocked-user-interface.interface';
-import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { BlockedUserInterface } from '../../../../common/types/blocked-user-interface.interface';
 import { FriendRequestInterface } from '../../../../common/types/friend-request.interface';
+import { FriendshipStatus } from '../../../../common/types/friendship-status.enum';
 
 @Injectable()
 export class FriendshipsService {

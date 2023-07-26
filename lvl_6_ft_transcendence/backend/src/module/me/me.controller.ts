@@ -20,6 +20,7 @@ import {
   ApiBody,
   ApiConsumes,
 } from '@nestjs/swagger';
+import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 import { User } from 'src/typeorm';
 import { BlockedUserInterface } from '../../../../common/types/blocked-user-interface.interface';
 import { ErrorResponse } from '../../../../common/types/error-response.interface';

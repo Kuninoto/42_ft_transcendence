@@ -6,7 +6,7 @@ import {
 import { GameThemes } from '../../../../common/types/game-themes.enum.ts'
 
 @Injectable()
-export class FriendshipStatusUpdateValidationPipe implements PipeTransform<any> {
+export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
   readonly themes = [
     'default',
     'forty_two',

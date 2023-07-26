@@ -21,11 +21,11 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
-import { SuccessResponse } from '../common/types/types/success-response.interface';
-import { UserStatus } from 'src/entity/user.entity';
-import { ErrorResponse } from '../common/types/types/error-response.interface';
+import { UsersService } from 'src/module/users/users.service';
+import { ErrorResponse } from '../../../../common/types/error-response.interface';
+import { SuccessResponse } from '../../../../common/types/success-response.interface';
+import { UserStatus } from '../../../../common/types/user-status.enum';
 
 /**
  * Guards act as Middleware of validation
