@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
+import { FriendshipStatus } from '../common/types/friendship-status.enum';
 
 @Entity('friendship')
 export class Friendship {

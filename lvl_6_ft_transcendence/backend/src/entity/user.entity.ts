@@ -10,7 +10,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { BlockedUser } from './blocked-user.entity';
 import { UserRecord } from './user-record.entity';
 import { MatchHistory } from './match-history.entity';
-i
+import { UserStatus } from 'src/common/types/user-status.enum';
 
 @Entity('user')
 export class User {
