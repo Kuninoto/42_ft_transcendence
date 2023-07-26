@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiForbiddenResponse, ApiBody, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { SuccessResponse } from 'src/common/types/success-response.interface';
+import { ErrorResponse } from '../common/types/types/error-response.interface';
+import { SuccessResponse } from '../common/types/types/success-response.interface';
 import { FriendshipStatus } from 'src/entity/friendship.entity';
 import { User } from 'src/typeorm';
 import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';

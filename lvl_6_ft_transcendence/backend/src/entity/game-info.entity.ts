@@ -8,11 +8,6 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
 
-export enum GameType {
-  LADDER = 'ladder',
-  ONEVSONE = '1v1',
-}
-
 @Entity('game-info')
 export class GameInfo {
   @ApiProperty()

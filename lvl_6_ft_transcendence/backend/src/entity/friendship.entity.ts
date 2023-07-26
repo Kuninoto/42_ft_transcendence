@@ -8,14 +8,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
-export enum FriendshipStatus {
-  DECLINED = 'declined',
-  ACCEPTED = 'accepted',
-  PENDING = 'pending',
-  CANCEL = 'canceled',
-  UNFRIEND = 'unfriend',
-}
-
 @Entity('friendship')
 export class Friendship {
   @ApiProperty()

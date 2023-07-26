@@ -11,13 +11,6 @@ import { BlockedUser } from './blocked-user.entity';
 import { UserRecord } from './user-record.entity';
 import { MatchHistory } from './match-history.entity';
 
-export enum UserStatus {
-  OFFLINE = 'offline',
-  ONLINE = 'online',
-  IN_QUEUE = 'in queue',
-  IN_GAME = 'in game',
-}
-
 @Entity('user')
 export class User {
   @ApiProperty()
@@ -68,6 +61,14 @@ export class User {
     nullable: false,
   })
   intra_profile_url: string;
+
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    default: 'default',
+    nullable: false,
+  })
+  game_theme: string;
 
   @ApiProperty()
   @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.user_who_blocked)
