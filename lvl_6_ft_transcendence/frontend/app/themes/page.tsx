@@ -5,13 +5,21 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { themes, amount } from '@/common/themes'
+import { api } from '@/api/api'
 
 export default function Themes() {
 	const [saving, setSaving] = useState(false)
 
 	function save() {
-		console.log(themeKeys[selected])
-		setSaving(!saving)
+
+		setSaving(true)
+
+		api.patch("/me/game-theme", {
+			newGameTheme: themeKeys[selected]
+		}).finally(() => {
+			setSaving(false)
+		})
+
 	}
 
 	const themeKeys = Object.keys(themes)
@@ -60,7 +68,7 @@ export default function Themes() {
 					/>
 					<div className='absolute place-content-center flex w-3 h-24 left-4'>
 						<Image 
-							src={`/game/paddles/${themes[themeKeys[selected]]}`}
+							src={`/game/paddles/${themes[themeKeys[selected]].paddle}`}
 							alt="paddle"
 							fill
 							priority

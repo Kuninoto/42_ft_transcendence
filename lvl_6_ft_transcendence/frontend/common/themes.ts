@@ -21,7 +21,7 @@ export const themes : IThemes = {
   },
   monke: {
     background: "monke.png",
-    paddle: "paddle.jpeg"
+    paddle: "monke.jpeg"
   },
   melo: {
     background: "melo.jpg",

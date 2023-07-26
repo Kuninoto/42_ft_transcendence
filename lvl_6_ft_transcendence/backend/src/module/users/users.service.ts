@@ -191,7 +191,7 @@ export class UsersService {
     newGameTheme: GameThemes,
   ): Promise<SuccessResponse> {
     await this.usersRepository.update(userID, {
-      game_type: newGameTheme,
+      game_theme: newGameTheme,
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated game theme' };
