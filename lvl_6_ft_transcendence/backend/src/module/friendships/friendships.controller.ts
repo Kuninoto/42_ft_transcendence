@@ -11,10 +11,10 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOkResponse, ApiForbiddenResponse, ApiBody, ApiNotFoundResponse, ApiConflictResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { SuccessResponse } from 'src/common/types/success-response.interface';
-import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { ErrorResponse } from '../../../../common/types/error-response.interface';
+import { SuccessResponse } from '../../../../common/types/success-response.interface';
 import { User } from 'src/typeorm';
+import { FriendshipStatus } from '../../../../common/types/friendship-status.enum';
 import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
 import { FriendshipsService } from './friendships.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
