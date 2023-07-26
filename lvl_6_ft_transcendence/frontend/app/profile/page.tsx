@@ -9,29 +9,24 @@ import Friends from './friends'
 import History from './history'
 import { api } from '@/api/api'
 import { useAuth } from '@/contexts/AuthContext'
-
-type IUSER = {
-	id: number,
-	avatar_url: string,
-	name: string,
-}
+import { SearchUserInfo } from '@/common/types'
 
 export default function Profile() {
 
 	const { user: loggedUser } = useAuth()
 
-	const [ user, setUser ] = useState<IUSER>()
+	const [ user, setUser ] = useState<SearchUserInfo>()
 	const searchParams = useSearchParams()
 	const id = searchParams.get('id') || loggedUser.id
 
 
-	console.log(id)
 	const [showMatchHistory, setShowMatchHistory] = useState(true)
 
 	useEffect(() => {
 
 		api.get(`/users/${id}`)
 		.then((result) => {
+			console.log(result.data)
 			setUser(result.data)
 		})
 		.catch((error) => {

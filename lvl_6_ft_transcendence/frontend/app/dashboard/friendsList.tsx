@@ -4,26 +4,39 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiOutlineUserAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
 
 import FriendsModal from './friendsModal'
+import { api } from '@/api/api'
+import { Friend } from '@/common/types'
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
 
 	const [openModal, setOpenModal] = useState(false)
+	const [friends, setFriends] = useState<Friend[]>([])
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
 
 	const { open } = useChat()
 
+	function addFriend(user: Friend){
+		setFriends([... friends, user])
+	}
+
+	useEffect(() => {
+		api.get('/me/friends').then(result => {
+			setFriends(result.data)
+		})
+	}, [])
+
 	return (
 		<div className="flex h-full w-full">
-			{openModal && <FriendsModal closeModal={() => setOpenModal(false)} />}
+			{openModal && <FriendsModal addFriend={addFriend} closeModal={() => setOpenModal(false)} />}
 
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
@@ -74,16 +87,16 @@ export default function FriendsList(): JSX.Element {
 							className={`flex flex-col space-y-2 transition-all
 							${openFriendsAccordean ? 'max-h-full' : 'max-h-0'} overflow-hidden`}
 						>
-							{ user?.friends?.map(friend => 
+							{ friends?.map(friend => 
 								<div 
-								key={friend.friend_uid}
+								key={friend.uid}
 								className="roundend group relative flex rounded border border-white py-2">
 									<Link className="flex w-full place-content-around" href={'/'}>
-										<div>{friend.friend_name}</div>
-										<div className="visible group-hover:invisible">wins</div>
+										<div>{friend.name}</div>
+										<div className="visible group-hover:invisible">{friend.status}</div>
 									</Link>
 									<div className="invisible absolute right-4 flex group-hover:visible">
-										<Link className="hover:text-pink-400" href={`/profile?id=${friend.friend_uid}`}>
+										<Link className="hover:text-pink-400" href={`/profile?id=${friend.uid}`}>
 											<BiUser size={24} />
 										</Link>
 										<button className="hover:text-pink-400">
