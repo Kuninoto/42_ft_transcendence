@@ -1,7 +1,6 @@
 /* 
 * Global purpose interfaces
 */
-
 type BaseUserInfo = {
     avatar_url: string
     name: string
@@ -32,7 +31,6 @@ export interface User {
 /* 
 * Auth purpose interfaces
 */
-
 export interface AuthContextExports {
 	login: (code: string) => Promise<boolean> | void
 	logout: () => void

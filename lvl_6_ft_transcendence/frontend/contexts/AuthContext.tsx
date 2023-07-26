@@ -10,7 +10,6 @@ import {
 	useState,
 } from 'react'
 
-
 const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -21,9 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		const token = localStorage.getItem('pong.token')
 		if (token) {
 			api.get('/me')
-				.then((result) => 
-				{console.log(result.data)
-					setUser(result.data)})
+				.then((result) => setUser(result.data))
 				.catch(() => logout())
 		}
 		else {

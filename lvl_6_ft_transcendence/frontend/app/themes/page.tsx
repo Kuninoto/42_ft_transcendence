@@ -4,33 +4,35 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { themes, amount } from '@/common/themes'
 
 export default function Themes() {
 	const [saving, setSaving] = useState(false)
 
 	function save() {
+		console.log(themeKeys[selected])
 		setSaving(!saving)
 	}
 
+	const themeKeys = Object.keys(themes)
+
 	function goBackward() {
-		setSelectedImage( prevImage => {
-			if (prevImage == 0)
-				return images.length - 1
-			return prevImage - 1
+		setSelected( prevSelect => {
+			if (prevSelect == 0)
+				return amount - 1
+			return prevSelect - 1
 		} )
 	}
 
 	function goForward() {
-		setSelectedImage( prevImage => {
-			if (prevImage == images.length - 1)
+		setSelected( prevSelect => {
+			if (prevSelect == amount - 1)
 				return 0
-			return prevImage + 1
+			return prevSelect + 1
 		} )
 	}
 
-	const [ selectedImage, setSelectedImage ] = useState(0)
-
-	const images = ["default.png", "42.jpg", "anime.jpg", "monke.png"]
+	const [ selected , setSelected ] = useState(0)
 
 	return (
 		<>
@@ -51,11 +53,19 @@ export default function Themes() {
 					</button>
 					<Image 
 						className="absolute"
-						src={`/game/backgrounds/${images[selectedImage]}`}
+						src={`/game/backgrounds/${themes[themeKeys[selected]].background}`}
 						alt="background"
 						fill
 						priority
 					/>
+					<div className='absolute place-content-center flex w-3 h-24 left-4'>
+						<Image 
+							src={`/game/paddles/${themes[themeKeys[selected]]}`}
+							alt="paddle"
+							fill
+							priority
+						/>
+					</div>
 				</div>
 				<button onClick={goForward}>
 					<FiChevronRight size={96} />
