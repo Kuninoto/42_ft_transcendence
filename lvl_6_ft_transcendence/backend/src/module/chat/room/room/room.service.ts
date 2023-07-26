@@ -22,7 +22,7 @@ export class RoomService {
 		const newRoom = this.roomRepo.create({ name: room.name, owner: creator.name, ownerId: creator.id });
 		newRoom.users = [creator]; // Associate users with the chat room
 		console.debug('Owner: ' + creator.name);
-		console.debug('Users: ' + JSON.stringify(room.users, null, 2));
+		console.debug('Users: ' + JSON.stringify(newRoom, null, 2));
 		return this.roomRepo.save(newRoom);
 	}
 	
@@ -37,7 +37,7 @@ export class RoomService {
 			console.debug('Room users: ' + JSON.stringify(room.users, null, 2));
 			console.debug('------------------------------------');
 
-			return ;
+			// return ;
 
 			room.users = room.users || [];
 			room.users.push(user);
@@ -66,8 +66,12 @@ export class RoomService {
 	// ? Finders ? //
 	/////////////////
 
-	public async findRoomById(id: number): Promise<ChatRoom> | null  {
-		const room = await this.roomRepo.findOneBy({ id: id });
+	public async findRoomById(id: number): Promise<ChatRoom | null> {
+		const room = await this.roomRepo.findOneBy({
+			where: { id },
+			relations: ['users']
+		});
+
 		if (!room) {
 			return null;
 		}
@@ -75,8 +79,12 @@ export class RoomService {
 		return room;
 	}
 
-	public async findRoomByName(name: string): Promise<ChatRoom> | null {
-		const room = await this.roomRepo.findOne({ where: { name } });
+	public async findRoomByName(name: string): Promise<ChatRoom | null> {
+		const room = await this.roomRepo.findOne({
+			where: { name },
+			relations: ['users']
+		});
+
 		if (!room) {
 			return null;
 		}
