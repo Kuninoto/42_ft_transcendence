@@ -9,16 +9,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BlockedUser, Friendship, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
-import { UpdateUserDTO } from './dto/update-user.dto';
-import { SuccessResponse } from 'src/common/types/success-response.interface';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
+import { SuccessResponse } from '../../../../common/types/success-response.interface';
+import { ErrorResponse } from '../../../../common/types/error-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
-import { UserProfile } from '../types/user-profile.interface';
-import { UserStatus } from 'src/entity/user.entity';
-import { UserSearchInfo } from '../types/user-search-info.interface';
-import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { UserProfile } from '../../../../common/types/user-profile.interface';
+import { UserStatus } from '../../../../common/types/user-status.enum';
+import { UserSearchInfo } from '../../../../common/types/user-search-info.interface';
+import { FriendshipStatus } from '../../../../common/types/friendship-status.enum';
 import { FriendshipsService } from '../friendships/friendships.service';
+import { GameThemes } from '../../../../common/types/game-themes.enum';
 
 @Injectable()
 export class UsersService {
@@ -49,16 +49,16 @@ export class UsersService {
         })
         .andWhere('user.id != :meUserId', { meUserId })
         .andWhere((qb) => {
-          const subqueryBlocked = qb
+          const subqueryBlockedMe = qb
             .subQuery()
             .select('*')
             .from(BlockedUser, 'blockedUser')
             .where(
-              'blockedUser.blocked_user = user.id AND blockedUser.user_who_blocked = :meUserId',
+              'blockedUser.blocked_user = :meUserId',
               { meUserId },
             )
             .getQuery();
-          return `NOT EXISTS ${subqueryBlocked}`;
+          return `NOT EXISTS ${subqueryBlockedMe}`;
         })
         .andWhere((qb) => {
           const subqueryFriend = qb
@@ -138,15 +138,6 @@ export class UsersService {
     };
   }
 
-  public async updateUserByUID(
-    userID: number,
-    updateUserDTO: UpdateUserDTO,
-  ): Promise<SuccessResponse> {
-    updateUserDTO.last_updated_at = new Date();
-    await this.usersRepository.update(userID, updateUserDTO);
-    return { message: 'Successfully updated user' };
-  }
-
   public async updateUsernameByUID(
     userID: number,
     newName: string,
@@ -182,6 +173,17 @@ export class UsersService {
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated user status' };
+  }
+
+  public async updateGameThemeByUID(
+    userID: number,
+    newGameTheme: GameThemes,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userID, {
+      newGameTheme: newGameTheme,
+      last_updated_at: new Date(),
+    });
+    return { message: 'Successfully updated game theme' };
   }
 
   public async updateUserAvatarByUID(

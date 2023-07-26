@@ -6,9 +6,6 @@ import { FortyTwoAuthStrategy } from 'src/module/auth/strategy/fortytwo-auth.str
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
 import { SessionSerializer } from './session.serializer';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersService } from '../users/users.service';
-import { BlockedUser, Friendship, User } from 'src/typeorm';
 import { UsersModule } from '../users/users.module';
 
 console.log('JWT_SECRET= ' + process.env.JWT_SECRET);
