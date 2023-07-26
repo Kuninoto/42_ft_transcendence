@@ -20,17 +20,18 @@ import {
   ApiBody,
   ApiConsumes,
 } from '@nestjs/swagger';
-import { BlockedUserInterface } from 'src/common/types/blocked-user-interface.interface';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { SuccessResponse } from 'src/common/types/success-response.interface';
-import { Friendship, User } from 'src/typeorm';
-import { FriendInterface } from '../types/friend-interface.interface';
-import { FriendRequestInterface } from '../types/friend-request.interface';
+import { BlockedUserInterface } from '../common/types/types/blocked-user-interface.interface';
+import { ErrorResponse } from '../common/types/types/error-response.interface';
+import { SuccessResponse } from '../common/types/types/success-response.interface';
+import { User } from 'src/typeorm';
+import { FriendInterface } from '../../../../common/types/friend-interface.interface';
+import { FriendRequestInterface } from '../../../../common/types/friend-request.interface';
 import { multerConfig } from '../users/middleware/multer/multer.config';
-import { meUserInfo } from '../types/me-user-info.interface';
+import { meUserInfo } from '../../../../common/types/me-user-info.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { GameThemes } from '../../../../common/types/game-themes.enum.ts'
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
@@ -52,7 +53,7 @@ export class MeController {
     Logger.log('"' + req.user.name + '" requested his info using /me');
 
     // Destructure user's info so that we can filter info that doesn't belong to meUserInfo
-    const { name, avatar_url, intra_profile_url, has_2fa, created_at } =
+    const { name, avatar_url, intra_profile_url, has_2fa, game_theme, created_at } =
       req.user;
 
     const meInfo: meUserInfo = {
@@ -60,6 +61,7 @@ export class MeController {
       avatar_url,
       intra_profile_url,
       has_2fa,
+      game_theme,
       created_at,
     };
     return meInfo;
@@ -147,7 +149,7 @@ export class MeController {
    * This is the route to visit to update 'me'
    * user's username.
    *
-   * Expects the new username as a the "newUsername" field of a JSON on the body
+   * Expects the new username as the "newUsername" field of a JSON on the body
    *
    * {
    *  "newUsername":"<new_username>"
@@ -178,6 +180,45 @@ export class MeController {
     return await this.usersService.updateUsernameByUID(
       req.user.id,
       body.newUsername,
+    );
+  }
+
+  /**
+   * PATCH /api/me/game-theme
+   *
+   * This is the route to visit to update 'me'
+   * user's game theme.
+   *
+   * Expects the new username as the "newGameTheme" field of a JSON on the body
+   *
+   * {
+   *  "newGameTheme":"<new_game_theme>"
+   * }
+   */
+  @ApiOkResponse({
+    description:
+    "Updates 'me' user's game theme\nExpects the new game theme as the \"newGameTheme\" field of a JSON on the body",
+  })
+  @ApiBadRequestResponse({
+    description: "If the theme doesn't exist",
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['newGameTheme'],
+      properties: { newGameTheme: { type: 'string' } },
+    },
+  })
+  @Patch('game-theme')
+  public async updateMyGameTheme(
+    @Req() req: { user: User },
+    @Body() body: { newGameTheme: string },
+  ): Promise<SuccessResponse | ErrorResponse> {
+      Logger.log('Updating "' + req.user.name + '"\'s username');
+  
+    return await this.usersService.updateGameThemeByUID(
+      req.user.id,
+      body.newGameTheme,
     );
   }
 

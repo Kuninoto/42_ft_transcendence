@@ -10,10 +10,10 @@ import {
 import { ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { UserProfile } from '../types/user-profile.interface';
+import { ErrorResponse } from '../common/types/types/error-response.interface';
+import { UserProfile } from '../../../../common/types/user-profile.interface';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { UserSearchInfo } from '../types/user-search-info.interface';
+import { UserSearchInfo } from '../../../../common/types/user-search-info.interface';
 import { User } from 'src/typeorm';
 
 @ApiTags('users')

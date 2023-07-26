@@ -10,13 +10,13 @@ import { Repository } from 'typeorm';
 import { BlockedUser, Friendship, User } from 'src/typeorm';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
-import { SuccessResponse } from 'src/common/types/success-response.interface';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
+import { SuccessResponse } from '../common/types/types/success-response.interface';
+import { ErrorResponse } from '../common/types/types/error-response.interface';
 import * as path from 'path';
 import * as fs from 'fs';
-import { UserProfile } from '../types/user-profile.interface';
+import { UserProfile } from '../../../../common/types/user-profile.interface';
 import { UserStatus } from 'src/entity/user.entity';
-import { UserSearchInfo } from '../types/user-search-info.interface';
+import { UserSearchInfo } from '../../../../common/types/user-search-info.interface';
 import { FriendshipStatus } from 'src/entity/friendship.entity';
 import { FriendshipsService } from '../friendships/friendships.service';
 
@@ -138,15 +138,6 @@ export class UsersService {
     };
   }
 
-  public async updateUserByUID(
-    userID: number,
-    updateUserDTO: UpdateUserDTO,
-  ): Promise<SuccessResponse> {
-    updateUserDTO.last_updated_at = new Date();
-    await this.usersRepository.update(userID, updateUserDTO);
-    return { message: 'Successfully updated user' };
-  }
-
   public async updateUsernameByUID(
     userID: number,
     newName: string,
@@ -182,6 +173,17 @@ export class UsersService {
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated user status' };
+  }
+
+  public async updateGameThemeByUID(
+    userID: number,
+    newGameTheme: UserStatus,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userID, {
+      newGameTheme: ,
+      last_updated_at: new Date(),
+    });
+    return { message: 'Successfully updated game theme' };
   }
 
   public async updateUserAvatarByUID(
