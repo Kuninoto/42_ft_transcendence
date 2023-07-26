@@ -3,7 +3,7 @@ import {
   Injectable,
   BadRequestException
 } from '@nestjs/common';
-import { GameThemes } from '../../../../common/types/game-themes.enum.ts'
+import { GameThemes } from 'src/common/types/game-themes.enum';
 
 @Injectable()
 export class GameThemeUpdateValidationPipe implements PipeTransform<any> {

@@ -175,12 +175,23 @@ export class UsersService {
     return { message: 'Successfully updated user status' };
   }
 
+  public async update2faSecretByUID(
+    userID: number,
+    newSecret: string,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userID, {
+      secret_2fa: newSecret,
+      last_updated_at: new Date(),
+    });
+    return { message: 'Successfully updated 2fa secret' };
+  }
+
   public async updateGameThemeByUID(
     userID: number,
     newGameTheme: GameThemes,
   ): Promise<SuccessResponse> {
     await this.usersRepository.update(userID, {
-      newGameTheme: newGameTheme,
+      game_type: newGameTheme,
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated game theme' };
