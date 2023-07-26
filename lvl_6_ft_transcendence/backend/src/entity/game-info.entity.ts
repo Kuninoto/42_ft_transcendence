@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
+import { GameType } from 'src/common/types/game-type.enum';
 
 @Entity('game-info')
 export class GameInfo {
