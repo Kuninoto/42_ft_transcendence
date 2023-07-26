@@ -119,7 +119,8 @@ export class UsersService {
       return null;
     }
 
-    const friendship: Friendship | null = await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
+    const friendship: Friendship | null =
+      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
     const isBlocked = await this.friendshipsService.isThereABlockRelationship(
       meUser,
       userID,
