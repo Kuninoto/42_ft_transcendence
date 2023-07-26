@@ -54,10 +54,11 @@ export class MeController {
     Logger.log('"' + req.user.name + '" requested his info using /me');
 
     // Destructure user's info so that we can filter info that doesn't belong to meUserInfo
-    const { name, avatar_url, intra_profile_url, has_2fa, game_theme, created_at } =
+    const { id, name, avatar_url, intra_profile_url, has_2fa, game_theme, created_at } =
       req.user;
 
     const meInfo: meUserInfo = {
+      id,
       name,
       avatar_url,
       intra_profile_url,
