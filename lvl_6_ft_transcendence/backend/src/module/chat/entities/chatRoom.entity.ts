@@ -21,13 +21,11 @@ export class ChatRoom {
 	ownerId: number;
 
 	@ManyToMany(() => User, (users: User) => users.room)
-	@JoinColumn()
+	@JoinTable()
 	users: User[];
 
 	@OneToMany(() => Message, (messages: Message) => messages.room)
 	@JoinColumn()
 	messages: Message[];
 
-	// @Column({ type: 'timestamp'})
-	// created_at: Date;
 }
