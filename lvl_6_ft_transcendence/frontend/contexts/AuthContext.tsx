@@ -1,4 +1,5 @@
 import { api } from '@/api/api'
+import { AuthContextExports, SearchUserInfo, User } from '@/common/types'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import {
@@ -9,28 +10,12 @@ import {
 	useState,
 } from 'react'
 
-interface IUser {
-	id?: number
-	avatar_url?: string
-	intra_profile_url?: string
-	created_at?: Date
-	has_2fa?: boolean
-	name?: string
-	blocked_users?: []
-	friends? : []
-	friend_requests?: []
-}
 
-interface AuthContextType {
-	login: (code: string) => Promise<boolean> | void
-	logout: () => void
-	user: IUser
-}
+const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
-	const [user, setUser] = useState<{} | IUser>({})
+	const [user, setUser] = useState<{} | SearchUserInfo>({})
 
 	useEffect(() => {
 		const token = localStorage.getItem('pong.token')
@@ -77,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			})
 	}
 
-	const value: AuthContextType = {
+	const value: AuthContextExports = {
 		login,
 		logout,
 		user,
