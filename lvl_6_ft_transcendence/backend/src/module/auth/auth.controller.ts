@@ -69,9 +69,7 @@ export class AuthController {
     @Req() req: any,
   ): Promise<{ access_token: string }> {
     const jwt: { access_token: string } = this.authService.login(req.user);
-    await this.usersService.updateUserByUID(req.user.id, {
-      status: UserStatus.ONLINE,
-    });
+    await this.usersService.updateUserStatusByUID(req.user.id, UserStatus.ONLINE);
 
     this.logger.log('Issued a jwt = ' + jwt.access_token);
     return jwt;
@@ -192,9 +190,7 @@ export class AuthController {
     const info2fa: twoFactorAuthDTO =
       await this.authService.generate2faSecret();
 
-    await this.usersService.updateUserByUID(req.user.id, {
-      secret_2fa: info2fa.secret,
-    });
+    await this.usersService.update2faSecretByUID(req.user.id, info2fa.secret);
 
     return res.json(this.authService.generateQRCodeDataURL(info2fa.otpAuthURL));
   }

@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { ErrorResponse } from '../common/types/types/error-response.interface';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
 

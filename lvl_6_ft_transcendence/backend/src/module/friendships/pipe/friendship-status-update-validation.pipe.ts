@@ -2,7 +2,7 @@ import {
   PipeTransform,
   Injectable,
   BadRequestException } from '@nestjs/common';
-import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { FriendshipStatus } from 'src/common/types/friendship-status.enum';
 
 @Injectable()
 export class FriendshipStatusUpdateValidationPipe implements PipeTransform<any> {

@@ -1,4 +1,4 @@
-import { FriendshipStatus } from 'src/entity/friendship.entity';
+import { FriendshipStatus } from './friendship-status.enum';
 import { UserRecord } from 'src/entity/user-record.entity';
 
 export interface UserProfile {
