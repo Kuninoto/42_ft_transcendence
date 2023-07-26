@@ -49,16 +49,16 @@ export class UsersService {
         })
         .andWhere('user.id != :meUserId', { meUserId })
         .andWhere((qb) => {
-          const subqueryBlocked = qb
+          const subqueryBlockedMe = qb
             .subQuery()
             .select('*')
             .from(BlockedUser, 'blockedUser')
             .where(
-              'blockedUser.blocked_user = user.id AND blockedUser.user_who_blocked = :meUserId',
+              'blockedUser.blocked_user = :meUserId',
               { meUserId },
             )
             .getQuery();
-          return `NOT EXISTS ${subqueryBlocked}`;
+          return `NOT EXISTS ${subqueryBlockedMe}`;
         })
         .andWhere((qb) => {
           const subqueryFriend = qb

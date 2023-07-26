@@ -55,16 +55,12 @@ export class MeController {
     const { name, avatar_url, intra_profile_url, has_2fa, created_at } =
       req.user;
 
-    const blocked_users: BlockedUserInterface[] =
-      await this.friendshipsService.getMyBlockedUsers(req.user.id);
-
     const meInfo: meUserInfo = {
       name,
       avatar_url,
       intra_profile_url,
       has_2fa,
       created_at,
-      blocked_users,
     };
     return meInfo;
   }
@@ -107,11 +103,27 @@ export class MeController {
         '" requested his friend-requests info using /me/friend-requests',
     );
 
-    const friendRequests: FriendRequestInterface[] =
-      await this.friendshipsService.getMyFriendRequests(req.user);
-
-    return friendRequests;
+    return await this.friendshipsService.getMyFriendRequests(req.user);;
   }
+
+  /**
+   * GET /api/me/blocklist
+   *
+   * Finds and returns the 'me' user's blocklist
+   */
+   @ApiOkResponse({ description: "Finds and returns the 'me' user's blocklist" })
+   @Get('blocklist')
+   public async getMyBlockedUsers(
+     @Req() req: { user: User },
+   ): Promise<BlockedUserInterface[]> {
+     Logger.log(
+       '"' + 
+       req.user.name + 
+       '" requested his blocklist info using /me/blocklist',
+     );
+ 
+     return await this.friendshipsService.getMyBlocklist(req.user.id);;
+   }
 
   /**
    * DELETE /api/me

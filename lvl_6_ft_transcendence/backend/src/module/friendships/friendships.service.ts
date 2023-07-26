@@ -85,7 +85,7 @@ export class FriendshipsService {
     return myFriendsInterfaces;
   }
 
-  public async getMyBlockedUsers(
+  public async getMyBlocklist(
     meUID: number,
   ): Promise<BlockedUserInterface[]> {
     const myBlockedUsersInfo: BlockedUser[] =
@@ -206,6 +206,7 @@ export class FriendshipsService {
 
     if (
       newFriendshipStatus == FriendshipStatus.CANCEL ||
+      newFriendshipStatus == FriendshipStatus.DECLINED ||
       newFriendshipStatus == FriendshipStatus.UNFRIEND
     ) {
       await this.friendshipRepository.delete(friendship);
