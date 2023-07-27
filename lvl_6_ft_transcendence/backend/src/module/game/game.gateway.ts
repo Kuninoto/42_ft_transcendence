@@ -33,26 +33,37 @@ export class GameGateway
 
   // On socket connection checks if the user is authenticated
   async handleConnection(client: Socket) {
-    const isClientAuth: boolean = await this.authService.isClientAuthenticated(
-      client,
-    );
-    if (!isClientAuth) {
+    try {
+      const userId: number = await this.authService.authenticateClient(client);
+      this.gameService.addClientIdUserIdPair(client.id, userId);
+    } catch (error) {
+      this.logger.log('Client was not auth');
       client.disconnect();
+      return;
     }
 
     this.logger.log('Client connected ' + client.id);
+
+    this.gameService.queueToLadder(client.id);
+    if (this.gameService.areTwoPlayersWaiting()) {
+      const { player1ID, player2ID } = this.gameService.dequeueTwoPlayers();
+
+      console.log("player1ID = " + player1ID);
+      console.log("player2ID = " + player2ID);
+      // createRoom for those 2 players
+    }  
   }
 
   async handleDisconnect(client: Socket) {
+    this.gameService.leaveLadderQueue(client.id);
     this.logger.log('Client disconnected ' + client.id);
   }
 
-  // Listen for 'queue-to-ladder' events
-  //@SubscribeMessage('queue-to-ladder')
-  //queueToLadder(): void {
-  //  this.gameService.queueToLadder();
+  // Listen for 'position-update' events
+  /* @SubscribeMessage('position-update')
+  positionUpdate(): void {
 
-  //}
+  } */
 
   /* broadcastGameData(): void {
     const gameData: GameData = ;
