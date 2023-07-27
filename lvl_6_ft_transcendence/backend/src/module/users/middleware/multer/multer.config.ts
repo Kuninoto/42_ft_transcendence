@@ -5,9 +5,11 @@ const MAX_IMG_SIZE = 4 * 1024 * 1024;
 
 export const multerConfig = {
   fileFilter: function (req: any, file: any, cb: Function) {
-    if (!file.mimetype.includes("image/png")
-    &&  !file.mimetype.includes("image/jpg")
-    &&  !file.mimetype.includes("image/jpeg")) {
+    if (
+      !file.mimetype.includes('image/png') &&
+      !file.mimetype.includes('image/jpg') &&
+      !file.mimetype.includes('image/jpeg')
+    ) {
       return cb(null, false);
     }
     cb(null, true);
@@ -24,5 +26,5 @@ export const multerConfig = {
     },
   }),
 
-  limits: { fileSize: MAX_IMG_SIZE }
+  limits: { fileSize: MAX_IMG_SIZE },
 };

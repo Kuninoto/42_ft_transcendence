@@ -13,8 +13,8 @@ import { User } from 'src/typeorm';
 // - Expiration dates (automatic jwt info)
 export interface TokenPayload {
   id: number;
-  has_2fa: boolean,
-  is_2fa_authed?: boolean,
+  has_2fa: boolean;
+  is_2fa_authed?: boolean;
   iat?: number;
   exp?: number;
 }
@@ -31,13 +31,13 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: TokenPayload): Promise<User | ErrorResponse> {
     const user: User | null = await this.usersService.findUserByUID(payload.id);
-    
+
     if (!user) {
       throw new UnauthorizedException('Unauthenticated request');
     }
 
     // if user doesn't have 2fa or has 2fa and is 2f authenticated, return user
-    if (!payload.has_2fa || payload.has_2fa && payload.is_2fa_authed) {
+    if (!payload.has_2fa || (payload.has_2fa && payload.is_2fa_authed)) {
       return user;
     } else {
       throw new UnauthorizedException('Unauthenticated request');

@@ -85,9 +85,7 @@ export class FriendshipsService {
     return myFriendsInterfaces;
   }
 
-  public async getMyBlocklist(
-    meUID: number,
-  ): Promise<BlockedUserInterface[]> {
+  public async getMyBlocklist(meUID: number): Promise<BlockedUserInterface[]> {
     const myBlockedUsersInfo: BlockedUser[] =
       await this.usersService.getMyBlockedUsersInfo(meUID);
 
@@ -289,7 +287,10 @@ export class FriendshipsService {
 
   /* Searches for an entry on the blocked_user table
   where blockedUser = sender && user_who_blocked = receiver */
-  private async isSenderBlocked(sender: User, receiver: User): Promise<boolean> {
+  private async isSenderBlocked(
+    sender: User,
+    receiver: User,
+  ): Promise<boolean> {
     const blockedUserEntry: BlockedUser =
       await this.blockedUserRepository.findOneBy([
         { user_who_blocked: receiver, blocked_user: sender }, // sender is the blockedUser
@@ -356,7 +357,7 @@ export class FriendshipsService {
     return await this.friendshipRepository.findOneBy([
       { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver && ACCEPTED
       { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED }, // receiver -> sender && ACCEPTED
-  
+
       { sender: sender, receiver: receiver, status: FriendshipStatus.PENDING }, // sender -> receiver && PENDING
       { sender: receiver, receiver: sender, status: FriendshipStatus.PENDING }, // receiver -> sender && PENDING
     ]);
@@ -375,7 +376,10 @@ export class FriendshipsService {
     }
 
     const friendshipToBreak: Friendship =
-      await this.findFriendshipBySenderAndReceiver(userWhoIsBlocking, userToBlock);
+      await this.findFriendshipBySenderAndReceiver(
+        userWhoIsBlocking,
+        userToBlock,
+      );
     if (friendshipToBreak) {
       await this.friendshipRepository.delete(friendshipToBreak);
     }
