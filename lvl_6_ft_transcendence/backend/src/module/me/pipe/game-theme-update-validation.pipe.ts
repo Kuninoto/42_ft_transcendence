@@ -5,7 +5,7 @@ import { GameThemes } from 'src/common/types/game-themes.enum';
 export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
   readonly themes = [
     'default',
-    'forty_two',
+    'fortyTwo',
     'anime',
     'monke',
     'melo',

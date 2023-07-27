@@ -6,6 +6,7 @@ import { toDataURL } from 'qrcode';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 import { UsersService } from '../users/users.service';
 import { Socket } from 'socket.io';
+import { UnauthorizedException } from '@nestjs/common';
 
 export interface twoFactorAuthDTO {
   secret: string;
@@ -111,10 +112,10 @@ export class AuthService {
     }
   }
 
-  public async isClientAuthenticated(client: Socket): Promise<boolean> {
+  public async authenticateClient(client: Socket): Promise<number> {
     const authHeader: string = client.handshake.headers.authorization;
     if (!authHeader) {
-      return false;
+      throw new UnauthorizedException();
     }
 
     // Authentication: Bearer xxxxx
@@ -124,9 +125,9 @@ export class AuthService {
     const user: User | null = await this.getUserFromAuthToken(authToken);
 
     if (!user) {
-      return false;
+      throw new UnauthorizedException();
     }
 
-    return true;
+    return user.id;
   }
 }
