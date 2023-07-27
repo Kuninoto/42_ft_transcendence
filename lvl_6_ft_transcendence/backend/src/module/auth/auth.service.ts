@@ -42,7 +42,9 @@ export class AuthService {
       is_2fa_authed: true,
     };
 
-    this.logger.log('User "' + user.name + '" authenticated with Google\'s 2FA!');
+    this.logger.log(
+      'User "' + user.name + '" authenticated with Google\'s 2FA!',
+    );
     return {
       access_token: this.jwtService.sign(payload),
     };

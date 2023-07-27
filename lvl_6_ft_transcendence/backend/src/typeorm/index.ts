@@ -5,7 +5,14 @@ import { MatchHistory } from 'src/entity/match-history.entity';
 import { UserRecord } from 'src/entity/user-record.entity';
 import { User } from '../entity/user.entity';
 
-const entities = [BlockedUser, Friendship, GameInfo, MatchHistory, UserRecord, User];
+const entities = [
+  BlockedUser,
+  Friendship,
+  GameInfo,
+  MatchHistory,
+  UserRecord,
+  User,
+];
 
 export { BlockedUser, Friendship, GameInfo, MatchHistory, UserRecord, User };
 export default entities;
