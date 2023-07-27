@@ -10,6 +10,7 @@ import History from './history'
 import { api } from '@/api/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { UserProfile } from '@/common/types/user-profile.interface'
+import SettingsModal from './settingsModal'
 
 export default function Profile() {
 
@@ -20,20 +21,25 @@ export default function Profile() {
 	const id = searchParams.get('id') || loggedUser.id
 
 	const [showMatchHistory, setShowMatchHistory] = useState(true)
+	const [openModal, setOpenModal] = useState(false)
 
 	useEffect(() => {
-		api.get(`/users/${id}`)
-		.then((result) => {
-			console.log(result.data)
-			setUser(result.data)
-		})
-		.catch((error) => {
-			console.error(error)
-		})
-	}, [id])
+		if (id) {
+			api.get(`/users/${id}`)
+			.then((result) => {
+				console.log(result.data)
+				setUser(result.data)
+			})
+			.catch((error) => {
+				console.error(error)
+			})
+		}
+	}, [id, loggedUser])
 
 	return (
 		<div className="h-full py-12">
+			{openModal && <SettingsModal closeModal={() => setOpenModal(false)} />}
+
 			<Link
 				className="fixed left-12 top-12 hover:underline"
 				href={'/dashboard'}
@@ -58,12 +64,22 @@ export default function Profile() {
 					<p className="text-3xl">{user?.name || 'Loading...'}</p>
 
 					<div className="space-x-2">
-						<button className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black">
-							Add friend
-						</button>
-						<button className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black">
-							Block
-						</button>
+						{ loggedUser.id === user?.id ?
+							<button 
+							onClick={() => {setOpenModal(true)}}	
+							className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black">
+								Settings	
+							</button>
+						:
+						<>
+							<button className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black">
+								Add friend
+							</button>
+							<button className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black">
+								Block
+							</button>
+						</>
+						}
 					</div>
 
 					<div>

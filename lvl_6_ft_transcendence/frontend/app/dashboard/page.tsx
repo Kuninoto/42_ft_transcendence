@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext'
 function Card({ children, path }: { children: JSX.Element[]; path: string }) {
 	return (
 		<Link
-			className="group relative flex-1 rounded-xl border-2 border-white/20 hover:border-white"
+			className="group relative py-24 w-96 flex-1 rounded-xl border-2 border-white/20 hover:border-white"
 			href={path}
 		>
 			<div className="absolute -inset-1 m-1 bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-25 blur transition duration-1000 group-hover:opacity-80 "></div>
@@ -28,8 +28,6 @@ function Card({ children, path }: { children: JSX.Element[]; path: string }) {
 
 export default function Dashboard() {
 	const router = useRouter()
-
-	const { user } = useAuth()
 
 	function gotoThemes(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
 		e.preventDefault()
@@ -49,8 +47,8 @@ export default function Dashboard() {
 			/>
 
 			<div className="flex w-3/4 flex-col place-content-center gap-y-8">
-				<div className="flex h-96 space-x-12 px-24">
-					<Card path="/game">
+				<div className="flex space-x-8 mx-auto">
+					<Card path="/loading">
 						<div className="text-2xl">Play</div>
 						<HiOutlinePlay size={128} />
 						<button
@@ -67,7 +65,7 @@ export default function Dashboard() {
 							SEE EVERYONE <br /> BETTER THAN U
 						</div>
 					</Card>
-					<Card path={`/profile?id=${user?.id}`}>
+					<Card path='/profile'>
 						<div className="text-2xl">Profile</div>
 						<HiOutlineUserCircle size={128} />
 						<div>

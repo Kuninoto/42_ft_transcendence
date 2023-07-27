@@ -48,10 +48,13 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 		api.post(`/friendships/block/${userId}`)
 	}
 
-	function sendRequest(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, id: number) {
+	function sendRequest(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, userId: number) {
 		e.preventDefault()
 		e.stopPropagation()
-		api.post(`/friendships/send-request/${id}`)
+
+		setRequests(prevReq => prevReq.filter(prevReq => prevReq.uid != userId))
+
+		api.post(`/friendships/send-request/${userId}`)
 			.then(result => console.log(result))
 			.catch(error => console.error(error))
 	}
@@ -72,6 +75,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 		setSearchLoading(true)
 		api.get(`/users/search?username=${search}`)
 		.then(result => {
+			console.log(result.data)
 			setSearchUsers(result.data)
 		})
 		.catch(error => console.error(error))
@@ -80,14 +84,14 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 	}, [search])
 
 	return (
-		<div className="reltaive absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
+		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
 			<button
 				className="absolute left-0 top-0 h-screen w-screen bg-black/70"
 				onClick={closeModal}
 			></button>
 			<div className="px-8 py-32 ">
 				<div className="group relative grid items-start justify-center  gap-8">
-					<div className="animate-tilt absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
+					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none">
 						<input
 							className="w-[34rem] rounded border border-white bg-transparent p-2 pl-4 text-xl outline-none ring-0"

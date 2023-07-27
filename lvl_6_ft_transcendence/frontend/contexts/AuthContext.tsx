@@ -1,5 +1,6 @@
 import { api } from '@/api/api'
-import { AuthContextExports, SearchUserInfo, User } from '@/common/types'
+import { AuthContextExports } from '@/common/types'
+import { UserProfile } from '@/common/types/user-profile.interface'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import {
@@ -10,11 +11,18 @@ import {
 	useState,
 } from 'react'
 
+export interface AuthContextExports {
+	login: (code: string) => Promise<boolean> | void
+	logout: () => void
+	user: UserProfile | {}
+	refreshUser: (user: UserProfile) => void
+}
+
 const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
-	const [user, setUser] = useState<{} | SearchUserInfo>({})
+	const [user, setUser] = useState<{} | UserProfile>({})
 
 	useEffect(() => {
 		const token = localStorage.getItem('pong.token')
@@ -27,6 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			router.push('/')
 		}
 	}, [])
+
+	function refreshUser(user: UserProfile){
+		setUser(user)
+	}
 
 	function logout() {
 		router.push('/')
@@ -62,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		login,
 		logout,
 		user,
+		refreshUser
 	}
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
