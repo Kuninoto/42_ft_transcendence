@@ -21,8 +21,10 @@
     "react-countdown": "^2.3.5",
     "react-dom": "^18.2.0",
     "react-full-screen": "^1.1.1",
+    "react-hook-form": "^7.45.2",
     "react-icons": "^4.9.0",
     "react-timer-hook": "^3.0.6",
+    "socket.io-client": "^4.7.1",
     "tailwindcss": "3.3.2",
     "typescript": "5.1.3"
   },

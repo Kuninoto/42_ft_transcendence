@@ -91,8 +91,21 @@ export default function FriendsList(): JSX.Element {
 								<div 
 								key={friend.uid}
 								className="roundend group relative flex rounded border border-white py-2">
-									<Link className="flex w-full place-content-around" href={'/'}>
-										<div>{friend.name}</div>
+									<Link className="flex w-full px-2 items-center place-content-between" href={'/'}>
+										<div className='flex space-x-4 items-center'>
+										<div className='relative w-8 space-x-6 aspect-square rounded-full'>
+											<Image
+												alt={'avatar'}
+												className=""
+												height={0}
+												fill
+												sizes="100vw"
+												src={friend.avatar_url || '/placeholder.jpg'}
+												width={0}
+											/>
+										</div>
+											<div> {friend.name} </div>	
+										</div>
 										<div className="visible group-hover:invisible">{friend.status}</div>
 									</Link>
 									<div className="invisible absolute right-4 flex group-hover:visible">

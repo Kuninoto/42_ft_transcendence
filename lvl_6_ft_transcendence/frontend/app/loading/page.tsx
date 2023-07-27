@@ -1,7 +1,9 @@
 'use client'
 
 import Image from 'next/image'
+import io from "socket.io-client";
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Leaderboard() {
 	const router = useRouter()
@@ -10,14 +12,25 @@ export default function Leaderboard() {
 		router.push('/dashboard')
 	}
 
+	useEffect(() => {
+
+		const socket = io.connect("http://localhost:3000/game-gateway", {
+			extraHeader: {
+				Authorization: `Bearer ${localStorage.getItem("pong.token")}`
+			}
+		})
+
+
+		return () => {
+			console.log("nig")
+			socket.disconnect()
+		}
+
+	})
+
 	return (
 		<div className="flex h-full">
 			<div className="m-auto flex flex-col items-center space-y-10 text-4xl">
-				<div className="flex space-x-12">
-					<p>Name</p>
-					<p>vs</p>
-					<p>name2</p>
-				</div>
 				<Image
 					alt={'cats playing pong(loading screen)'}
 					className="mx-auto w-96 rounded"

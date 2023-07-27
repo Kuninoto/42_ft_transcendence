@@ -11,7 +11,7 @@ export const themes : IThemes = {
     background: "default.png",
     paddle: ""
   },
-  42: {
+  fortyTwo: {
     background: "42.jpg",
     paddle: ""
   },
