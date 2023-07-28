@@ -106,7 +106,7 @@ export class AuthService {
       });
 
       if (payload.has_2fa && !payload.is_2fa_authed) {
-        throw new Error('Unauthorized Client')
+        throw new Error('Unauthorized Client');
       }
 
       const userId: number = payload.id;

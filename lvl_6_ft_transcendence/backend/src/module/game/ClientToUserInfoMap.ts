@@ -1,4 +1,4 @@
-import { Socket } from "socket.io";
+import { Socket } from 'socket.io';
 
 export class ClientToUserInfoMap {
   private clientIdToUserId: Map<string, number> = new Map<string, number>();
