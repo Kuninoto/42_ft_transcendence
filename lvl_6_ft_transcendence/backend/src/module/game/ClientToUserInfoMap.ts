@@ -1,8 +1,12 @@
-export class ClientIdToUserIdMap {
-  private clientIdToUserId: Map<string, number> = new Map<string, number>();
+import { Socket } from "socket.io";
 
-  public addPair(newClientId: string, newUserId: number): void {
-    this.clientIdToUserId.set(newClientId, newUserId);
+export class ClientToUserInfoMap {
+  private clientIdToUserId: Map<string, number> = new Map<string, number>();
+  private clientIdToClient: Map<string, Socket> = new Map<string, Socket>();
+
+  public registerNewClientInfo(newClient: Socket, newClientUID: number): void {
+    this.clientIdToUserId.set(newClient.id, newClientUID);
+    this.clientIdToClient.set(newClient.id, newClient);
   }
 
   public getUserIdFromClientId(clientId: string): number {
@@ -23,5 +27,9 @@ export class ClientIdToUserIdMap {
     const userId: number | undefined = this.clientIdToUserId.get(clientID);
     this.clientIdToUserId.delete(clientID);
     return userId;
+  }
+
+  public getClientFromClientID(clientID: string): Socket | undefined {
+    return this.clientIdToClient.get(clientID);
   }
 }

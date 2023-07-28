@@ -3,13 +3,13 @@ import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { GameController } from './game.controller';
 import { GameQueue } from './GameQueue';
-import { ClientIdToUserIdMap } from './ClientIdToUserId';
+import { ClientToUserInfoMap } from './ClientToUserInfoMap';
 import { GameService } from './game.service';
 import { GameGateway } from './game.gateway';
 
 @Module({
   imports: [AuthModule, UsersModule],
   controllers: [GameController],
-  providers: [GameQueue, ClientIdToUserIdMap, GameService, GameGateway],
+  providers: [GameQueue, ClientToUserInfoMap, GameService, GameGateway],
 })
 export class GameModule {}

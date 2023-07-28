@@ -9,8 +9,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
 import { GameType } from 'src/common/types/game-type.enum';
 
-@Entity('game-info')
-export class GameInfo {
+@Entity('games-info')
+export class GamesInfo {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
@@ -29,7 +29,7 @@ export class GameInfo {
 
   @ApiProperty()
   @Column({ type: 'smallint' })
-  winner_points: number;
+  winner_score: number;
 
   @ApiProperty()
   @OneToOne(() => User)
@@ -38,5 +38,5 @@ export class GameInfo {
 
   @ApiProperty()
   @Column({ type: 'smallint' })
-  loser_points: number;
+  loser_score: number;
 }

@@ -19,10 +19,14 @@ export class GameGateway
   @WebSocketServer()
   public server: Server;
 
+  private playerRooms: Socket[];
+
   constructor(
     private readonly gameService: GameService,
     private readonly authService: AuthService,
-  ) {}
+  ) {
+    this.playerRooms = [];
+  }
 
   private readonly logger: Logger = new Logger(GameGateway.name);
 
@@ -34,22 +38,14 @@ export class GameGateway
   async handleConnection(client: Socket) {
     try {
       const userId: number = await this.authService.authenticateClient(client);
-      this.gameService.queueToLadder(client.id, userId);
+      this.gameService.queueToLadder(this.playerRooms, this.server, client, userId);
     } catch (error) {
-      this.logger.error(error.message);
+      this.logger.error(error);
       client.disconnect();
       return;
     }
 
     this.logger.log('Client connected ' + client.id);
-
-    if (this.gameService.areTwoPlayersWaiting()) {
-      const { player1ID, player2ID } = this.gameService.dequeueTwoPlayers();
-
-      console.log('player1ID = ' + player1ID);
-      console.log('player2ID = ' + player2ID);
-      // createRoom for those 2 players
-    }
   }
 
   async handleDisconnect(client: Socket) {
