@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ClientIdToUserIdMap } from './ClientIdToUserId';
 import { GameQueue } from './GameQueue';
 
@@ -10,9 +10,6 @@ export class GameService {
   ) {}
 
   public queueToLadder(newClientId: string, newUserId: number): void {
-    console.log('newClientId = ' + newClientId);
-    console.log('newUserId = ' + newUserId);
-
     if (this.clientIdToUserIdMap.isUserIdAlreadyRegistered(newUserId)) {
       throw new Error('Client is already connected');
     }

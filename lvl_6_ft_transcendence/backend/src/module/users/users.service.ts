@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,6 +30,8 @@ export class UsersService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
+
+  private readonly logger: Logger = new Logger(UsersService.name);
 
   public async findAll(): Promise<User[]> {
     return await this.usersRepository.find();
@@ -149,6 +152,9 @@ export class UsersService {
     newName: string,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (newName.length > 10) {
+      this.logger.error(
+        'A request to update a name was made with a name longer than 10 chars',
+      );
       throw new BadRequestException(
         'Usernames must not be longer than 10 characters',
       );
@@ -160,6 +166,9 @@ export class UsersService {
 
     // A user already exists with that name
     if (user !== null) {
+      this.logger.error(
+        'A request to update a name was made with a name already taken',
+      );
       throw new ConflictException('Username is already taken');
     }
 
