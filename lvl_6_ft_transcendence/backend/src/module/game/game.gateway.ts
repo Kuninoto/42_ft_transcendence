@@ -38,7 +38,14 @@ export class GameGateway
   async handleConnection(client: Socket) {
     try {
       const userId: number = await this.authService.authenticateClient(client);
-      this.gameService.queueToLadder(this.playerRooms, this.server, client, userId);
+      this.gameService.registerNewClientInfo(client, userId);
+      
+      this.gameService.queueToLadder(
+        this.playerRooms,
+        this.server,
+        client,
+        userId,
+      );
     } catch (error) {
       this.logger.error(error);
       client.disconnect();
