@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { ClientIdToUserIdMap } from './ClientIdToUserId';
 import { GameQueue } from './GameQueue';
 
@@ -9,21 +9,30 @@ export class GameService {
     private clientIdToUserIdMap: ClientIdToUserIdMap,
   ) {}
 
-  public queueToLadder(clientID: string): void {
-    this.gameQueue.enqueue(clientID);
-    console.log("gameQueue now has " + this.gameQueue.size() + " elements!");
+  public queueToLadder(newClientId: string, newUserId: number): void {
+    console.log('newClientId = ' + newClientId);
+    console.log('newUserId = ' + newUserId);
+
+    if (this.clientIdToUserIdMap.isUserIdAlreadyRegistered(newUserId)) {
+      throw new Error('Client is already connected');
+    }
+    this.clientIdToUserIdMap.addPair(newClientId, newUserId);
+
+    this.gameQueue.enqueue(newClientId);
+    console.log('gameQueue now has ' + this.gameQueue.size() + ' elements!');
   }
 
   public leaveLadderQueue(clientID: string): void {
     this.gameQueue.removePlayerFromQueue(clientID);
-    console.log("gameQueue now has " + this.gameQueue.size() + " elements!");
+    this.clientIdToUserIdMap.removePlayerFromMap(clientID);
+    console.log('gameQueue now has ' + this.gameQueue.size() + ' elements!');
   }
 
-  public dequeueTwoPlayers(): { player1ID: string, player2ID: string } {
+  public dequeueTwoPlayers(): { player1ID: string; player2ID: string } {
     const player1ID: string = this.gameQueue.dequeue();
     const player2ID: string = this.gameQueue.dequeue();
 
-    console.log("queue size = " + this.gameQueue.size());
+    console.log('queue size = ' + this.gameQueue.size());
 
     return { player1ID, player2ID };
   }
@@ -33,6 +42,12 @@ export class GameService {
   }
 
   public addClientIdUserIdPair(newClientId: string, newUserId: number): void {
+    if (this.clientIdToUserIdMap.isUserIdAlreadyRegistered(newUserId)) {
+      throw new Error();
+    }
+    console.log('newClientId = ' + newClientId);
+    console.log('newUserId = ' + newUserId);
+
     this.clientIdToUserIdMap.addPair(newClientId, newUserId);
   }
 

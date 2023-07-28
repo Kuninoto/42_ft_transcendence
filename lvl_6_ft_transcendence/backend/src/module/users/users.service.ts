@@ -67,10 +67,13 @@ export class UsersService {
               '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
               { meUserId },
             )
-            .andWhere('friendship.status = :status OR friendship.status = :status2', {
-              status: FriendshipStatus.ACCEPTED,
-              status2: FriendshipStatus.PENDING,
-            })
+            .andWhere(
+              'friendship.status = :status OR friendship.status = :status2',
+              {
+                status: FriendshipStatus.ACCEPTED,
+                status2: FriendshipStatus.PENDING,
+              },
+            )
             .getQuery();
           return `NOT EXISTS ${subqueryFriend}`;
         })

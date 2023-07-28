@@ -5,7 +5,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { corsOption } from 'src/common/options/cors.option';
@@ -35,23 +34,22 @@ export class GameGateway
   async handleConnection(client: Socket) {
     try {
       const userId: number = await this.authService.authenticateClient(client);
-      this.gameService.addClientIdUserIdPair(client.id, userId);
+      this.gameService.queueToLadder(client.id, userId);
     } catch (error) {
-      this.logger.log('Client was not auth');
+      this.logger.error(error.message);
       client.disconnect();
       return;
     }
 
     this.logger.log('Client connected ' + client.id);
 
-    this.gameService.queueToLadder(client.id);
     if (this.gameService.areTwoPlayersWaiting()) {
       const { player1ID, player2ID } = this.gameService.dequeueTwoPlayers();
 
-      console.log("player1ID = " + player1ID);
-      console.log("player2ID = " + player2ID);
+      console.log('player1ID = ' + player1ID);
+      console.log('player2ID = ' + player2ID);
       // createRoom for those 2 players
-    }  
+    }
   }
 
   async handleDisconnect(client: Socket) {
