@@ -18,7 +18,10 @@ export class ClientIdToUserIdMap {
     return false;
   }
 
-  public removePlayerFromMap(clientID: string): void {
+  // Returns the removed userId
+  public removePlayerFromMap(clientID: string): number | undefined {
+    const userId: number | undefined = this.clientIdToUserId.get(clientID);
     this.clientIdToUserId.delete(clientID);
+    return userId;
   }
 }
