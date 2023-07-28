@@ -6,6 +6,7 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { corsOption } from './common/options/cors.option';
+import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
@@ -79,6 +80,7 @@ async function bootstrap() {
   app.use(passport.session());
 
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalFilters(new Passport42ExceptionFilter());
   app.setGlobalPrefix('api');
 
   await app.listen(3000, () => logger.log('Listening on port 3000'));
