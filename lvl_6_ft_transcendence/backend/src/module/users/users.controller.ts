@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Req,
+  Logger,
 } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
@@ -21,6 +22,8 @@ import { UserSearchInfo } from '../../common/types/user-search-info.interface';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  private readonly logger: Logger = new Logger(UsersController.name);
 
   /* DEBUGGING ROUTES */
 
@@ -98,6 +101,9 @@ export class UsersController {
       await this.usersService.findUserProfileByUID(req.user, userID);
 
     if (!userProfile) {
+      this.logger.error(
+        '"' + req.user.name + '" request the profile of a non-existing user',
+      );
       throw new NotFoundException('User with id= ' + userID + "doesn't exist");
     }
 

@@ -43,6 +43,8 @@ export class MeController {
     private readonly usersService: UsersService,
   ) {}
 
+  private readonly logger: Logger = new Logger(MeController.name);
+
   /**
    * GET /api/me
    *
@@ -51,7 +53,7 @@ export class MeController {
   @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
   @Get()
   public async getMyInfo(@Req() req: { user: User }): Promise<meUserInfo> {
-    Logger.log('"' + req.user.name + '" requested his info using /me');
+    this.logger.log('"' + req.user.name + '" requested his info using /me');
 
     // Destructure user's info so that we can filter info that doesn't belong to meUserInfo
     const {
@@ -86,7 +88,7 @@ export class MeController {
   public async getMyFriends(
     @Req() req: { user: User },
   ): Promise<FriendInterface[]> {
-    Logger.log(
+    this.logger.log(
       '"' + req.user.name + '" requested his friends info using /me/friends',
     );
 
@@ -108,7 +110,7 @@ export class MeController {
   public async getMyFriendRequests(
     @Req() req: { user: User },
   ): Promise<FriendRequestInterface[]> {
-    Logger.log(
+    this.logger.log(
       '"' +
         req.user.name +
         '" requested his friend-requests info using /me/friend-requests',
@@ -127,7 +129,7 @@ export class MeController {
   public async getMyBlockedUsers(
     @Req() req: { user: User },
   ): Promise<BlockedUserInterface[]> {
-    Logger.log(
+    this.logger.log(
       '"' +
         req.user.name +
         '" requested his blocklist info using /me/blocklist',
@@ -147,7 +149,7 @@ export class MeController {
   public async deleteMyAccount(
     @Req() req: { user: User },
   ): Promise<SuccessResponse> {
-    Logger.log('Deleting "' + req.user.name + '"\'s account');
+    this.logger.log('Deleting "' + req.user.name + '"\'s account');
 
     return await this.usersService.deleteUserByUID(req.user.id);
   }
@@ -184,7 +186,7 @@ export class MeController {
     @Req() req: { user: User },
     @Body() body: { newUsername: string },
   ): Promise<SuccessResponse | ErrorResponse> {
-    Logger.log('Updating "' + req.user.name + '"\'s username');
+    this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     return await this.usersService.updateUsernameByUID(
       req.user.id,
@@ -223,7 +225,7 @@ export class MeController {
     @Req() req: { user: User },
     @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
   ): Promise<SuccessResponse | ErrorResponse> {
-    Logger.log('Updating "' + req.user.name + '"\'s username');
+    this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     return await this.usersService.updateGameThemeByUID(
       req.user.id,
@@ -265,11 +267,11 @@ export class MeController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!file) {
-      Logger.error('"' + req.user.name + '" failed to upload his avatar');
+      this.logger.error('"' + req.user.name + '" failed to upload his avatar');
       throw new BadRequestException('Invalid file');
     }
 
-    Logger.log('Updating "' + req.user.name + '"\'s avatar');
+    this.logger.log('Updating "' + req.user.name + '"\'s avatar');
 
     return await this.usersService.updateUserAvatarByUID(
       req.user.id,
