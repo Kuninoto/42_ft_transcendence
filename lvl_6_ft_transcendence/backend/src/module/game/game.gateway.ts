@@ -13,7 +13,7 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Logger } from '@nestjs/common';
-import { Player } from './game-room';
+import { GameRoom, Player } from './game-room';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
@@ -81,7 +81,8 @@ export class GameGateway
       client.id,
       messageBody.newY,
     );
-    this.gameService.printGameRoomData(messageBody.gameRoomId);
+    this.broadcastGameRoomInfo(messageBody.gameRoomId);
+    console.debug(this.gameService.getGameRoomInfo(messageBody.gameRoomId));
   }
 
   // Listen for 'player-scored' messages
@@ -91,12 +92,16 @@ export class GameGateway
     @MessageBody() messageBody: { gameRoomId: string },
   ): void {
     this.gameService.playerScored(messageBody.gameRoomId, client.id);
+    this.broadcastGameRoomInfo(messageBody.gameRoomId);
+    console.debug(this.gameService.getGameRoomInfo(messageBody.gameRoomId));
   }
 
-  /* broadcastGameData(): void {
-    const gameData: GameData = ;
-    this.server.to(gameId).emit('game-data', gameData);
-  } */
+  broadcastGameRoomInfo(roomId: string): void {
+    const gameRoomInfo: GameRoom | undefined =
+      this.gameService.getGameRoomInfo(roomId);
+    if (gameRoomInfo)
+      this.server.to(roomId).emit('game-room-info', gameRoomInfo);
+  }
 
   /* broadcastGameEnd(): void {
     const gameEnd: GameEnd = ;
