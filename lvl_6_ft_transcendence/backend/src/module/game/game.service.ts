@@ -112,11 +112,8 @@ export class GameService {
     this.gameRoomsList.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
-  public printGameRoomData(gameRoomId: string): void {
-    const gameRoom: GameRoom = this.gameRoomsList.findGameRoomById(gameRoomId);
-    if (gameRoom) {
-      console.log(gameRoom);
-    }
+  public getGameRoomInfo(gameRoomId: string): GameRoom | undefined {
+    return this.gameRoomsList.findGameRoomById(gameRoomId);
   }
 
   private async joinPlayersToRoom(
