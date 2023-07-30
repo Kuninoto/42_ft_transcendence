@@ -21,9 +21,9 @@ export class GameRoom {
 
   @ApiProperty()
   @Column({ type: 'smallint', default: 0 })
-  player_one_score: number;
+  left_player_score: number;
 
   @ApiProperty()
   @Column({ type: 'smallint', default: 0 })
-  player_two_score: number;
+  right_player_score: number;
 }

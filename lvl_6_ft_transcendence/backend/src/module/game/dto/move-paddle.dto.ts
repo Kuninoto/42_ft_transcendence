@@ -1,9 +1,5 @@
 import { IsNumber, IsString, Length, Max, Min } from 'class-validator';
-
-// !TODO
-// Assert this value with the real value
-// and perhaps switch this to a more appropriate location
-const CANVAS_MAX_HEIGHT = 800;
+import { CANVAS_HEIGHT } from '../game-data';
 
 export class MoveBarDTO {
   @IsString()
@@ -11,7 +7,7 @@ export class MoveBarDTO {
   gameRoomId: string;
 
   @IsNumber()
-  @Max(CANVAS_MAX_HEIGHT)
+  @Max(CANVAS_HEIGHT)
   @Min(0)
   y: number;
 }
