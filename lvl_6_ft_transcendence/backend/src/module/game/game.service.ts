@@ -1,24 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GameRoom } from 'src/typeorm';
 import { GameQueue } from './GameQueue';
+import { GameRoomsList } from './GameRoomsList';
 import { UsersService } from '../users/users.service';
 import { UserStatus } from 'src/common/types/user-status.enum';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateGameDTO } from './dto/create-game.dto';
 import { GameType } from 'src/common/types/game-type.enum';
-import { GamePlayer } from 'src/common/types/game-player.enum';
 import { PlayerSide } from 'src/common/types/player-side.enum';
-import { Player } from './game-data';
+import {
+  Ball,
+  CANVAS_HEIGHT,
+  GameRoom,
+  PADDLE_VELOCITY,
+  Player,
+} from './game-room';
 
 @Injectable()
 export class GameService {
   constructor(
-    @InjectRepository(GameRoom)
-    private readonly gameRoomRepository: Repository<GameRoom>,
     private gameQueue: GameQueue,
+    private gameRoomsList: GameRoomsList,
     private usersService: UsersService,
   ) {}
 
@@ -30,11 +31,9 @@ export class GameService {
 
     // If there's no other player waiting, keep him waiting
     if (this.gameQueue.size() === 1) {
-      player.client.data.side = PlayerSide.LEFT;
-      player.client.data.whichPlayerAmI = GamePlayer.PLAYER_ONE;
+      player.side = PlayerSide.LEFT;
     } else {
-      player.client.data.side = PlayerSide.RIGHT;
-      player.client.data.whichPlayerAmI = GamePlayer.PLAYER_TWO;
+      player.side = PlayerSide.RIGHT;
 
       const playerOne: Player = this.gameQueue.dequeue();
       const playerTwo: Player = this.gameQueue.dequeue();
@@ -54,20 +53,70 @@ export class GameService {
       );
   }
 
-  public async leftPlayerScored(gameRoomId: string): Promise<void> {
-    await this.gameRoomRepository.increment(
-      { room_id: gameRoomId },
-      'left_player_score',
-      1,
-    );
+  public playerScored(gameRoomId: string, clientId: string): void {
+    const gameRoom: GameRoom | undefined =
+      this.gameRoomsList.findGameRoomById(gameRoomId);
+    if (!gameRoom) {
+      return;
+    }
+
+    let updatedGameRoom: Partial<GameRoom>;
+    if (gameRoom.leftPlayer.client.id === clientId) {
+      updatedGameRoom = {
+        leftPlayer: {
+          ...gameRoom.leftPlayer,
+          score: gameRoom.leftPlayer.score + 1,
+        },
+      };
+    } else {
+      updatedGameRoom = {
+        rightPlayer: {
+          ...gameRoom.rightPlayer,
+          score: gameRoom.rightPlayer.score + 1,
+        },
+      };
+    }
+    this.gameRoomsList.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
-  public async rightPlayerScored(gameRoomId: string): Promise<void> {
-    await this.gameRoomRepository.increment(
-      { room_id: gameRoomId },
-      'right_player_score',
-      1,
-    );
+  public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
+    const gameRoom: GameRoom | undefined =
+      this.gameRoomsList.findGameRoomById(gameRoomId);
+    if (!gameRoom) {
+      return;
+    }
+
+    const playerToUpdate: Player =
+      gameRoom.leftPlayer.client.id === clientId
+        ? gameRoom.leftPlayer
+        : gameRoom.rightPlayer;
+
+    const updatedGameRoom: Partial<GameRoom> = {
+      // access object thru dynamic object key
+      [playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer']: {
+        ...playerToUpdate,
+        paddleY: newY,
+      },
+    };
+
+    if (
+      updatedGameRoom[
+        playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
+      ].paddleY < 0 ||
+      updatedGameRoom[
+        playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
+      ].paddleY > CANVAS_HEIGHT
+    ) {
+      return;
+    }
+    this.gameRoomsList.updateGameRoomById(gameRoomId, updatedGameRoom);
+  }
+
+  public printGameRoomData(gameRoomId: string): void {
+    const gameRoom: GameRoom = this.gameRoomsList.findGameRoomById(gameRoomId);
+    if (gameRoom) {
+      console.log(gameRoom);
+    }
   }
 
   private async joinPlayersToRoom(
@@ -81,32 +130,40 @@ export class GameService {
     playerOne.client.join(roomId);
     playerTwo.client.join(roomId);
 
-    this.createGame({ room_id: roomId, game_type: GameType.LADDER });
+    // Determine the left and right players based on their 'side' property
+    // assigned early based on who first entered the queue
+    const { leftPlayer, rightPlayer } =
+      playerOne.side === PlayerSide.LEFT
+        ? { leftPlayer: playerOne, rightPlayer: playerTwo }
+        : { leftPlayer: playerTwo, rightPlayer: playerOne };
 
-    const playerOneUserSearchInfo: UserSearchInfo =
-      await this.usersService.findUserSearchInfoByUID(playerOne.userId);
-
-    const playerTwoUserSearchInfo: UserSearchInfo =
-      await this.usersService.findUserSearchInfoByUID(playerTwo.userId);
-
-    // Emit to both players their respective sides && opponent's info
-    playerOne.client.emit('opponent-found', {
+    this.gameRoomsList.createNewGameRoom({
       roomId: roomId,
-      side: playerOne.client.data.side,
-      opponentInfo: playerTwoUserSearchInfo,
+      gameType: GameType.LADDER,
+      ball: new Ball(),
+      leftPlayer: leftPlayer,
+      rightPlayer: rightPlayer,
     });
 
-    playerTwo.client.emit('opponent-found', {
-      roomId: roomId,
-      side: playerTwo.client.data.side,
-      opponentInfo: playerOneUserSearchInfo,
-    });
+    // Emit 'opponent-found' event to both players
+    await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
+    await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
 
     // server.to(roomId).emit('game-data', GameData);
   }
 
-  private async createGame(createGameDTO: CreateGameDTO): Promise<void> {
-    const newGame = this.gameRoomRepository.create(createGameDTO);
-    await this.gameRoomRepository.save(newGame);
+  private async emitOpponentFoundEvent(
+    player: Player,
+    roomId: string,
+    opponentUID: number,
+  ): Promise<void> {
+    const opponentInfo = await this.usersService.findUserSearchInfoByUID(
+      opponentUID,
+    );
+    player.client.emit('opponent-found', {
+      roomId: roomId,
+      side: player.side,
+      opponentInfo: opponentInfo,
+    });
   }
 }

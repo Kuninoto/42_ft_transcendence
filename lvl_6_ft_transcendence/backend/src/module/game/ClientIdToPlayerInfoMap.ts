@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { Player } from './game-data';
+import { Player } from './game-room';
 
 export class ClientIdToPlayerInfoMap {
   private clientIdToPlayerInfo: Map<string, Player> = new Map<string, Player>();
