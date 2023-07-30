@@ -78,11 +78,11 @@ export class GameService {
     playerOne: Socket,
     playerTwo: Socket,
   ): Promise<void> {
-    const roomName: string = playerOne.id + ' vs. ' + playerTwo.id;
+    const roomId: string = playerOne.id + 'vs.' + playerTwo.id;
 
     // Join both players to the same room
-    playerOne.join(roomName);
-    playerTwo.join(roomName);
+    playerOne.join(roomId);
+    playerTwo.join(roomId);
 
     // Get the opponentUID of each player
     const playerOneOpponentUID =
@@ -96,9 +96,9 @@ export class GameService {
       await this.usersService.findUserSearchInfoByUID(playerOneOpponentUID);
 
     // Emit to both players their respective sides && opponent's info
-    playerOne.emit('opponent-found', { side: playerOne.data.side, playerOneOpponentInfo });
-    playerTwo.emit('opponent-found', { side: playerTwo.data.side, playerTwoOpponentInfo });
+    playerOne.emit('opponent-found', { roomId: roomId, side: playerOne.data.side, playerOneOpponentInfo });
+    playerTwo.emit('opponent-found', { roomId: roomId, side: playerTwo.data.side, playerTwoOpponentInfo });
 
-    // server.to(roomName).emit('game-data', GameData);
+    // server.to(roomId).emit('game-data', GameData);
   }
 }
