@@ -18,7 +18,7 @@ export class Passport42ExceptionFilter implements ExceptionFilter {
         'The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.',
     };
 
-    this.logger.error('There was a misconfiguration on the 42 oauth2 process');
+    this.logger.error('There was a misconfiguration on the 42 OAuth2 process');
     response.status(errorResponse.statusCode).json(errorResponse);
   }
 }

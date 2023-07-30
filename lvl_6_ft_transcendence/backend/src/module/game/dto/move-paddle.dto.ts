@@ -7,8 +7,8 @@ const CANVAS_MAX_HEIGHT = 800;
 
 export class MoveBarDTO {
   @IsString()
-  @Length(21, 21)
-  gameId: string;
+  @Length(43, 43)
+  gameRoomId: string;
 
   @IsNumber()
   @Max(CANVAS_MAX_HEIGHT)

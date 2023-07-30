@@ -1,4 +1,6 @@
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
@@ -11,6 +13,8 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Logger } from '@nestjs/common';
+import { UserScoredDTO } from './dto/user-scored.dto';
+import { GamePlayer } from 'src/common/types/game-player.enum';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway
@@ -36,23 +40,17 @@ export class GameGateway
 
   // On socket connection checks if the user is authenticated
   async handleConnection(client: Socket) {
+    this.logger.log('Client connected ' + client.id);
     try {
       const userId: number = await this.authService.authenticateClient(client);
       this.gameService.registerNewClientInfo(client, userId);
-      
-      this.gameService.queueToLadder(
-        this.playerRooms,
-        this.server,
-        client,
-        userId,
-      );
+
+      this.gameService.queueToLadder(this.server, client, userId);
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error.message + ', disconnecting...');
       client.disconnect();
       return;
     }
-
-    this.logger.log('Client connected ' + client.id);
   }
 
   async handleDisconnect(client: Socket) {
@@ -60,11 +58,26 @@ export class GameGateway
     this.logger.log('Client disconnected ' + client.id);
   }
 
-  // Listen for 'position-update' events
+  // Listen for 'position-update' messages
   /* @SubscribeMessage('position-update')
   positionUpdate(): void {
 
   } */
+
+  // Listen for 'user_scored' messages
+  @SubscribeMessage('user_scored')
+  async userScored(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: UserScoredDTO,
+  ): Promise<void> {
+    if (client.data.whichPlayerAmI == GamePlayer.PLAYER_ONE) {
+      await this.gameService.playerOneScored(messageBody.gameRoomId);
+    } else {
+      await this.gameService.playerTwoScored(messageBody.gameRoomId);
+    }
+
+    console.log(JSON.stringify(messageBody, null, 2));
+  }
 
   /* broadcastGameData(): void {
     const gameData: GameData = ;

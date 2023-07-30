@@ -1,12 +1,15 @@
 import { Socket } from 'socket.io';
 
 export interface ClientInfo {
-  userID: number,
-  client: Socket,
+  userID: number;
+  client: Socket;
 }
 
 export class ClientIdToClientInfoMap {
-  private clientIdToUserInfo: Map<string, ClientInfo> = new Map<string, ClientInfo>();
+  private clientIdToUserInfo: Map<string, ClientInfo> = new Map<
+    string,
+    ClientInfo
+  >();
 
   public registerNewClientInfo(clientInfo: ClientInfo): void {
     this.clientIdToUserInfo.set(clientInfo.client.id, clientInfo);
@@ -27,7 +30,8 @@ export class ClientIdToClientInfoMap {
 
   // Returns the removed userId
   public removePlayerFromMap(clientID: string): number | undefined {
-    const userID: number | undefined = this.clientIdToUserInfo.get(clientID)?.userID;
+    const userID: number | undefined =
+      this.clientIdToUserInfo.get(clientID)?.userID;
     this.clientIdToUserInfo.delete(clientID);
     return userID;
   }

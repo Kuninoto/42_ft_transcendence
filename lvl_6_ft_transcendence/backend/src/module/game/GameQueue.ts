@@ -1,28 +1,30 @@
 export class GameQueue {
-  private players_id: string[];
+  private playersClientId: string[];
 
   constructor() {
-    this.players_id = [];
+    this.playersClientId = [];
   }
 
   public enqueue(newPlayerId: string): void {
-    this.players_id.push(newPlayerId);
+    this.playersClientId.push(newPlayerId);
+    console.log('gameQueue now has ' + this.size() + ' players');
   }
 
   public dequeue(): string | undefined {
-    return this.players_id.shift();
+    console.log('gameQueue now has ' + (this.size() - 1) + ' players');
+    return this.playersClientId.shift();
   }
 
   public isEmpty(): boolean {
-    return this.players_id.length === 0;
+    return this.playersClientId.length === 0;
   }
 
   public removePlayerFromQueue(playerId: string): void {
-    const indexOfPlayerID: number = this.players_id.indexOf(playerId);
-    this.players_id.splice(indexOfPlayerID, 1);
+    const indexOfPlayerID: number = this.playersClientId.indexOf(playerId);
+    this.playersClientId.splice(indexOfPlayerID, 1);
   }
 
   public size(): number {
-    return this.players_id.length;
+    return this.playersClientId.length;
   }
 }
