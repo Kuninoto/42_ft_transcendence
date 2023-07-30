@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ClientToUserInfoMap } from './ClientToUserInfoMap';
+import { ClientIdToClientInfoMap, ClientInfo } from './ClientIdToClientInfoMap';
 import { GameQueue } from './GameQueue';
 import { UsersService } from '../users/users.service';
 import { UserStatus } from 'src/common/types/user-status.enum';
@@ -9,20 +9,28 @@ import {
   PlayerSide,
   QueueMessage,
 } from './dto/game-queue-data.interface';
+import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 
 @Injectable()
 export class GameService {
   constructor(
     private gameQueue: GameQueue,
-    private clientToUserInfoMap: ClientToUserInfoMap,
+    private clientIdToClientInfo: ClientIdToClientInfoMap,
     private usersService: UsersService,
   ) {}
 
   public registerNewClientInfo(newClient: Socket, newClientUID: number): void {
-    if (this.clientToUserInfoMap.isUserIdAlreadyRegistered(newClientUID)) {
-      throw new Error('Client is already connected');
-    }
-    this.clientToUserInfoMap.registerNewClientInfo(newClient, newClientUID);
+    //! TODO
+    // Uncomment this check, just for testing purposes
+
+    //if (this.clientIdToClientInfo.isUserIdAlreadyRegistered(newClientUID)) {
+    //  throw new Error('Client is already connected');
+    //}
+
+    this.clientIdToClientInfo.registerNewClientInfo({
+      client: newClient,
+      userID: newClientUID,
+    });
   }
 
   public queueToLadder(
@@ -36,25 +44,17 @@ export class GameService {
 
     // If there's no other player waiting, keep him waiting
     if (this.gameQueue.size() === 1) {
-      const queueData: GameQueueDataDTO = {
-        side: PlayerSide.LEFT,
-        message: QueueMessage.WAITING_FOR_OPPONENT,
-      };
-
-      newClient.emit('waiting-for-opponent', queueData);
+      newClient.data.side = PlayerSide.LEFT;
     } else {
-      const queueData: GameQueueDataDTO = {
-        side: PlayerSide.RIGHT,
-        message: QueueMessage.OPPONENT_FOUND,
-      };
+      newClient.data.side = PlayerSide.RIGHT;
 
       const playerOneClientId: string = this.gameQueue.dequeue();
       const playerTwoClientId: string = this.gameQueue.dequeue();
 
       const playerOne: Socket =
-        this.clientToUserInfoMap.getClientFromClientID(playerOneClientId);
+        this.clientIdToClientInfo.getClientFromClientID(playerOneClientId);
       const playerTwo: Socket =
-        this.clientToUserInfoMap.getClientFromClientID(playerTwoClientId);
+        this.clientIdToClientInfo.getClientFromClientID(playerTwoClientId);
 
       this.joinPlayersToRoom(server, playerOne, playerTwo);
     }
@@ -65,7 +65,7 @@ export class GameService {
   public leaveLadderQueue(clientID: string): void {
     this.gameQueue.removePlayerFromQueue(clientID);
     const userId: number | undefined =
-      this.clientToUserInfoMap.removePlayerFromMap(clientID);
+      this.clientIdToClientInfo.removePlayerFromMap(clientID);
 
     if (userId)
       this.usersService.updateUserStatusByUID(userId, UserStatus.ONLINE);
@@ -73,26 +73,32 @@ export class GameService {
     console.log('gameQueue now has ' + this.gameQueue.size() + ' elements!');
   }
 
-  private joinPlayersToRoom(
+  private async joinPlayersToRoom(
     server: Server,
     playerOne: Socket,
     playerTwo: Socket,
-  ): void {
+  ): Promise<void> {
     const roomName: string = playerOne.id + ' vs. ' + playerTwo.id;
 
     // Join both players to the same room
     playerOne.join(roomName);
     playerTwo.join(roomName);
 
-    // Assign opponentUID's respectively
-    playerOne.data.opponentUID = this.clientToUserInfoMap.getUserIdFromClientId(
-      playerTwo.id,
-    );
-    playerTwo.data.opponentUID = this.clientToUserInfoMap.getUserIdFromClientId(
-      playerOne.id,
-    );
+    // Get the opponentUID of each player
+    const playerOneOpponentUID =
+      this.clientIdToClientInfo.getUserIdFromClientId(playerTwo.id);
+    const playerTwoOpponentUID =
+      this.clientIdToClientInfo.getUserIdFromClientId(playerOne.id);
 
-    // emit to both players their respective opponent id
-    // server.emit() ?
+    const playerOneOpponentInfo: UserSearchInfo =
+      await this.usersService.findUserSearchInfoByUID(playerTwoOpponentUID);
+    const playerTwoOpponentInfo: UserSearchInfo =
+      await this.usersService.findUserSearchInfoByUID(playerOneOpponentUID);
+
+    // Emit to both players their respective sides && opponent's info
+    playerOne.emit('opponent-found', { side: playerOne.data.side, playerOneOpponentInfo });
+    playerTwo.emit('opponent-found', { side: playerTwo.data.side, playerTwoOpponentInfo });
+
+    // server.to(roomName).emit('game-data', GameData);
   }
 }

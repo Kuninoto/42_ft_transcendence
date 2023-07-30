@@ -147,6 +147,16 @@ export class UsersService {
     };
   }
 
+  public async findUserSearchInfoByUID(userID: number): Promise<UserSearchInfo | null> {
+    const user: User = await this.usersRepository.findOneBy({ id: userID });
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatar_url: user.avatar_url,
+    };
+  }
+
   public async updateUsernameByUID(
     userID: number,
     newName: string,
