@@ -1,23 +1,29 @@
-import { Injectable } from '@nestjs/common';
-import { ClientIdToClientInfoMap, ClientInfo } from './ClientIdToClientInfoMap';
+import { Injectable, Logger } from '@nestjs/common';
+import { GameRoom } from 'src/typeorm';
 import { GameQueue } from './GameQueue';
+import { ClientIdToClientInfoMap } from './ClientIdToClientInfoMap';
 import { UsersService } from '../users/users.service';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { Server, Socket } from 'socket.io';
-import {
-  GameQueueDataDTO,
-  PlayerSide,
-  QueueMessage,
-} from './dto/game-queue-data.interface';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateGameDTO } from './dto/create-game.dto';
+import { GameType } from 'src/common/types/game-type.enum';
+import { GamePlayer } from 'src/common/types/game-player.enum';
+import { PlayerSide } from 'src/common/types/player-side.enum';
 
 @Injectable()
 export class GameService {
   constructor(
+    @InjectRepository(GameRoom)
+    private readonly gameRoomRepository: Repository<GameRoom>,
     private gameQueue: GameQueue,
     private clientIdToClientInfo: ClientIdToClientInfoMap,
     private usersService: UsersService,
   ) {}
+
+  private readonly logger: Logger = new Logger(GameService.name);
 
   public registerNewClientInfo(newClient: Socket, newClientUID: number): void {
     //! TODO
@@ -34,7 +40,6 @@ export class GameService {
   }
 
   public queueToLadder(
-    playerRooms: Socket[],
     server: Server,
     newClient: Socket,
     newClientUId: number,
@@ -45,8 +50,10 @@ export class GameService {
     // If there's no other player waiting, keep him waiting
     if (this.gameQueue.size() === 1) {
       newClient.data.side = PlayerSide.LEFT;
+      newClient.data.whichPlayerAmI = GamePlayer.PLAYER_ONE;
     } else {
       newClient.data.side = PlayerSide.RIGHT;
+      newClient.data.whichPlayerAmI = GamePlayer.PLAYER_TWO;
 
       const playerOneClientId: string = this.gameQueue.dequeue();
       const playerTwoClientId: string = this.gameQueue.dequeue();
@@ -58,8 +65,6 @@ export class GameService {
 
       this.joinPlayersToRoom(server, playerOne, playerTwo);
     }
-
-    console.log('gameQueue now has ' + this.gameQueue.size() + ' elements!');
   }
 
   public leaveLadderQueue(clientID: string): void {
@@ -69,8 +74,22 @@ export class GameService {
 
     if (userId)
       this.usersService.updateUserStatusByUID(userId, UserStatus.ONLINE);
+  }
 
-    console.log('gameQueue now has ' + this.gameQueue.size() + ' elements!');
+  public async playerOneScored(gameRoomId: string): Promise<void> {
+    await this.gameRoomRepository.increment(
+      { room_id: gameRoomId },
+      'player_one_score',
+      1,
+    );
+  }
+
+  public async playerTwoScored(gameRoomId: string): Promise<void> {
+    await this.gameRoomRepository.increment(
+      { room_id: gameRoomId },
+      'player_two_score',
+      1,
+    );
   }
 
   private async joinPlayersToRoom(
@@ -78,12 +97,13 @@ export class GameService {
     playerOne: Socket,
     playerTwo: Socket,
   ): Promise<void> {
-    const roomId: string = playerOne.id + 'vs.' + playerTwo.id;
+    const roomId: string = crypto.randomUUID();
 
     // Join both players to the same room
     playerOne.join(roomId);
     playerTwo.join(roomId);
 
+    this.createGame({ room_id: roomId, game_type: GameType.LADDER });
     // Get the opponentUID of each player
     const playerOneOpponentUID =
       this.clientIdToClientInfo.getUserIdFromClientId(playerTwo.id);
@@ -96,9 +116,23 @@ export class GameService {
       await this.usersService.findUserSearchInfoByUID(playerOneOpponentUID);
 
     // Emit to both players their respective sides && opponent's info
-    playerOne.emit('opponent-found', { roomId: roomId, side: playerOne.data.side, playerOneOpponentInfo });
-    playerTwo.emit('opponent-found', { roomId: roomId, side: playerTwo.data.side, playerTwoOpponentInfo });
+    playerOne.emit('opponent-found', {
+      roomId: roomId,
+      side: playerOne.data.side,
+      opponentInfo: playerOneOpponentInfo,
+    });
+
+    playerTwo.emit('opponent-found', {
+      roomId: roomId,
+      side: playerTwo.data.side,
+      opponentInfo: playerTwoOpponentInfo,
+    });
 
     // server.to(roomId).emit('game-data', GameData);
+  }
+
+  private async createGame(createGameDTO: CreateGameDTO): Promise<void> {
+    const newGame = this.gameRoomRepository.create(createGameDTO);
+    await this.gameRoomRepository.save(newGame);
   }
 }

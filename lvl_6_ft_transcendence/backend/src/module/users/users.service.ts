@@ -147,7 +147,9 @@ export class UsersService {
     };
   }
 
-  public async findUserSearchInfoByUID(userID: number): Promise<UserSearchInfo | null> {
+  public async findUserSearchInfoByUID(
+    userID: number,
+  ): Promise<UserSearchInfo | null> {
     const user: User = await this.usersRepository.findOneBy({ id: userID });
 
     return {
