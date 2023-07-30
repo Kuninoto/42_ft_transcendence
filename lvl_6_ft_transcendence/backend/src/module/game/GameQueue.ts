@@ -1,4 +1,4 @@
-import { Player } from './game-data';
+import { Player } from './game-room';
 
 export class GameQueue {
   private players: Player[];
