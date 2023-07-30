@@ -99,8 +99,8 @@ export class UsersService {
    *         User CRUD         *
    *****************************/
 
-  public async createUser(createUserDTO: CreateUserDTO): Promise<User> {
-    const newUser = this.usersRepository.create(createUserDTO);
+  public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
+    const newUser = this.usersRepository.create(newUserInfo);
     return await this.usersRepository.save(newUser);
   }
 
