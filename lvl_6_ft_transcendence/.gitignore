@@ -36,4 +36,3 @@ lerna-debug.log*
 
 .env
 .env.local
-temp.txt

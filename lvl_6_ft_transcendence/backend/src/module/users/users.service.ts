@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,6 +30,8 @@ export class UsersService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
   ) {}
+
+  private readonly logger: Logger = new Logger(UsersService.name);
 
   public async findAll(): Promise<User[]> {
     return await this.usersRepository.find();
@@ -67,9 +70,13 @@ export class UsersService {
               '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
               { meUserId },
             )
-            .andWhere('friendship.status = :status', {
-              status: FriendshipStatus.ACCEPTED,
-            })
+            .andWhere(
+              'friendship.status = :status OR friendship.status = :status2',
+              {
+                status: FriendshipStatus.ACCEPTED,
+                status2: FriendshipStatus.PENDING,
+              },
+            )
             .getQuery();
           return `NOT EXISTS ${subqueryFriend}`;
         })
@@ -92,8 +99,8 @@ export class UsersService {
    *         User CRUD         *
    *****************************/
 
-  public async createUser(createUserDTO: CreateUserDTO): Promise<User> {
-    const newUser = this.usersRepository.create(createUserDTO);
+  public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
+    const newUser = this.usersRepository.create(newUserInfo);
     return await this.usersRepository.save(newUser);
   }
 
@@ -140,11 +147,26 @@ export class UsersService {
     };
   }
 
+  public async findUserSearchInfoByUID(
+    userID: number,
+  ): Promise<UserSearchInfo | null> {
+    const user: User = await this.usersRepository.findOneBy({ id: userID });
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatar_url: user.avatar_url,
+    };
+  }
+
   public async updateUsernameByUID(
     userID: number,
     newName: string,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (newName.length > 10) {
+      this.logger.error(
+        'A request to update a name was made with a name longer than 10 chars',
+      );
       throw new BadRequestException(
         'Usernames must not be longer than 10 characters',
       );
@@ -156,6 +178,9 @@ export class UsersService {
 
     // A user already exists with that name
     if (user !== null) {
+      this.logger.error(
+        'A request to update a name was made with a name already taken',
+      );
       throw new ConflictException('Username is already taken');
     }
 
