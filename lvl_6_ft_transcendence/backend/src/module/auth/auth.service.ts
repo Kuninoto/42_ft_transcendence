@@ -98,11 +98,17 @@ export class AuthService {
    *     Socket's User Auth    *
    *****************************/
 
-  private async getUserFromAuthToken(token: string): Promise<User | null> {
+  private async authClientFromAuthToken(token: string): Promise<User | null> {
+    // verify() throws if JWT's signature is not valid
     try {
       const payload: TokenPayload = await this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
       });
+
+      if (payload.has_2fa && !payload.is_2fa_authed) {
+        throw new Error('Unauthorized Client');
+      }
+
       const userId: number = payload.id;
 
       return this.usersService.findUserByUID(userId);
@@ -111,22 +117,22 @@ export class AuthService {
     }
   }
 
-  public async isClientAuthenticated(client: Socket): Promise<boolean> {
+  public async authenticateClient(client: Socket): Promise<number> {
     const authHeader: string = client.handshake.headers.authorization;
     if (!authHeader) {
-      return false;
+      throw new Error('Missing Auth Header');
     }
 
     // Authentication: Bearer xxxxx
     // Get the token itself (xxxxx) without "Bearer"
     const authToken: string = authHeader.split(' ')[1];
 
-    const user: User | null = await this.getUserFromAuthToken(authToken);
+    const user: User | null = await this.authClientFromAuthToken(authToken);
 
     if (!user) {
-      return false;
+      throw new Error('Unauthorized Client');
     }
 
-    return true;
+    return user.id;
   }
 }

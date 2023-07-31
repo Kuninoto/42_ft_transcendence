@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
+  PrimaryColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
@@ -19,6 +20,10 @@ export class GameInfo {
   id: number;
 
   @ApiProperty()
+  @PrimaryColumn()
+  room_id: string;
+
+  @ApiProperty()
   @Column()
   game_type: GameType;
 
@@ -28,8 +33,8 @@ export class GameInfo {
   winner: User;
 
   @ApiProperty()
-  @Column({ type: 'smallint' })
-  winner_points: number;
+  @Column({ type: 'smallint', nullable: true })
+  winner_score: number;
 
   @ApiProperty()
   @OneToOne(() => User)
@@ -37,6 +42,6 @@ export class GameInfo {
   loser: User;
 
   @ApiProperty()
-  @Column({ type: 'smallint' })
-  loser_points: number;
+  @Column({ type: 'smallint', nullable: true })
+  loser_score: number;
 }

@@ -1,1 +1,4 @@
-export interface GameDataDTO {}
+export interface GameDataDTO {
+  ballX: number;
+  ballY: number;
+}

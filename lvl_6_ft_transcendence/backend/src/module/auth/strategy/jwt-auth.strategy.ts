@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
@@ -21,6 +21,8 @@ export interface TokenPayload {
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy) {
+  private readonly logger: Logger = new Logger('JwtAuthStrategy');
+
   constructor(private readonly usersService: UsersService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -33,6 +35,9 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     const user: User | null = await this.usersService.findUserByUID(payload.id);
 
     if (!user) {
+      this.logger.error(
+        "A request was made with a token refering to a user that doesn't exist",
+      );
       throw new UnauthorizedException('Unauthenticated request');
     }
 
@@ -40,6 +45,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     if (!payload.has_2fa || (payload.has_2fa && payload.is_2fa_authed)) {
       return user;
     } else {
+      this.logger.error('User has 2fa but is not 2fa authenticated');
       throw new UnauthorizedException('Unauthenticated request');
     }
   }
