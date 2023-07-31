@@ -27,7 +27,7 @@ import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
 import { FriendInterface } from '../../common/types/friend-interface.interface';
 import { FriendRequestInterface } from '../../common/types/friend-request.interface';
-import { multerConfig } from '../users/middleware/multer/multer.config';
+import { multerConfig } from './middleware/multer/multer.config';
 import { meUserInfo } from '../../common/types/me-user-info.interface';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
@@ -59,6 +59,7 @@ export class MeController {
     const {
       id,
       name,
+      intra_name,
       avatar_url,
       intra_profile_url,
       has_2fa,
@@ -69,6 +70,7 @@ export class MeController {
     const meInfo: meUserInfo = {
       id,
       name,
+      intra_name,
       avatar_url,
       intra_profile_url,
       has_2fa,
@@ -171,7 +173,7 @@ export class MeController {
       "Updates 'me' user's username\nExpects the new username as the \"newUsername\" field of a JSON on the body",
   })
   @ApiBadRequestResponse({
-    description: 'If the new username is more than 10 chars long',
+    description: 'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
   })
   @ApiConflictResponse({ description: 'If the new username is already taken' })
   @ApiBody({
@@ -187,6 +189,11 @@ export class MeController {
     @Body() body: { newUsername: string },
   ): Promise<SuccessResponse | ErrorResponse> {
     this.logger.log('Updating "' + req.user.name + '"\'s username');
+
+    if (!body.newUsername) {
+      this.logger.error("A user failed to update his username");
+      throw new BadRequestException("Expected 'newUsername' as a field of the body's JSON");
+    }
 
     return await this.usersService.updateUsernameByUID(
       req.user.id,
@@ -225,7 +232,7 @@ export class MeController {
     @Req() req: { user: User },
     @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
   ): Promise<SuccessResponse | ErrorResponse> {
-    this.logger.log('Updating "' + req.user.name + '"\'s username');
+    this.logger.log('Updating "' + req.user.name + '"\'s game theme');
 
     return await this.usersService.updateGameThemeByUID(
       req.user.id,
@@ -239,8 +246,8 @@ export class MeController {
    * This is the route to visit to update the user's
    * avatar.
    * Stores the uploaded file (the new avatar) at
-   * /src/public/ and updates the avatar_url on the
-   * user's table to the url that later allows requesting
+   * /src/public/ and updates the avatar_url
+   * on the user's table to the url that later allows requesting
    * e.g http://localhost:3000/api/users/avatars/<hashed_filename>.png
    *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
    */
@@ -250,7 +257,7 @@ export class MeController {
     schema: {
       type: 'object',
       required: ['avatar'],
-      properties: { image: { type: 'string', format: 'binary' } },
+      properties: { avatar: { type: 'string', format: 'binary' } },
     },
   })
   @ApiBadRequestResponse({
@@ -266,6 +273,7 @@ export class MeController {
     @Req() req: { user: User },
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
+    console.log(file);
     if (!file) {
       this.logger.error('"' + req.user.name + '" failed to upload his avatar');
       throw new BadRequestException('Invalid file');
