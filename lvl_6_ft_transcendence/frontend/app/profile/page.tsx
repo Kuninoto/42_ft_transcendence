@@ -9,14 +9,13 @@ import Friends from './friends'
 import History from './history'
 import { api } from '@/api/api'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
-import { UserProfile } from '@/common/types/user-profile.interface'
+import { UserProfile } from '@/common/type/backend/user-profile.interface'
 import SettingsModal from './settingsModal'
 
 export default function Profile() {
 
 	const { user: loggedUser } = useAuth()
 
-	console.log(loggedUser)
 	const [ user, setUser ] = useState<UserProfile>()
 	const searchParams = useSearchParams()
 	const id = searchParams.get('id') || loggedUser.id
@@ -71,8 +70,9 @@ export default function Profile() {
 						/>
 					</div>
 
-					<div className='w-full flex flex-col space-y-4'>
+					<div className='w-full flex flex-col'>
 						<p className="text-3xl">{user?.name || 'Loading...'}</p>
+						<a href={user?.intra_profile_url} className="text-md mb-4 hover:underline text-gray-400">{user?.intra_name || 'Loading...'}</a>
 
 						<div className="w-full space-x-2">
 							{ loggedUser.id === user?.id ?

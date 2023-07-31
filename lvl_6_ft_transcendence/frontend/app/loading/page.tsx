@@ -5,7 +5,7 @@ import io from "socket.io-client";
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
-export default function Leaderboard() {
+export default function Loading() {
 	const router = useRouter()
 
 	function cancel() {

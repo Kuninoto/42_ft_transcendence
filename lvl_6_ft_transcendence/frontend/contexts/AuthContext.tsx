@@ -1,7 +1,7 @@
 import { api } from '@/api/api'
 import { AuthContextExports } from '@/common/types'
 import {  ImageLoader } from 'next/image'
-import { UserProfile } from '@/common/types/user-profile.interface'
+import { UserProfile } from '@/common/type/backend/user-profile.interface'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import {
