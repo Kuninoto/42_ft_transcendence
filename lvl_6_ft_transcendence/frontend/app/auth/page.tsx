@@ -1,20 +1,21 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function Auth() {
-	const { login, user } = useAuth()
+	const { login } = useAuth()
 
 	const searchParams = useSearchParams()
 	const router = useRouter()
 
 	useEffect(() => {
-		if (login(searchParams.get('code'))) {
+		const code = searchParams.get('code')
+		if (code && login(code)) {
 			router.push('/dashboard')
 		} else {
-			console.log('Error logging in!')
+			console.error('Error logging in!')
 			router.push('/')
 		}
 	}, [])
