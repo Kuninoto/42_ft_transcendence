@@ -1,5 +1,6 @@
 import { api } from '@/api/api'
 import { AuthContextExports } from '@/common/types'
+import {  ImageLoader } from 'next/image'
 import { UserProfile } from '@/common/types/user-profile.interface'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
@@ -10,6 +11,10 @@ import {
 	useEffect,
 	useState,
 } from 'react'
+
+export const removeParams: ImageLoader = ({ src } : { src: string }) => {
+	return src.replace(/&?w=\d+&?/, '').replace(/&?p=\d+&?/, '');
+};
 
 export interface AuthContextExports {
 	login: (code: string) => Promise<boolean> | void
@@ -36,8 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	function refreshUser(user: UserProfile){
-		setUser(user)
+	function refreshUser(newUserInfo: UserProfile){
+		setUser(newUserInfo)
 	}
 
 	function logout() {

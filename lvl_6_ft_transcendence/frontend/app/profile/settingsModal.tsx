@@ -11,17 +11,26 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 
 	async function onSubmit({ name, photo }: any) {
 
-		await api.patch("/me/username", {
-			newUsername: name
-		})
+		if (name.length != 0)
+		{
+			await api.patch("/me/username", {
+				newUsername: name
+			})
+		}
+
+		if(photo.length != 0)
+		{
+			await multipartApi.patch("/me/avatar", {
+					avatar: photo[0]
+			})
+		}
 
 		api.get("/me").then((result) => {
-			() => refreshUser(result.data)
+			refreshUser(result.data)
+			closeModal()
 		})
-
-		closeModal()
-
 	}
+
 
   	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
@@ -35,7 +44,7 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none">
 
 						<form className="flex flex-col space-y-2" onSubmit={handleSubmit(onSubmit)}>
-							<input {...register("name", { required: true, maxLength: 10 })} className="bg-transparent border border-white outline-none rounded py-2 px-2" type="text" />
+							<input {...register("name", { maxLength: 10 })} className="bg-transparent border border-white outline-none rounded py-2 px-2" type="text" />
 							<input {...register("photo")} type="file" accept="image/*"/>
 							<input type="submit" value="Submit" />
 						</form>

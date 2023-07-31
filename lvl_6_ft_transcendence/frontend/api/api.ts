@@ -10,8 +10,8 @@ export const api = axios.create({
 export const multipartApi = axios.create({
 	baseURL: 'http://localhost:3000/api',
 	headers: {
-		'Content-Type': 'application/json',
-		"Authorization": `Bearer ${localStorage.getItem('pong.token')}`
+		'Content-Type': 'multipart/form-data',
+		'Authorization': `Bearer ${localStorage.getItem('pong.token')}`
 	},
 })
 
