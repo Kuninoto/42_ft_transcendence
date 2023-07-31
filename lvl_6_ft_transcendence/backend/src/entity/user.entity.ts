@@ -33,6 +33,14 @@ export class User {
   @ApiProperty()
   @Column({
     type: 'varchar',
+    unique: true,
+    nullable: false,
+  })
+  intra_name: string;
+
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
     default: UserStatus.ONLINE,
     nullable: false,
   })

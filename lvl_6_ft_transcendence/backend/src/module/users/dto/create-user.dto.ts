@@ -9,6 +9,11 @@ export class CreateUserDTO {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsAlphanumeric()
+  readonly intra_name: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   readonly avatar_url: string;
 
