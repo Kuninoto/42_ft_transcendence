@@ -1,22 +1,22 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
-import { ChatService } from './chat.service';
-import { MessageDto } from './dto/message.dto';
+import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { ChatService } from './../service/chat.service';
+import { MessageDto } from '../../message/entity/message.dto';
 import { Server, Socket } from 'socket.io';
 import { UserI } from 'src/entity/user.interface';
-import { RoomService } from '../room/room/room.service'
+import { RoomService } from '../../room/service/room.service'
 import { UsersService } from 'src/module/users/service/users.service';
 import { AuthService } from 'src/module/auth/service/auth.service';
-import { Req, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
-import { RoomI } from '../entities/room.interface';
-import { RoomDto } from './dto/room.dto';
+import { UnauthorizedException} from '@nestjs/common';
+import { RoomI } from '../../room/entity/room.interface';
 import { User } from 'src/entity/user.entity';
 import { Logger } from '@nestjs/common'
+import { MessageService } from '../../message/service/message.service';
 
-// ! the first number defines the socket PORT
+// The first number defines the socket PORT
 // Cross-Origin Resource Sharing (CORS) configures the behavior for the WebSocket gateway.
 // origin option defines who can connect to the socket. (i.e., domain or IP address)
 // In this case any origin is allowed
+// namespace is the url path. ex localhost:5000/chat
 @WebSocketGateway({
 	namespace: '/chat',
 	cors: {
@@ -26,22 +26,23 @@ import { Logger } from '@nestjs/common'
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 
-	constructor(private chatService: ChatService, private authService: AuthService, private roomService: RoomService, private userService: UsersService) {}
+	constructor(private messageService: MessageService, private authService: AuthService, private roomService: RoomService, private userService: UsersService) {}
 
 	// Check for connection and print the socket id
 	async handleConnection(socket: Socket) {
 		// Check user token
+		// TODO remove Logger.debug
 		try {
 			Logger.debug('Starting token verification');
 			const token = socket.handshake.headers.authorization;
 
 			// throws if the token is not valid
 			const decoded = await this.authService.verifyJwt(token);
-			
+
 			Logger.debug('Trying to find user');
 			// make sure user exists
 			const user: User = await this.userService.findUserById(decoded[1]);
-			
+
 			Logger.debug('User found!');
 			if (user) {
 				socket.data.user = user;
@@ -55,7 +56,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		Logger.log(socket.data.user.name + ' connected to the chat socket');
 	}
 
-	// Check for disconnection and print the socket id
+	// TODO Check for disconnection and print the socket id
 	handleDisconnect(socket: Socket) {
 	}
 
@@ -68,46 +69,59 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('createRoom')
 	async onCreateRoom(socket: Socket, room: RoomI): Promise<RoomI> {
 		// TODO verify room users after creation
-		// TODO delete Logger.logs and verify if current user is working
+		// TODO delete Logger.debug and verify if current user is working
 		Logger.debug('------------ Creating room ------------');
-		Logger.debug('user: ' + JSON.stringify(socket.data.user, null, 2));
-		Logger.debug('room name: ' + room.name);
-		Logger.debug('room owner: ' + room.owner);
+		console.debug('user: ' + JSON.stringify(socket.data.user, null, 2));
+		console.debug('room name: ' + room.name);
+		console.debug('room owner: ' + room.owner);
 		Logger.debug('---------------------------------------');
 		return this.roomService.createRoom(room, socket.data.user);
 	}
 
 	@SubscribeMessage('joinRoom')
 	async onJoinRoom(socket: Socket, roomName: string) {
-		// TODO
-		Logger.log('------------ Joining room ------------');
-		Logger.log('user: ' + JSON.stringify(socket.data.user, null, 2));
-		Logger.log('room name: ' + roomName);
-		Logger.log('--------------------------------------');
-		const room = this.roomService.joinRoom(roomName, socket.data.user);
+		// TODO delete Logger.debug
+		Logger.debug('------------ Joining room ------------');
+		console.debug('user: ' + JSON.stringify(socket.data.user, null, 2));
+		console.debug('room name: ' + roomName);
+		Logger.debug('--------------------------------------');
+		const room = await this.roomService.joinRoom(roomName, socket.data.user);
 		const userName = socket.data.user
 
 		if (room) {
-			socket.join((await room).name);
-			this.server.to((await room).name).emit('joinedRoom', {roomName, userName})
+			socket.join(room.name);
+			this.server.to(room.name).emit('joinedRoom', {roomName, userName})
 		} else {
 			Logger.log('The room with "' + roomName + '" name doesn\'t exist');
 		}
 	}
 
+	//TODO test this shit!
 	// When recwiving a message create it in the database and emit to everyone
 	@SubscribeMessage('newMessage')
-	async create(@MessageBody() MessageDto: MessageDto) {
-		Logger.log(MessageDto);
+	async create(@MessageBody() MessageDto: MessageDto, socket: Socket) {
+		const room = await this.roomService.findRoomByName(MessageDto.room.name);
 
-		const message = await this.chatService.createMessage(MessageDto);
+		Logger.debug('------------ Create Message ------------');
+		console.log('MessageDto:' + MessageDto);
+		console.log('Room: ' + JSON.stringify(room, null, 2));
+		Logger.debug('----------------------------------------');
 
-		this.server.emit('onMessage', message.text);
+		if (room) {
+			MessageDto.user = socket.data.user;
+			MessageDto.room = room;
+			const message = await this.messageService.createMessage(MessageDto);
+			this.server.to(room.name).emit('onMessage', message.text);
+		} else {
+			// TODO implement error response
+			Logger.debug('Gateway[newMessage]: room not found');
+			throw new Error('Room not found');
+		}
 	}
 
 	@SubscribeMessage('findAllMessages')
 	findAll() {
-		return this.chatService.findAllMessages();
+		return this.messageService.findAllMessages();
 	}
 
 }

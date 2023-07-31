@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChatRoom } from '../../entities/chatRoom.entity';
+import { ChatRoom } from '../entity/chatRoom.entity';
 import { Repository } from 'typeorm';
-import { RoomDto } from '../../chat/dto/room.dto';
-import { RoomI } from '../../entities/room.interface';
+import { RoomDto } from '../entity/room.dto';
+import { RoomI } from '../entity/room.interface';
 import { UserI } from 'src/entity/user.interface';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { User } from 'src/entity/user.entity';
@@ -39,7 +39,7 @@ export class RoomService {
 
 			// return ;
 
-			room.users = room.users || [];
+			// room.users = room.users;
 			room.users.push(user);
 
 			console.debug('------- Testing joined room -------');
@@ -67,7 +67,7 @@ export class RoomService {
 	/////////////////
 
 	public async findRoomById(id: number): Promise<ChatRoom | null> {
-		const room = await this.roomRepo.findOneBy({
+		const room = await this.roomRepo.findOne({
 			where: { id },
 			relations: ['users']
 		});

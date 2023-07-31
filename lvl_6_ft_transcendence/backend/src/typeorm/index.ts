@@ -1,6 +1,6 @@
 import { User } from "../entity/user.entity";
-import { Message } from "../module/chat/entities/message.entity";
-import { ChatRoom } from "../module/chat/entities/chatRoom.entity";
+import { Message } from "../module/chat/message/entity/message.entity";
+import { ChatRoom } from "../module/chat/room/entity/chatRoom.entity";
 
 const entities = [User, Message];
 

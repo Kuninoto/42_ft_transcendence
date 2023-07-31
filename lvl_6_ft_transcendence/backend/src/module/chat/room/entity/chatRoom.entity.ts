@@ -1,6 +1,6 @@
 import { PrimaryGeneratedColumn, Column, Entity, Timestamp, OneToMany, JoinTable, JoinColumn, ManyToMany } from "typeorm";
-import { Message } from "./message.entity";
-import { User } from "../../../entity/user.entity";
+import { Message } from "../../message/entity/message.entity";
+import { User } from "src/entity/user.entity";
 import { UserI } from "src/entity/user.interface";
 
 @Entity()
