@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GameQueue } from './GameQueue';
-import { GameRoomsList } from './GameRoomsList';
+import { GameRoomsMap } from './GameRoomsMap';
 import { UsersService } from '../users/users.service';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { Server } from 'socket.io';
@@ -19,7 +19,7 @@ import {
 export class GameService {
   constructor(
     private gameQueue: GameQueue,
-    private gameRoomsList: GameRoomsList,
+    private gameRoomsMap: GameRoomsMap,
     private usersService: UsersService,
   ) {}
 
@@ -55,7 +55,7 @@ export class GameService {
 
   public playerScored(gameRoomId: string, clientId: string): void {
     const gameRoom: GameRoom | undefined =
-      this.gameRoomsList.findGameRoomById(gameRoomId);
+      this.gameRoomsMap.findGameRoomById(gameRoomId);
     if (!gameRoom) {
       return;
     }
@@ -76,12 +76,12 @@ export class GameService {
         },
       };
     }
-    this.gameRoomsList.updateGameRoomById(gameRoomId, updatedGameRoom);
+    this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
   public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
     const gameRoom: GameRoom | undefined =
-      this.gameRoomsList.findGameRoomById(gameRoomId);
+      this.gameRoomsMap.findGameRoomById(gameRoomId);
     if (!gameRoom) {
       return;
     }
@@ -109,11 +109,11 @@ export class GameService {
     ) {
       return;
     }
-    this.gameRoomsList.updateGameRoomById(gameRoomId, updatedGameRoom);
+    this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
   public getGameRoomInfo(gameRoomId: string): GameRoom | undefined {
-    return this.gameRoomsList.findGameRoomById(gameRoomId);
+    return this.gameRoomsMap.findGameRoomById(gameRoomId);
   }
 
   private async joinPlayersToRoom(
@@ -134,7 +134,7 @@ export class GameService {
         ? { leftPlayer: playerOne, rightPlayer: playerTwo }
         : { leftPlayer: playerTwo, rightPlayer: playerOne };
 
-    this.gameRoomsList.createNewGameRoom({
+    this.gameRoomsMap.createNewGameRoom({
       roomId: roomId,
       gameType: GameType.LADDER,
       ball: new Ball(),

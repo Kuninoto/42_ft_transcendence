@@ -38,7 +38,7 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
     refreshToken: string,
     profile: User42Info,
   ): Promise<User> {
-    const user: User | undefined = await this.usersService.findUserByName(
+    const user: User | undefined = await this.usersService.findUserByIntraName(
       profile.username,
     );
 
@@ -46,10 +46,11 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
       return user;
     }
 
-    Logger.log('User "' + profile.username + '" logging in for the 1st time!');
+    Logger.log('\"' + profile.username + '\" logging in for the 1st time!');
 
     return await this.usersService.createUser({
       name: profile.username,
+      intra_name: profile.username,
       avatar_url: profile.avatar,
       intra_profile_url:
         'https://profile.intra.42.fr/users/' + profile.username,

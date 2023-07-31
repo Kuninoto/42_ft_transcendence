@@ -108,6 +108,10 @@ export class UsersService {
     return await this.usersRepository.findOneBy({ name: name });
   }
 
+  public async findUserByIntraName(intraName: string): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ intra_name: intraName });
+  }
+
   public async findUserByUID(userID: number): Promise<User | null> {
     return await this.usersRepository.findOneBy({ id: userID });
   }
@@ -137,6 +141,7 @@ export class UsersService {
     return {
       id: user.id,
       name: user.name,
+      intra_name: user.intra_name,
       avatar_url: user.avatar_url,
       intra_profile_url: user.intra_profile_url,
       created_at: user.created_at,
@@ -163,12 +168,10 @@ export class UsersService {
     userID: number,
     newName: string,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (newName.length > 10) {
-      this.logger.error(
-        'A request to update a name was made with a name longer than 10 chars',
-      );
+    if (newName.length < 4 || newName.length > 10) {
+      this.logger.error("User which id=" + userID + " failed to update his username");
       throw new BadRequestException(
-        'Usernames must not be longer than 10 characters',
+        'Usernames length must at least 4 and up to 10 characters long',
       );
     }
 
