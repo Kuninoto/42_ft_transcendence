@@ -63,7 +63,8 @@ export class GameGateway
       this.playersInQueueOrGame.push(newPlayer);
       this.gameService.queueToLadder(this.server, newPlayer);
     } catch (error) {
-      this.logger.error(error.message);
+      this.logger.error(error.message + " disconnecting...");
+      client.disconnect();
     }
   }
 
