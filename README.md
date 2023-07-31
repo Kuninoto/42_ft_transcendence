@@ -10,7 +10,7 @@
 ![](./extras/showcase.gif)
 
 ### Stack Used  
-<img src="https://github.com/devicons/devicon/blob/master/icons/typescript/typescript-original.svg" title="TypeScript" alt="TS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/react/react-original.svg" title="React" alt="React Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/tailwindcss/tailwindcss-plain.svg" title="Tailwindcss" alt="Tailwindcss Logo" width="50" height="50" />&nbsp;  
+<img src="https://github.com/devicons/devicon/blob/master/icons/typescript/typescript-original.svg" title="TypeScript" alt="TS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/nextjs/nextjs-original.svg" title="Nextjs" alt="Next Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/tailwindcss/tailwindcss-plain.svg" title="Tailwindcss" alt="Tailwindcss Logo" width="50" height="50" />&nbsp;  
 <img src="https://github.com/devicons/devicon/blob/master/icons/nestjs/nestjs-plain.svg" title="NestJS" alt="NestJS Logo" width="50" height="50" />&nbsp;
 <img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL" alt="PostgreSQL Logo" width="50" height="50" />&nbsp; 
 <img src="https://github.com/devicons/devicon/blob/master/icons/docker/docker-original.svg" title="Docker" alt="Docker Logo" width="65" height="65" />  
@@ -79,7 +79,19 @@ A website to host the might pong contest!
 [JWT usage vs. Session](https://stackoverflow.com/questions/43452896/authentication-jwt-usage-vs-session)  
 [JWT vs. Opaque tokens](https://zitadel.com/blog/jwt-vs-opaque-tokens)  
 [Passportjs serializerUser and deserializeUser](https://stackoverflow.com/questions/29066348/passportjs-serializeuser-and-deserializeuser-execution-flow)  
-[2fa with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
+[2FA with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
+
+**File upload & serve**
+[Serve Static NestJS Docs](https://docs.nestjs.com/recipes/serve-static)  
+
+**User Relations**
+[Difference between one-to-many and many-to-one](https://stackoverflow.com/questions/4601703/difference-between-one-to-many-and-many-to-one-relationship)  
+
+**Chat & Game**
+[A Beginner's Guide to WebSockets](https://www.youtube.com/watch?v=8ARodQ4Wlf4)  
+[WebSockets in 100 Seconds & Beyond with Socket.io](https://www.youtube.com/watch?v=1BfCnjr_Vjg)  
+[NestJS WebSockets Tutorial Playlist](https://www.youtube.com/watch?v=0zyYhm5MjJ4&list=PLBHzlq7ILbsaL1sZxJIxrc4ofSPAMSTzr&pp=iAQB)  
+[Full Socket.io and React.js Online Multiplayer Tic-Tac-Toe Game | Socket.io From Zero To Hero](https://www.youtube.com/watch?v=aA_SdbGD64E)  
 
 **PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  

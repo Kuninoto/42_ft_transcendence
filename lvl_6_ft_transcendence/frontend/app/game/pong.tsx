@@ -1,30 +1,25 @@
 import { useEffect, useRef } from 'react'
-import { Press_Start_2P } from 'next/font/google'
 
 import {
-	Paddle,
 	Ball,
+	CANVAS_HEIGHT,
+	CANVAS_WIDTH,
+	Paddle,
 	PADDLE_HEIGHT,
 	PADDLE_WALL_OFFSET,
 	PADDLE_WIDTH,
-	CANVAS_HEIGHT,
-	CANVAS_WIDTH,
 } from './definitions'
-
-const pressStart = Press_Start_2P({ weight: '400', subsets: ['latin'] })
 
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
 
-export default function Pong({
-	givePoint,
-}: {
-	givePoint: (rightPlayer: boolean) => void;
-}) {
-	// const [pow] = useSound("./sounds/pow.wav")
+type props = {
+	givePoint: (rightPlayer: boolean) => void
+}
+
+export default function Pong({ givePoint }: props) {
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-	let touch = false
 	const leftPaddle = new Paddle(PADDLE_WALL_OFFSET)
 	const rightPaddle = new Paddle(
 		CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
@@ -96,7 +91,9 @@ export default function Pong({
 					relativeIntersectY = rightPaddle.y + PADDLE_HEIGHT / 2 - ball.top
 				}
 
-				ball.ySpeed = (-relativeIntersectY / (PADDLE_HEIGHT / 2)) * 4
+				ball.ySpeed =
+					(-relativeIntersectY / (PADDLE_HEIGHT / 2)) * 6 +
+					(-1 + Math.random() * 2)
 			} else if (ball.left > CANVAS_WIDTH || ball.right < 0) {
 				givePoint(ball.left < 0)
 				reset(3 * 1000)
@@ -130,7 +127,7 @@ export default function Pong({
 		document.addEventListener('keydown', handleKeyDown)
 		document.addEventListener('keyup', handleKeyUp)
 
-		reset(1000)
+		reset(5000)
 		return () => {
 			document.removeEventListener('keydown', handleKeyDown)
 			document.removeEventListener('keyup', handleKeyUp)
@@ -139,10 +136,10 @@ export default function Pong({
 
 	return (
 		<canvas
-			className="border mx-auto"
+			className="mx-auto border"
+			height={CANVAS_HEIGHT}
 			ref={canvasRef}
 			width={CANVAS_WIDTH}
-			height={CANVAS_HEIGHT}
 		></canvas>
 	)
 }

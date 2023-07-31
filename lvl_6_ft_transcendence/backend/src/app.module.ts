@@ -3,16 +3,22 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from 'src/module/users/users.module';
 import { AuthModule } from 'src/module/auth/auth.module';
-import { ChatModule } from 'src/module/chat/chat.module';
+import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
+import { join } from 'path';
+import { FriendshipsModule } from './module/friendships/friendships.module';
 import entities from 'src/typeorm/index';
 import 'dotenv/config';
+import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
+import { MeModule } from './module/me/me.module';
+import { GameModule } from './module/game/game.module';
+import { ChatModule } from './module/chat/chat.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: () => ({
         type: 'postgres',
         host: process.env.POSTGRES_HOST,
         port: 5432,
@@ -21,17 +27,30 @@ import 'dotenv/config';
         database: process.env.POSTGRES_DB,
         entities: entities,
         autoLoadEntities: true,
-        //  !TODO: turn off during prod
+        // !TODO
+        // Turn off during prod
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+
+      // The base URL path to serve the images from
+      serveRoot: '/api/users/avatars/',
+
+      // Do not display a directory index
+      // Do not redirect to a similar file if the requested one isn't found
+      serveStaticOptions: { index: false, redirect: false },
+    }),
     AuthModule,
-    ChatModule,
+    FriendshipsModule,
+    GameModule,
+    MeModule,
+    UsersModule,
+	ChatModule
   ],
   controllers: [],
-  providers: [],
+  providers: [JwtAuthGuard],
 })
-
 export class AppModule {}

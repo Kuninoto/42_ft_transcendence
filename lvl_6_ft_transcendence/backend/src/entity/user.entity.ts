@@ -1,17 +1,23 @@
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  OneToMany,
+  JoinColumn,
+  OneToOne,
+  ManyToMany,
+  Index,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { MessageI } from 'src/module/chat/message/entity/message.interface';
 import { RoomI } from 'src/module/chat/room/entity/room.interface';
 import { ChatRoom, Message } from 'src/typeorm';
-import { PrimaryGeneratedColumn, Column, Entity, JoinTable, ManyToOne, ManyToMany, OneToMany, JoinColumn, Index } from 'typeorm';
+import { BlockedUser } from './blocked-user.entity';
+import { UserRecord } from './user-record.entity';
+import { MatchHistory } from './match-history.entity';
+import { UserStatus } from 'src/common/types/user-status.enum';
 
-export enum UserStatus {
-  ONLINE,
-  OFFLINE,
-  IN_MATCH,
-}
-
-@Entity('User')
-@Index(['name'], { unique: true })
+@Entity('user')
 export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
@@ -23,6 +29,7 @@ export class User {
   @ApiProperty()
   @Column({
     type: 'varchar',
+    length: 10,
     unique: true,
     nullable: false,
   })
@@ -30,11 +37,19 @@ export class User {
 
   @ApiProperty()
   @Column({
-    type: 'enum',
-    enum: UserStatus,
-    default: UserStatus.ONLINE,
+    type: 'varchar',
+    unique: true,
+    nullable: false,
   })
-  status: UserStatus;
+  intra_name: string;
+
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    default: UserStatus.ONLINE,
+    nullable: false,
+  })
+  status: string;
 
   @ApiProperty()
   @Column({ default: false })
@@ -55,11 +70,45 @@ export class User {
   avatar_url: string;
 
   @ApiProperty()
-  @Column({ type: 'timestamp' })
+  @Column({
+    type: 'varchar',
+    nullable: false,
+  })
+  intra_profile_url: string;
+
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    default: 'default',
+    nullable: false,
+  })
+  game_theme: string;
+
+  @ApiProperty()
+  @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.user_who_blocked)
+  @JoinColumn({ name: 'blocked_users' })
+  blocked_users: BlockedUser[];
+
+  @ApiProperty()
+  @OneToOne(() => UserRecord, (userRecord) => userRecord.user)
+  user_record: UserRecord;
+
+  @ApiProperty()
+  @OneToOne(() => MatchHistory, (matchHistory) => matchHistory.user)
+  match_history: MatchHistory;
+
+  @ApiProperty()
+  @Column({
+    type: 'timestamp',
+    default: new Date(),
+  })
   created_at: Date;
 
   @ApiProperty()
-  @Column({ type: 'timestamp' })
+  @Column({
+    type: 'timestamp',
+    default: new Date(),
+  })
   last_updated_at: Date;
 
   @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users)

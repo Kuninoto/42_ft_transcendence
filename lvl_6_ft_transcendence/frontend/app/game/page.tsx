@@ -1,25 +1,20 @@
 'use client'
 
+import moment from 'moment'
 import Image from 'next/image'
+import { useState } from 'react'
+import { useTimer } from 'react-timer-hook'
+
 import Pong from './pong'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function Game() {
-
-	const router = useRouter()
-
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 
-	useEffect(() => {
-		const exitingFunction = () => {
-			alert('exiting...')
-		}
-
-		console.log(router)
-	}, [])
-
+	const { minutes, restart, seconds } = useTimer({
+		expiryTimestamp: moment().add(5, 'm').add(5, 's').toDate(),
+		onExpire: () => console.warn('onExpire called'),
+	})
 
 	const givePoint = (rigthPlayer: boolean): void => {
 		if (rigthPlayer) {
@@ -30,32 +25,32 @@ export default function Game() {
 	}
 
 	return (
-		<div className="flex flex-col h-full">
-			<div className="flex my-8 mx-auto gap-x-8">
-				<div className="flex gap-4 my-4">
+		<div className="flex h-full flex-col">
+			<div className="mx-auto my-8 flex gap-x-8">
+				<div className="my-4 flex gap-4">
 					<div className="my-auto text-end">
 						<h3 className="text-2xl">Macaco</h3>
 						<h4 className="text-md">140 w</h4>
 						{leftPlayerScore}
 					</div>
 					<Image
-						src={'https://picsum.photos/200'}
-						width="0"
+						alt={'player 1 profile picutre'}
+						className="aspect-square w-20 rounded-full"
 						height="0"
 						sizes="100vw"
-						alt={'player 1 profile picutre'}
-						className="w-20 aspect-square rounded-full"
+						src={'https://picsum.photos/200'}
+						width="0"
 					/>
 				</div>
 				<div className="h-full w-0.5 bg-white"></div>
-				<div className="flex gap-4 my-4">
+				<div className="my-4 flex gap-4">
 					<Image
-						src={'https://picsum.photos/200'}
-						width="0"
+						alt={'player 1 profile picutre'}
+						className="aspect-square w-20 rounded-full"
 						height="0"
 						sizes="100vw"
-						alt={'player 1 profile picutre'}
-						className="w-20 aspect-square rounded-full"
+						src={'https://picsum.photos/200'}
+						width="0"
 					/>
 					<div className="my-auto">
 						<h3 className="text-2xl">Macaco</h3>
@@ -65,7 +60,13 @@ export default function Game() {
 				</div>
 			</div>
 
-			<div className="mx-auto"> 2:30 </div>
+			<div className="mx-auto">
+				<span>{minutes}</span>:
+				<span>
+					{seconds < 10 ? '0' : ''}
+					{seconds}
+				</span>
+			</div>
 
 			<Pong givePoint={givePoint} />
 		</div>

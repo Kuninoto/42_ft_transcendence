@@ -4,8 +4,8 @@ import { MessageDto } from '../../message/entity/message.dto';
 import { Server, Socket } from 'socket.io';
 import { UserI } from 'src/entity/user.interface';
 import { RoomService } from '../../room/service/room.service'
-import { UsersService } from 'src/module/users/service/users.service';
-import { AuthService } from 'src/module/auth/service/auth.service';
+import { UsersService } from 'src/module/users/users.service';
+import { AuthService } from 'src/module/auth/auth.service';
 import { UnauthorizedException} from '@nestjs/common';
 import { RoomI } from '../../room/entity/room.interface';
 import { User } from 'src/entity/user.entity';
@@ -18,7 +18,7 @@ import { MessageService } from '../../message/service/message.service';
 // In this case any origin is allowed
 // namespace is the url path. ex localhost:5000/chat
 @WebSocketGateway({
-	namespace: '/chat',
+	namespace: 'chat',
 	cors: {
 		origin: '*',
 	},
@@ -33,17 +33,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		// Check user token
 		// TODO remove Logger.debug
 		try {
-			Logger.debug('Starting token verification');
-			const token = socket.handshake.headers.authorization;
+			const user: User = await this.authService.authenticateClientAndRetrieveUser(socket)
 
-			// throws if the token is not valid
-			const decoded = await this.authService.verifyJwt(token);
-
-			Logger.debug('Trying to find user');
-			// make sure user exists
-			const user: User = await this.userService.findUserById(decoded[1]);
-
-			Logger.debug('User found!');
 			if (user) {
 				socket.data.user = user;
 			} else {
@@ -71,7 +62,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		// TODO verify room users after creation
 		// TODO delete Logger.debug and verify if current user is working
 		Logger.debug('------------ Creating room ------------');
-		console.debug('user: ' + JSON.stringify(socket.data.user, null, 2));
 		console.debug('room name: ' + room.name);
 		console.debug('room owner: ' + room.owner);
 		Logger.debug('---------------------------------------');
@@ -82,7 +72,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async onJoinRoom(socket: Socket, roomName: string) {
 		// TODO delete Logger.debug
 		Logger.debug('------------ Joining room ------------');
-		console.debug('user: ' + JSON.stringify(socket.data.user, null, 2));
 		console.debug('room name: ' + roomName);
 		Logger.debug('--------------------------------------');
 		const room = await this.roomService.joinRoom(roomName, socket.data.user);
@@ -105,6 +94,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		Logger.debug('------------ Create Message ------------');
 		console.log('MessageDto:' + MessageDto);
 		console.log('Room: ' + JSON.stringify(room, null, 2));
+		console.log('User name: ' + socket.data.user.name);
 		Logger.debug('----------------------------------------');
 
 		if (room) {
