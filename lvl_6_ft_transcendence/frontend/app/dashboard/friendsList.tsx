@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
+import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -41,8 +41,9 @@ export default function FriendsList(): JSX.Element {
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
 					<div className="flex w-full rounded-t-md px-4 py-2">
-						<div className="relative aspect-square w-12">
+						<div className="relative aspect-square w-16">
 							<Image
+								loader={removeParams}
 								alt={'avatar'}
 								className="aspect-square rounded-full"
 								height={0}

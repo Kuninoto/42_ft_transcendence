@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	reactStrictMode: true,
 	images: {
-		domains: ['picsum.photos', 'cdn.intra.42.fr'],
+		domains: ['localhost', 'cdn.intra.42.fr'],
 	},
 }
 

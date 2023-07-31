@@ -48,7 +48,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 		api.post(`/friendships/block/${userId}`)
 	}
 
-	function sendRequest(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, userId: number) {
+	function sendFriendRequest(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, userId: number) {
 		e.preventDefault()
 		e.stopPropagation()
 
@@ -133,7 +133,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 														sizes="100%"
 													/>
 													<span className="text-xl">{user.name}</span> </div>
-												<button onClick={(e) => sendRequest(e,user.id)} className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
+												<button onClick={(e) => sendFriendRequest(e,user.id)} className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
 													Add friend
 												</button>
 											</Link>
