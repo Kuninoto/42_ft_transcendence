@@ -28,7 +28,7 @@ export class AuthService {
       has_2fa: user.has_2fa,
     };
 
-    this.logger.log('User "' + user.name + '" logged in with 42 auth!');
+    this.logger.log('"' + user.name + '" logged in with 42 auth!');
     return {
       access_token: this.jwtService.sign(payload),
     };

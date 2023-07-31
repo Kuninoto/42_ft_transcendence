@@ -5,13 +5,13 @@ import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { GameController } from './game.controller';
 import { GameQueue } from './GameQueue';
-import { GameRoomsList } from './GameRoomsList';
+import { GameRoomsMap} from './GameRoomsMap';
 import { GameService } from './game.service';
 import { GameGateway } from './game.gateway';
 
 @Module({
   imports: [TypeOrmModule.forFeature([GameInfo]), AuthModule, UsersModule],
   controllers: [GameController],
-  providers: [GameQueue, GameRoomsList, GameService, GameGateway],
+  providers: [GameQueue, GameRoomsMap, GameService, GameGateway],
 })
 export class GameModule {}
