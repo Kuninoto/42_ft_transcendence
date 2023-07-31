@@ -120,7 +120,7 @@ export class AuthService {
   public async authenticateClient(client: Socket): Promise<number> {
     const authHeader: string = client.handshake.headers.authorization;
     if (!authHeader) {
-      throw new Error('Missing Auth Header');
+      throw new Error('Unathorized client, missing Auth Header');
     }
 
     // Authentication: Bearer xxxxx
@@ -130,7 +130,7 @@ export class AuthService {
     const user: User | null = await this.authClientFromAuthToken(authToken);
 
     if (!user) {
-      throw new Error('Unauthorized Client');
+      throw new Error('Unauthorized client, unknown');
     }
 
     return user.id;
