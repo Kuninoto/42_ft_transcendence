@@ -118,9 +118,9 @@ export class AuthService {
   }
 
   public async authenticateClient(client: Socket): Promise<number> {
-    const authHeader: string = client.handshake.headers.authorization;
+    const authHeader: string | undefined = client.handshake.headers.authorization;
     if (!authHeader) {
-      throw new Error('Unathorized client, missing Auth Header');
+      throw new Error('Unauthorized client, missing Auth Header');
     }
 
     // Authentication: Bearer xxxxx
