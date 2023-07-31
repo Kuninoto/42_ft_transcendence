@@ -175,7 +175,7 @@ export class UsersService {
       );
     }
 
-    if (newName.match('^[a-zA-Z0-9_]+$')) {
+    if (newName.match('[a-zA-Z0-9_]')) {
       this.logger.error("User which id=" + userID + " failed to update his username due to using forbidden chars");
       throw new BadRequestException(
         'Usernames must only use a-z, A-Z, 0-9 and _',
