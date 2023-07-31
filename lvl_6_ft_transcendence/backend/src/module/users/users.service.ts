@@ -169,9 +169,16 @@ export class UsersService {
     newName: string,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (newName.length < 4 || newName.length > 10) {
-      this.logger.error("User which id=" + userID + " failed to update his username");
+      this.logger.error("User which id=" + userID + " failed to update his username due to boundaries");
       throw new BadRequestException(
         'Usernames length must at least 4 and up to 10 characters long',
+      );
+    }
+
+    if (newName.match('^[a-zA-Z0-9_]+$')) {
+      this.logger.error("User which id=" + userID + " failed to update his username due to using forbidden chars");
+      throw new BadRequestException(
+        'Usernames must only use a-z, A-Z, 0-9 and _',
       );
     }
 
