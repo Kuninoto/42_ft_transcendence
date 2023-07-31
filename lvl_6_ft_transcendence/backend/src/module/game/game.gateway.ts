@@ -42,28 +42,25 @@ export class GameGateway
   async handleConnection(client: Socket) {
     this.logger.log('Player connected ' + client.id);
     try {
-      const userId: number = await this.authService.authenticateClient(client);
+      const userId: number = await this.authService.authenticateClientAndRetrieveUID(client);
       const newPlayer: Player = new Player(client, userId);
 
       //! TODO
       // Uncomment this, it's just for testing purposes
       // due to testing with only 1 account
 
-      /* if (this.isPlayerInQueueOrGame(newPlayer.userId)) {
-        this.logger.error(
-          'Duplicate player connecting to game-gateway, disconnecting...',
-        );
-
-        // Due to lifecycle hooks, this line calls handleDisconnect();
-        // Refer to: https://docs.nestjs.com/websockets/gateways
-        client.disconnect();
-        return;
-      } */
+      /* 
+      if (this.isPlayerInQueueOrGame(newPlayer.userId)) {
+        throw new Error('Duplicate player connecting to game-gateway);
+      } 
+      */
 
       this.playersInQueueOrGame.push(newPlayer);
       this.gameService.queueToLadder(this.server, newPlayer);
     } catch (error) {
-      this.logger.error(error.message + " disconnecting...");
+      this.logger.error(error.message + ", disconnecting...");
+      // Due to lifecycle hooks, this line calls handleDisconnect();
+      // Refer to: https://docs.nestjs.com/websockets/gateways
       client.disconnect();
     }
   }

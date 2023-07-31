@@ -117,7 +117,7 @@ export class AuthService {
     }
   }
 
-  public async authenticateClient(client: Socket): Promise<number> {
+  public async authenticateClientAndRetrieveUID(client: Socket): Promise<number> {
     const authHeader: string | undefined = client.handshake.headers.authorization;
     if (!authHeader) {
       throw new Error('Unauthorized client, missing Auth Header');

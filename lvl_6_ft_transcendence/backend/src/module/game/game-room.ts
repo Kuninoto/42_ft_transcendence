@@ -24,12 +24,14 @@ export class Player {
     this.client = client;
     this.userId = userId;
     this.score = 0;
+    this.isReady = false;
   }
   paddleY: number;
   client: Socket;
   userId: number;
   score: number;
   side: PlayerSide;
+  isReady: boolean;
 }
 
 export interface GameRoom {
