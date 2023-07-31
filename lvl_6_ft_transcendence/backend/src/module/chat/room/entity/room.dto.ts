@@ -1,3 +1,4 @@
+//TODO delete this if not used
 // import { Message } from "../entities/chat.entity";
 import { IsOptional, IsString } from "class-validator";
 import { User } from "src/entity/user.entity";

@@ -1,18 +1,17 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { ChatService } from './chat/chat.service';
-import { ChatGateway } from './chat/chat.gateway';
+import { Module } from '@nestjs/common';
+import { ChatService } from './chat/service/chat.service';
+import { ChatGateway } from './chat/gateway/chat.gateway';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatRoom } from 'src/typeorm';
 import { Message } from 'src/typeorm';
-import { RoomService } from './room/room/room.service';
-import { AuthService } from '../auth/service/auth.service';
+import { RoomService } from './room/service/room.service';
 import { UsersService } from '../users/service/users.service';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
-
+import { MessageService } from './message/service/message.service';
 
 @Module({
 	imports: [TypeOrmModule.forFeature([ChatRoom, Message]), AuthModule, UsersModule],
-	providers: [ChatGateway, ChatService, RoomService]
+	providers: [ChatGateway, ChatService, RoomService, MessageService]
 })
 export class ChatModule {}

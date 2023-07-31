@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ChatRoom } from 'src/typeorm';
-import { PrimaryGeneratedColumn, Column, Entity, JoinTable, ManyToOne, ManyToMany } from 'typeorm';
+import { MessageI } from 'src/module/chat/message/entity/message.interface';
+import { RoomI } from 'src/module/chat/room/entity/room.interface';
+import { ChatRoom, Message } from 'src/typeorm';
+import { PrimaryGeneratedColumn, Column, Entity, JoinTable, ManyToOne, ManyToMany, OneToMany, JoinColumn, Index } from 'typeorm';
 
 export enum UserStatus {
   ONLINE,
@@ -9,6 +11,7 @@ export enum UserStatus {
 }
 
 @Entity('User')
+@Index(['name'], { unique: true })
 export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
@@ -60,5 +63,8 @@ export class User {
   last_updated_at: Date;
 
   @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users)
-  room: ChatRoom[];
+  room: RoomI[];
+
+  @OneToMany(() => Message, (message: Message) => message.user)
+  messages: MessageI[];
 }

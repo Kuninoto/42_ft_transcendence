@@ -1,5 +1,5 @@
 import { User } from "src/entity/user.entity";
-import { UserI } from "../../../entity/user.interface";
+import { UserI } from "../../../../entity/user.interface";
 import { Meta } from "./meta.interface";
 
 export interface RoomI {
