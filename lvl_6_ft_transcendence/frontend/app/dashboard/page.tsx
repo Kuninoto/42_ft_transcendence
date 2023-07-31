@@ -10,7 +10,6 @@ import {
 } from 'react-icons/hi2'
 
 import FriendsList from './friendsList'
-import { useAuth } from '@/contexts/AuthContext'
 
 function Card({ children, path }: { children: JSX.Element[]; path: string }) {
 	return (
@@ -48,7 +47,7 @@ export default function Dashboard() {
 
 			<div className="flex w-3/4 flex-col place-content-center gap-y-8">
 				<div className="flex space-x-8 mx-auto">
-					<Card path="/loading">
+					<Card path="/matchmaking">
 						<div className="text-2xl">Play</div>
 						<HiOutlinePlay size={128} />
 						<button

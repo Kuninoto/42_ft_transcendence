@@ -1,7 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { useAuth } from '@/contexts/AuthContext'
+import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { MdOutlineBlock, MdOutlineClear, MdOutlineDone  } from "react-icons/md"
 import Image from 'next/image'
 import Link from 'next/link'
@@ -125,6 +125,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 											>
 												<div className="flex space-x-6">
 													<Image
+													loader={removeParams}
 														alt="profile picture"
 														src={user.avatar_url || "/placeholder.jpg"}
 														className="aspect-square w-8 rounded-full"
