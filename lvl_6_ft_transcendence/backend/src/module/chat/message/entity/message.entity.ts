@@ -15,8 +15,8 @@ export class Message {
 		@Column({ nullable: false })
 		text: string;
 
-		@Column({ type: 'timestamp'})
-		created_at?: Date;
+		@Column({ type: 'timestamp', default: new Date()})
+		created_at: Date;
 
 		@JoinColumn()
 		@ManyToOne(() => User, (user: User) => user.messages)
