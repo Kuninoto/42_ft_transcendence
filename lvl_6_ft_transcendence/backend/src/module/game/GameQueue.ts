@@ -29,6 +29,7 @@ export class GameQueue {
     const playerIndex: number = this.players.findIndex((player) => {
       return player.client.id === clientId;
     });
+
     if (playerIndex === -1) {
       return;
     }

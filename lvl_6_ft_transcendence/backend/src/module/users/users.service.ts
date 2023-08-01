@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BlockedUser, Friendship, User } from 'src/typeorm';
+import { BlockedUser, Friendship, GameResult, User } from 'src/entity/index';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { SuccessResponse } from '../../common/types/success-response.interface';
 import { ErrorResponse } from '../../common/types/error-response.interface';
@@ -33,8 +33,17 @@ export class UsersService {
 
   private readonly logger: Logger = new Logger(UsersService.name);
 
-  public async findAll(): Promise<User[]> {
-    return await this.usersRepository.find();
+  /****************************
+   *         User CRUD         *
+   *****************************/
+
+  public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
+    const newUser = this.usersRepository.create(newUserInfo);
+    return await this.usersRepository.save(newUser);
+  }
+
+  public async findUserByName(name: string): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ name: name });
   }
 
   public async findUsersSearchInfoByUsernameProximity(
@@ -93,19 +102,6 @@ export class UsersService {
     });
 
     return usersSearchInfo;
-  }
-
-  /****************************
-   *         User CRUD         *
-   *****************************/
-
-  public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
-    const newUser = this.usersRepository.create(newUserInfo);
-    return await this.usersRepository.save(newUser);
-  }
-
-  public async findUserByName(name: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ name: name });
   }
 
   public async findUserByIntraName(intraName: string): Promise<User | null> {
@@ -169,14 +165,22 @@ export class UsersService {
     newName: string,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (newName.length < 4 || newName.length > 10) {
-      this.logger.error("User which id=" + userID + " failed to update his username due to boundaries");
+      this.logger.error(
+        'User which id=' +
+          userID +
+          ' failed to update his username due to boundaries',
+      );
       throw new BadRequestException(
         'Usernames length must at least 4 and up to 10 characters long',
       );
     }
 
     if (!newName.match('^[a-zA-Z0-9_]+$')) {
-      this.logger.error("User which id=" + userID + " failed to update his username due to using forbidden chars");
+      this.logger.error(
+        'User which id=' +
+          userID +
+          ' failed to update his username due to using forbidden chars',
+      );
       throw new BadRequestException(
         'Usernames must only use a-z, A-Z, 0-9 and _',
       );
@@ -199,39 +203,6 @@ export class UsersService {
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated username' };
-  }
-
-  public async updateUserStatusByUID(
-    userID: number,
-    newStatus: UserStatus,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
-      status: newStatus,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully updated user status' };
-  }
-
-  public async update2faSecretByUID(
-    userID: number,
-    newSecret: string,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
-      secret_2fa: newSecret,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully updated 2fa secret' };
-  }
-
-  public async updateGameThemeByUID(
-    userID: number,
-    newGameTheme: GameThemes,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
-      game_theme: newGameTheme,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully updated game theme' };
   }
 
   public async updateUserAvatarByUID(
@@ -260,14 +231,42 @@ export class UsersService {
     return { message: 'Successfully updated user avatar' };
   }
 
-  public async deleteUserByUID(userID: number): Promise<SuccessResponse> {
-    await this.usersRepository.delete(userID);
-    return { message: 'Successfully deleted user' };
+  public async updateUserStatusByUID(
+    userID: number,
+    newStatus: UserStatus,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userID, {
+      status: newStatus,
+      last_updated_at: new Date(),
+    });
+    return { message: 'Successfully updated user status' };
+  }
+
+  public async updateGameThemeByUID(
+    userID: number,
+    newGameTheme: GameThemes,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userID, {
+      game_theme: newGameTheme,
+      last_updated_at: new Date(),
+    });
+    return { message: 'Successfully updated game theme' };
   }
 
   /**********************************
    *               2FA               *
    **********************************/
+
+  public async update2faSecretByUID(
+    userID: number,
+    newSecret: string,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userID, {
+      secret_2fa: newSecret,
+      last_updated_at: new Date(),
+    });
+    return { message: 'Successfully updated 2fa secret' };
+  }
 
   public async enable2fa(
     userID: number,
@@ -288,6 +287,11 @@ export class UsersService {
       last_updated_at: new Date(),
     });
     return { message: 'Successfully disabled two factor authentication' };
+  }
+
+  public async deleteUserByUID(userID: number): Promise<SuccessResponse> {
+    await this.usersRepository.delete(userID);
+    return { message: 'Successfully deleted user' };
   }
 
   /**********************************

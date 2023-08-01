@@ -7,22 +7,22 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
-import { GameInfo } from './game.entity';
+import { GameResult } from './game-result.entity';
 
 @Entity('match-history')
 export class MatchHistory {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 
-  @ApiProperty()
-  @OneToMany(() => GameInfo, (GameInfo) => GameInfo.id)
-  game_history: GameInfo;
-
-  @OneToOne(() => User, (user) => user.user_record)
+  @OneToOne(() => User, (user) => user.id)
   @JoinColumn()
   user: User;
+
+  @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult) => gameResult.id)
+  @JoinColumn()
+  game_results: GameResult[];
 }

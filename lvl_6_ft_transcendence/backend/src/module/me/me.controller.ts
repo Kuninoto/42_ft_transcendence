@@ -21,7 +21,8 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
-import { User } from 'src/typeorm';
+import { GameResult, User } from 'src/entity/index';
+
 import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
@@ -33,6 +34,7 @@ import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { GameThemes } from '../../common/types/game-themes.enum';
+import { GameService } from '../game/game.service';
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
@@ -141,6 +143,28 @@ export class MeController {
   }
 
   /**
+   * GET /api/me/match-history
+   *
+   * Finds and returns the 'me' user's match history
+   */
+  /* @ApiOkResponse({
+    description:
+      "Finds and returns the 'me' user's match history (GameResult[])",
+  })
+  @Get('match-history')
+  public async getMyMatchHistory(
+    @Req() req: { user: User },
+  ): Promise<GameResult[]> {
+    this.logger.log(
+      '"' +
+        req.user.name +
+        '" requested his match history info using /me/match-history',
+    );
+
+    return 'foo';
+  } */
+
+  /**
    * DELETE /api/me
    *
    * This is the route to visit to delete 'me' user's
@@ -173,7 +197,8 @@ export class MeController {
       "Updates 'me' user's username\nExpects the new username as the \"newUsername\" field of a JSON on the body",
   })
   @ApiBadRequestResponse({
-    description: 'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
+    description:
+      'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
   })
   @ApiConflictResponse({ description: 'If the new username is already taken' })
   @ApiBody({
@@ -191,8 +216,10 @@ export class MeController {
     this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     if (!body.newUsername) {
-      this.logger.error("A user failed to update his username");
-      throw new BadRequestException("Expected 'newUsername' as a field of the body's JSON");
+      this.logger.error('A user failed to update his username');
+      throw new BadRequestException(
+        "Expected 'newUsername' as a field of the body's JSON",
+      );
     }
 
     return await this.usersService.updateUsernameByUID(
