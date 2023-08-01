@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 
-import io from "socket.io-client";
 import {
 	Ball,
 	CANVAS_HEIGHT,
@@ -12,6 +11,8 @@ import {
 } from './definitions'
 import { useGame } from '@/contexts/GameContext';
 import { PlayerSide } from '@/common/types/backend/player-side.enum';
+import { useAuth } from '@/contexts/AuthContext';
+import { themes } from '@/common/themes';
 
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
@@ -22,41 +23,85 @@ type props = {
 
 export default function Pong({ givePoint }: props) {
 
-	const { opponentFound, emitPaddleMovement } = useGame()
+	const { opponentFound, emitPaddleMovement, gameInfo } = useGame()
+	const { user } = useAuth()
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)
+	const backgroundImageRef = useRef(null)
+	const paddleImageRef = useRef(null)
 
-	const playerPaddle = new Paddle(
-		opponentFound.side === PlayerSide.LEFT 
-			? PADDLE_WALL_OFFSET
-			: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET)
-	const opponentPaddle = new Paddle(
-		opponentFound.side === PlayerSide.RIGHT 
-			? PADDLE_WALL_OFFSET
-			: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET)
-	
+	const playerPaddleRef = useRef<Paddle>(
+		new Paddle(
+			emitPaddleMovement,
+			opponentFound.side === PlayerSide.LEFT
+				? PADDLE_WALL_OFFSET
+				: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
+		)
+	);
+
+	const opponentPaddleRef = useRef<Paddle>(
+		new Paddle(
+			emitPaddleMovement,
+			opponentFound.side === PlayerSide.RIGHT
+				? PADDLE_WALL_OFFSET
+				: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
+		)
+	);
+
 	const ball = new Ball()
 
 	const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
 
 	useEffect(() => {
+		if (Object.keys(gameInfo).length !== 0) {
+			if ( opponentFound.side === PlayerSide.LEFT ) {
+				opponentPaddleRef.current.y = gameInfo.rightPlayer.paddleY
+			} else {
+				opponentPaddleRef.current.y = gameInfo.leftPlayer.paddleY
+			}
+		}
+	}, [gameInfo])
+
+	useEffect(() => {
 		const canvas = canvasRef.current
 		const context = canvas && canvas.getContext('2d')
 
+		const backgroundImage = new Image();
+		const paddleImage = new Image();
+
+		backgroundImage.src = `/game/backgrounds/${themes[user.game_theme].background}`;
+		paddleImage.src = `/game/paddles/${themes[user.game_theme].paddle}`;
+
+		backgroundImageRef.current = backgroundImage;
+		paddleImageRef.current = paddleImage;
+
+		backgroundImage.onload = () => {
+			context.drawImage(backgroundImageRef.current, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+		}
+
+		paddleImage.onload = () => {
+			context.drawImage(paddleImageRef.current, playerPaddleRef.current.x , playerPaddleRef.current.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+			context.drawImage(paddleImageRef.current, opponentPaddleRef.current.x, opponentPaddleRef.current.y , PADDLE_WIDTH, PADDLE_HEIGHT);
+		}
+
 		const draw = () => {
 			if (context) {
-				context.clearRect(0, 0, canvas.width, canvas.height)
+				context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+
+				context.drawImage(backgroundImageRef.current, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
 				context.fillStyle = '#FFF'
-				context.fillRect(
-					playerPaddle.x,
-					playerPaddle.y,
+				context.drawImage(
+					paddleImageRef.current,
+					playerPaddleRef.current.x,
+					playerPaddleRef.current.y,
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				)
-				context.fillRect(
-					opponentPaddle.x,
-					opponentPaddle.y,
+				context.drawImage(
+					paddleImageRef.current,
+					opponentPaddleRef.current.x,
+					opponentPaddleRef.current.y,
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				)
@@ -68,8 +113,8 @@ export default function Pong({ givePoint }: props) {
 		}
 
 		const reset = async (delayTime: number) => {
-			playerPaddle.reset()
-			opponentPaddle.reset()
+			playerPaddleRef.current.reset()
+			opponentPaddleRef.current.reset()
 			ball.reset()
 
 			draw()
@@ -78,8 +123,8 @@ export default function Pong({ givePoint }: props) {
 		}
 
 		function update() {
-			playerPaddle.move()
-//			emitPaddleMovement(playerPaddle.y)
+			playerPaddleRef.current.move()
+			opponentPaddleRef.current.move()
 
 			// ball.move()
 
@@ -89,15 +134,15 @@ export default function Pong({ givePoint }: props) {
 				ball.bounceInX()
 			}
 
-			if (playerPaddle.isBallColliding(opponentFound.side, ball.speed, ball.left, ball.top)) {
+			if (playerPaddleRef.isBallColliding(opponentFound.side, ball.speed, ball.left, ball.top)) {
 				ball.bounceInY()
-				const relativeIntersectY = playerPaddle.y + PADDLE_HEIGHT / 2 - ball.top
+				const relativeIntersectY = playerPaddleRef.y + PADDLE_HEIGHT / 2 - ball.top
 				ball.ySpeed = (-relativeIntersectY / (PADDLE_HEIGHT / 2)) * 6 + (-1 + Math.random() * 2)
 				
-			} else if (opponentPaddle.isBallColliding(opponentFound.side, ball.speed, ball.right, ball.top)) {
+			} else if (opponentPaddleRef.isBallColliding(opponentFound.side, ball.speed, ball.right, ball.top)) {
 				ball.bounceInY()
-				const relativeIntersectY = opponentPaddle.y + PADDLE_HEIGHT / 2 - ball.top
-				balopponentPaddlel.ySpeed = (-relativeIntersectY / (PADDLE_HEIGHT / 2)) * 6 + (-1 + Math.random() * 2)
+				const relativeIntersectY = opponentPaddleRef.y + PADDLE_HEIGHT / 2 - ball.top
+				balopponentPaddleRefl.ySpeed = (-relativeIntersectY / (PADDLE_HEIGHT / 2)) * 6 + (-1 + Math.random() * 2)
 
 			} else if (ball.left > CANVAS_WIDTH || ball.right < 0) {
 				givePoint(ball.left < 0)
@@ -111,13 +156,13 @@ export default function Pong({ givePoint }: props) {
 
 		const handleKeyDown = ({ key }: KeyboardEvent) => {
 			if (key === 's' || key === 'w' || key === KEYDOWN || key === KEYUP) {
-				playerPaddle.allowMove(key === 's' || key === KEYDOWN)
+				playerPaddleRef.current.allowMove(key === 's' || key === KEYDOWN)
 			}
 		}
 
 		const handleKeyUp = ({ key }: KeyboardEvent) => {
 			if (key === 's' || key === 'w' || KEYDOWN === key || KEYUP === key) {
-				playerPaddle.blockMove()
+				playerPaddleRef.current.blockMove()
 			}
 		}
 

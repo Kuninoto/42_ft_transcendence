@@ -13,8 +13,9 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Logger } from '@nestjs/common';
-import { GameRoom, Player } from './game-room';
+import { GameRoom, GameRoomInfo, Player } from './game-room';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
+import { PlayerIds } from 'src/common/types/player-interface.interface';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway
@@ -23,7 +24,7 @@ export class GameGateway
   @WebSocketServer()
   public server: Server;
 
-  private playersInQueueOrGame: Player[];
+  private playersInQueueOrGame: PlayerIds[];
 
   constructor(
     private readonly gameService: GameService,
@@ -42,28 +43,21 @@ export class GameGateway
   async handleConnection(client: Socket) {
     this.logger.log('Player connected ' + client.id);
     try {
-      const userId: number = await this.authService.authenticateClient(client);
-      const newPlayer: Player = new Player(client, userId);
-
-      //! TODO
-      // Uncomment this, it's just for testing purposes
-      // due to testing with only 1 account
-
-      if (this.isPlayerInQueueOrGame(newPlayer.userId)) {
-        this.logger.error(
-          'Duplicate player connecting to game-gateway, disconnecting...',
-        );
-
-        // Due to lifecycle hooks, this line calls handleDisconnect();
-        // Refer to: https://docs.nestjs.com/websockets/gateways
-        client.disconnect();
-        return;
+      const userId: number = await this.authService.authenticateClientAndRetrieveUID(client);
+      if (this.isPlayerInQueueOrGame(userId)) {
+        throw new Error('Duplicate player connected');
       }
 
-      this.playersInQueueOrGame.push(newPlayer);
+      const newPlayer: Player = new Player(client, userId);
+      this.playersInQueueOrGame.push({
+        clientId: newPlayer.client.id,
+        userId: newPlayer.userId,
+      });
       this.gameService.queueToLadder(this.server, newPlayer);
     } catch (error) {
-      this.logger.error(error.message + " disconnecting...");
+      this.logger.error(error.message + ", disconnecting...");
+      // Due to lifecycle hooks, this line calls handleDisconnect();
+      // Refer to: https://docs.nestjs.com/websockets/gateways
       client.disconnect();
     }
   }
@@ -80,7 +74,6 @@ export class GameGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: PaddleMoveDTO,
   ): void {
-    console.log(messageBody)
     this.gameService.paddleMove(
       messageBody.gameRoomId,
       client.id,
@@ -102,10 +95,21 @@ export class GameGateway
   }
 
   broadcastGameRoomInfo(roomId: string): void {
-    const gameRoomInfo: GameRoom | undefined =
+    const gameRoom: GameRoom | undefined =
       this.gameService.getGameRoomInfo(roomId);
-    if (gameRoomInfo)
-      this.server.to(roomId).emit('game-room-info', gameRoomInfo);
+
+    if (!gameRoom) {
+      return;
+    }
+
+    const { ball, leftPlayer, rightPlayer } = gameRoom;
+    
+    const gameRoomInfo: GameRoomInfo = {
+      ball: { x: ball.x, y: ball.y },
+      leftPlayer: { paddleY: leftPlayer.paddleY, score: leftPlayer.score },
+      rightPlayer: { paddleY: rightPlayer.paddleY, score: rightPlayer.score },
+    };
+    this.server.to(roomId).emit('game-room-info', gameRoomInfo);
   }
 
   /* broadcastGameEnd(): void {
@@ -116,16 +120,16 @@ export class GameGateway
   private erasePlayerFromArray(playerClientId: string): void {
     const indexOfPlayerToDisconnect: number =
       this.playersInQueueOrGame.findIndex((player) => {
-        player.client.id === playerClientId;
+        return player.clientId === playerClientId;
       });
     if (indexOfPlayerToDisconnect !== -1) {
       this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1);
     }
   }
 
-  private isPlayerInQueueOrGame(newPlayerUID: number): boolean {
+  private isPlayerInQueueOrGame(playerUID: number): boolean {
     return this.playersInQueueOrGame.some(
-      (player) => player.userId === newPlayerUID,
+      (player) => player.userId === playerUID,
     );
   }
 }

@@ -11,10 +11,14 @@ export const CANVAS_WIDTH = 800
 const SPEED_CAP = 18
 
 export class Paddle {
+
 	#fixedSpeed: number = 0
 	#position: { x: number; y: number }
 
-	constructor(offset: number) {
+	#emitPaddleMovement: (newY: number) => void
+
+	constructor(emitPaddleMovement: (newY: number) => void, offset: number) {
+		this.#emitPaddleMovement = emitPaddleMovement
 		this.#position = {
 			x: offset,
 			y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
@@ -67,11 +71,16 @@ export class Paddle {
 		} else {
 			this.#position.y += this.#fixedSpeed
 		}
+		this.#emitPaddleMovement(this.#position.y)
 	}
 
 	reset() {
 		this.#position.y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
 		this.#fixedSpeed = 0
+	}
+
+	set y(position: number) {
+		this.#position.y = position
 	}
 
 	get x(): number {

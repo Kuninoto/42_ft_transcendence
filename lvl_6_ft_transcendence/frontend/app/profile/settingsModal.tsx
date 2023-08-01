@@ -5,36 +5,35 @@ import { useForm } from "react-hook-form"
 
 export default function SettingsModal ({ closeModal }: { closeModal: () => void }) {
 	
-<<<<<<< HEAD
 	const { user, refreshUser } = useAuth()
 
-	const { register, handleSubmit } = useForm<FormData>( {
+	const { register, handleSubmit, setError} = useForm<FormData>( {
 		defaultValues: {
 			name: user.name
 		}
 	})
-=======
-	const { refreshUser } = useAuth()
-
-	const { register, handleSubmit } = useForm<FormData>()
->>>>>>> origin/frontend
 
 	async function onSubmit({ name, photo }: any) {
 
-		if (name.length != 0)
-		{
-			await api.patch("/me/username", {
-				newUsername: name
-			})
-		}
+			try {
+				if (name.length !== 0 && name !== user.name)
+				{
+						await api.patch("/me/username", {
+							newUsername: name
+						})
+				}
 
-		if(photo.length != 0)
-		{
-			await multipartApi.patch("/me/avatar", {
-					avatar: photo[0]
-			})
-		}
+				if(photo.length !== 0)
+				{
+					await multipartApi.patch("/me/avatar", {
+							avatar: photo[0]
+					})
+				}
 
+			} catch (error) {
+
+				console.log(error)
+			}
 		api.get("/me").then((result) => {
 			refreshUser(result.data)
 			closeModal()
@@ -54,14 +53,10 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none">
 
 						<form className="flex flex-col space-y-2" onSubmit={handleSubmit(onSubmit)}>
-<<<<<<< HEAD
 							<fieldset className="flex items-center">
 								<label htmlFor="name">Name:</label>
 								<input id="name" {...register("name", { maxLength: 10 })} className="bg-transparent border border-white outline-none rounded py-2 px-2" type="text" />
 							</fieldset>
-=======
-							<input {...register("name", { maxLength: 10 })} className="bg-transparent border border-white outline-none rounded py-2 px-2" type="text" />
->>>>>>> origin/frontend
 							<input {...register("photo")} type="file" accept="image/*"/>
 							<input type="submit" value="Submit" />
 						</form>
