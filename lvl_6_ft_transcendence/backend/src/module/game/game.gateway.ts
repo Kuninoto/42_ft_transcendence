@@ -13,7 +13,7 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Logger } from '@nestjs/common';
-import { GameRoom, Player } from './game-room';
+import { GameRoom, GameRoomInfo, Player } from './game-room';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerIds } from 'src/common/types/player-interface.interface';
 
@@ -95,10 +95,21 @@ export class GameGateway
   }
 
   broadcastGameRoomInfo(roomId: string): void {
-    const gameRoomInfo: GameRoom | undefined =
+    const gameRoom: GameRoom | undefined =
       this.gameService.getGameRoomInfo(roomId);
-    if (gameRoomInfo)
-      this.server.to(roomId).emit('game-room-info', gameRoomInfo);
+
+    if (!gameRoom) {
+      return;
+    }
+
+    const { ball, leftPlayer, rightPlayer } = gameRoom;
+    
+    const gameRoomInfo: GameRoomInfo = {
+      ball: { x: ball.x, y: ball.y },
+      leftPlayer: { paddleY: leftPlayer.paddleY, score: leftPlayer.score },
+      rightPlayer: { paddleY: rightPlayer.paddleY, score: rightPlayer.score },
+    };
+    this.server.to(roomId).emit('game-room-info', gameRoomInfo);
   }
 
   /* broadcastGameEnd(): void {

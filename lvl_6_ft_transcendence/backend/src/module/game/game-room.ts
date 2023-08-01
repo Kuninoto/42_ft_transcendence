@@ -41,3 +41,19 @@ export interface GameRoom {
   leftPlayer: Player;
   rightPlayer: Player;
 }
+
+export interface IPlayer {
+  paddleY: number;
+  score: number;
+}
+
+export interface IBall {
+  x: number;
+  y: number;
+}
+
+export interface GameRoomInfo {
+  ball: IBall;
+  leftPlayer: IPlayer;
+  rightPlayer: IPlayer;
+}
