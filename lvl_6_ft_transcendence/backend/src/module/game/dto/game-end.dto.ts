@@ -1,13 +1,11 @@
 export interface GameEndDTO {
-  id: string;
-
   winner: {
-    id: number;
+    userId: number;
     score: number;
   };
 
   loser: {
-    id: number;
+    userId: number;
     score: number;
   };
 }

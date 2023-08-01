@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity/index';
 
 export class CreateBlockedUsertDTO {
   @ApiProperty()

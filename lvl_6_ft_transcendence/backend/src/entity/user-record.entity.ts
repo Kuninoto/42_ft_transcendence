@@ -13,7 +13,6 @@ export class UserRecord {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 
@@ -45,6 +44,7 @@ export class UserRecord {
   })
   total_matches_played: number;
 
+  @ApiProperty()
   @OneToOne(() => User, (user) => user.user_record)
   @JoinColumn()
   user: User;

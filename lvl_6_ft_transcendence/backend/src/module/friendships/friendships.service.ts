@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, Friendship, BlockedUser } from 'src/typeorm';
+import { User, Friendship, BlockedUser } from 'src/entity/index';
 import { UsersService } from '../users/users.service';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';

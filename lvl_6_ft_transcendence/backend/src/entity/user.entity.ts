@@ -17,7 +17,6 @@ export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 
@@ -88,9 +87,9 @@ export class User {
   @OneToOne(() => UserRecord, (userRecord) => userRecord.user)
   user_record: UserRecord;
 
-  @ApiProperty()
+  /* @ApiProperty()
   @OneToOne(() => MatchHistory, (matchHistory) => matchHistory.user)
-  match_history: MatchHistory;
+  match_history: MatchHistory; */
 
   @ApiProperty()
   @Column({

@@ -5,7 +5,6 @@ import { User } from './user.entity';
 export class BlockedUser {
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 

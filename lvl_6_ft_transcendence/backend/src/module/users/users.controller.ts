@@ -13,7 +13,8 @@ import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { ErrorResponse } from '../../common/types/error-response.interface';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity/index';
+
 import { UserProfile } from '../../common/types/user-profile.interface';
 import { UserSearchInfo } from '../../common/types/user-search-info.interface';
 

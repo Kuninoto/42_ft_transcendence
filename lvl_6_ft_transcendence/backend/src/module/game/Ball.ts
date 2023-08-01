@@ -1,4 +1,4 @@
-import { CANVAS_LENGTH, CANVAS_HEIGHT } from "./GameRoom";
+import { CANVAS_LENGTH, CANVAS_HEIGHT } from './GameRoom';
 
 export class Ball {
   constructor() {
