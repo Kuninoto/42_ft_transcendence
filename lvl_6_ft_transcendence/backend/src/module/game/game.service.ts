@@ -243,9 +243,9 @@ export class GameService {
     winner: Player,
     loser: Player,
   ): Promise<void> {
-    //if (winner.userId === loser.userId) {
-    //  throw new Error('Winner and loser cannot be the same user.');
-    //}
+    if (winner.userId === loser.userId) {
+      throw new Error('Winner and loser cannot be the same user.');
+    }
 
     const winnerUser: User = await this.usersService.findUserByUID(
       winner.userId,
