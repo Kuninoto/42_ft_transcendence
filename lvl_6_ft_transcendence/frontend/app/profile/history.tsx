@@ -11,14 +11,7 @@ export default function History() {
 					monkeyy
 				</Link>
 			</div>
-			<div className="flex w-full place-content-around border border-white py-3 text-xl">
-				<p>victory</p>
-				<p>12 04</p>
-				<p>4:20</p>
-				<Link className="hover:underline" href={'/profile'}>
-					monkeyy
-				</Link>
-			</div>
+
 			<div className="flex w-full place-content-around border border-white py-3 text-xl">
 				<p>victory</p>
 				<p>12 04</p>
