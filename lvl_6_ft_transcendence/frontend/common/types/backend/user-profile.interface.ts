@@ -7,7 +7,7 @@ export interface UserProfile {
   name: string;
   avatar_url: string;
   intra_name: string;
-  intra_profile_url: string;
+  intra_rofile_url: string;
   created_at: Date;
   friends: FriendInterface[];
   friendship_status: FriendshipStatus | null;
