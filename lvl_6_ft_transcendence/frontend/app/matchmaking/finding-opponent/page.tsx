@@ -2,10 +2,35 @@
 
 import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
+<<<<<<< HEAD:lvl_6_ft_transcendence/frontend/app/matchmaking/finding-opponent/page.tsx
 
 export default function FindingOpponent() {
+=======
+import io from "socket.io-client";
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
+export default function Loading() {
+	const router = useRouter()
+>>>>>>> origin/frontend:lvl_6_ft_transcendence/frontend/app/loading/page.tsx
 
 	const { cancel } = useGame()
+
+	useEffect(() => {
+
+		const socket = io.connect("http://localhost:3000/game-gateway", {
+			extraHeader: {
+				Authorization: `Bearer ${localStorage.getItem("pong.token")}`
+			}
+		})
+
+
+		return () => {
+			console.log("nig")
+			socket.disconnect()
+		}
+
+	})
 
 	return (
 		<div className="flex h-full">
