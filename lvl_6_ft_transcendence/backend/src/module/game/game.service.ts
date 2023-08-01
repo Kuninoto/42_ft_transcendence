@@ -4,16 +4,12 @@ import { GameRoomsMap } from './GameRoomsMap';
 import { UsersService } from '../users/users.service';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { Server } from 'socket.io';
-import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 import { GameType } from 'src/common/types/game-type.enum';
 import { PlayerSide } from 'src/common/types/player-side.enum';
-import {
-  Ball,
-  CANVAS_HEIGHT,
-  GameRoom,
-  PADDLE_VELOCITY,
-  Player,
-} from './game-room';
+import { Ball } from './Ball';
+import { Player } from './Player';
+import { GameRoom, CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET } from './GameRoom';
+import { PlayerIds } from 'src/common/types/player-interface.interface';
 
 @Injectable()
 export class GameService {
@@ -42,13 +38,14 @@ export class GameService {
     }
   }
 
-  public leaveLadderQueue(clientId: string): void {
-    const removedPlayer: Player | void =
-      this.gameQueue.removePlayerFromQueueByClientId(clientId);
+  public leaveLadderQueue(disconnectedPlayerIds: PlayerIds): void {
+    const { clientId, userId } = disconnectedPlayerIds;
 
-    if (removedPlayer)
+    this.gameQueue.removePlayerFromQueueByClientId(clientId);
+    
+    if (disconnectedPlayerIds)
       this.usersService.updateUserStatusByUID(
-        removedPlayer.userId,
+        userId,
         UserStatus.ONLINE,
       );
   }
@@ -105,7 +102,7 @@ export class GameService {
       ].paddleY < 0 ||
       updatedGameRoom[
         playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
-      ].paddleY > CANVAS_HEIGHT
+      ].paddleY > CANVAS_HEIGHT - CANVAS_HEIGHT_OFFSET
     ) {
       return;
     }

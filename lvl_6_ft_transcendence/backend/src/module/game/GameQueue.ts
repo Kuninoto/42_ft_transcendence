@@ -1,4 +1,4 @@
-import { Player } from './game-room';
+import { Player } from './Player';
 
 export class GameQueue {
   private players: Player[];
@@ -27,7 +27,7 @@ export class GameQueue {
 
   public removePlayerFromQueueByClientId(clientId: string): Player | void {
     const playerIndex: number = this.players.findIndex((player) => {
-      player.client.id === clientId;
+      return player.client.id === clientId;
     });
     if (playerIndex === -1) {
       return;
