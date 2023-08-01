@@ -15,6 +15,7 @@ import { AuthService } from '../auth/auth.service';
 import { Logger } from '@nestjs/common';
 import { GameRoom, Player } from './game-room';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
+import { PlayerIds } from 'src/common/types/player-interface.interface';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway
@@ -23,7 +24,7 @@ export class GameGateway
   @WebSocketServer()
   public server: Server;
 
-  private playersInQueueOrGame: Player[];
+  private playersInQueueOrGame: PlayerIds[];
 
   constructor(
     private readonly gameService: GameService,
@@ -43,19 +44,15 @@ export class GameGateway
     this.logger.log('Player connected ' + client.id);
     try {
       const userId: number = await this.authService.authenticateClientAndRetrieveUID(client);
+      if (this.isPlayerInQueueOrGame(userId)) {
+        throw new Error('Duplicate player connected');
+      }
+
       const newPlayer: Player = new Player(client, userId);
-
-      //! TODO
-      // Uncomment this, it's just for testing purposes
-      // due to testing with only 1 account
-
-      /* 
-      if (this.isPlayerInQueueOrGame(newPlayer.userId)) {
-        throw new Error('Duplicate player connecting to game-gateway);
-      } 
-      */
-
-      this.playersInQueueOrGame.push(newPlayer);
+      this.playersInQueueOrGame.push({
+        clientId: newPlayer.client.id,
+        userId: newPlayer.userId,
+      });
       this.gameService.queueToLadder(this.server, newPlayer);
     } catch (error) {
       this.logger.error(error.message + ", disconnecting...");
@@ -112,16 +109,16 @@ export class GameGateway
   private erasePlayerFromArray(playerClientId: string): void {
     const indexOfPlayerToDisconnect: number =
       this.playersInQueueOrGame.findIndex((player) => {
-        player.client.id === playerClientId;
+        return player.clientId === playerClientId;
       });
     if (indexOfPlayerToDisconnect !== -1) {
       this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1);
     }
   }
 
-  private isPlayerInQueueOrGame(newPlayerUID: number): boolean {
+  private isPlayerInQueueOrGame(playerUID: number): boolean {
     return this.playersInQueueOrGame.some(
-      (player) => player.userId === newPlayerUID,
+      (player) => player.userId === playerUID,
     );
   }
 }
