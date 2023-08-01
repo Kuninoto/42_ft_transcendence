@@ -291,8 +291,6 @@ export class FriendshipsService {
       );
     }
 
-    console.log(JSON.stringify(userToBlock, null, 2));
-
     await this.blockAndDeleteFriendship(sender, userToBlock);
 
     Logger.log('"' + sender.name + '" blocked "' + userToBlock.name + '"');

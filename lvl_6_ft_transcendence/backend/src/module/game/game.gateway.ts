@@ -13,9 +13,11 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Logger } from '@nestjs/common';
-import { GameRoom, GameRoomInfo, Player } from './game-room';
+import { GameRoom, GameRoomInfo } from './GameRoom';
+import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerIds } from 'src/common/types/player-interface.interface';
+import { UserStatus } from 'src/common/types/user-status.enum';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway
@@ -35,12 +37,12 @@ export class GameGateway
 
   private readonly logger: Logger = new Logger(GameGateway.name);
 
-  afterInit(server: Server) {
+  afterInit(server: Server): void {
     this.logger.log('Game-gateway Initialized');
   }
 
   // On socket connection checks if the user is authenticated
-  async handleConnection(client: Socket) {
+  async handleConnection(client: Socket): Promise<void> {
     this.logger.log('Player connected ' + client.id);
     try {
       const userId: number = await this.authService.authenticateClientAndRetrieveUID(client);
@@ -62,10 +64,14 @@ export class GameGateway
     }
   }
 
-  async handleDisconnect(client: Socket) {
-    this.erasePlayerFromArray(client.id);
-    this.gameService.leaveLadderQueue(client.id);
+  async handleDisconnect(client: Socket): Promise<void> {
+    this.disconnectPlayer(client.id);
     this.logger.log('Player disconnected ' + client.id);
+  }
+
+  private disconnectPlayer(clientId: string) {
+    const disconnectedPlayerIds: PlayerIds = this.erasePlayerFromArray(clientId);
+    this.gameService.leaveLadderQueue(disconnectedPlayerIds);
   }
 
   // Listen for 'paddle-move' messages
@@ -117,13 +123,13 @@ export class GameGateway
     this.server.to(gameId).emit('game-end', gameEnd);
   } */
 
-  private erasePlayerFromArray(playerClientId: string): void {
+  private erasePlayerFromArray(playerClientId: string): PlayerIds | undefined {
     const indexOfPlayerToDisconnect: number =
       this.playersInQueueOrGame.findIndex((player) => {
         return player.clientId === playerClientId;
       });
     if (indexOfPlayerToDisconnect !== -1) {
-      this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1);
+      return this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1)[0];
     }
   }
 

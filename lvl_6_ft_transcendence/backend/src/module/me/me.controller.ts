@@ -273,7 +273,6 @@ export class MeController {
     @Req() req: { user: User },
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
-    console.log(file);
     if (!file) {
       this.logger.error('"' + req.user.name + '" failed to upload his avatar');
       throw new BadRequestException('Invalid file');
