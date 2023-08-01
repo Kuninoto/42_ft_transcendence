@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatRoom } from '../entity/chatRoom.entity';
 import { Repository } from 'typeorm';
@@ -21,32 +21,32 @@ export class RoomService {
 		// TODO
 		const newRoom = this.roomRepo.create({ name: room.name, owner: creator.name, ownerId: creator.id });
 		newRoom.users = [creator]; // Associate users with the chat room
-		console.debug('Owner: ' + creator.name);
-		console.debug('Users: ' + JSON.stringify(newRoom, null, 2));
+		Logger.debug('Owner: ' + creator.name);
+		Logger.debug('Room: ' + JSON.stringify(newRoom, null, 2));
 		return this.roomRepo.save(newRoom);
 	}
 	
 	async joinRoom(roomName: string, user: User) {
 		const room = await this.findRoomByName(roomName);
 
-		// TODO delete console logs
+		// TODO delete Logger logs
 		if (room) {
-			console.debug('------- Testing joining room -------');
-			console.debug('Room id: ' + room.id);
-			console.debug('Room name: ' + room.name);
-			console.debug('Room users: ' + JSON.stringify(room.users, null, 2));
-			console.debug('------------------------------------');
+			Logger.debug('------- Testing joining room -------');
+			Logger.debug('Room id: ' + room.id);
+			Logger.debug('Room name: ' + room.name);
+			Logger.debug('Room users: ' + JSON.stringify(room.users, null, 2));
+			Logger.debug('------------------------------------');
 
 			// return ;
 
 			// room.users = room.users;
 			room.users.push(user);
 
-			console.debug('------- Testing joined room -------');
-			console.debug('Room id: ' + room.id);
-			console.debug('Room name: ' + room.name);
-			console.debug('Room users: ' + JSON.stringify(room.users, null, 2));
-			console.debug('-----------------------------------');
+			Logger.debug('------- Testing joined room -------');
+			Logger.debug('Room id: ' + room.id);
+			Logger.debug('Room name: ' + room.name);
+			Logger.debug('Room users: ' + JSON.stringify(room.users, null, 2));
+			Logger.debug('-----------------------------------');
 			
 			return this.roomRepo.save(room);
 		}
