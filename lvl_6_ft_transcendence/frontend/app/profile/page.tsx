@@ -34,10 +34,6 @@ export default function Profile() {
 		if (id) {
 			api.get(`/users/${id}`)
 			.then((result) => {
-<<<<<<< HEAD
-=======
-				console.log(result.data)
->>>>>>> origin/frontend
 				setUser(result.data)
 			})
 			.catch((error) => {

@@ -25,7 +25,7 @@ export default function Themes() {
 	const themeKeys = Object.keys(themes)
 
 	function goBackward() {
-		setSelected( prevSelect => {
+		setSelected((prevSelect: number) => {
 			if (prevSelect == 0)
 				return amount - 1
 			return prevSelect - 1
@@ -33,14 +33,14 @@ export default function Themes() {
 	}
 
 	function goForward() {
-		setSelected( prevSelect => {
+		setSelected((prevSelect : number) => {
 			if (prevSelect == amount - 1)
 				return 0
 			return prevSelect + 1
 		} )
 	}
 
-	const [ selected , setSelected ] = useState(0)
+	const [ selected , setSelected ] = useState<number>(0)
 
 	return (
 		<>
