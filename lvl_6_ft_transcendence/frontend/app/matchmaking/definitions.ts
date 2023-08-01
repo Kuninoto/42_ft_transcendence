@@ -1,3 +1,5 @@
+import { PlayerSide } from "@/common/types/backend/player-side.enum"
+
 export const PADDLE_HEIGHT = 80
 export const PADDLE_WALL_OFFSET = 16
 export const PADDLE_WIDTH = 10
@@ -32,19 +34,19 @@ export class Paddle {
 	}
 
 	isBallColliding(
-		left: boolean,
+		side: PlayerSide,
 		ballSpeed: number,
 		ballX: number,
 		ballY: number
 	): boolean {
-		if (left && ballSpeed < 0) {
+		if (side === PlayerSide.LEFT && ballSpeed < 0) {
 			return (
 				ballX + ballSpeed <= this.#position.x + PADDLE_WIDTH &&
 				ballY <= this.#position.y + PADDLE_HEIGHT &&
 				ballY >= this.#position.y
 			)
 		}
-		if (!left && ballSpeed > 0) {
+		if (side === PlayerSide.RIGHT && ballSpeed > 0) {
 			return (
 				ballX + ballSpeed >= this.#position.x &&
 				ballY <= this.#position.y + PADDLE_HEIGHT &&

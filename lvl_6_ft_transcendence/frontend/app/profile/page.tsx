@@ -1,76 +1,137 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Friends from './friends'
 import History from './history'
-import Status from './status'
-
-enum Tabs {
-	status,
-	history,
-	friends,
-}
+import { api } from '@/api/api'
+import { removeParams, useAuth } from '@/contexts/AuthContext'
+import { UserProfile } from '@/common/type/backend/user-profile.interface'
+import SettingsModal from './settingsModal'
 
 export default function Profile() {
-	const [openTab, setOpenTab] = useState(Tabs.status)
-	const { user } = useAuth()
 
-	const buttons = [
-		{ label: 'Status', value: Tabs.status },
-		{ label: 'Match history', value: Tabs.history },
-		{ label: 'Friends', value: Tabs.friends },
-	]
+	const { user: loggedUser } = useAuth()
+
+	const [ user, setUser ] = useState<UserProfile>()
+	const searchParams = useSearchParams()
+	const id = searchParams.get('id') || loggedUser.id
+
+	const [showMatchHistory, setShowMatchHistory] = useState(true)
+	const [openModal, setOpenModal] = useState(false)
+
+	function sendFriendRequest(userId: number) {
+
+		api.post(`/friendships/send-request/${userId}`)
+			.then(result => console.log(result))
+			.catch(error => console.error(error))
+	}
+
+	useEffect(() => {
+		if (id) {
+			api.get(`/users/${id}`)
+			.then((result) => {
+				setUser(result.data)
+			})
+			.catch((error) => {
+				console.error(error)
+			})
+		}
+	}, [id, loggedUser])
+
 
 	return (
-		<div className="flex flex-col space-y-8 py-12">
-			<div className="flex w-full">
-				<Link
-					className="fixed left-12 top-12 hover:underline"
-					href={'/dashboard'}
-				>
-					GO BACK
-				</Link>
+		<div className="h-full py-12">
+			{openModal && <SettingsModal closeModal={() => setOpenModal(false)} />}
 
-				<div className="mx-auto flex flex-col space-y-4 text-center">
-					<Image
-						alt={'player profile picutre'}
-						className="mx-auto aspect-square w-36 rounded-full"
-						height="0"
-						sizes="100vw"
-						src={user.avatar_url}
-						width="0"
-					/>
-					<p className="text-3xl">{user.name}</p>
+			<Link
+				className="fixed left-12 top-12 hover:underline"
+				href={'/dashboard'}
+			>
+				GO BACK
+			</Link>
+
+			<div className="mx-64 grid h-full grid-cols-2">
+				<div className="mx-auto items-center flex h-full flex-col py-12 space-y-6 text-center">
+					<div className="relative aspect-square w-80 overflow-hidden rounded-full">
+						<Image
+							loader={removeParams}
+							alt={'player profile picutre'}
+							className="h-max w-max"
+							height={0}
+							layout="fill"
+							objectFit="cover"
+							src={user?.avatar_url || '/placeholder.jpg'}
+							width={0}
+						/>
+					</div>
+
+					<div className='w-full flex flex-col'>
+						<p className="text-3xl">{user?.name || 'Loading...'}</p>
+						<a href={user?.intra_profile_url} className="text-md mb-4 hover:underline text-gray-400">{user?.intra_name || 'Loading...'}</a>
+
+						<div className="w-full space-x-2">
+							{ loggedUser.id === user?.id ?
+								<button 
+								onClick={() => {setOpenModal(true)}}	
+								className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+									Settings	
+								</button>
+							:
+							<>
+								<button className="rounded border border-white w-7/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+									Add friend
+								</button>
+								<button className="rounded border border-white w-4/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+									Block
+								</button>
+							</>
+							}
+						</div>
+					</div>
+
+					<div>
+						<span>#1</span>
+						<span>120w</span>
+					</div>
+					<div>
+						<span>#1</span>
+						<span>120w</span>
+					</div>
+					<div>
+						<span>#1</span>
+						<span>120w</span>
+					</div>
 				</div>
-			</div>
 
-			<div className="mx-auto flex space-x-12 text-2xl">
-				{buttons.map((tab) => {
-					return (
+				<div className="pb-12">
+					<div className="flex -mb-px w-full place-content-center space-x-2 text-2xl ">
 						<button
-							className={`border-b-2 border-white px-16 py-2 text-white
-					${openTab === tab.value ? 'opacity-100' : 'opacity-25 hover:opacity-100'}`}
-							key={tab.value}
-							onClick={() => setOpenTab(tab.value)}
+							className={`border rounded-t border-white w-1/2 py-1 hover:border-white hover:text-white
+							${showMatchHistory ? 'mix-blend-exclusion' : 'border-white/50 text-white/50'}`}
+							onClick={() => setShowMatchHistory(true)}
 						>
-							{tab.label}
+							Match history
 						</button>
-					)
-				})}
-			</div>
-
-			<div className="mx-80 flex">
-				{openTab === Tabs.status ? (
-					<Status />
-				) : openTab === Tabs.history ? (
-					<History />
-				) : (
-					<Friends />
-				)}
+						<button
+							className={`rounded-t border border-white w-1/2 py-1 hover:border-white hover:text-white
+							${showMatchHistory ? 'border-white/50 text-white/50' : 'mix-blend-exclusion'}`}
+							onClick={() => setShowMatchHistory(false)}
+						>
+							Friends
+						</button>
+					</div>
+					<div className="h-full rounded-b border border-white p-4">
+						{ showMatchHistory ? 
+							<History />
+						:
+							<Friends friends={user?.friends}/>
+						}
+					</div>
+				</div>
 			</div>
 		</div>
 	)
