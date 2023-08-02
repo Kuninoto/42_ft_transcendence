@@ -6,6 +6,7 @@ import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { UserProfile } from 'src/common/types/user-profile.interface';
 import { User } from 'src/entity';
+import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 
 @ApiTags('game')
 @UseGuards(JwtAuthGuard)
@@ -16,17 +17,17 @@ export class GameController {
   /**
    * GET /api/game/leaderboard
    *
-   * Returns leaderboar
+   * Returns leaderboard (UserStatsForLeaderboard[]) user at index 0 is the top scorer (descending order)
    */
 
-  /* @ApiOkResponse({
-    description: "Returns leaderboard"
+  @ApiOkResponse({
+    description:
+      'Returns leaderboard (UserStatsForLeaderboard[]) user at index 0 is the top scorer (descending order)',
   })
   @Get('leaderboard')
-  public async getUserProfileByUID(
+  public async getLeaderboard(
     @Req() req: { user: User },
-  ): {
-  {
-
-  } */
+  ): Promise<UserStatsForLeaderboard[]> {
+    return await this.gameService.getLeaderboard();
+  }
 }

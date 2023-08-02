@@ -91,9 +91,7 @@ export class MeController {
   public async getMyFriends(
     @Req() req: { user: User },
   ): Promise<FriendInterface[]> {
-    this.logger.log(
-      '"' + req.user.name + '" requested his friends info',
-    );
+    this.logger.log('"' + req.user.name + '" requested his friends info');
 
     const friendList: FriendInterface[] =
       await this.friendshipsService.getMyFriends(req.user);
@@ -114,9 +112,7 @@ export class MeController {
     @Req() req: { user: User },
   ): Promise<FriendRequestInterface[]> {
     this.logger.log(
-      '"' +
-        req.user.name +
-        '" requested his friend-requests info',
+      '"' + req.user.name + '" requested his friend-requests info',
     );
 
     return await this.friendshipsService.getMyFriendRequests(req.user);
@@ -132,11 +128,7 @@ export class MeController {
   public async getMyBlockedUsers(
     @Req() req: { user: User },
   ): Promise<BlockedUserInterface[]> {
-    this.logger.log(
-      '"' +
-        req.user.name +
-        '" requested his blocklist info',
-    );
+    this.logger.log('"' + req.user.name + '" requested his blocklist info');
 
     return await this.friendshipsService.getMyBlocklist(req.user.id);
   }
@@ -154,11 +146,7 @@ export class MeController {
   public async getMyMatchHistory(
     @Req() req: { user: User },
   ): Promise<GameResultInterface[]> {
-    this.logger.log(
-      '"' +
-        req.user.name +
-        '" requested his match history info',
-    );
+    this.logger.log('"' + req.user.name + '" requested his match history info');
 
     return await this.usersService.findMatchHistoryByUID(req.user.id);
   }
