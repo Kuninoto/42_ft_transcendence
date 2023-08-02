@@ -20,11 +20,25 @@ export class GameRoomsMap {
     this.gameMap.set(roomId, updatedGameRoom);
   }
 
+  public roomWithPlayer(clientId: string): GameRoom | null {
+    for (const gameRoom of this.gameMap.values()) {
+      if (
+        gameRoom.leftPlayer.client.id === clientId ||
+        gameRoom.rightPlayer.client.id === clientId
+      ) {
+        return gameRoom;
+      }
+    }
+    return null;
+  }
+
   public findGameRoomById(roomId: string): GameRoom | undefined {
     return this.gameMap.get(roomId);
   }
 
-  public deleteGameRoomById(roomId: string): void {
+  public deleteGameRoomById(roomId: string): GameRoom | undefined {
+    const gameRoom: GameRoom | undefined = this.gameMap.get(roomId);
     this.gameMap.delete(roomId);
+    return gameRoom;
   }
 }
