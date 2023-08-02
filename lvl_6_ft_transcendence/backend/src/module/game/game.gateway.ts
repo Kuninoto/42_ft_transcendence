@@ -13,10 +13,16 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
-import { GameRoom, GameRoomInfoDTO } from './GameRoom';
+import {
+  CANVAS_HEIGHT,
+  CANVAS_HEIGHT_OFFSET,
+  GameRoom,
+  GameRoomInfoDTO,
+} from './GameRoom';
 import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
+import { PlayerScoredDTO } from './dto/player-scored.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway
@@ -42,9 +48,9 @@ export class GameGateway
     try {
       const userId: number =
         await this.authService.authenticateClientAndRetrieveUID(client);
-      if (this.gameService.isPlayerInQueueOrGame(userId)) {
-        throw new Error('Player was already connected');
-      }
+      //if (this.gameService.isPlayerInQueueOrGame(userId)) {
+      //  throw new Error('Player was already connected');
+      //}
 
       const newPlayer: Player = new Player(client, userId);
       this.gameService.queueToLadder(newPlayer);
@@ -67,21 +73,33 @@ export class GameGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: PaddleMoveDTO,
   ): void {
+    if (!this.isValidPaddleMoveMessage(messageBody)) {
+      this.logger.error(
+        'Client id=' + client.id + 'tried to send a wrong PaddleMoveDTO Object',
+      );
+      return;
+    }
+
     this.gameService.paddleMove(
       messageBody.gameRoomId,
       client.id,
       messageBody.newY,
     );
     this.broadcastGameRoomInfo(messageBody.gameRoomId);
-    console.debug(this.gameService.getGameRoomInfo(messageBody.gameRoomId));
   }
 
   // Listen for 'player-scored' messages
   @SubscribeMessage('player-scored')
   playerScored(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: { gameRoomId: string },
+    @MessageBody() messageBody: PlayerScoredDTO,
   ): void {
+    if (!this.isValidPlayerScoredMessage(messageBody)) {
+      this.logger.error(
+        'Client id=' + client.id + 'tried to send a wrong PlayerScoredDTO Object',
+      );
+      return;
+    }
     this.gameService.playerScored(messageBody.gameRoomId, client.id);
     this.broadcastGameRoomInfo(messageBody.gameRoomId);
   }
@@ -106,5 +124,43 @@ export class GameGateway
 
   broadcastGameEnd(roomId: string, gameEndDto: GameEndDTO): void {
     this.server.to(roomId).emit('game-end', gameEndDto);
+  }
+
+  private isValidPaddleMoveMessage(
+    messageBody: any,
+  ): messageBody is PaddleMoveDTO {
+    if (
+      !(
+        typeof messageBody === 'object' &&
+        typeof messageBody.gameRoomId === 'string' &&
+        typeof messageBody.newY === 'number'
+      )
+    ) {
+      return false;
+    }
+
+    const message: PaddleMoveDTO = messageBody;
+    if (
+      message.newY < 0 ||
+      message.newY > CANVAS_HEIGHT - CANVAS_HEIGHT_OFFSET
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private isValidPlayerScoredMessage(
+    messageBody: any,
+  ): messageBody is PaddleMoveDTO {
+    if (
+      !(
+        typeof messageBody === 'object' &&
+        typeof messageBody.gameRoomId === 'string'
+      )
+    ) {
+      return false;
+    }
+    return true;
   }
 }

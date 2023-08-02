@@ -184,17 +184,6 @@ export class GameService {
       },
     };
 
-    if (
-      updatedGameRoom[
-        playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
-      ].paddleY < 0 ||
-      updatedGameRoom[
-        playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
-      ].paddleY >
-        CANVAS_HEIGHT - CANVAS_HEIGHT_OFFSET
-    ) {
-      return;
-    }
     this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
