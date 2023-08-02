@@ -42,9 +42,9 @@ export class GameGateway
     try {
       const userId: number =
         await this.authService.authenticateClientAndRetrieveUID(client);
-      //if (this.gameService.isPlayerInQueueOrGame(userId)) {
-      //  throw new Error('Player was already connected');
-      //}
+      if (this.gameService.isPlayerInQueueOrGame(userId)) {
+        throw new Error('Player was already connected');
+      }
 
       const newPlayer: Player = new Player(client, userId);
       this.gameService.queueToLadder(this.server, newPlayer);

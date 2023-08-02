@@ -238,7 +238,12 @@ export class GameService {
     this.gameGateway.broadcastGameEnd(roomId, gameEnd);
     this.gameRoomsMap.deleteGameRoomById(roomId);
 
-    await this.saveGameResult(GameType.LADDER, winner, loser);
+    try {
+      await this.saveGameResult(GameType.LADDER, winner, loser);
+    } catch (error) {
+      this.logger.error("Someone tried to register a game where he was both the user and the loser");
+      return;
+    }
     await this.usersService.updatePlayersStatsByUIDs(winner.userId, loser.userId);
   }
 
@@ -247,9 +252,9 @@ export class GameService {
     winner: Player,
     loser: Player,
   ): Promise<void> {
-    //if (winner.userId === loser.userId) {
-    //  throw new Error('Winner and loser cannot be the same player');
-    //}
+    if (winner.userId === loser.userId) {
+      throw new Error('Winner and loser cannot be the same player');
+    }
 
     const winnerUser: User = await this.usersService.findUserByUID(
       winner.userId,
