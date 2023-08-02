@@ -22,7 +22,7 @@ export default function Friends({ friends } : { friends: FriendInterface[] | und
 			</div>
 			:			
 			friends?.map(friend => 
-				<Link className="" href={`/profile?id=${friend.uid}`}>
+				<Link key={friend.uid} className="" href={`/profile?id=${friend.uid}`}>
 					<div className="flex w-full place-content-around items-center border border-white py-3 text-xl">
 						<Image
 							alt={'player profile picutre'}

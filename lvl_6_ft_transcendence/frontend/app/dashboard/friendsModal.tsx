@@ -128,7 +128,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 														loader={removeParams}
 														alt="profile picture"
 														src={user.avatar_url || "/placeholder.jpg"}
-														className="aspect-square w-8 rounded-full"
+														className="aspect-square w-8 rounded"
 														height={0}
 														width={0}
 														sizes="100%"
@@ -170,7 +170,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 													<div className="flex space-x-6">
 														<Image
 															alt="profile picture"
-															className="aspect-square w-8 rounded-full"
+															className="aspect-square w-8 rounded"
 															height={0}
 															sizes="100%"
 															src={request?.avatar_url || "/placeholder.jpg"}

@@ -89,7 +89,7 @@ export default function Game() {
 						} />
 				<div className="h-full w-0.5 bg-white"></div>
 				<RightSide 
-					playerScore={rightPlayerScore} 
+	 				playerScore={rightPlayerScore} 
 					player={
 						opponentFound.side === PlayerSide.RIGHT 
 						?  { avatar_url: user.avatar_url,
