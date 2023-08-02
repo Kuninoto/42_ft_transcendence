@@ -23,16 +23,19 @@ import { GameThemes } from '../../common/types/game-themes.enum';
 import { FriendInterface } from 'src/common/types/friend-interface.interface';
 import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
 import { UserStats } from 'src/entity/user-stats.entity';
+import { GameService } from '../game/game.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(forwardRef(() => FriendshipsService))
-    private readonly friendshipsService: FriendshipsService,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     @InjectRepository(UserStats)
     private readonly userStatsRepository: Repository<UserStats>,
+    @Inject(forwardRef(() => FriendshipsService))
+    private readonly friendshipsService: FriendshipsService,
+    @Inject(forwardRef(() => GameService))
+    private readonly gameService: GameService,
   ) {}
 
   private readonly logger: Logger = new Logger(UsersService.name);
@@ -176,21 +179,7 @@ export class UsersService {
   public async findMatchHistoryByUID(
     userId: number,
   ): Promise<GameResultInterface[]> {
-    const user: User = await this.usersRepository.findOne({
-      where: { id: userId },
-      relations: [
-        'game_results_as_winner',
-        'game_results_as_winner.winner',
-        'game_results_as_winner.loser',
-        'game_results_as_loser',
-        'game_results_as_loser.winner',
-        'game_results_as_loser.loser',
-      ],
-    });
-
-    const gameResults: GameResult[] = user.game_results_as_winner.concat(
-      user.game_results_as_loser,
-    );
+    const gameResults: GameResult[] = await this.gameService.findGameResultsWhereUserPlayed(userId);
 
     const matchHistory: GameResultInterface[] = gameResults.map(
       (gameResult) => {

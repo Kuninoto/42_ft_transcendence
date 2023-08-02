@@ -229,8 +229,8 @@ export class FriendshipsService {
     const friendship: Friendship = await this.friendshipRepository.findOne({
       where: { id: friendshipId },
       relations: {
-        sender: true
-      }
+        sender: true,
+      },
     });
 
     if (!friendship) {

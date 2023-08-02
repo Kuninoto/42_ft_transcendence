@@ -17,23 +17,27 @@ import {
 import { PlayerIds } from 'src/common/types/player-interface.interface';
 import { GameEndDTO } from './dto/game-end.dto';
 import { GameGateway } from './game.gateway';
-import { User } from 'src/entity/index';
+import { User, UserStats } from 'src/entity/index';
 import { GameResult } from 'src/entity/game-result.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 
 @Injectable()
 export class GameService {
   private playersInQueueOrGame: PlayerIds[];
 
   constructor(
-    private readonly usersService: UsersService,
     private readonly gameQueue: GameQueue,
     private readonly gameRoomsMap: GameRoomsMap,
     @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
     @InjectRepository(GameResult)
     private readonly gameResultRepository: Repository<GameResult>,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+    @InjectRepository(UserStats)
+    private readonly userStatsRepository: Repository<UserStats>,
   ) {
     this.playersInQueueOrGame = [];
   }
@@ -63,7 +67,7 @@ export class GameService {
       const playerOne: Player = this.gameQueue.dequeue();
       const playerTwo: Player = this.gameQueue.dequeue();
 
-      this.joinPlayersToRoom(server, playerOne, playerTwo);
+      this.joinPlayersToRoom(playerOne, playerTwo);
     }
   }
 
@@ -164,6 +168,45 @@ export class GameService {
     return this.gameRoomsMap.findGameRoomById(gameRoomId);
   }
 
+  public async getLeaderboard(): Promise<UserStatsForLeaderboard[]> {
+    // Get user ids, names, wins and win_rates
+    // and sort them by wins and win_rates in descending order 
+    // if the number of wins of two players are equal
+    // the one with the bigger win rate is placed above
+    const leaderboardData: {
+      wins: number;
+      uid: number;
+      name: string;
+      win_rate: number;
+    }[] = await this.userStatsRepository
+      .createQueryBuilder('userStats')
+      .select('user.id', 'uid')
+      .addSelect('user.name', 'name')
+      .addSelect('userStats.wins', 'wins')
+      .addSelect('win_rate')
+      .leftJoin('userStats.user', 'user')
+      .orderBy('userStats.wins', 'DESC')
+      .addOrderBy('win_rate', 'DESC')
+      .getRawMany();
+
+    return leaderboardData.map((leaderboardRow) => ({
+      uid: leaderboardRow.uid,
+      name: leaderboardRow.name,
+      wins: leaderboardRow.wins,
+      win_rate: leaderboardRow.win_rate,
+    }));
+  }
+
+  public async findGameResultsWhereUserPlayed(
+    userId: number,
+  ): Promise<GameResult[]> {
+    const gameResults: GameResult[] = await this.gameResultRepository.find({
+      where: [{ winner: { id: userId } }, { loser: { id: userId } }],
+      relations: { winner: true, loser: true },
+    });
+    return gameResults;
+  }
+
   private erasePlayerFromArray(playerClientId: string): PlayerIds | void {
     const indexOfPlayerToDisconnect: number =
       this.playersInQueueOrGame.findIndex((player) => {
@@ -178,7 +221,6 @@ export class GameService {
   }
 
   private async joinPlayersToRoom(
-    server: Server,
     playerOne: Player,
     playerTwo: Player,
   ): Promise<void> {
@@ -241,10 +283,15 @@ export class GameService {
     try {
       await this.saveGameResult(GameType.LADDER, winner, loser);
     } catch (error) {
-      this.logger.error("Someone tried to register a game where he was both the user and the loser");
+      this.logger.error(
+        'Someone tried to register a game where he was both the user and the loser',
+      );
       return;
     }
-    await this.usersService.updatePlayersStatsByUIDs(winner.userId, loser.userId);
+    await this.usersService.updatePlayersStatsByUIDs(
+      winner.userId,
+      loser.userId,
+    );
   }
 
   private async saveGameResult(
