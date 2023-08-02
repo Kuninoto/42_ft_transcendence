@@ -51,7 +51,7 @@ export class GameService {
     );
   }
 
-  public queueToLadder(server: Server, player: Player): void {
+  public queueToLadder(player: Player): void {
     this.playersInQueueOrGame.push({
       clientId: player.client.id,
       userId: player.userId,
@@ -73,8 +73,12 @@ export class GameService {
   }
 
   public async disconnectPlayer(playerClientId: string): Promise<void> {
-    const playerIds: PlayerIds | void =
-      this.erasePlayerFromArray(playerClientId);
+    const { playerIds, playerRoom, leftPlayer, rightPlayer } =
+      this.handlePlayerLeaving(playerClientId);
+
+    if (playerRoom) {
+      await this.gameEnded(playerRoom.roomId, leftPlayer, rightPlayer);
+    }
 
     if (playerIds) {
       await this.usersService.updateUserStatusByUID(
@@ -84,6 +88,35 @@ export class GameService {
     }
 
     this.gameQueue.removePlayerFromQueueByClientId(playerClientId);
+  }
+
+  private handlePlayerLeaving(playerClientId: string): {
+    playerIds?: PlayerIds;
+    playerRoom?: GameRoom;
+    leftPlayer?: Player;
+    rightPlayer?: Player;
+  } {
+    const playerIds: PlayerIds | null =
+      this.erasePlayerFromArray(playerClientId);
+    const playerRoom: GameRoom | null =
+      this.gameRoomsMap.roomWithPlayer(playerClientId);
+
+    if (playerRoom) {
+      return {
+        playerIds,
+        playerRoom,
+        leftPlayer:
+          playerRoom.leftPlayer.client.id === playerClientId
+            ? playerRoom.leftPlayer
+            : playerRoom.rightPlayer,
+        rightPlayer:
+          playerRoom.leftPlayer.client.id === playerClientId
+            ? playerRoom.rightPlayer
+            : playerRoom.leftPlayer,
+      };
+    }
+
+    return {};
   }
 
   public playerScored(gameRoomId: string, clientId: string): void {
@@ -208,14 +241,14 @@ export class GameService {
     return gameResults;
   }
 
-  private erasePlayerFromArray(playerClientId: string): PlayerIds | void {
+  private erasePlayerFromArray(playerClientId: string): PlayerIds | null {
     const indexOfPlayerToDisconnect: number =
       this.playersInQueueOrGame.findIndex((player) => {
         return player.clientId === playerClientId;
       });
 
     if (indexOfPlayerToDisconnect === -1) {
-      return;
+      return null;
     }
 
     return this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1)[0];
@@ -273,8 +306,6 @@ export class GameService {
     winner: Player,
     loser: Player,
   ): Promise<void> {
-    // !TODO
-    // Remove the hard coded Game Type
     const gameEnd: GameEndDTO = {
       winner: { userId: winner.userId, score: winner.score },
       loser: { userId: loser.userId, score: loser.score },
@@ -283,14 +314,16 @@ export class GameService {
     this.gameGateway.broadcastGameEnd(roomId, gameEnd);
     this.gameRoomsMap.deleteGameRoomById(roomId);
 
-    try {
-      await this.saveGameResult(GameType.LADDER, winner, loser);
-    } catch (error) {
+    if (winner.userId === loser.userId) {
       this.logger.error(
         'Someone tried to register a game where he was both the user and the loser',
       );
       return;
     }
+
+    // !TODO
+    // Remove the hard coded Game Type
+    await this.saveGameResult(GameType.LADDER, winner, loser);
     await this.usersService.updatePlayersStatsByUIDs(
       winner.userId,
       loser.userId,
@@ -302,10 +335,6 @@ export class GameService {
     winner: Player,
     loser: Player,
   ): Promise<void> {
-    if (winner.userId === loser.userId) {
-      throw new Error('Winner and loser cannot be the same player');
-    }
-
     const winnerUser: User = await this.usersService.findUserByUID(
       winner.userId,
     );

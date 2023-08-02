@@ -47,7 +47,7 @@ export class GameGateway
       }
 
       const newPlayer: Player = new Player(client, userId);
-      this.gameService.queueToLadder(this.server, newPlayer);
+      this.gameService.queueToLadder(newPlayer);
     } catch (error) {
       this.logger.error(error.message + ', disconnecting...');
       // Due to lifecycle hooks, this line calls handleDisconnect();
@@ -57,9 +57,6 @@ export class GameGateway
   }
 
   async handleDisconnect(client: Socket): Promise<void> {
-    //! TODO
-    // if player is on a game and disconnects
-    // sends game-end and mark the remaining user as the winner
     await this.gameService.disconnectPlayer(client.id);
     this.logger.log('Player disconnected ' + client.id);
   }
