@@ -1,7 +1,11 @@
-import { Controller, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
+import { ErrorResponse } from 'src/common/types/error-response.interface';
+import { UserProfile } from 'src/common/types/user-profile.interface';
+import { User } from 'src/entity';
 
 @ApiTags('game')
 @UseGuards(JwtAuthGuard)
@@ -10,8 +14,19 @@ export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   /**
-   * GET /api/game/:gameId
+   * GET /api/game/leaderboard
    *
+   * Returns leaderboar
    */
-  // @Get('/:gameId')
+
+  /* @ApiOkResponse({
+    description: "Returns leaderboard"
+  })
+  @Get('leaderboard')
+  public async getUserProfileByUID(
+    @Req() req: { user: User },
+  ): {
+  {
+
+  } */
 }

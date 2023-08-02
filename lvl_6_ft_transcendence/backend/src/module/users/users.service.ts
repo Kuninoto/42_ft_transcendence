@@ -22,6 +22,7 @@ import { FriendshipsService } from '../friendships/friendships.service';
 import { GameThemes } from '../../common/types/game-themes.enum';
 import { FriendInterface } from 'src/common/types/friend-interface.interface';
 import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
+import { UserStats } from 'src/entity/user-stats.entity';
 
 @Injectable()
 export class UsersService {
@@ -30,13 +31,20 @@ export class UsersService {
     private readonly friendshipsService: FriendshipsService,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(UserStats)
+    private readonly userStatsRepository: Repository<UserStats>,
   ) {}
 
   private readonly logger: Logger = new Logger(UsersService.name);
 
   public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
-    const newUser = this.usersRepository.create(newUserInfo);
-    return await this.usersRepository.save(newUser);
+    const newUser: User = await this.usersRepository.save(newUserInfo);
+
+    const newUserStats: UserStats = this.userStatsRepository.create();
+    newUserStats.user = newUser;
+
+    await this.userStatsRepository.save(newUserStats);
+    return newUser;
   }
 
   public async findUserByName(name: string): Promise<User | null> {
@@ -141,7 +149,7 @@ export class UsersService {
       friendship_status: friendship ? friendship.status : null,
       friends: friends,
       is_blocked: isBlocked,
-      record: user.user_record,
+      stats: user.user_stats,
     };
   }
 
@@ -305,6 +313,22 @@ export class UsersService {
     return { message: 'Successfully updated game theme' };
   }
 
+  public async updatePlayersStatsByUIDs(winnerUID: number, loserUID: number) {
+    await this.userStatsRepository.update(winnerUID, {
+      wins: () => 'wins + 1',
+      win_rate: () =>
+        'CAST(wins AS double precision) / (matches_played + 1) * 100.0',
+      matches_played: () => 'matches_played + 1',
+    });
+
+    await this.userStatsRepository.update(loserUID, {
+      losses: () => 'losses + 1',
+      win_rate: () =>
+        'CAST(wins AS double precision) / (matches_played + 1) * 100.0',
+      matches_played: () => 'matches_played + 1',
+    });
+  }
+
   public async update2faSecretByUID(
     userID: number,
     newSecret: string,
@@ -357,10 +381,9 @@ export class UsersService {
       intra_name: newName,
     });
 
-    // if user with intra_name = newName
-    // and it isn't the requesting user
-    // returns true because newName would conflict
-    // with someone else's intra_name
+    // If a user with intra_name = newName exists
+    // and it isn't the requesting user it's because
+    // newName would conflict with someone else's intra_name
     return user && user.id != userId;
   }
 }

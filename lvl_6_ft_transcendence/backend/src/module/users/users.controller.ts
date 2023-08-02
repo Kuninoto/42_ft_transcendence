@@ -26,36 +26,6 @@ export class UsersController {
 
   private readonly logger: Logger = new Logger(UsersController.name);
 
-  /* DEBUGGING ROUTES */
-
-  /**
-   * PATCH /api/users/:id
-   *
-   * This is the route to visit to update any user's
-   * (identified by id) info
-   */
-  /*
-  public async updateUserByUID(
-    userID: number,
-    updateUserDTO: UpdateUserDTO,
-  ): Promise<SuccessResponseDTO> {
-    return await this.usersService.updateUserByUID(userID, updateUserDTO);
-  } */
-
-  /**
-   * DELETE /api/users/:id
-   *
-   * This is the route to visit to delete any user's
-   * (indentified by id) info from the database
-   */
-  /*
-  @Delete('/:id')
-  public async deleteUserByUID(
-    @Param('id', NonNegativeIntPipe) id=number
-  ): Promise<SuccessResponse> {
-    return await this.usersService.deleteUserByUID(id);
-  } */
-
   /**
    * GET /api/users?username=
    *

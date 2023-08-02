@@ -57,6 +57,9 @@ export class GameGateway
   }
 
   async handleDisconnect(client: Socket): Promise<void> {
+    //! TODO
+    // if player is on a game 
+    // sends game-end and mark the remaining user as the winner
     await this.gameService.disconnectPlayer(client.id);
     this.logger.log('Player disconnected ' + client.id);
   }
