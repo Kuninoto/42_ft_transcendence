@@ -16,7 +16,6 @@ import { Inject, Logger, forwardRef } from '@nestjs/common';
 import { GameRoom, GameRoomInfoDTO } from './GameRoom';
 import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
-import { PlayerIds } from 'src/common/types/player-interface.interface';
 import { GameEndDTO } from './dto/game-end.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
@@ -43,9 +42,9 @@ export class GameGateway
     try {
       const userId: number =
         await this.authService.authenticateClientAndRetrieveUID(client);
-      if (this.gameService.isPlayerInQueueOrGame(userId)) {
-        throw new Error('Player was already connected');
-      }
+      //if (this.gameService.isPlayerInQueueOrGame(userId)) {
+      //  throw new Error('Player was already connected');
+      //}
 
       const newPlayer: Player = new Player(client, userId);
       this.gameService.queueToLadder(this.server, newPlayer);

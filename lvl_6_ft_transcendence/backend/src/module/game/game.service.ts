@@ -235,6 +235,8 @@ export class GameService {
       winner: { userId: winner.userId, score: winner.score },
       loser: { userId: loser.userId, score: loser.score },
     };
+
+    this.gameRoomsMap.deleteGameRoomById(roomId);
     this.gameGateway.broadcastGameEnd(roomId, gameEnd);
   }
 
@@ -243,9 +245,9 @@ export class GameService {
     winner: Player,
     loser: Player,
   ): Promise<void> {
-    if (winner.userId === loser.userId) {
-      throw new Error('Winner and loser cannot be the same user.');
-    }
+    //if (winner.userId === loser.userId) {
+    //  throw new Error('Winner and loser cannot be the same player');
+    //}
 
     const winnerUser: User = await this.usersService.findUserByUID(
       winner.userId,
@@ -254,14 +256,11 @@ export class GameService {
 
     const newGameResult: GameResult = this.gameResultRepository.create({
       game_type: gameType,
-      winner_name: winnerUser.name,
+      winner: winnerUser,
       winner_score: winner.score,
-      loser_name: loserUser.name,
+      loser: loserUser,
       loser_score: loser.score,
     });
     await this.gameResultRepository.save(newGameResult);
-
-    // update winner's match history
-    // update loser's match history
   }
 }

@@ -22,7 +22,6 @@ import {
 } from '@nestjs/swagger';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 import { GameResult, User } from 'src/entity/index';
-
 import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
@@ -34,7 +33,7 @@ import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { GameThemes } from '../../common/types/game-themes.enum';
-import { GameService } from '../game/game.service';
+import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
@@ -147,37 +146,21 @@ export class MeController {
    *
    * Finds and returns the 'me' user's match history
    */
-  /* @ApiOkResponse({
+  @ApiOkResponse({
     description:
       "Finds and returns the 'me' user's match history (GameResult[])",
   })
   @Get('match-history')
   public async getMyMatchHistory(
     @Req() req: { user: User },
-  ): Promise<GameResult[]> {
+  ): Promise<GameResultInterface[]> {
     this.logger.log(
       '"' +
         req.user.name +
         '" requested his match history info using /me/match-history',
     );
 
-    return 'foo';
-  } */
-
-  /**
-   * DELETE /api/me
-   *
-   * This is the route to visit to delete 'me' user's
-   * account from the database
-   */
-  @ApiOkResponse({ description: "Deletes 'me' user's account" })
-  @Delete()
-  public async deleteMyAccount(
-    @Req() req: { user: User },
-  ): Promise<SuccessResponse> {
-    this.logger.log('Deleting "' + req.user.name + '"\'s account');
-
-    return await this.usersService.deleteUserByUID(req.user.id);
+    return await this.usersService.findMatchHistoryByUID(req.user.id);
   }
 
   /**
@@ -311,5 +294,21 @@ export class MeController {
       req.user.id,
       process.env.BACKEND_URL + '/api/users/avatars/' + file.filename,
     );
+  }
+
+  /**
+   * DELETE /api/me
+   *
+   * This is the route to visit to delete 'me' user's
+   * account from the database
+   */
+  @ApiOkResponse({ description: "Deletes 'me' user's account" })
+  @Delete()
+  public async deleteMyAccount(
+    @Req() req: { user: User },
+  ): Promise<SuccessResponse> {
+    this.logger.log('Deleting "' + req.user.name + '"\'s account');
+
+    return await this.usersService.deleteUserByUID(req.user.id);
   }
 }
