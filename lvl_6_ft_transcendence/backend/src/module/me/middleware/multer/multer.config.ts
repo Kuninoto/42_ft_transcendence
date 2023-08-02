@@ -10,10 +10,8 @@ export const multerConfig = {
       !file.mimetype.includes('image/jpg') &&
       !file.mimetype.includes('image/jpeg')
     ) {
-      console.log("BBBBBBB");
       return cb(null, false);
     }
-    console.log("AAAAAAAAAA");
     cb(null, true);
   },
 

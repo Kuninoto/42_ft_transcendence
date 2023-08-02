@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity/index';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
@@ -117,10 +117,13 @@ export class AuthService {
     }
   }
 
-  public async authenticateClientAndRetrieveUID(client: Socket): Promise<number> {
-    const authHeader: string | undefined = client.handshake.headers.authorization;
+  public async authenticateClientAndRetrieveUID(
+    client: Socket,
+  ): Promise<number> {
+    const authHeader: string | undefined =
+      client.handshake.headers.authorization;
     if (!authHeader) {
-      throw new Error('Unauthorized client, missing Authorization header');
+      throw new Error('Unauthorized client: missing Authorization header');
     }
 
     // Authentication: Bearer xxxxx
@@ -130,7 +133,7 @@ export class AuthService {
     const user: User | null = await this.authClientFromAuthToken(authToken);
 
     if (!user) {
-      throw new Error('Unauthorized client, unknown');
+      throw new Error('Unauthorized client: unknown');
     }
 
     return user.id;

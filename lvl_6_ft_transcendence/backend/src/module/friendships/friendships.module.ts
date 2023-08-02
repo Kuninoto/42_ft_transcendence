@@ -2,7 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { FriendshipsService } from './friendships.service';
 import { FriendshipsController } from './friendships.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Friendship, BlockedUser } from 'src/typeorm';
+import { Friendship, BlockedUser } from 'src/entity/index';
 import { UsersModule } from '../users/users.module';
 
 @Module({

@@ -3,12 +3,12 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { UsersService } from 'src/module/users/users.service';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity/index';
 
 // JWT Payload
 // - User id
 // - Has 2 Factor Authentication
-// - Is 2 Factor Authenticated
+// - Is 2 Factor Authenticated (only appears when has_2fa is true)
 // - Issued at (automatic jwt info)
 // - Expiration dates (automatic jwt info)
 export interface TokenPayload {

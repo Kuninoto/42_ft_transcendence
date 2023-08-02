@@ -6,7 +6,7 @@ import { AuthModule } from 'src/module/auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
 import { join } from 'path';
 import { FriendshipsModule } from './module/friendships/friendships.module';
-import entities from 'src/typeorm/index';
+import entities from './entity/index';
 import 'dotenv/config';
 import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
 import { MeModule } from './module/me/me.module';

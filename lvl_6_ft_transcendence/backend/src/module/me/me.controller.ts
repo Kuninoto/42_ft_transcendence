@@ -21,7 +21,7 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
-import { User } from 'src/typeorm';
+import { GameResult, User } from 'src/entity/index';
 import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
@@ -33,6 +33,7 @@ import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { GameThemes } from '../../common/types/game-themes.enum';
+import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
@@ -141,19 +142,25 @@ export class MeController {
   }
 
   /**
-   * DELETE /api/me
+   * GET /api/me/match-history
    *
-   * This is the route to visit to delete 'me' user's
-   * account from the database
+   * Finds and returns the 'me' user's match history
    */
-  @ApiOkResponse({ description: "Deletes 'me' user's account" })
-  @Delete()
-  public async deleteMyAccount(
+  @ApiOkResponse({
+    description:
+      "Finds and returns the 'me' user's match history (GameResult[])",
+  })
+  @Get('match-history')
+  public async getMyMatchHistory(
     @Req() req: { user: User },
-  ): Promise<SuccessResponse> {
-    this.logger.log('Deleting "' + req.user.name + '"\'s account');
+  ): Promise<GameResultInterface[]> {
+    this.logger.log(
+      '"' +
+        req.user.name +
+        '" requested his match history info using /me/match-history',
+    );
 
-    return await this.usersService.deleteUserByUID(req.user.id);
+    return await this.usersService.findMatchHistoryByUID(req.user.id);
   }
 
   /**
@@ -173,7 +180,8 @@ export class MeController {
       "Updates 'me' user's username\nExpects the new username as the \"newUsername\" field of a JSON on the body",
   })
   @ApiBadRequestResponse({
-    description: 'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
+    description:
+      'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
   })
   @ApiConflictResponse({ description: 'If the new username is already taken' })
   @ApiBody({
@@ -191,8 +199,10 @@ export class MeController {
     this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     if (!body.newUsername) {
-      this.logger.error("A user failed to update his username");
-      throw new BadRequestException("Expected 'newUsername' as a field of the body's JSON");
+      this.logger.error('A user failed to update his username');
+      throw new BadRequestException(
+        "Expected 'newUsername' as a field of the body's JSON",
+      );
     }
 
     return await this.usersService.updateUsernameByUID(
@@ -273,7 +283,6 @@ export class MeController {
     @Req() req: { user: User },
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
-    console.log(file);
     if (!file) {
       this.logger.error('"' + req.user.name + '" failed to upload his avatar');
       throw new BadRequestException('Invalid file');
@@ -285,5 +294,21 @@ export class MeController {
       req.user.id,
       process.env.BACKEND_URL + '/api/users/avatars/' + file.filename,
     );
+  }
+
+  /**
+   * DELETE /api/me
+   *
+   * This is the route to visit to delete 'me' user's
+   * account from the database
+   */
+  @ApiOkResponse({ description: "Deletes 'me' user's account" })
+  @Delete()
+  public async deleteMyAccount(
+    @Req() req: { user: User },
+  ): Promise<SuccessResponse> {
+    this.logger.log('Deleting "' + req.user.name + '"\'s account');
+
+    return await this.usersService.deleteUserByUID(req.user.id);
   }
 }

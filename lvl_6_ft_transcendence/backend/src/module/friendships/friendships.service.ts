@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, Friendship, BlockedUser } from 'src/typeorm';
+import { User, Friendship, BlockedUser } from 'src/entity/index';
 import { UsersService } from '../users/users.service';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
@@ -88,17 +88,18 @@ export class FriendshipsService {
   }
 
   public async getMyBlocklist(meUID: number): Promise<BlockedUserInterface[]> {
-    const myBlockedUsersInfo: BlockedUser[] =
-      await this.usersService.getMyBlockedUsersInfo(meUID);
+    const myBlockedUsers: BlockedUser[] =
+      await this.usersService.findBlockedUsersByUID(meUID);
 
-    const myBlockedUsersInterfaces: BlockedUserInterface[] =
-      myBlockedUsersInfo.map((blockedUserEntry) => {
+    const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsers.map(
+      (blockedUser) => {
         return {
-          blocked_uid: blockedUserEntry.blocked_user.id,
-          name: blockedUserEntry.blocked_user.name,
-          avatar_url: blockedUserEntry.blocked_user.avatar_url,
+          blocked_uid: blockedUser.blocked_user.id,
+          name: blockedUser.blocked_user.name,
+          avatar_url: blockedUser.blocked_user.avatar_url,
         };
-      });
+      },
+    );
 
     return myBlockedUsersInterfaces;
   }
@@ -290,8 +291,6 @@ export class FriendshipsService {
         'User with id=' + userToBlockId + " doesn't exist",
       );
     }
-
-    console.log(JSON.stringify(userToBlock, null, 2));
 
     await this.blockAndDeleteFriendship(sender, userToBlock);
 

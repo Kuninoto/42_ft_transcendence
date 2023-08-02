@@ -1,31 +1,56 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { GameQueue } from './GameQueue';
 import { GameRoomsMap } from './GameRoomsMap';
 import { UsersService } from '../users/users.service';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { Server } from 'socket.io';
-import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 import { GameType } from 'src/common/types/game-type.enum';
 import { PlayerSide } from 'src/common/types/player-side.enum';
+import { Ball } from './Ball';
+import { Player } from './Player';
 import {
-  Ball,
-  CANVAS_HEIGHT,
   GameRoom,
-  PADDLE_VELOCITY,
-  Player,
-} from './game-room';
+  CANVAS_HEIGHT,
+  CANVAS_HEIGHT_OFFSET,
+  MAX_SCORE,
+} from './GameRoom';
+import { PlayerIds } from 'src/common/types/player-interface.interface';
+import { GameEndDTO } from './dto/game-end.dto';
+import { GameGateway } from './game.gateway';
+import { User } from 'src/entity/index';
+import { GameResult } from 'src/entity/game-result.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class GameService {
+  private playersInQueueOrGame: PlayerIds[];
+
   constructor(
-    private gameQueue: GameQueue,
-    private gameRoomsMap: GameRoomsMap,
-    private usersService: UsersService,
-  ) {}
+    private readonly usersService: UsersService,
+    private readonly gameQueue: GameQueue,
+    private readonly gameRoomsMap: GameRoomsMap,
+    @Inject(forwardRef(() => GameGateway))
+    private readonly gameGateway: GameGateway,
+    @InjectRepository(GameResult)
+    private readonly gameResultRepository: Repository<GameResult>,
+  ) {
+    this.playersInQueueOrGame = [];
+  }
 
   private readonly logger: Logger = new Logger(GameService.name);
 
+  public isPlayerInQueueOrGame(playerUID: number): boolean {
+    return this.playersInQueueOrGame.some(
+      (player) => player.userId === playerUID,
+    );
+  }
+
   public queueToLadder(server: Server, player: Player): void {
+    this.playersInQueueOrGame.push({
+      clientId: player.client.id,
+      userId: player.userId,
+    });
     this.gameQueue.enqueue(player);
     this.usersService.updateUserStatusByUID(player.userId, UserStatus.IN_QUEUE);
 
@@ -42,15 +67,18 @@ export class GameService {
     }
   }
 
-  public leaveLadderQueue(clientId: string): void {
-    const removedPlayer: Player | void =
-      this.gameQueue.removePlayerFromQueueByClientId(clientId);
+  public async disconnectPlayer(playerClientId: string): Promise<void> {
+    const playerIds: PlayerIds | void =
+      this.erasePlayerFromArray(playerClientId);
 
-    if (removedPlayer)
-      this.usersService.updateUserStatusByUID(
-        removedPlayer.userId,
+    if (playerIds) {
+      await this.usersService.updateUserStatusByUID(
+        playerIds.userId,
         UserStatus.ONLINE,
       );
+    }
+
+    this.gameQueue.removePlayerFromQueueByClientId(playerClientId);
   }
 
   public playerScored(gameRoomId: string, clientId: string): void {
@@ -61,20 +89,39 @@ export class GameService {
     }
 
     let updatedGameRoom: Partial<GameRoom>;
+
     if (gameRoom.leftPlayer.client.id === clientId) {
+      // leftPlayer scored
       updatedGameRoom = {
         leftPlayer: {
           ...gameRoom.leftPlayer,
           score: gameRoom.leftPlayer.score + 1,
         },
       };
+      if (updatedGameRoom.leftPlayer.score === MAX_SCORE) {
+        this.gameEnded(
+          gameRoomId,
+          updatedGameRoom.leftPlayer,
+          gameRoom.rightPlayer,
+        );
+        return;
+      }
     } else {
+      // rightPlayer scored
       updatedGameRoom = {
         rightPlayer: {
           ...gameRoom.rightPlayer,
           score: gameRoom.rightPlayer.score + 1,
         },
       };
+      if (updatedGameRoom.rightPlayer.score === MAX_SCORE) {
+        this.gameEnded(
+          gameRoomId,
+          updatedGameRoom.rightPlayer,
+          gameRoom.leftPlayer,
+        );
+        return;
+      }
     }
     this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
@@ -105,7 +152,8 @@ export class GameService {
       ].paddleY < 0 ||
       updatedGameRoom[
         playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
-      ].paddleY > CANVAS_HEIGHT
+      ].paddleY >
+        CANVAS_HEIGHT - CANVAS_HEIGHT_OFFSET
     ) {
       return;
     }
@@ -114,6 +162,19 @@ export class GameService {
 
   public getGameRoomInfo(gameRoomId: string): GameRoom | undefined {
     return this.gameRoomsMap.findGameRoomById(gameRoomId);
+  }
+
+  private erasePlayerFromArray(playerClientId: string): PlayerIds | void {
+    const indexOfPlayerToDisconnect: number =
+      this.playersInQueueOrGame.findIndex((player) => {
+        return player.clientId === playerClientId;
+      });
+
+    if (indexOfPlayerToDisconnect === -1) {
+      return;
+    }
+
+    return this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1)[0];
   }
 
   private async joinPlayersToRoom(
@@ -145,8 +206,6 @@ export class GameService {
     // Emit 'opponent-found' event to both players
     await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
     await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
-
-    // server.to(roomId).emit('game-data', GameData);
   }
 
   private async emitOpponentFoundEvent(
@@ -162,5 +221,46 @@ export class GameService {
       side: player.side,
       opponentInfo: opponentInfo,
     });
+  }
+
+  private async gameEnded(
+    roomId: string,
+    winner: Player,
+    loser: Player,
+  ): Promise<void> {
+    // !TODO
+    // Remove the hard coded Game Type
+    await this.saveGameResult(GameType.LADDER, winner, loser);
+    const gameEnd: GameEndDTO = {
+      winner: { userId: winner.userId, score: winner.score },
+      loser: { userId: loser.userId, score: loser.score },
+    };
+
+    this.gameRoomsMap.deleteGameRoomById(roomId);
+    this.gameGateway.broadcastGameEnd(roomId, gameEnd);
+  }
+
+  private async saveGameResult(
+    gameType: GameType,
+    winner: Player,
+    loser: Player,
+  ): Promise<void> {
+    //if (winner.userId === loser.userId) {
+    //  throw new Error('Winner and loser cannot be the same player');
+    //}
+
+    const winnerUser: User = await this.usersService.findUserByUID(
+      winner.userId,
+    );
+    const loserUser: User = await this.usersService.findUserByUID(loser.userId);
+
+    const newGameResult: GameResult = this.gameResultRepository.create({
+      game_type: gameType,
+      winner: winnerUser,
+      winner_score: winner.score,
+      loser: loserUser,
+      loser_score: loser.score,
+    });
+    await this.gameResultRepository.save(newGameResult);
   }
 }
