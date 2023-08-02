@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entity/index';
 import { authenticator } from 'otplib';
@@ -16,6 +16,7 @@ export interface twoFactorAuthDTO {
 export class AuthService {
   constructor(
     private jwtService: JwtService,
+    @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
   ) {}
 

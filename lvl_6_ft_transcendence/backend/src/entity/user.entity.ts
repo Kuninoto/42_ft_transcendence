@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { BlockedUser } from './blocked-user.entity';
-import { UserRecord } from './user-record.entity';
+import { UserStats } from './user-stats.entity';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { GameResult } from './game-result.entity';
 
@@ -84,8 +84,8 @@ export class User {
   blocked_users: BlockedUser[];
 
   @ApiProperty()
-  @OneToOne(() => UserRecord, (userRecord) => userRecord.user)
-  user_record: UserRecord;
+  @OneToOne(() => UserStats, (userStatus) => userStatus.user)
+  user_stats: UserStats;
 
   @ApiProperty()
   @OneToMany(() => GameResult, (gameResult) => gameResult.winner)

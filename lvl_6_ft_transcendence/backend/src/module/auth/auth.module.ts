@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from 'src/module/auth/auth.controller';
 import { PassportModule } from '@nestjs/passport';
@@ -18,7 +18,7 @@ console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
     }),
-    UsersModule,
+    forwardRef(() => UsersModule),
   ],
   controllers: [AuthController],
   providers: [

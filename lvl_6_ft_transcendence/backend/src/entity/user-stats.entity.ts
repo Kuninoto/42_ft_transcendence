@@ -1,20 +1,25 @@
 import {
-  PrimaryGeneratedColumn,
   Column,
   Entity,
   JoinColumn,
   OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
 
-@Entity('user-record')
-export class UserRecord {
+@Entity('user-stats')
+export class UserStats {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
   })
   id: number;
+
+  @ApiProperty()
+  @OneToOne(() => User, (user) => user.user_stats, { cascade: true })
+  @JoinColumn()
+  user: User;
 
   @ApiProperty()
   @Column({
@@ -31,10 +36,7 @@ export class UserRecord {
   losses: number;
 
   @ApiProperty()
-  @Column({
-    type: 'bigint',
-    default: 0,
-  })
+  @Column({ type: 'double precision', default: null, nullable: true })
   win_rate: number;
 
   @ApiProperty()
@@ -42,10 +44,5 @@ export class UserRecord {
     type: 'bigint',
     default: 0,
   })
-  total_matches_played: number;
-
-  @ApiProperty()
-  @OneToOne(() => User, (user) => user.user_record)
-  @JoinColumn()
-  user: User;
+  matches_played: number;
 }
