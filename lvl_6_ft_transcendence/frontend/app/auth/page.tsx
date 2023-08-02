@@ -14,12 +14,13 @@ export default function Auth() {
 		const code = searchParams.get('code')
 		if (code && login(code)) {
 			router.push('/dashboard')
-
 		} else {
 			console.error('Error logging in!')
 			router.push('/')
 		}
 	}, [])
 
-	return <div>loading</div>
+	return (<div className="w-full h-full place-content-center flex items-center">
+  		<h1 className="text-5xl after:overflow-hidden after:inline-block after:align-bottom after:animate-ellipsis after:w-0 after:content-['\2026']">Loading</h1>
+	</div>)
 }

@@ -7,26 +7,26 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 	
 	const { user, refreshUser } = useAuth()
 
-	const { register, handleSubmit, setError} = useForm<FormData>( {
+	const { register, handleSubmit} = useForm<FormData>( {
 		defaultValues: {
 			name: user.name
 		}
 	})
 
-	async function onSubmit({ name, photo }: any) {
+	async function onSubmit({ name, photos }: { name: string, photos: File[]}) {
 
 			try {
 				if (name.length !== 0 && name !== user.name)
 				{
-						await api.patch("/me/username", {
-							newUsername: name
-						})
+					await api.patch("/me/username", {
+						newUsername: name
+					})
 				}
 
-				if(photo.length !== 0)
+				if (photos.length !== 0)
 				{
 					await multipartApi.patch("/me/avatar", {
-							avatar: photo[0]
+						avatar: photos[0]
 					})
 				}
 
@@ -57,7 +57,9 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 								<label htmlFor="name">Name:</label>
 								<input id="name" {...register("name", { maxLength: 10 })} className="bg-transparent border border-white outline-none rounded py-2 px-2" type="text" />
 							</fieldset>
-							<input {...register("photo")} type="file" accept="image/*"/>
+
+							<input {...register("photos")} type="file"   accept="image/*"/>
+
 							<input type="submit" value="Submit" />
 						</form>
 

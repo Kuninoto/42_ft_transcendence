@@ -8,18 +8,14 @@ module.exports = {
 	theme: {
 		extend: {
 			animation: {
-				horizontalBounce: 'horizontalBounce 1s infinite',
-				cardBounce: 'cardBounce 2s infinite',
+				ellipsis: 'ellipsis steps(4, end) 900ms infinite'
 			},
 			keyframes: {
-				horizontalBounce: {
-					'0%, 100%': { transform: 'translateX(0)' },
-					'50%': { transform: 'translateX(-10px)' },
-				},
-				cardBounce: {
-					'0%, 100%': { transform: 'translateY(-35px)' },
-					'50%': { transform: 'translateY(-45px)' },
-				},
+				ellipsis: {
+					to: {
+						width: "64px"
+					}
+				}
 			},
 		},
 	}
