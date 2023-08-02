@@ -22,6 +22,7 @@ import { GameResult } from 'src/entity/game-result.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
+import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 
 @Injectable()
 export class GameService {
@@ -170,7 +171,7 @@ export class GameService {
 
   public async getLeaderboard(): Promise<UserStatsForLeaderboard[]> {
     // Get user ids, names, wins and win_rates
-    // and sort them by wins and win_rates in descending order 
+    // and sort them by wins and win_rates in descending order
     // if the number of wins of two players are equal
     // the one with the bigger win rate is placed above
     const leaderboardData: {
@@ -255,9 +256,11 @@ export class GameService {
     roomId: string,
     opponentUID: number,
   ): Promise<void> {
-    const opponentInfo = await this.usersService.findUserSearchInfoByUID(
-      opponentUID,
-    );
+    const opponentInfo: UserSearchInfo =
+      await this.usersService.findUserSearchInfoByUID(
+        player.userId,
+        opponentUID,
+      );
     player.client.emit('opponent-found', {
       roomId: roomId,
       side: player.side,

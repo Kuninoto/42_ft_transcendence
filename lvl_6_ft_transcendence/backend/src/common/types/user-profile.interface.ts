@@ -10,6 +10,7 @@ export interface UserProfile {
   intra_profile_url: string;
   created_at: Date;
   friends: FriendInterface[];
+  friendship_id: number | null;
   friendship_status: FriendshipStatus | null;
   is_blocked: boolean;
   stats: UserStats;

@@ -87,27 +87,33 @@ export class UsersService {
               '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
               { meUserId },
             )
-            .andWhere(
-              'friendship.status = :status OR friendship.status = :status2',
-              {
-                status: FriendshipStatus.ACCEPTED,
-                status2: FriendshipStatus.PENDING,
-              },
-            )
+            .andWhere('friendship.status = :status', {
+              status: FriendshipStatus.ACCEPTED,
+            })
             .getQuery();
           return `NOT EXISTS ${subqueryFriend}`;
         })
         .getMany()
     ).slice(0, 5);
 
-    // Generate UserProfiles from Users info
-    const usersSearchInfo: UserSearchInfo[] = users.map((user: User) => {
-      return {
-        id: user.id,
-        name: user.name,
-        avatar_url: user.avatar_url,
-      };
-    });
+    // Generate UserSearchInfo from Users info
+    const usersSearchInfo: UserSearchInfo[] = await Promise.all(
+      users.map(async (user: User) => {
+        const meUser: User = await this.findUserByUID(meUserId);
+        const friendship: Friendship | null =
+          await this.friendshipsService.findFriendshipBetween2Users(
+            meUser,
+            user,
+          );
+
+        return {
+          id: user.id,
+          name: user.name,
+          avatar_url: user.avatar_url,
+          friendship_status: friendship ? friendship.status : null,
+        };
+      }),
+    );
 
     return usersSearchInfo;
   }
@@ -149,6 +155,7 @@ export class UsersService {
       avatar_url: user.avatar_url,
       intra_profile_url: user.intra_profile_url,
       created_at: user.created_at,
+      friendship_id: friendship ? friendship.id : null,
       friendship_status: friendship ? friendship.status : null,
       friends: friends,
       is_blocked: isBlocked,
@@ -157,14 +164,18 @@ export class UsersService {
   }
 
   public async findUserSearchInfoByUID(
+    meUID: number,
     userID: number,
   ): Promise<UserSearchInfo | null> {
-    const user: User = await this.usersRepository.findOneBy({ id: userID });
+    const meUser: User = await this.findUserByUID(meUID);
+    const user: User = await this.findUserByUID(userID);
+    const friendship: Friendship | null = await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
 
     return {
       id: user.id,
       name: user.name,
       avatar_url: user.avatar_url,
+      friendship_status: friendship ? friendship.status : null,
     };
   }
 
@@ -179,7 +190,8 @@ export class UsersService {
   public async findMatchHistoryByUID(
     userId: number,
   ): Promise<GameResultInterface[]> {
-    const gameResults: GameResult[] = await this.gameService.findGameResultsWhereUserPlayed(userId);
+    const gameResults: GameResult[] =
+      await this.gameService.findGameResultsWhereUserPlayed(userId);
 
     const matchHistory: GameResultInterface[] = gameResults.map(
       (gameResult) => {
