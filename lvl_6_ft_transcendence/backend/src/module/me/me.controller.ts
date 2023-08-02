@@ -21,7 +21,7 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
-import { GameResult, User } from 'src/entity/index';
+import { User } from 'src/entity/index';
 import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
@@ -54,7 +54,7 @@ export class MeController {
   @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
   @Get()
   public async getMyInfo(@Req() req: { user: User }): Promise<meUserInfo> {
-    this.logger.log('"' + req.user.name + '" requested his info using /me');
+    this.logger.log('"' + req.user.name + '" requested his info');
 
     // Destructure user's info so that we can filter info that doesn't belong to meUserInfo
     const {
@@ -91,9 +91,7 @@ export class MeController {
   public async getMyFriends(
     @Req() req: { user: User },
   ): Promise<FriendInterface[]> {
-    this.logger.log(
-      '"' + req.user.name + '" requested his friends info using /me/friends',
-    );
+    this.logger.log('"' + req.user.name + '" requested his friends info');
 
     const friendList: FriendInterface[] =
       await this.friendshipsService.getMyFriends(req.user);
@@ -114,9 +112,7 @@ export class MeController {
     @Req() req: { user: User },
   ): Promise<FriendRequestInterface[]> {
     this.logger.log(
-      '"' +
-        req.user.name +
-        '" requested his friend-requests info using /me/friend-requests',
+      '"' + req.user.name + '" requested his friend-requests info',
     );
 
     return await this.friendshipsService.getMyFriendRequests(req.user);
@@ -132,11 +128,7 @@ export class MeController {
   public async getMyBlockedUsers(
     @Req() req: { user: User },
   ): Promise<BlockedUserInterface[]> {
-    this.logger.log(
-      '"' +
-        req.user.name +
-        '" requested his blocklist info using /me/blocklist',
-    );
+    this.logger.log('"' + req.user.name + '" requested his blocklist info');
 
     return await this.friendshipsService.getMyBlocklist(req.user.id);
   }
@@ -148,17 +140,13 @@ export class MeController {
    */
   @ApiOkResponse({
     description:
-      "Finds and returns the 'me' user's match history (GameResult[])",
+      "Finds and returns the 'me' user's match history (GameResultInterface[])",
   })
   @Get('match-history')
   public async getMyMatchHistory(
     @Req() req: { user: User },
   ): Promise<GameResultInterface[]> {
-    this.logger.log(
-      '"' +
-        req.user.name +
-        '" requested his match history info using /me/match-history',
-    );
+    this.logger.log('"' + req.user.name + '" requested his match history info');
 
     return await this.usersService.findMatchHistoryByUID(req.user.id);
   }

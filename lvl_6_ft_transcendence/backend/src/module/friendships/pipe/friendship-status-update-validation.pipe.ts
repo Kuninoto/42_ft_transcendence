@@ -12,7 +12,7 @@ export class FriendshipStatusUpdateValidationPipe
 {
   private readonly logger: Logger = new Logger();
 
-  readonly allowedResponses = ['declined', 'accepted', 'unfriend', 'canceled'];
+  readonly allowedResponses = ['declined', 'accepted', 'unfriend'];
 
   transform(value: { newStatus: FriendshipStatus }): FriendshipStatus {
     const response = value.newStatus;

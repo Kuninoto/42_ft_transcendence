@@ -38,7 +38,9 @@ export class FriendshipsService {
     const myFriendRequests: Friendship[] = await this.friendshipRepository.find(
       {
         where: [{ receiver: meUser, status: FriendshipStatus.PENDING }],
-        relations: ['sender'],
+        relations: {
+          sender: true,
+        },
       },
     );
 
@@ -49,7 +51,7 @@ export class FriendshipsService {
           uid: friendrequest.sender.id,
           name: friendrequest.sender.name,
           avatar_url: friendrequest.sender.avatar_url,
-          status: friendrequest.sender.status,
+          status: friendrequest.status,
         };
       });
 
@@ -62,7 +64,10 @@ export class FriendshipsService {
         { receiver: meUser, status: FriendshipStatus.ACCEPTED },
         { sender: meUser, status: FriendshipStatus.ACCEPTED },
       ],
-      relations: ['sender', 'receiver'],
+      relations: {
+        sender: true,
+        receiver: true,
+      },
     });
 
     const myFriendsInterfaces: FriendInterface[] = myFriendships.map(
@@ -120,12 +125,12 @@ export class FriendshipsService {
     sender: User,
     receiverUID: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (receiverUID == sender.id) {
-      this.logger.error(
-        '"' + sender.name + '" tried to add himself as a friend',
-      );
-      throw new BadRequestException('You cannot add yourself as a friend');
-    }
+    //if (receiverUID == sender.id) {
+    //  this.logger.error(
+    //    '"' + sender.name + '" tried to add himself as a friend',
+    //  );
+    //  throw new BadRequestException('You cannot add yourself as a friend');
+    //}
 
     const receiver: User | null = await this.usersService.findUserByUID(
       receiverUID,
@@ -223,7 +228,9 @@ export class FriendshipsService {
   ): Promise<SuccessResponse | ErrorResponse> {
     const friendship: Friendship = await this.friendshipRepository.findOne({
       where: { id: friendshipId },
-      relations: ['sender'],
+      relations: {
+        sender: true,
+      },
     });
 
     if (!friendship) {
@@ -250,7 +257,6 @@ export class FriendshipsService {
     }
 
     if (
-      newFriendshipStatus == FriendshipStatus.CANCEL ||
       newFriendshipStatus == FriendshipStatus.DECLINED ||
       newFriendshipStatus == FriendshipStatus.UNFRIEND
     ) {
