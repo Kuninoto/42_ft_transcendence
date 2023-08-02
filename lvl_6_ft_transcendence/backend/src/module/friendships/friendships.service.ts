@@ -257,7 +257,6 @@ export class FriendshipsService {
     }
 
     if (
-      newFriendshipStatus == FriendshipStatus.CANCEL ||
       newFriendshipStatus == FriendshipStatus.DECLINED ||
       newFriendshipStatus == FriendshipStatus.UNFRIEND
     ) {
