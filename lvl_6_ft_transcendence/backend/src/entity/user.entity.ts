@@ -9,15 +9,14 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { BlockedUser } from './blocked-user.entity';
 import { UserRecord } from './user-record.entity';
-import { MatchHistory } from './match-history.entity';
 import { UserStatus } from 'src/common/types/user-status.enum';
+import { GameResult } from './game-result.entity';
 
 @Entity('user')
 export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 
@@ -89,8 +88,12 @@ export class User {
   user_record: UserRecord;
 
   @ApiProperty()
-  @OneToOne(() => MatchHistory, (matchHistory) => matchHistory.user)
-  match_history: MatchHistory;
+  @OneToMany(() => GameResult, (gameResult) => gameResult.winner)
+  game_results_as_winner: GameResult[];
+
+  @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult) => gameResult.loser)
+  game_results_as_loser: GameResult[];
 
   @ApiProperty()
   @Column({

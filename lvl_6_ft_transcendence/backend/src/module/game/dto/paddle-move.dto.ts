@@ -1,5 +1,5 @@
 import { IsNumber, IsString, Max, Min } from 'class-validator';
-import { CANVAS_HEIGHT } from '../game-room';
+import { CANVAS_HEIGHT } from '../GameRoom';
 
 export class PaddleMoveDTO {
   @IsString()

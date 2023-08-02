@@ -12,10 +12,11 @@ import { Server, Socket } from 'socket.io';
 import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
-import { Logger } from '@nestjs/common';
-import { GameRoom, GameRoomInfo, Player } from './game-room';
+import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { GameRoom, GameRoomInfoDTO } from './GameRoom';
+import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
-import { PlayerIds } from 'src/common/types/player-interface.interface';
+import { GameEndDTO } from './dto/game-end.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway
@@ -24,47 +25,39 @@ export class GameGateway
   @WebSocketServer()
   public server: Server;
 
-  private playersInQueueOrGame: PlayerIds[];
-
   constructor(
+    @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
     private readonly authService: AuthService,
-  ) {
-    this.playersInQueueOrGame = [];
-  }
+  ) {}
 
   private readonly logger: Logger = new Logger(GameGateway.name);
 
-  afterInit(server: Server) {
+  afterInit(server: Server): void {
     this.logger.log('Game-gateway Initialized');
   }
 
-  // On socket connection checks if the user is authenticated
-  async handleConnection(client: Socket) {
+  async handleConnection(client: Socket): Promise<void> {
     this.logger.log('Player connected ' + client.id);
     try {
-      const userId: number = await this.authService.authenticateClientAndRetrieveUID(client);
-      if (this.isPlayerInQueueOrGame(userId)) {
-        throw new Error('Duplicate player connected');
-      }
+      const userId: number =
+        await this.authService.authenticateClientAndRetrieveUID(client);
+      //if (this.gameService.isPlayerInQueueOrGame(userId)) {
+      //  throw new Error('Player was already connected');
+      //}
 
       const newPlayer: Player = new Player(client, userId);
-      this.playersInQueueOrGame.push({
-        clientId: newPlayer.client.id,
-        userId: newPlayer.userId,
-      });
       this.gameService.queueToLadder(this.server, newPlayer);
     } catch (error) {
-      this.logger.error(error.message + ", disconnecting...");
+      this.logger.error(error.message + ', disconnecting...');
       // Due to lifecycle hooks, this line calls handleDisconnect();
       // Refer to: https://docs.nestjs.com/websockets/gateways
       client.disconnect();
     }
   }
 
-  async handleDisconnect(client: Socket) {
-    this.erasePlayerFromArray(client.id);
-    this.gameService.leaveLadderQueue(client.id);
+  async handleDisconnect(client: Socket): Promise<void> {
+    await this.gameService.disconnectPlayer(client.id);
     this.logger.log('Player disconnected ' + client.id);
   }
 
@@ -91,7 +84,6 @@ export class GameGateway
   ): void {
     this.gameService.playerScored(messageBody.gameRoomId, client.id);
     this.broadcastGameRoomInfo(messageBody.gameRoomId);
-    console.debug(this.gameService.getGameRoomInfo(messageBody.gameRoomId));
   }
 
   broadcastGameRoomInfo(roomId: string): void {
@@ -103,8 +95,8 @@ export class GameGateway
     }
 
     const { ball, leftPlayer, rightPlayer } = gameRoom;
-    
-    const gameRoomInfo: GameRoomInfo = {
+
+    const gameRoomInfo: GameRoomInfoDTO = {
       ball: { x: ball.x, y: ball.y },
       leftPlayer: { paddleY: leftPlayer.paddleY, score: leftPlayer.score },
       rightPlayer: { paddleY: rightPlayer.paddleY, score: rightPlayer.score },
@@ -112,24 +104,7 @@ export class GameGateway
     this.server.to(roomId).emit('game-room-info', gameRoomInfo);
   }
 
-  /* broadcastGameEnd(): void {
-    const gameEnd: GameEnd = ;
-    this.server.to(gameId).emit('game-end', gameEnd);
-  } */
-
-  private erasePlayerFromArray(playerClientId: string): void {
-    const indexOfPlayerToDisconnect: number =
-      this.playersInQueueOrGame.findIndex((player) => {
-        return player.clientId === playerClientId;
-      });
-    if (indexOfPlayerToDisconnect !== -1) {
-      this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1);
-    }
-  }
-
-  private isPlayerInQueueOrGame(playerUID: number): boolean {
-    return this.playersInQueueOrGame.some(
-      (player) => player.userId === playerUID,
-    );
+  broadcastGameEnd(roomId: string, gameEndDto: GameEndDTO): void {
+    this.server.to(roomId).emit('game-end', gameEndDto);
   }
 }

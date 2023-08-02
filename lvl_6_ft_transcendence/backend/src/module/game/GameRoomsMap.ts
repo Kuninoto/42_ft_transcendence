@@ -1,4 +1,4 @@
-import { GameRoom } from './game-room';
+import { GameRoom } from './GameRoom';
 
 export class GameRoomsMap {
   private gameMap: Map<string, GameRoom> = new Map<string, GameRoom>();

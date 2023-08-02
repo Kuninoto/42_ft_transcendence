@@ -14,7 +14,6 @@ export class Friendship {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 

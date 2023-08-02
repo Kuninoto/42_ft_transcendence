@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity/index';
 import { UsersService } from 'src/module/users/users.service';
 
 // Because we'll specify which info
@@ -46,7 +46,7 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
       return user;
     }
 
-    Logger.log('\"' + profile.username + '\" logging in for the 1st time!');
+    Logger.log('"' + profile.username + '" logging in for the 1st time!');
 
     return await this.usersService.createUser({
       name: profile.username,
