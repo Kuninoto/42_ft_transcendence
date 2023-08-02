@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { GameType } from 'src/common/types/game-type.enum';
+import { User } from './user.entity';
 
 @Entity('game-result')
 export class GameResult {
@@ -21,26 +22,20 @@ export class GameResult {
   game_type: GameType;
 
   @ApiProperty()
-  @Column({ type: 'varchar', length: 10, nullable: false })
-  winner_name: string;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  winner: User;
 
   @ApiProperty()
   @Column({ type: 'smallint' })
   winner_score: number;
 
   @ApiProperty()
-  @Column({ type: 'varchar', length: 10, nullable: false })
-  loser_name: string;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  loser: User;
 
   @ApiProperty()
   @Column({ type: 'smallint' })
   loser_score: number;
-
-  /* @ManyToOne(() => MatchHistory, (matchHistory) => matchHistory.game_results)
-  @JoinColumn()
-  winner_match_history: MatchHistory; */
-
-  /* @ManyToOne(() => MatchHistory, (matchHistory) => matchHistory.game_results)
-  @JoinColumn()
-  loser_match_history: MatchHistory; */
 }

@@ -88,17 +88,18 @@ export class FriendshipsService {
   }
 
   public async getMyBlocklist(meUID: number): Promise<BlockedUserInterface[]> {
-    const myBlockedUsersInfo: BlockedUser[] =
-      await this.usersService.getMyBlockedUsersInfo(meUID);
+    const myBlockedUsers: BlockedUser[] =
+      await this.usersService.findBlockedUsersByUID(meUID);
 
-    const myBlockedUsersInterfaces: BlockedUserInterface[] =
-      myBlockedUsersInfo.map((blockedUserEntry) => {
+    const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsers.map(
+      (blockedUser) => {
         return {
-          blocked_uid: blockedUserEntry.blocked_user.id,
-          name: blockedUserEntry.blocked_user.name,
-          avatar_url: blockedUserEntry.blocked_user.avatar_url,
+          blocked_uid: blockedUser.blocked_user.id,
+          name: blockedUser.blocked_user.name,
+          avatar_url: blockedUser.blocked_user.avatar_url,
         };
-      });
+      },
+    );
 
     return myBlockedUsersInterfaces;
   }
