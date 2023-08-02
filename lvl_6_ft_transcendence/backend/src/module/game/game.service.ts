@@ -230,14 +230,16 @@ export class GameService {
   ): Promise<void> {
     // !TODO
     // Remove the hard coded Game Type
-    await this.saveGameResult(GameType.LADDER, winner, loser);
     const gameEnd: GameEndDTO = {
       winner: { userId: winner.userId, score: winner.score },
       loser: { userId: loser.userId, score: loser.score },
     };
 
-    this.gameRoomsMap.deleteGameRoomById(roomId);
     this.gameGateway.broadcastGameEnd(roomId, gameEnd);
+    this.gameRoomsMap.deleteGameRoomById(roomId);
+
+    await this.saveGameResult(GameType.LADDER, winner, loser);
+    await this.usersService.updatePlayersStatsByUIDs(winner.userId, loser.userId);
   }
 
   private async saveGameResult(
