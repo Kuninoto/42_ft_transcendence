@@ -169,7 +169,8 @@ export class UsersService {
   ): Promise<UserSearchInfo | null> {
     const meUser: User = await this.findUserByUID(meUID);
     const user: User = await this.findUserByUID(userID);
-    const friendship: Friendship | null = await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
+    const friendship: Friendship | null =
+      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
 
     return {
       id: user.id,
@@ -223,7 +224,7 @@ export class UsersService {
       this.logger.error(
         'User which id=' +
           userID +
-          ' failed to update his username due to boundaries',
+          ' failed to update his username due to length boundaries',
       );
       throw new BadRequestException(
         'Usernames length must at least 4 and up to 10 characters long',
@@ -243,14 +244,14 @@ export class UsersService {
       );
     }
 
-    if (this.isNameAlreadyTaken(newName)) {
+    if (await this.isNameAlreadyTaken(newName)) {
       this.logger.error(
         'A request to update a name was made with a name already taken',
       );
       throw new ConflictException('Username is already taken');
     }
 
-    if (this.doesNameConflictWithAnyIntraName(newName, userID)) {
+    if (await this.doesNameConflictWithAnyIntraName(newName, userID)) {
       this.logger.error(
         'A request to update a name was made with a intra name of another person',
       );
