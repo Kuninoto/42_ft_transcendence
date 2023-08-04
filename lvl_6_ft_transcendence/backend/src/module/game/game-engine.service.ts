@@ -15,6 +15,8 @@ import { GameRoomsMap } from './GameRoomsMap';
 // Appropriate this interval to testing
 const GAME_LOOP_INTERVAL: number = 1000;
 
+// const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 /* 
 CANVAS AXIS
 
@@ -184,12 +186,14 @@ export class GameEngineService {
 
       gameRoom.rightPlayer.score += 1;
       gameRoom.ball.reset();
+      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId);
       return true;
     } else if (gameRoom.ball.x + BALL_RADIUS >= CANVAS_WIDTH) {
       // BALL PASSED RIGHT SIDE
 
       gameRoom.leftPlayer.score += 1;
       gameRoom.ball.reset();
+      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId);
       return true;
     }
     return false;
