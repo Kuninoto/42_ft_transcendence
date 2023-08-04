@@ -18,12 +18,12 @@ import { GameEngineService } from './game-engine.service';
   ],
   controllers: [GameController],
   providers: [
+    GameGateway,
     GameQueue,
     GameRoomsMap,
     GameService,
-    GameGateway,
     GameEngineService,
   ],
-  exports: [GameService]
+  exports: [GameService],
 })
 export class GameModule {}
