@@ -52,13 +52,11 @@ async function bootstrap() {
     .setDescription('The API for the transcendence project')
     .setVersion('1.0')
     .addTag('Transcendence')
-    //  .addBearerAuth()
+//  .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('help', app, document);
 
-  // !TODO
-  // Review cors utility
   app.enableCors(corsOption);
 
   const oneDay: number = 86400000;

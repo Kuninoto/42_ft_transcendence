@@ -25,13 +25,25 @@ export class GameQueue {
     return this.players.length;
   }
 
-  public removePlayerFromQueueByClientId(clientId: string): Player | void {
+  public isPlayerInQueue(playerUID: number): boolean {
+    const playerIndex: number = this.players.findIndex((player) => {
+      return player.userId === player.userId;
+    });
+
+    if (playerIndex === -1) {
+      return false;
+    }
+
+    return true;
+  }
+
+  public removePlayerFromQueueByClientId(clientId: string): Player | null {
     const playerIndex: number = this.players.findIndex((player) => {
       return player.client.id === clientId;
     });
 
     if (playerIndex === -1) {
-      return;
+      return null;
     }
 
     return this.players.splice(playerIndex, 1)[0];
