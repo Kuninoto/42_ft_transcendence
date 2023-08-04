@@ -114,6 +114,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(gameRoomId).emit('game-end', gameEndDto);
   }
 
+  emitPlayerScoredEvent(gameRoomId: string) {
+    this.server.to(gameRoomId).emit('player-scored');
+  }
+
   private isValidPaddleMoveMessage(
     messageBody: any,
   ): messageBody is PaddleMoveDTO {
