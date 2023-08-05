@@ -9,7 +9,7 @@ interface IThemes {
 export const themes : IThemes = {
   default: {
     background: "default.png",
-    paddle: ""
+    paddle: "dev.png"
   },
   fortyTwo: {
     background: "42.jpg",
