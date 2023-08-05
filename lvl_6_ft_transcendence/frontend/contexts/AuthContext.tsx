@@ -30,7 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<{} | UserProfile>({})
 
 	useEffect(() => {
+
 		const token = localStorage.getItem('pong.token')
+
+		if (token && pathname === "/" )
+			router.push("/dashboard")
+
 		if (token) {
 			api.get<UserProfile>('/me')
 				.then((result: axios) => setUser(result.data))

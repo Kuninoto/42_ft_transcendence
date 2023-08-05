@@ -34,6 +34,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 
 		setRequests(prevReq => prevReq.filter(prevReq => prevReq.friendship_id != friendship_id))
 
+		console.log(friendship_id)
 		api.patch(`/friendships/${friendship_id}/update`, {
 			newStatus: "declined"	
 		})
