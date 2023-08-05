@@ -13,7 +13,7 @@ import { PlayerSide } from 'src/common/types/player-side.enum';
 import { GameRoomsMap } from './GameRoomsMap';
 
 // Appropriate this interval to testing
-const GAME_LOOP_INTERVAL: number = 1000;
+const GAME_LOOP_INTERVAL: number = 25;
 
 // const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -134,8 +134,9 @@ export class GameEngineService {
 
   private ballCollidedWithWall(ball: Ball): boolean {
     // TOP || BOTTOM
-    if (ball.y - BALL_RADIUS <= 0 || ball.y + BALL_RADIUS >= CANVAS_HEIGHT) {
-      ball.bounceInX();
+    if (ball.y - BALL_RADIUS <= 0 && ball.speed.y < 0 
+      || ball.y + BALL_RADIUS >= CANVAS_HEIGHT && ball.speed.y > 0) {
+      ball.bounceInY();
       return true;
     }
     return false;
@@ -144,38 +145,21 @@ export class GameEngineService {
   /* Verifies if the ball is colliding with a paddle and updates
   its direction if so */
   private ballCollidedWithPaddle(gameRoom: GameRoom): boolean {
-    let player: Player;
-
     // If ball X position is smaller than canvas'
     // midpoint it is on the left side
-    if (gameRoom.ball.x < CANVAS_MID_WIDTH) {
-      player = gameRoom.leftPlayer;
+    const player = gameRoom.ball.x < CANVAS_MID_WIDTH ? gameRoom.leftPlayer: gameRoom.rightPlayer;
 
-      if (
-        gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH &&
-        gameRoom.ball.y < player.paddleY + PADDLE_HEIGHT / 2 &&
-        gameRoom.ball.y > player.paddleY - PADDLE_HEIGHT / 2
-      ) {
-        gameRoom.ball.bounceInY();
-        gameRoom.ball.bounceOnCollidePoint(
-          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
-        );
-        return true;
-      }
-    } else {
-      player = gameRoom.rightPlayer;
-
-      if (
-        gameRoom.ball.x + BALL_RADIUS >= player.paddleX - PADDLE_WIDTH &&
-        gameRoom.ball.y < player.paddleY + PADDLE_HEIGHT / 2 &&
-        gameRoom.ball.y > player.paddleY - PADDLE_HEIGHT / 2
-      ) {
-        gameRoom.ball.bounceInY();
-        gameRoom.ball.bounceOnCollidePoint(
-          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
-        );
-        return true;
-      }
+    if (
+      gameRoom.ball.x >= player.paddleX - PADDLE_WIDTH &&
+      gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH &&
+      gameRoom.ball.y < player.paddleY + PADDLE_HEIGHT &&
+      gameRoom.ball.y > player.paddleY
+    ) {
+      gameRoom.ball.bounceInX();
+      gameRoom.ball.bounceOnCollidePoint(
+        player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+      );
+      return true;
     }
     return false;
   }
