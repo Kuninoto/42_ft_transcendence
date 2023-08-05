@@ -35,25 +35,36 @@ export class FriendshipsService {
   public async getMyFriendRequests(
     meUser: User,
   ): Promise<FriendRequestInterface[]> {
-    const myFriendRequests: Friendship[] = await this.friendshipRepository.find(
-      {
-        where: [{ receiver: meUser, status: FriendshipStatus.PENDING }],
-        relations: {
-          sender: true,
-        },
-      },
-    );
+    const [myFriendRequestsAsReceiver, myFriendRequestsAsSender] =
+      await Promise.all([
+        this.friendshipRepository.find({
+          where: { receiver: meUser, status: FriendshipStatus.PENDING },
+          relations: { sender: true },
+        }),
+        this.friendshipRepository.find({
+          where: { sender: meUser, status: FriendshipStatus.PENDING },
+          relations: { receiver: true },
+        }),
+      ]);
 
-    const myFriendRequestsInterfaces: FriendRequestInterface[] =
-      myFriendRequests.map((friendrequest: Friendship) => {
-        return {
-          friendship_id: friendrequest.id,
-          uid: friendrequest.sender.id,
-          name: friendrequest.sender.name,
-          avatar_url: friendrequest.sender.avatar_url,
-          status: friendrequest.status,
-        };
-      });
+    const myFriendRequestsInterfaces: FriendRequestInterface[] = [
+      ...myFriendRequestsAsReceiver.map((friendrequest: Friendship) => ({
+        friendship_id: friendrequest.id,
+        uid: friendrequest.sender.id,
+        name: friendrequest.sender.name,
+        avatar_url: friendrequest.sender.avatar_url,
+        status: friendrequest.status,
+        sent_by_me: false,
+      })),
+      ...myFriendRequestsAsSender.map((friendrequest: Friendship) => ({
+        friendship_id: friendrequest.id,
+        uid: friendrequest.receiver.id,
+        name: friendrequest.receiver.name,
+        avatar_url: friendrequest.receiver.avatar_url,
+        status: friendrequest.status,
+        sent_by_me: true,
+      })),
+    ];
 
     return myFriendRequestsInterfaces;
   }

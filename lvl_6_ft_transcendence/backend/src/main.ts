@@ -57,8 +57,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('help', app, document);
 
-  // !TODO
-  // Review cors utility
   app.enableCors(corsOption);
 
   const oneDay: number = 86400000;

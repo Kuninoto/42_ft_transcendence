@@ -47,13 +47,6 @@ export class AuthController {
   // passport flow
   // request -> guard -> strategy -> session serializer
 
-  // !TODO
-  // Figure out how to login with 2fa
-  // i.e glue the pieces of the 2fa
-  // with the login
-  // JwtAuthGuard checks them both
-  // so that could be a good option
-
   /**
    * GET /api/auth/login/callback
    *

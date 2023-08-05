@@ -12,6 +12,7 @@ export interface UserProfile {
   friends: FriendInterface[];
   friendship_id: number | null;
   friendship_status: FriendshipStatus | null;
+  friend_request_sent_by_me: boolean | null;
   is_blocked: boolean;
   stats: UserStats;
 }

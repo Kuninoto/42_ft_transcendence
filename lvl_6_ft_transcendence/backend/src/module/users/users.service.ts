@@ -62,44 +62,41 @@ export class UsersService {
 
     // Find users which name starts with <usernameQuery> and keep only up to 5 of those
     // ignoring blocked users and friends
-    const users: User[] = (
-      await this.usersRepository
-        .createQueryBuilder('user')
-        .where('user.name LIKE :usernameProximity', {
-          usernameProximity: usernameQuery + '%',
-        })
-        .andWhere('user.id != :meUserId', { meUserId })
-        .andWhere((qb) => {
-          const subqueryBlockedMe = qb
-            .subQuery()
-            .select('*')
-            .from(BlockedUser, 'blockedUser')
-            .where('blockedUser.blocked_user = :meUserId', { meUserId })
-            .getQuery();
-          return `NOT EXISTS ${subqueryBlockedMe}`;
-        })
-        .andWhere((qb) => {
-          const subqueryFriend = qb
-            .subQuery()
-            .select('*')
-            .from(Friendship, 'friendship')
-            .where(
-              '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
-              { meUserId },
-            )
-            .andWhere('friendship.status = :status', {
-              status: FriendshipStatus.ACCEPTED,
-            })
-            .getQuery();
-          return `NOT EXISTS ${subqueryFriend}`;
-        })
-        .getMany()
-    ).slice(0, 5);
+    const users: User[] = await this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.name LIKE :usernameProximity', {
+        usernameProximity: usernameQuery + '%',
+      })
+      .andWhere('user.id != :meUserId', { meUserId })
+      .andWhere((qb) => {
+        const subqueryBlockedMe = qb
+          .subQuery()
+          .select('*')
+          .from(BlockedUser, 'blockedUser')
+          .where('blockedUser.blocked_user = :meUserId', { meUserId })
+          .getQuery();
+        return `NOT EXISTS ${subqueryBlockedMe}`;
+      })
+      .andWhere((qb) => {
+        const subqueryFriend = qb
+          .subQuery()
+          .select('*')
+          .from(Friendship, 'friendship')
+          .where(
+            '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
+            { meUserId },
+          )
+          .andWhere('friendship.status = :status', {
+            status: FriendshipStatus.ACCEPTED,
+          })
+          .getQuery();
+        return `NOT EXISTS ${subqueryFriend}`;
+      })
+      .take(5)
+      .getMany();
 
-    // Generate UserSearchInfo from Users info
     const usersSearchInfo: UserSearchInfo[] = await Promise.all(
       users.map(async (user: User) => {
-        const meUser: User = await this.findUserByUID(meUserId);
         const friendship: Friendship | null =
           await this.friendshipsService.findFriendshipBetween2Users(
             meUser,
@@ -111,6 +108,9 @@ export class UsersService {
           name: user.name,
           avatar_url: user.avatar_url,
           friendship_status: friendship ? friendship.status : null,
+          friend_request_sent_by_me: friendship
+            ? friendship.sender === meUser
+            : null,
         };
       }),
     );
@@ -157,6 +157,9 @@ export class UsersService {
       created_at: user.created_at,
       friendship_id: friendship ? friendship.id : null,
       friendship_status: friendship ? friendship.status : null,
+      friend_request_sent_by_me: friendship
+        ? friendship.sender === meUser
+        : null,
       friends: friends,
       is_blocked: isBlocked,
       stats: user.user_stats,
@@ -177,6 +180,9 @@ export class UsersService {
       name: user.name,
       avatar_url: user.avatar_url,
       friendship_status: friendship ? friendship.status : null,
+      friend_request_sent_by_me: friendship
+        ? friendship.sender === meUser
+        : null,
     };
   }
 

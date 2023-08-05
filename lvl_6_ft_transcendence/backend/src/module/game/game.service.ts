@@ -3,17 +3,11 @@ import { GameQueue } from './GameQueue';
 import { GameRoomsMap } from './GameRoomsMap';
 import { UsersService } from '../users/users.service';
 import { UserStatus } from 'src/common/types/user-status.enum';
-import { Server } from 'socket.io';
 import { GameType } from 'src/common/types/game-type.enum';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { Ball } from './Ball';
 import { Player } from './Player';
-import {
-  GameRoom,
-  CANVAS_HEIGHT,
-  CANVAS_HEIGHT_OFFSET,
-  MAX_SCORE,
-} from './GameRoom';
+import { GAME_START_TIMEOUT, GameRoom } from './GameRoom';
 import { PlayerIds } from 'src/common/types/player-interface.interface';
 import { GameEndDTO } from './dto/game-end.dto';
 import { GameGateway } from './game.gateway';
@@ -23,14 +17,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
+import { GameEngineService } from './game-engine.service';
 
 @Injectable()
 export class GameService {
-  private playersInQueueOrGame: PlayerIds[];
-
   constructor(
     private readonly gameQueue: GameQueue,
     private readonly gameRoomsMap: GameRoomsMap,
+    private readonly gameEngine: GameEngineService,
     @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
     @InjectRepository(GameResult)
@@ -39,31 +33,26 @@ export class GameService {
     private readonly usersService: UsersService,
     @InjectRepository(UserStats)
     private readonly userStatsRepository: Repository<UserStats>,
-  ) {
-    this.playersInQueueOrGame = [];
-  }
+  ) {}
 
   private readonly logger: Logger = new Logger(GameService.name);
 
   public isPlayerInQueueOrGame(playerUID: number): boolean {
-    return this.playersInQueueOrGame.some(
-      (player) => player.userId === playerUID,
+    return (
+      this.gameQueue.isPlayerInQueue(playerUID) ||
+      this.gameRoomsMap.isPlayerInGame(playerUID)
     );
   }
 
   public queueToLadder(player: Player): void {
-    this.playersInQueueOrGame.push({
-      clientId: player.client.id,
-      userId: player.userId,
-    });
     this.gameQueue.enqueue(player);
     this.usersService.updateUserStatusByUID(player.userId, UserStatus.IN_QUEUE);
 
-    // If there's no other player waiting, keep him waiting
+    // If there's no other player waiting, assign the left side and keep him waiting
     if (this.gameQueue.size() === 1) {
-      player.side = PlayerSide.LEFT;
+      player.setPlayerSide(PlayerSide.LEFT);
     } else {
-      player.side = PlayerSide.RIGHT;
+      player.setPlayerSide(PlayerSide.RIGHT);
 
       const playerOne: Player = this.gameQueue.dequeue();
       const playerTwo: Player = this.gameQueue.dequeue();
@@ -73,95 +62,29 @@ export class GameService {
   }
 
   public async disconnectPlayer(playerClientId: string): Promise<void> {
-    const { playerIds, playerRoom, leftPlayer, rightPlayer } =
-      this.handlePlayerLeaving(playerClientId);
+    const playerRoom: GameRoom | null =
+      this.gameRoomsMap.findRoomWithPlayerByClientId(playerClientId);
 
     if (playerRoom) {
-      await this.gameEnded(playerRoom.roomId, leftPlayer, rightPlayer);
-    }
+      // if the left player's client id === disconnected player's client Id
+      // right player winned
+      const winnerSide: PlayerSide =
+        playerRoom.leftPlayer.client.id === playerClientId
+          ? PlayerSide.RIGHT
+          : PlayerSide.LEFT;
 
-    if (playerIds) {
+      await this.gameEngine.endGameDueToDisconnection(playerRoom, winnerSide);
+    } else {
+      // If player is connected to the socket
+      // and isn't on a gameRoom he can only be in queue
+      const leavingPlayer: Player =
+        this.gameQueue.removePlayerFromQueueByClientId(playerClientId);
+
       await this.usersService.updateUserStatusByUID(
-        playerIds.userId,
+        leavingPlayer.userId,
         UserStatus.ONLINE,
       );
     }
-
-    this.gameQueue.removePlayerFromQueueByClientId(playerClientId);
-  }
-
-  private handlePlayerLeaving(playerClientId: string): {
-    playerIds?: PlayerIds;
-    playerRoom?: GameRoom;
-    leftPlayer?: Player;
-    rightPlayer?: Player;
-  } {
-    const playerIds: PlayerIds | null =
-      this.erasePlayerFromArray(playerClientId);
-    const playerRoom: GameRoom | null =
-      this.gameRoomsMap.roomWithPlayer(playerClientId);
-
-    if (playerRoom) {
-      return {
-        playerIds,
-        playerRoom,
-        leftPlayer:
-          playerRoom.leftPlayer.client.id === playerClientId
-            ? playerRoom.leftPlayer
-            : playerRoom.rightPlayer,
-        rightPlayer:
-          playerRoom.leftPlayer.client.id === playerClientId
-            ? playerRoom.rightPlayer
-            : playerRoom.leftPlayer,
-      };
-    }
-
-    return {};
-  }
-
-  public playerScored(gameRoomId: string, clientId: string): void {
-    const gameRoom: GameRoom | undefined =
-      this.gameRoomsMap.findGameRoomById(gameRoomId);
-    if (!gameRoom) {
-      return;
-    }
-
-    let updatedGameRoom: Partial<GameRoom>;
-
-    if (gameRoom.leftPlayer.client.id === clientId) {
-      // leftPlayer scored
-      updatedGameRoom = {
-        leftPlayer: {
-          ...gameRoom.leftPlayer,
-          score: gameRoom.leftPlayer.score + 1,
-        },
-      };
-      if (updatedGameRoom.leftPlayer.score === MAX_SCORE) {
-        this.gameEnded(
-          gameRoomId,
-          updatedGameRoom.leftPlayer,
-          gameRoom.rightPlayer,
-        );
-        return;
-      }
-    } else {
-      // rightPlayer scored
-      updatedGameRoom = {
-        rightPlayer: {
-          ...gameRoom.rightPlayer,
-          score: gameRoom.rightPlayer.score + 1,
-        },
-      };
-      if (updatedGameRoom.rightPlayer.score === MAX_SCORE) {
-        this.gameEnded(
-          gameRoomId,
-          updatedGameRoom.rightPlayer,
-          gameRoom.leftPlayer,
-        );
-        return;
-      }
-    }
-    this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
   public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
@@ -184,17 +107,6 @@ export class GameService {
       },
     };
 
-    if (
-      updatedGameRoom[
-        playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
-      ].paddleY < 0 ||
-      updatedGameRoom[
-        playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer'
-      ].paddleY >
-        CANVAS_HEIGHT - CANVAS_HEIGHT_OFFSET
-    ) {
-      return;
-    }
     this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
@@ -241,19 +153,6 @@ export class GameService {
     return gameResults;
   }
 
-  private erasePlayerFromArray(playerClientId: string): PlayerIds | null {
-    const indexOfPlayerToDisconnect: number =
-      this.playersInQueueOrGame.findIndex((player) => {
-        return player.clientId === playerClientId;
-      });
-
-    if (indexOfPlayerToDisconnect === -1) {
-      return null;
-    }
-
-    return this.playersInQueueOrGame.splice(indexOfPlayerToDisconnect, 1)[0];
-  }
-
   private async joinPlayersToRoom(
     playerOne: Player,
     playerTwo: Player,
@@ -265,7 +164,7 @@ export class GameService {
     playerTwo.client.join(roomId);
 
     // Determine the left and right players based on their 'side' property
-    // assigned early based on who first entered the queue
+    // assigned earlier based on who first entered the queue
     const { leftPlayer, rightPlayer } =
       playerOne.side === PlayerSide.LEFT
         ? { leftPlayer: playerOne, rightPlayer: playerTwo }
@@ -282,6 +181,13 @@ export class GameService {
     // Emit 'opponent-found' event to both players
     await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
     await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
+
+    // !TODO
+    // Switch the game start to when both players sent the 'player-ready' message ???
+
+    setTimeout(() => {
+      this.gameEngine.startGame(roomId);
+    }, GAME_START_TIMEOUT);
   }
 
   private async emitOpponentFoundEvent(
@@ -301,25 +207,13 @@ export class GameService {
     });
   }
 
-  private async gameEnded(
+  public async gameEnded(
     roomId: string,
     winner: Player,
     loser: Player,
   ): Promise<void> {
-    const gameEnd: GameEndDTO = {
-      winner: { userId: winner.userId, score: winner.score },
-      loser: { userId: loser.userId, score: loser.score },
-    };
-
-    this.gameGateway.broadcastGameEnd(roomId, gameEnd);
-    this.gameRoomsMap.deleteGameRoomById(roomId);
-
-    if (winner.userId === loser.userId) {
-      this.logger.error(
-        'Someone tried to register a game where he was both the user and the loser',
-      );
-      return;
-    }
+    this.gameGateway.broadcastGameEnd(roomId, winner, loser);
+    this.gameRoomsMap.deleteGameRoomByRoomId(roomId);
 
     // !TODO
     // Remove the hard coded Game Type
