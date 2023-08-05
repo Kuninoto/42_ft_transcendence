@@ -3,6 +3,8 @@ import { createContext, ReactNode, useContext, useEffect, useState } from 'react
 import { OponentFoundDTO } from "@/common/types/oponent-found";
 import { useRouter } from 'next/navigation'
 import { GameRoomDTO } from "@/common/types/game-room-info";
+import { PlayerSide } from "@/common/types/backend/player-side.enum";
+import { Ball } from "@/app/matchmaking/definitions";
 
 let socket : io
 
@@ -10,7 +12,8 @@ type GameContextType = {
 	opponentFound: OponentFoundDTO
 	cancel: () => void
 	emitPaddleMovement: (newY: number) => void
-	gameInfo: GameRoomDTO
+	opponentPosition: number
+	ballPosition: Ball
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType)
@@ -18,7 +21,8 @@ const GameContext = createContext<GameContextType>({} as GameContextType)
 export function GameProvider({ children }: { children: ReactNode }) {
 	
     const [ opponentFound, setOpponentFound ] = useState<OponentFoundDTO>({} as OponentFoundDTO)
-    const [ gameInfo, setGameInfo ] = useState<GameRoomDTO>({})
+    const [ opponentPosition, setOpponentPosition ] = useState(0)
+    const [ ballPosition, setBallPosition ] = useState<Ball>({})
 
 	const router = useRouter()
 
@@ -33,6 +37,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
+
 	useEffect(() => {
 
 		socket = io("http://localhost:3000/game-gateway", {
@@ -42,13 +47,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		});
 
 		socket.on("opponent-found", function (data: OponentFoundDTO) {
-			console.log(data)
 			setOpponentFound(data)
         	router.push('/matchmaking')
-		})
-
-		socket.on("game-room-info", function (data: GameRoomDTO) {
-			setGameInfo(data)
 		})
 
 		return () => {
@@ -58,11 +58,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	}, [])
 
+	useEffect(() => {
+
+		socket.on("game-room-info", function (data: GameRoomDTO) {
+			if (opponentFound.side === PlayerSide.LEFT ) {
+				setOpponentPosition(data.rightPlayer.paddleY)
+			} else {
+				setOpponentPosition(data.leftPlayer.paddleY)
+			}
+
+			setBallPosition(data.ball)
+		})
+
+		socket.on('player-scored', function (data: any) {
+			console.log(data)
+		} )
+
+	}, [opponentFound])
+
 	const value: GameContextType = {
 		opponentFound,
 		cancel,
 		emitPaddleMovement,
-		gameInfo
+		opponentPosition,
+		ballPosition
 	}
 
 	return <GameContext.Provider value={value}>{children}</GameContext.Provider>

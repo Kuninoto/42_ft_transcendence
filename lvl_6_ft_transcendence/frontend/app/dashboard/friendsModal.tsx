@@ -169,6 +169,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 												>
 													<div className="flex space-x-6">
 														<Image
+															loader={removeParams}
 															alt="profile picture"
 															className="aspect-square w-8 rounded"
 															height={0}
