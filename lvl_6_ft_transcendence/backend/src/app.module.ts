@@ -5,8 +5,12 @@ import { UsersModule } from 'src/module/users/users.module';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
 import { join } from 'path';
-import entities from 'src/typeorm/index';
+import { FriendshipsModule } from './module/friendships/friendships.module';
+import entities from './entity/index';
 import 'dotenv/config';
+import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
+import { MeModule } from './module/me/me.module';
+import { GameModule } from './module/game/game.module';
 
 @Module({
   imports: [
@@ -30,16 +34,21 @@ import 'dotenv/config';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-      serveRoot: '/api/users/avatars/', // The base URL path to serve the images from
+
+      // The base URL path to serve the images from
+      serveRoot: '/api/users/avatars/',
+
       // Do not display a directory index
       // Do not redirect to a similar file if the requested one isn't found
       serveStaticOptions: { index: false, redirect: false },
     }),
-    UsersModule,
     AuthModule,
+    FriendshipsModule,
+    GameModule,
+    MeModule,
+    UsersModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [JwtAuthGuard],
 })
-
 export class AppModule {}
