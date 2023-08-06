@@ -1,23 +1,17 @@
 'use client'
 
+import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
+import io from "socket.io-client";
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
-export default function Leaderboard() {
-	const router = useRouter()
-
-	function cancel() {
-		router.push('/dashboard')
-	}
+export default function Loading() {
+	const { cancel } = useGame()
 
 	return (
 		<div className="flex h-full">
 			<div className="m-auto flex flex-col items-center space-y-10 text-4xl">
-				<div className="flex space-x-12">
-					<p>Name</p>
-					<p>vs</p>
-					<p>name2</p>
-				</div>
 				<Image
 					alt={'cats playing pong(loading screen)'}
 					className="mx-auto w-96 rounded"

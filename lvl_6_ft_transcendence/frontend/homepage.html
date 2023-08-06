@@ -122,29 +122,8 @@
 
         const formData = new FormData();
         formData.append('avatar', newAvatar);
+        console.log(newAvatar)
 
-        fetch(`http://localhost:3000/users/${updateAvatarUserId}/edit/avatar`, {
-          method: 'POST',
-          body: formData,
-        })
-          .then(response => {
-            if (response.ok) {
-              const updateAvatarStatusDiv = document.getElementById('updateAvatarStatus');
-              updateAvatarStatusDiv.textContent = 'User avatar updated successfully.';
-            } else {
-              throw new Error('User avatar update failed.');
-            }
-          })
-          .then(() => {
-            // Clear input fields after update
-            document.getElementById('updateAvatarUserId').value = '';
-            document.getElementById('newAvatar').value = '';
-          })
-          .catch(error => {
-            const updateAvatarStatusDiv = document.getElementById('updateAvatarStatus');
-            updateAvatarStatusDiv.textContent = 'An error occurred while updating the user avatar.';
-            console.error('Error:', error);
-          });
       });
     </script>
   </body>

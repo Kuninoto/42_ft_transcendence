@@ -22,7 +22,7 @@ export class Ball {
   }
 
   bounceInY() {
-    this.y *= -1;
+    this.speed.y *= -1;
   }
 
   bounceInX() {
@@ -43,7 +43,7 @@ export class Ball {
     this.y = CANVAS_MID_HEIGHT;
     this.speed = {
       x: RANDOM_BALL_SPEED,
-      y: RANDOM_BALL_SPEED,
+      y: 0,
     };
   }
 }
