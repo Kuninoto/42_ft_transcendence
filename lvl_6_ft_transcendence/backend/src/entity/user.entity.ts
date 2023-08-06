@@ -1,19 +1,22 @@
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  OneToMany,
+  JoinColumn,
+  OneToOne,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
-import { Friendship } from './friendship.entity';
-
-export enum UserStatus {
-  OFFLINE = "offline",
-  ONLINE = "online",
-  IN_MATCH = "in match"
-}
+import { BlockedUser } from './blocked-user.entity';
+import { UserStats } from './user-stats.entity';
+import { UserStatus } from 'src/common/types/user-status.enum';
+import { GameResult } from './game-result.entity';
 
 @Entity('user')
 export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 
@@ -22,15 +25,23 @@ export class User {
     type: 'varchar',
     length: 10,
     unique: true,
-    nullable: false
+    nullable: false,
   })
   name: string;
 
   @ApiProperty()
   @Column({
     type: 'varchar',
+    unique: true,
+    nullable: false,
+  })
+  intra_name: string;
+
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
     default: UserStatus.ONLINE,
-    nullable: false
+    nullable: false,
   })
   status: string;
 
@@ -41,35 +52,60 @@ export class User {
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: true
+    nullable: true,
   })
   secret_2fa: string;
 
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   avatar_url: string;
 
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   intra_profile_url: string;
 
   @ApiProperty()
   @Column({
+    type: 'varchar',
+    default: 'default',
+    nullable: false,
+  })
+  game_theme: string;
+
+  @ApiProperty()
+  @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.user_who_blocked)
+  @JoinColumn({ name: 'blocked_users' })
+  blocked_users: BlockedUser[];
+
+  @ApiProperty()
+  @OneToOne(() => UserStats, (userStatus) => userStatus.user)
+  user_stats: UserStats;
+
+  @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult) => gameResult.winner)
+  game_results_as_winner: GameResult[];
+
+  @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult) => gameResult.loser)
+  game_results_as_loser: GameResult[];
+
+  @ApiProperty()
+  @Column({
     type: 'timestamp',
-    default: new Date()
+    default: new Date(),
   })
   created_at: Date;
 
   @ApiProperty()
   @Column({
     type: 'timestamp',
-    default: new Date()
+    default: new Date(),
   })
   last_updated_at: Date;
 }

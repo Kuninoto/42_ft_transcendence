@@ -1,52 +1,94 @@
-import { api } from "@/api/api";
-import { ReactNode, createContext, useContext, useState } from "react";
+import { api } from '@/api/api'
+import { UserProfile } from '@/common/type/backend/user-profile.interface'
+import axios from 'axios'
+import { ImageLoader } from 'next/image'
+import { usePathname, useRouter } from 'next/navigation'
+import {
+	createContext,
+	ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from 'react'
 
-interface IUser {
-  name: string;
+export const removeParams: ImageLoader = ({ src }: { src: string }) => {
+	return src.replace(/&?w=\d+&?/, '').replace(/&?p=\d+&?/, '')
 }
 
-type authContextType = {
-  user: IUser | {};
-  login: (code: string) => Promise<boolean> | void;
-};
+export interface AuthContextExports {
+	login: (code: string) => Promise<boolean> | void
+	logout: () => void
+	refreshUser: (user: UserProfile) => void
+	user: {} | UserProfile
+}
 
-const authContextDefaultValues: authContextType = {
-  user: {},
-  login: (code: string) => {},
-};
-
-const AuthContext = createContext<authContextType>(authContextDefaultValues);
+const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<
-    | {
-        name: string;
-      }
-    | {}
-  >({});
+	const router = useRouter()
+	const pathname = usePathname()
+	const [user, setUser] = useState<{} | UserProfile>({})
 
-  const login = async (code: string) => {
-    return await api
-      .get(`/auth/${code}`)
-      .then((result) => {
-        console.log(result.data);
-        setUser(result.data);
-        return true;
-      })
-      .catch((err) => {
-        console.error(err);
-        return false;
-      });
-  };
+	useEffect(() => {
+		const token = localStorage.getItem('pong.token')
 
-  const value: authContextType = {
-    user,
-    login,
-  };
+		if (token && pathname === '/') router.push('/dashboard')
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+		if (token) {
+			api
+				.get<UserProfile>('/me')
+				.then((result: axios) => setUser(result.data))
+				.catch(() => logout())
+		} else if (pathname !== '/' && pathname !== '/auth') {
+			router.push('/')
+		}
+	}, [])
+
+	function refreshUser(newUserInfo: UserProfile) {
+		setUser(newUserInfo)
+	}
+
+	function logout() {
+		router.push('/')
+		localStorage.removeItem('pong.token')
+	}
+
+	async function login(code: string) {
+		return await axios
+			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
+			.then(async function (result: axios) {
+				localStorage.setItem('pong.token', result.data.access_token)
+				return await api
+					.get(`/me`, {
+						headers: {
+							Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+						},
+					})
+					.then(function (newUser: axios) {
+						setUser(newUser.data)
+						return true
+					})
+					.catch((error: axios) => {
+						console.error(error)
+						return false
+					})
+			})
+			.catch((err: axios) => {
+				console.error(err)
+				return false
+			})
+	}
+
+	const value: AuthContextExports = {
+		login,
+		logout,
+		refreshUser,
+		user,
+	}
+
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+	return useContext(AuthContext)
 }
