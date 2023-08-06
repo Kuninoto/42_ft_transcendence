@@ -349,10 +349,16 @@ export class FriendshipsService {
     user1: User,
     user2: User,
   ): Promise<Friendship | null> {
-    return await this.friendshipRepository.findOneBy([
-      { sender: user1, receiver: user2 }, // user1 -> user2
-      { sender: user2, receiver: user1 }, // user2 -> user1
-    ]);
+    return await this.friendshipRepository.findOne({
+      where: [
+        { sender: user1, receiver: user2 }, // user1 -> user2
+        { sender: user2, receiver: user1 }, // user2 -> user1
+      ],
+      relations: {
+        sender: true,
+        receiver: true,
+      },
+    });
   }
 
   /* Searches for an entry on the blocked_user table

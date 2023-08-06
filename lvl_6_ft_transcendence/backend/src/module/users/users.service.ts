@@ -83,12 +83,9 @@ export class UsersService {
           .select('*')
           .from(Friendship, 'friendship')
           .where(
-            '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
-            { meUserId },
+            '(friendship.sender = :meUserId OR friendship.receiver = :meUserId) AND friendship.status = :acceptedStatus',
+            { meUserId, acceptedStatus: FriendshipStatus.ACCEPTED },
           )
-          .andWhere('friendship.status = :status', {
-            status: FriendshipStatus.ACCEPTED,
-          })
           .getQuery();
         return `NOT EXISTS ${subqueryFriend}`;
       })
@@ -109,7 +106,9 @@ export class UsersService {
           avatar_url: user.avatar_url,
           friendship_status: friendship ? friendship.status : null,
           friend_request_sent_by_me: friendship
-            ? friendship.sender === meUser
+            ? friendship.sender.id === meUser.id
+              ? true
+              : false
             : null,
         };
       }),

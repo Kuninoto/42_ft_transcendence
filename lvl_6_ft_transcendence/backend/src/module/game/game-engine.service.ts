@@ -16,6 +16,7 @@ export const GAME_START_TIMEOUT: number = 10;
 const GAME_LOOP_INTERVAL: number = 25;
 const RESET_GAME_DELAY: number = 2;
 
+// Hacky way to make js wait
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /* 

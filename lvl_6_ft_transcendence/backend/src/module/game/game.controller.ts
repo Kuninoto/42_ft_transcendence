@@ -1,10 +1,7 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { UserProfile } from 'src/common/types/user-profile.interface';
 import { User } from 'src/entity';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 
