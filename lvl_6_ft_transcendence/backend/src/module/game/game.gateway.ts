@@ -17,11 +17,13 @@ import {
   CANVAS_HEIGHT,
   CANVAS_HEIGHT_OFFSET,
   GameRoom,
-  GameRoomInfoDTO,
 } from './GameRoom';
 import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
+import { PlayerSide } from 'src/common/types/player-side.enum';
+import { PlayerScoredDTO } from './dto/player-scored.dto';
+import { GameRoomInfoDTO } from './dto/game-room-info.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection {
@@ -100,8 +102,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
 
     const gameRoomInfo: GameRoomInfoDTO = {
       ball: { x: ball.x, y: ball.y },
-      leftPlayer: { paddleY: leftPlayer.paddleY, score: leftPlayer.score },
-      rightPlayer: { paddleY: rightPlayer.paddleY, score: rightPlayer.score },
+      leftPlayer: { paddleY: leftPlayer.paddleY },
+      rightPlayer: { paddleY: rightPlayer.paddleY },
     };
     this.server.to(gameRoom.roomId).emit('game-room-info', gameRoomInfo);
   }
@@ -114,8 +116,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(gameRoomId).emit('game-end', gameEndDto);
   }
 
-  emitPlayerScoredEvent(gameRoomId: string) {
-    this.server.to(gameRoomId).emit('player-scored');
+  emitPlayerScoredEvent(gameRoomId: string, sideWhoScored: PlayerSide) {
+    const playerScoredDTO: PlayerScoredDTO = {
+      sideWhoScored: sideWhoScored
+    };
+
+    this.server.to(gameRoomId).emit('player-scored', playerScoredDTO);
   }
 
   private isValidPaddleMoveMessage(

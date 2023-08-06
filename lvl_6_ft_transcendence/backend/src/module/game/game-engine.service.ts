@@ -6,16 +6,17 @@ import {
   CANVAS_WIDTH,
   GameRoom,
 } from './GameRoom';
-import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
+import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH } from './Player';
 import { BALL_RADIUS, Ball } from './Ball';
 import { GameService } from './game.service';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { GameRoomsMap } from './GameRoomsMap';
 
-// Appropriate this interval to testing
+export const GAME_START_TIMEOUT: number = 10;
 const GAME_LOOP_INTERVAL: number = 25;
+const RESET_GAME_DELAY: number = 2;
 
-// const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /* 
 CANVAS AXIS
@@ -65,6 +66,7 @@ export class GameEngineService {
 
     if (this.somePlayerScored(gameRoom)) {
       this.gameGateway.broadcastGameRoomInfo(gameRoom);
+      sleep(RESET_GAME_DELAY);
     }
 
     if (
@@ -134,8 +136,10 @@ export class GameEngineService {
 
   private ballCollidedWithWall(ball: Ball): boolean {
     // TOP || BOTTOM
-    if (ball.y - BALL_RADIUS <= 0 && ball.speed.y < 0 
-      || ball.y + BALL_RADIUS >= CANVAS_HEIGHT && ball.speed.y > 0) {
+    if (
+      (ball.y - BALL_RADIUS <= 0 && ball.speed.y < 0) ||
+      (ball.y + BALL_RADIUS >= CANVAS_HEIGHT && ball.speed.y > 0)
+    ) {
       ball.bounceInY();
       return true;
     }
@@ -147,7 +151,10 @@ export class GameEngineService {
   private ballCollidedWithPaddle(gameRoom: GameRoom): boolean {
     // If ball X position is smaller than canvas'
     // midpoint it is on the left side
-    const player = gameRoom.ball.x < CANVAS_MID_WIDTH ? gameRoom.leftPlayer: gameRoom.rightPlayer;
+    const player =
+      gameRoom.ball.x < CANVAS_MID_WIDTH
+        ? gameRoom.leftPlayer
+        : gameRoom.rightPlayer;
 
     if (
       gameRoom.ball.x >= player.paddleX - PADDLE_WIDTH &&
@@ -170,14 +177,14 @@ export class GameEngineService {
 
       gameRoom.rightPlayer.score += 1;
       gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId);
+      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId, PlayerSide.RIGHT);
       return true;
     } else if (gameRoom.ball.x + BALL_RADIUS >= CANVAS_WIDTH) {
       // BALL PASSED RIGHT SIDE
 
       gameRoom.leftPlayer.score += 1;
       gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId);
+      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId, PlayerSide.LEFT);
       return true;
     }
     return false;

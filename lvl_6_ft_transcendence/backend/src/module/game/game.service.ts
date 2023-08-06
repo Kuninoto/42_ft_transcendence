@@ -7,9 +7,7 @@ import { GameType } from 'src/common/types/game-type.enum';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { Ball } from './Ball';
 import { Player } from './Player';
-import { GAME_START_TIMEOUT, GameRoom } from './GameRoom';
-import { PlayerIds } from 'src/common/types/player-interface.interface';
-import { GameEndDTO } from './dto/game-end.dto';
+import { GameRoom } from './GameRoom';
 import { GameGateway } from './game.gateway';
 import { User, UserStats } from 'src/entity/index';
 import { GameResult } from 'src/entity/game-result.entity';
@@ -17,7 +15,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
-import { GameEngineService } from './game-engine.service';
+import { GAME_START_TIMEOUT, GameEngineService } from './game-engine.service';
 
 @Injectable()
 export class GameService {
