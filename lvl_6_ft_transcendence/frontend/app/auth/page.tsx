@@ -20,5 +20,7 @@ export default function Auth() {
 		}
 	}, [])
 
-	return <div>loading</div>
+	return (<div className="w-full h-full place-content-center flex items-center">
+  		<h1 className="text-5xl after:overflow-hidden after:inline-block after:align-bottom after:animate-ellipsis after:w-0 after:content-['\2026']">Loading</h1>
+	</div>)
 }
