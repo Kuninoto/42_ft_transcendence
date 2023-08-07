@@ -9,13 +9,14 @@ import { Ball } from './Ball';
 import { Player } from './Player';
 import { GameRoom } from './GameRoom';
 import { GameGateway } from './game.gateway';
-import { User, UserStats } from 'src/entity/index';
+import { User } from 'src/entity/index';
 import { GameResult } from 'src/entity/game-result.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 import { GAME_START_TIMEOUT, GameEngineService } from './game-engine.service';
+import { UserStatsService } from '../user-stats/user-stats.service';
+import { AchievementService } from '../achievement/achievement.service';
 
 @Injectable()
 export class GameService {
@@ -29,8 +30,8 @@ export class GameService {
     private readonly gameResultRepository: Repository<GameResult>,
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
-    @InjectRepository(UserStats)
-    private readonly userStatsRepository: Repository<UserStats>,
+    private readonly userStatsService: UserStatsService,
+    private readonly achievementsService: AchievementService,
   ) {}
 
   private readonly logger: Logger = new Logger(GameService.name);
@@ -112,35 +113,6 @@ export class GameService {
     return this.gameRoomsMap.findGameRoomById(gameRoomId);
   }
 
-  public async getLeaderboard(): Promise<UserStatsForLeaderboard[]> {
-    // Get user ids, names, wins and win_rates
-    // and sort them by wins and win_rates in descending order
-    // if the number of wins of two players are equal
-    // the one with the bigger win rate is placed above
-    const leaderboardData: {
-      wins: number;
-      uid: number;
-      name: string;
-      win_rate: number;
-    }[] = await this.userStatsRepository
-      .createQueryBuilder('userStats')
-      .select('user.id', 'uid')
-      .addSelect('user.name', 'name')
-      .addSelect('userStats.wins', 'wins')
-      .addSelect('win_rate')
-      .leftJoin('userStats.user', 'user')
-      .orderBy('userStats.wins', 'DESC')
-      .addOrderBy('win_rate', 'DESC')
-      .getRawMany();
-
-    return leaderboardData.map((leaderboardRow) => ({
-      uid: leaderboardRow.uid,
-      name: leaderboardRow.name,
-      wins: leaderboardRow.wins,
-      win_rate: leaderboardRow.win_rate,
-    }));
-  }
-
   public async findGameResultsWhereUserPlayed(
     userId: number,
   ): Promise<GameResult[]> {
@@ -216,7 +188,15 @@ export class GameService {
     // !TODO
     // Remove the hard coded Game Type
     await this.saveGameResult(GameType.LADDER, winner, loser);
-    await this.usersService.updatePlayersStatsByUIDs(
+
+    await this.achievementsService.grantWinsAchievementsIfEligible(
+      winner.userId,
+    );
+    await this.achievementsService.grantLossesAchievementsIfEligible(
+      loser.userId,
+    );
+
+    await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
       loser.userId,
     );

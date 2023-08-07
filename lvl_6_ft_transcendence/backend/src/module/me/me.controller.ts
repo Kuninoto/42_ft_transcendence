@@ -94,7 +94,7 @@ export class MeController {
     this.logger.log('"' + req.user.name + '" requested his friends info');
 
     const friendList: FriendInterface[] =
-      await this.friendshipsService.getMyFriends(req.user);
+      await this.friendshipsService.findFriendsByUID(req.user.id);
 
     return friendList;
   }

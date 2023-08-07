@@ -1,15 +1,18 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Inject, Req, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/entity';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
+import { UserStatsService } from '../user-stats/user-stats.service';
 
 @ApiTags('game')
 @UseGuards(JwtAuthGuard)
 @Controller('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly userStatsService: UserStatsService,
+  ) {}
 
   /**
    * GET /api/game/leaderboard
@@ -25,6 +28,6 @@ export class GameController {
   public async getLeaderboard(
     @Req() req: { user: User },
   ): Promise<UserStatsForLeaderboard[]> {
-    return await this.gameService.getLeaderboard();
+    return await this.userStatsService.getLeaderboard();
   }
 }

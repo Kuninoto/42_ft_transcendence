@@ -12,7 +12,7 @@ import { GameService } from './game.service';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { GameRoomsMap } from './GameRoomsMap';
 
-export const GAME_START_TIMEOUT: number = 10;
+export const GAME_START_TIMEOUT: number = 1000;
 const GAME_LOOP_INTERVAL: number = 25;
 const RESET_GAME_DELAY: number = 2;
 
