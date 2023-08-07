@@ -11,6 +11,8 @@ import 'dotenv/config';
 import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
 import { MeModule } from './module/me/me.module';
 import { GameModule } from './module/game/game.module';
+import { AchievementModule } from './module/achievement/achievement.module';
+import { UserStatsModule } from './module/user-stats/user-stats.module';
 
 @Module({
   imports: [
@@ -42,10 +44,12 @@ import { GameModule } from './module/game/game.module';
       // Do not redirect to a similar file if the requested one isn't found
       serveStaticOptions: { index: false, redirect: false },
     }),
+    AchievementModule,
     AuthModule,
     FriendshipsModule,
     GameModule,
     MeModule,
+    UserStatsModule,
     UsersModule,
   ],
   controllers: [],
