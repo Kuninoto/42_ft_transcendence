@@ -11,7 +11,7 @@ export const MAX_SCORE: number = 11;
 
 export class Player {
   constructor(client: Socket, userId: number) {
-    this.paddleY = CANVAS_MID_HEIGHT;
+    this.paddleY = CANVAS_MID_HEIGHT - PADDLE_HEIGHT / 2;
 
     this.client = client;
     this.userId = userId;
