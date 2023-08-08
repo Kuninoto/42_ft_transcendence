@@ -1,6 +1,6 @@
 import { GameType } from 'src/common/types/game-type.enum';
 import { Player } from 'src/module/game/Player';
-import { Ball  } from 'src/module/game/Ball';
+import { Ball } from 'src/module/game/Ball';
 
 export const CANVAS_HEIGHT: number = 400;
 export const CANVAS_MID_HEIGHT: number = 200;

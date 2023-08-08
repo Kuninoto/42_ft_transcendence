@@ -1,5 +1,5 @@
-import { IBall } from "../Ball";
-import { IPlayer } from "../Player";
+import { IBall } from '../Ball';
+import { IPlayer } from '../Player';
 
 export interface GameRoomInfoDTO {
   ball: IBall;
