@@ -18,6 +18,7 @@ import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
+import { PlayerReadyDTO } from './dto/player-ready.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection {
@@ -68,6 +69,25 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.logger.log('Player disconnected ' + client.id);
   }
 
+  // Listen for 'player-ready' messages
+  @SubscribeMessage('player-ready')
+  playerReady(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: PlayerReadyDTO,
+  ): void {
+    if (!this.isValidPlayerReadyMessage(messageBody)) {
+      this.logger.error(
+        'Client id=' + client.id + 'tried to send a wrong PlayerReadyDTO',
+      );
+      return;
+    }
+
+    this.gameService.playerReady(
+      messageBody.gameRoomId,
+      client.id,
+    );
+  }
+
   // Listen for 'paddle-move' messages
   @SubscribeMessage('paddle-move')
   paddleMove(
@@ -76,7 +96,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + 'tried to send a wrong PaddleMoveDTO Object',
+        'Client id=' + client.id + 'tried to send a wrong PaddleMoveDTO',
       );
       return;
     }
@@ -142,5 +162,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     }
 
     return true;
+  }
+
+  private isValidPlayerReadyMessage(
+    messageBody: any,
+  ): messageBody is PlayerReadyDTO {
+    return (typeof messageBody === 'object' &&
+      typeof messageBody.gameRoomId === 'string');
   }
 }
