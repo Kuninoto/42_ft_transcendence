@@ -88,6 +88,37 @@ export class GameService {
     }
   }
 
+  public playerReady(gameRoomId: string, clientId: string) {
+    let gameRoom: GameRoom | undefined =
+      this.gameRoomsMap.findGameRoomById(gameRoomId);
+    if (!gameRoom) {
+      return;
+    }
+
+    const playerToUpdate: Player =
+      gameRoom.leftPlayer.client.id === clientId
+        ? gameRoom.leftPlayer
+        : gameRoom.rightPlayer;
+
+    const updatedGameRoom: Partial<GameRoom> = {
+      // Access object thru dynamic object key
+      [playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer']: {
+        ...playerToUpdate,
+        isReady: true,
+      },
+    };
+
+    this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
+    // Fetch the updated info from gameRoomsMap
+    gameRoom = this.gameRoomsMap.findGameRoomById(gameRoomId);
+
+    if (gameRoom.leftPlayer.isReady && gameRoom.rightPlayer.isReady) {
+      setTimeout(() => {
+        this.gameEngine.startGame(gameRoomId);
+      }, GAME_START_TIMEOUT);
+    }
+  }
+
   public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
     const gameRoom: GameRoom | undefined =
       this.gameRoomsMap.findGameRoomById(gameRoomId);
@@ -153,13 +184,6 @@ export class GameService {
     // Emit 'opponent-found' event to both players
     await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
     await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
-
-    // !TODO
-    // Switch the game start to when both players sent the 'player-ready' message ???
-
-    setTimeout(() => {
-      this.gameEngine.startGame(roomId);
-    }, GAME_START_TIMEOUT);
   }
 
   private async emitOpponentFoundEvent(

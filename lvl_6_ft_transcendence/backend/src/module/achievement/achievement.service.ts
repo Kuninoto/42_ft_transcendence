@@ -27,6 +27,8 @@ export class AchievementService {
       achievement: Achievements.NEW_PONG_FIGHTER,
       user: { id: userId },
     });
+
+    this.logger.log('User with id=' + userId + " just received New Pong Fighter!");
   }
 
   public async grantWinsAchievementsIfEligible(userId: number): Promise<void> {
@@ -45,6 +47,8 @@ export class AchievementService {
         achievement: Achievements.BEGINNERS_TRIUMPH,
         user: { id: userId },
       });
+
+      this.logger.log('User with id=' + userId + " just received Beginners Triumph!");
     } else if (
       nrWins === 5 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.PONG_MASTER)
@@ -53,6 +57,8 @@ export class AchievementService {
         achievement: Achievements.PONG_MASTER,
         user: { id: userId },
       });
+
+      this.logger.log('User with id=' + userId + " just received Pong Master!");
     }
   }
 
@@ -74,6 +80,8 @@ export class AchievementService {
         achievement: Achievements.FIRST_SETBACK,
         user: { id: userId },
       });
+
+      this.logger.log('User with id=' + userId + " just received First Setback!");
     }
   }
 
@@ -92,6 +100,8 @@ export class AchievementService {
         achievement: Achievements.FIRST_BUDDY,
         user: { id: userId },
       });
+
+      this.logger.log('User with id=' + userId + " just received First Buddy!");
     } else if (
       nrFriends === 5 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.FRIENDLY)
@@ -100,6 +110,8 @@ export class AchievementService {
         achievement: Achievements.FRIENDLY,
         user: { id: userId },
       });
+
+      this.logger.log('User with id=' + userId + " just received Friendly!");
     }
   }
 
@@ -117,6 +129,8 @@ export class AchievementService {
       achievement: Achievements.DECLINED_TOMORROW_BUDDIES,
       user: { id: userId },
     });
+
+    this.logger.log('User with id=' + userId + " just received Declined Tomorrow Buddies!");
   }
 
   public async grantBreakingThePaddleBond(userId: number): Promise<void> {
@@ -133,6 +147,8 @@ export class AchievementService {
       achievement: Achievements.BREAKING_THE_PADDLE_BOND,
       user: { id: userId },
     });
+
+    this.logger.log('User with id=' + userId + " just received Breaking The Paddle Bond!");
   }
 
   public async findAchievementsByUID(
