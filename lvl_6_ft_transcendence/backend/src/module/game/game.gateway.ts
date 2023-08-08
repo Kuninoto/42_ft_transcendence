@@ -113,9 +113,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(gameRoomId).emit('game-end', gameEndDto);
   }
 
-  emitPlayerScoredEvent(gameRoomId: string, sideWhoScored: PlayerSide) {
+  emitPlayerScoredEvent(gameRoomId: string, leftPlayerScore: number, rightPlayerScore: number) {
     const playerScoredDTO: PlayerScoredDTO = {
-      sideWhoScored: sideWhoScored,
+      leftPlayerScore: leftPlayerScore,
+      rightPlayerScore: rightPlayerScore,
     };
 
     this.server.to(gameRoomId).emit('player-scored', playerScoredDTO);
