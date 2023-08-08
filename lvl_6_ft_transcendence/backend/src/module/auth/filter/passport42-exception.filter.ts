@@ -2,7 +2,6 @@ import { ExceptionFilter, Catch, ArgumentsHost, Logger } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { TokenError } from 'passport-oauth2';
 import { ErrorResponse } from 'src/common/types/error-response.interface';
-import { AuthController } from '../auth.controller';
 
 @Catch(TokenError)
 export class Passport42ExceptionFilter implements ExceptionFilter {

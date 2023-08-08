@@ -187,6 +187,7 @@ export class GameService {
 
     // !TODO
     // Remove the hard coded Game Type
+    // when 1v1 is implemented
     await this.saveGameResult(GameType.LADDER, winner, loser);
 
     await this.achievementsService.grantWinsAchievementsIfEligible(

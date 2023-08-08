@@ -13,11 +13,7 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
-import {
-  CANVAS_HEIGHT,
-  CANVAS_HEIGHT_OFFSET,
-  GameRoom,
-} from './GameRoom';
+import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
@@ -118,7 +114,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
 
   emitPlayerScoredEvent(gameRoomId: string, sideWhoScored: PlayerSide) {
     const playerScoredDTO: PlayerScoredDTO = {
-      sideWhoScored: sideWhoScored
+      sideWhoScored: sideWhoScored,
     };
 
     this.server.to(gameRoomId).emit('player-scored', playerScoredDTO);

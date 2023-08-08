@@ -141,9 +141,6 @@ export class AchievementService {
     const userAchievements: Achievement[] =
       await this.achievementRepository.findBy({ user: { id: userId } });
 
-    // achievemnt name is being assigned the achievement description
-    // and the description is undefined (AchievementDescriptionsMap.get(achievement.achievement)) is returning undefined
-
     const achievementsInterface: AchievementInterface[] = userAchievements.map(
       (achievement: Achievement) => {
         return {

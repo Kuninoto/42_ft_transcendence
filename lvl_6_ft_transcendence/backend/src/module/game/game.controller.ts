@@ -10,9 +10,7 @@ import { UserStatsService } from '../user-stats/user-stats.service';
 @UseGuards(JwtAuthGuard)
 @Controller('game')
 export class GameController {
-  constructor(
-    private readonly userStatsService: UserStatsService,
-  ) {}
+  constructor(private readonly userStatsService: UserStatsService) {}
 
   /**
    * GET /api/game/leaderboard
