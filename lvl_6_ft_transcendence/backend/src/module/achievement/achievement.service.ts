@@ -22,7 +22,7 @@ export class AchievementService {
 
   private readonly logger: Logger = new Logger(AchievementService.name);
 
-  public async grantNewPongFigther(userId: number): Promise<void> {
+  public async grantNewPongFighter(userId: number): Promise<void> {
     this.achievementRepository.save({
       achievement: Achievements.NEW_PONG_FIGHTER,
       user: { id: userId },
