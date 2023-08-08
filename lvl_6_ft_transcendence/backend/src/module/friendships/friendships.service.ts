@@ -192,7 +192,7 @@ export class FriendshipsService {
     }
 
     const hasBeenSentAlready: boolean =
-      await this.hasFriendRequestBeenSentAlready(sender, receiver);
+      await this.hasFriendRequestBeenSentAlready(sender.id, receiver.id);
     if (hasBeenSentAlready) {
       this.logger.error(
         '"' +
@@ -402,21 +402,21 @@ export class FriendshipsService {
   }
 
   private async hasFriendRequestBeenSentAlready(
-    sender: User,
-    receiver: User,
+    senderUID: number,
+    receiverUID: number,
   ): Promise<boolean> {
     // Check if a friend request between the two users
     // has already been made by one of the parts
     const friendRequest: Friendship = await this.friendshipRepository.findOneBy(
       [
         {
-          sender: sender,
-          receiver: receiver,
+          sender: { id: senderUID },
+          receiver: { id: receiverUID },
           status: FriendshipStatus.PENDING,
         }, // sender -> receiver
         {
-          sender: receiver,
-          receiver: sender,
+          sender: { id: receiverUID },
+          receiver: { id: senderUID },
           status: FriendshipStatus.PENDING,
         }, // receiver -> sender
       ],

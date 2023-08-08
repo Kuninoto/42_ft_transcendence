@@ -128,7 +128,7 @@ export class MeController {
   public async getMyBlockedUsers(
     @Req() req: { user: User },
   ): Promise<BlockedUserInterface[]> {
-    this.logger.log('"' + req.user.name + '" requested his blocklist info');
+    this.logger.log('"' + req.user.name + '" requested his blocklist');
 
     return await this.friendshipsService.getMyBlocklist(req.user.id);
   }
@@ -146,7 +146,7 @@ export class MeController {
   public async getMyMatchHistory(
     @Req() req: { user: User },
   ): Promise<GameResultInterface[]> {
-    this.logger.log('"' + req.user.name + '" requested his match history info');
+    this.logger.log('"' + req.user.name + '" requested his match history');
 
     return await this.usersService.findMatchHistoryByUID(req.user.id);
   }
@@ -187,7 +187,7 @@ export class MeController {
     this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     if (!body.newUsername) {
-      this.logger.error('A user failed to update his username');
+      this.logger.error('User which id=' + req.user.id + ' failed to update his username');
       throw new BadRequestException(
         "Expected 'newUsername' as a field of the body's JSON",
       );
