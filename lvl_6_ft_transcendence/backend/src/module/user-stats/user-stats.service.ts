@@ -19,18 +19,14 @@ export class UserStatsService {
   }
 
   public async getLeaderboard(): Promise<UserStatsForLeaderboard[]> {
-    // Get user ids, names, wins and win_rates
+    // Get user ids, avatar_urls, names, wins and win_rates
     // and sort them by wins and win_rates in descending order
     // if the number of wins of two players are equal
     // the one with the bigger win rate is placed above
-    const leaderboardData: {
-      wins: number;
-      uid: number;
-      name: string;
-      win_rate: number;
-    }[] = await this.userStatsRepository
+    const leaderboardData: UserStatsForLeaderboard[] = await this.userStatsRepository
       .createQueryBuilder('userStats')
       .select('user.id', 'uid')
+      .addSelect('user.avatar_url', 'avatar_url')
       .addSelect('user.name', 'name')
       .addSelect('userStats.wins', 'wins')
       .addSelect('win_rate')
@@ -41,6 +37,7 @@ export class UserStatsService {
 
     return leaderboardData.map((leaderboardRow) => ({
       uid: leaderboardRow.uid,
+      avatar_url: leaderboardRow.avatar_url,
       name: leaderboardRow.name,
       wins: leaderboardRow.wins,
       win_rate: leaderboardRow.win_rate === null ? 0 : leaderboardRow.win_rate,
