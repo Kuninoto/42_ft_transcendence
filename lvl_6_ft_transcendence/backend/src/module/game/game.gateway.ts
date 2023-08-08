@@ -43,9 +43,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     try {
       const userId: number =
         await this.authService.authenticateClientAndRetrieveUID(client);
-      //if (this.gameService.isPlayerInQueueOrGame(userId)) {
-      //  throw new Error('Player already connected');
-      //}
+
+      if (this.gameService.isPlayerInQueueOrGame(userId)) {
+        throw new Error('Player already connected');
+      }
 
       // Attach this info to the socket info so that later
       // we can distinguish the reason of the disconnection

@@ -155,7 +155,7 @@ export class UsersService {
       friendship_id: friendship ? friendship.id : null,
       friendship_status: friendship ? friendship.status : null,
       friend_request_sent_by_me: friendship
-        ? friendship.sender === meUser
+        ? friendship.sender.id === meUser.id
         : null,
       friends: friends,
       is_blocked: isBlocked,
