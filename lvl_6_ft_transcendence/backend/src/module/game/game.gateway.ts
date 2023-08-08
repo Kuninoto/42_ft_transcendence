@@ -2,7 +2,6 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
-  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -17,7 +16,6 @@ import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
-import { PlayerSide } from 'src/common/types/player-side.enum';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
 
