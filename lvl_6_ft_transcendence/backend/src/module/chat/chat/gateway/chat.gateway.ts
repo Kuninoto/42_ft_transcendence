@@ -13,6 +13,8 @@ import { Logger } from '@nestjs/common'
 import { MessageService } from '../../message/service/message.service';
 import { ChatRoom } from '../../room/entity/chatRoom.entity';
 import { Message } from '../../message/entity/message.entity';
+import { FriendshipsService } from 'src/module/friendships/friendships.service';
+import { BlockedUserInterface } from 'src/common/types/blocked-user-interface.interface';
 
 // The first number defines the socket PORT
 // Cross-Origin Resource Sharing (CORS) configures the behavior for the WebSocket gateway.
@@ -28,10 +30,14 @@ import { Message } from '../../message/entity/message.entity';
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() public server: Server;
 
-	constructor(private messageService: MessageService, private authService: AuthService, private roomService: RoomService, private userService: UsersService) {}
+	constructor(private messageService: MessageService, 
+		private authService: AuthService, 
+		private roomService: RoomService, 
+		private userService: UsersService, 
+		private friendshipService: FriendshipsService) {}
 
 	afterInit(server: Server) {
-		Logger.log('Game-gateway Initialized');
+		Logger.log('Chat-gateway Initialized');
 	}
 
 	// Check for connection and print the socket id
@@ -105,22 +111,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('newMessage')
 	async onMessage(@ConnectedSocket() socket: Socket, @MessageBody() MessageDto: MessageDto) {
 		const room = await this.roomService.findRoomByName(MessageDto.room.name);
-
-		// TODO delete debug
-		Logger.debug('------------ Create Message ------------');
-		Logger.debug('MessageDto:' + MessageDto);
-		Logger.debug('Room: ' + JSON.stringify(room, null, 2));
-		Logger.debug('User name: ' + socket.data.user.name);
-		Logger.debug('----------------------------------------');
-
+		
 		if (room) {
+			// TODO delete debug
+			// Logger.debug('------------ Create Message ------------');
+			// Logger.debug('MessageDto:' + MessageDto);
+			// Logger.debug('Room: ' + JSON.stringify(room, null, 2));
+			// Logger.debug('User name: ' + socket.data.user.name);
+			// Logger.debug('----------------------------------------');
+
 			MessageDto.user = socket.data.user;
 			MessageDto.room = room;
 			const message: Message = await this.messageService.createMessage(MessageDto);
-			Logger.debug('Gateway.newMessage[text]: ' + message.text);
-			Logger.debug('Gateway.newMessage[room]: ' + room.name);
-			Logger.debug('Gateway.newMessage[socket]: ' + socket.id);
-			socket.to(room.name).emit('onMessage', message.text);
+
+			const blockedUsers: BlockedUserInterface[] = await this.friendshipService.getMyBlocklist(socket.data.user.id);
+			const usersInRoom = room.users.map(user => user.id);
+			const usersBlocked = blockedUsers.map(user => user.blocked_uid);
+
+			const usersToReceive = usersInRoom.filter(id => !usersBlocked.includes(id))
+
+			usersToReceive.forEach(id => {
+				const userSocket = this.usersSocketsMap[id]; // Retrieve the socket of the user
+				if (userSocket) {
+					socket.to(room.name).emit('onMessage', message.text);
+				}
+			});
+
+			// Logger.debug('Gateway.newMessage[text]: ' + message.text);
+			// Logger.debug('Gateway.newMessage[room]: ' + room.name);
+			// Logger.debug('Gateway.newMessage[socket]: ' + socket.id);
 		} else {
 			// TODO implement error response
 			Logger.debug('Gateway.newMessage[error]: error when sending text');
@@ -153,3 +172,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 }
+function getMyBlocklist() {
+	throw new Error('Function not implemented.');
+}
+
