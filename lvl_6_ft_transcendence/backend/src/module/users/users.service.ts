@@ -44,7 +44,7 @@ export class UsersService {
   public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
     const newUser: User = await this.usersRepository.save(newUserInfo);
     this.userStatsService.createUserStats(newUser);
-    this.achievementService.grantNewPongFigther(newUser.id);
+    this.achievementService.grantNewPongFighter(newUser.id);
     return newUser;
   }
 
