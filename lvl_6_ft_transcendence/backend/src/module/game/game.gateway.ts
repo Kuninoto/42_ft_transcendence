@@ -169,4 +169,5 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   ): messageBody is PlayerReadyDTO {
     return (typeof messageBody === 'object' &&
       typeof messageBody.gameRoomId === 'string');
+  }
 }
