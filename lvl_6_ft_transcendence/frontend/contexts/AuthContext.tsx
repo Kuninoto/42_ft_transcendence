@@ -57,23 +57,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	async function login(code: string) {
 		return await axios
 			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
-			.then(async function (result: axios) {
+			.then(async function (result) {
 				localStorage.setItem('pong.token', result.data.access_token)
 				return await api.get(`/me`, {
 						headers: {
 							Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
 						},
 					})
-					.then(function (newUser : axios) {
+					.then(function (newUser) {
 						setUser(newUser.data)
 						return true
 					})
-					.catch((error: axios) => {
+					.catch((error) => {
 						console.error(error)
 						return false
 					})
 			})
-			.catch((err: axios) => {
+			.catch((err) => {
 				console.error(err)
 				return false
 			})
