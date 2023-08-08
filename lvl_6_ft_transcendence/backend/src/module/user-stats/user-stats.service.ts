@@ -43,7 +43,7 @@ export class UserStatsService {
       uid: leaderboardRow.uid,
       name: leaderboardRow.name,
       wins: leaderboardRow.wins,
-      win_rate: leaderboardRow.win_rate,
+      win_rate: leaderboardRow.win_rate === null ? 0 : leaderboardRow.win_rate,
     }));
   }
 
