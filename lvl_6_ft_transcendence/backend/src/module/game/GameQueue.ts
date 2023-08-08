@@ -27,7 +27,7 @@ export class GameQueue {
 
   public isPlayerInQueue(playerUID: number): boolean {
     const playerIndex: number = this.players.findIndex((player) => {
-      return player.userId === player.userId;
+      return player.userId === playerUID;
     });
 
     if (playerIndex === -1) {
