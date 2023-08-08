@@ -66,8 +66,6 @@ export class AuthController {
       req.user.id,
       UserStatus.ONLINE,
     );
-
-    this.logger.log('Issued a jwt = ' + jwt.access_token);
     return jwt;
   }
 
@@ -120,7 +118,6 @@ export class AuthController {
       \ninclusively here.",
   })
   @ApiBadRequestResponse({ description: 'If the OTP is invalid' })
-  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/enable')
   public async enable2fa(
@@ -136,7 +133,7 @@ export class AuthController {
       throw new BadRequestException('Wrong authentication code');
     }
 
-    this.logger.log('Enabling 2fa for user "' + req.user.name + '"');
+    this.logger.log('Enabling 2FA for "' + req.user.name + '"');
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
 
     const jwt: { access_token: string } = this.authService.authenticate2fa(
@@ -157,7 +154,7 @@ export class AuthController {
   public async disable2fa(
     @Req() req: { user: User },
   ): Promise<SuccessResponse> {
-    this.logger.log('Disabling 2fa for "' + req.user.name + '"');
+    this.logger.log('Disabling 2FA for "' + req.user.name + '"');
 
     return await this.usersService.disable2fa(req.user.id);
   }
@@ -171,7 +168,7 @@ export class AuthController {
    * when scanned with
    * Google Authenticator,
    * registers our App.
-   * Later the user can use the OTPs for two factor authentication.
+   * Later the user can use the OTPs for 2FA.
    * @returns QRCode for Google Authenticator app registration
    */
   @ApiOkResponse({
@@ -199,7 +196,7 @@ export class AuthController {
    * Validates the Google Authenticator's OTP
    * and if it is valid, signs a JWT and returns it
    * else throws.
-   * @returns JWT's access_token
+   * @returns JWT access_token
    */
   @ApiOkResponse({
     description:
