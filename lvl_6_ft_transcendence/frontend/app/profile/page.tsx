@@ -9,20 +9,21 @@ import Friends from './friends'
 import History from './history'
 import { api } from '@/api/api'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
-import { UserProfile } from '@/common/type/backend/user-profile.interface'
+import { UserProfile as IUserProfile } from '@/common/type/backend/user-profile.interface'
 import SettingsModal from './settingsModal'
 import { FriendshipStatus } from '@/common/types/backend/friendship-status.enum'
 
-export default function Profile() {
+enum modalPage {
+	HISTORY = "history",
+	FRIENDS = "friends",
+	ACHIEVEMENTS = "achievements"
+}
 
-	const { user: loggedUser } = useAuth()
+function Buttons({ userProfile } : { userProfile: IUserProfile }) {
 
-	const [ user, setUser ] = useState<UserProfile>()
-	const searchParams = useSearchParams()
-	const id = searchParams.get('id') || loggedUser.id
+	const { user } = useAuth()
 
-	const [showMatchHistory, setShowMatchHistory] = useState(true)
-	const [openModal, setOpenModal] = useState(false)
+	const [ requestSent, setRequestSent ] = useState(false)
 
 	function removeFriendship(friendshipId: number) {
 		api.patch(`/friendships/${friendshipId}/update`, {
@@ -32,22 +33,74 @@ export default function Profile() {
 
 	function sendFriendRequest(userId: number) {
 		api.post(`/friendships/send-request/${userId}`)
-			.then(result => console.log(result))
+			.then(result => 
+				{ 
+					setRequestSent(true)
+					console.log(result)}
+				)
 			.catch(error => console.error(error))
 	}
+
+	return ( 
+		<div className="w-full space-x-2">
+			{ user.id === userProfile?.id
+			? <button 
+				onClick={() => {setOpenModal(true)}}	
+				className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+					Settings	
+				</button>
+			: user?.friendship_status === FriendshipStatus.ACCEPTED 
+				?
+					<button 
+					onClick={() => removeFriendship(userProfile?.friendship_id)}
+					className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+						Remove friend
+					</button>
+				: userProfile?.friend_request_sent_by_me || requestSent ?
+					<button 
+						onClick={() => removeFriendship(userProfile?.friendship_id)}
+					className="rounded border bg-white text-black w-full py-2 mix-blend-lighten hover:bg-transparent hover:text-white">
+						Cancel
+					</button>
+				:
+				<>
+					<button 
+						onClick={() => sendFriendRequest(userProfile?.id)}
+					className="rounded border border-white w-7/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+						Add friend
+					</button>
+					<button className="rounded border border-white w-4/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+						Block
+					</button>
+				</>
+			}
+		</div>
+	)
+}
+
+export default function Profile() {
+
+	const { user } = useAuth()
+
+	const [ userProfile, setUserProfile ] = useState<IUserProfile>()
+	const searchParams = useSearchParams()
+	const id = searchParams.get('id') || user.id
+
+	const [modal, setModal] = useState<modalPage>(modalPage.HISTORY)
+	const [openModal, setOpenModal] = useState(false)
+
 
 	useEffect(() => {
 		if (id) {
 			api.get(`/users/${id}`)
 			.then((result) => {
 				console.log(result.data)
-				setUser(result.data)
-			})
+				setUserProfile(result.data) })
 			.catch((error) => {
 				console.error(error)
 			})
 		}
-	}, [id, loggedUser])
+	}, [id, user])
 
 
 	return (
@@ -71,42 +124,17 @@ export default function Profile() {
 							height={0}
 							layout="fill"
 							objectFit="cover"
-							src={user?.avatar_url || '/placeholder.jpg'}
+							src={userProfile?.avatar_url || '/placeholder.jpg'}
 							width={0}
 						/>
 					</div>
 
 					<div className='w-full flex flex-col'>
-						<p className="text-3xl">{user?.name || 'Loading...'}</p>
-						<a href={user?.intra_profile_url} className="text-md mb-4 hover:underline text-gray-400">{user?.intra_name || 'Loading...'}</a>
+						<p className="text-3xl">{userProfile?.name || 'Loading...'}</p>
+						<a href={userProfile?.intra_profile_url} className="text-md mb-4 hover:underline text-gray-400">{userProfile?.intra_name || 'Loading...'}</a>
 
-						<div className="w-full space-x-2">
-							{ loggedUser.id === user?.id
-							? <button 
-								onClick={() => {setOpenModal(true)}}	
-								className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-									Settings	
-								</button>
-							: user?.friendship_status === FriendshipStatus.ACCEPTED 
-								?
-									<button 
-									onClick={() => removeFriendship(user?.friendship_id)}
-									className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-										Remove friend
-									</button>
-								:
-								<>
-									<button 
-										onClick={() => sendFriendRequest(user?.id)}
-									className="rounded border border-white w-7/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-										Add friend
-									</button>
-									<button className="rounded border border-white w-4/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-										Block
-									</button>
-								</>
-							}
-						</div>
+						<Buttons userProfile={userProfile}/>
+
 					</div>
 
 					<div>
@@ -124,26 +152,35 @@ export default function Profile() {
 				</div>
 
 				<div className="pb-12">
-					<div className="flex -mb-px w-full place-content-center space-x-2 text-2xl ">
+					<div className="flex -mb-px w-full place-content-center space-x-1 text-2xl ">
 						<button
-							className={`border rounded-t border-white w-1/2 py-1 hover:border-white hover:text-white
-							${showMatchHistory ? 'mix-blend-exclusion' : 'border-white/50 text-white/50'}`}
-							onClick={() => setShowMatchHistory(true)}
+							className={`border rounded-tl border-white w-1/2 py-1 hover:border-white hover:text-white
+							${modal === modalPage.HISTORY ?  'mix-blend-exclusion' : 'border-white/50 text-white/50'}`}
+							onClick={() => setModal(modalPage.HISTORY)}
 						>
-							Match history
+							History
 						</button>
 						<button
-							className={`rounded-t border border-white w-1/2 py-1 hover:border-white hover:text-white
-							${showMatchHistory ? 'border-white/50 text-white/50' : 'mix-blend-exclusion'}`}
-							onClick={() => setShowMatchHistory(false)}
+							className={`border border-white w-1/2 py-1 hover:border-white hover:text-white
+							${modal === modalPage.FRIENDS ?  'mix-blend-exclusion' : 'border-white/50 text-white/50'}`}
+							onClick={() => setModal(modalPage.FRIENDS)}
 						>
 							Friends
 						</button>
+						<button
+							className={`border rounded-tr border-white w-1/2 py-1 text-lg hover:border-white hover:text-white
+							${modal === modalPage.ACHIEVEMENTS ?  'mix-blend-exclusion' : 'border-white/50 text-white/50'}`}
+							onClick={() => setModal(modalPage.ACHIEVEMENTS)}
+						>
+							Achievements
+						</button>
 					</div>
 					<div className="h-full rounded-b border border-white p-4">
-						{ showMatchHistory 
-						? <History />
-						: <Friends friends={user?.friends}/>
+						{ modal === modalPage.HISTORY 
+							? <History /> 
+							: modalPage === modalPage.FRIENDS 
+								? <Friends friends={userProfile?.friends} /> 
+								: <div></div>		
 						}
 					</div>
 				</div>
