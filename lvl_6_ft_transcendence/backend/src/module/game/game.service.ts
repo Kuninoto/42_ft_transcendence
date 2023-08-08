@@ -14,9 +14,11 @@ import { GameResult } from 'src/entity/game-result.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
-import { GAME_START_TIMEOUT, GameEngineService } from './game-engine.service';
+import { GameEngineService } from './game-engine.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { AchievementService } from '../achievement/achievement.service';
+
+const GAME_START_TIMEOUT: number = 1000 * 5;
 
 @Injectable()
 export class GameService {
@@ -99,7 +101,7 @@ export class GameService {
         : gameRoom.rightPlayer;
 
     const updatedGameRoom: Partial<GameRoom> = {
-      // access object thru dynamic object key
+      // Access object thru dynamic object key
       [playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer']: {
         ...playerToUpdate,
         paddleY: newY,
