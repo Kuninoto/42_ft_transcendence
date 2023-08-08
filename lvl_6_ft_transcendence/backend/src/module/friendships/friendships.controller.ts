@@ -79,7 +79,7 @@ export class FriendshipsController {
    * field of the JSON sent on the body
    *
    * {
-   *   "newStatus":"accepted" | "declined" | "unfriend" | "canceled"
+   *   "newStatus":"accepted" | "declined" | "unfriend"
    * }
    */
   @ApiOkResponse({
@@ -100,7 +100,7 @@ export class FriendshipsController {
       properties: {
         newStatus: {
           type: 'string',
-          enum: Object.values(['declined', 'accepted', 'canceled', 'unfriend']),
+          enum: Object.values(['declined', 'accepted', 'unfriend']),
         },
       },
     },
