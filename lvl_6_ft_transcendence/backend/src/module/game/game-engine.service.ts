@@ -12,7 +12,7 @@ import { GameService } from './game.service';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { GameRoomsMap } from './GameRoomsMap';
 
-const GAME_LOOP_INTERVAL: number = 25;
+const GAME_LOOP_INTERVAL: number = 10;
 const RESET_GAME_DELAY: number = 2;
 
 // Hacky way to make js wait
@@ -56,11 +56,11 @@ export class GameEngineService {
     gameRoom.ball.moveBySpeed();
     this.gameGateway.broadcastGameRoomInfo(gameRoom);
 
-    if (this.ballCollidedWithWall(gameRoom.ball)) {
+    if (this.ballCollidedWithPaddle(gameRoom)) {
       this.gameGateway.broadcastGameRoomInfo(gameRoom);
     }
 
-    if (this.ballCollidedWithPaddle(gameRoom)) {
+    if (this.ballCollidedWithWall(gameRoom.ball)) {
       this.gameGateway.broadcastGameRoomInfo(gameRoom);
     }
 
