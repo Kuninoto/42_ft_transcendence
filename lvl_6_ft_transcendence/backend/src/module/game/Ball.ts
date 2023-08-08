@@ -2,15 +2,15 @@ import { CANVAS_MID_HEIGHT, CANVAS_MID_WIDTH } from './GameRoom';
 import { PADDLE_HEIGHT } from './Player';
 
 export const BALL_RADIUS: number = 4;
-const SPEED_CAP: number = 18;
+const SPEED_CAP: number = 9;
 
 export class Ball {
   constructor() {
     this.x = CANVAS_MID_WIDTH;
     this.y = CANVAS_MID_HEIGHT;
     this.speed = {
-      x: Math.round(Math.random()) % 2 === 0 ? -4 : 4,
-      y: Math.round(Math.random()) % 2 === 0 ? -4 : 4,
+      x: Math.round(Math.random()) % 2 === 0 ? -2 : 2,
+      y: Math.round(Math.random()) % 2 === 0 ? -2 : 2,
     };
   }
 
@@ -44,7 +44,7 @@ export class Ball {
     this.x = CANVAS_MID_WIDTH;
     this.y = CANVAS_MID_HEIGHT;
     this.speed = {
-      x: Math.round(Math.random()) % 2 === 0 ? -4 : 4,
+      x: Math.round(Math.random()) % 2 === 0 ? -2 : 2,
       y: 0,
     };
   }
