@@ -18,7 +18,7 @@ import { GameEngineService } from './game-engine.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { AchievementService } from '../achievement/achievement.service';
 
-const GAME_START_TIMEOUT: number = 1000 * 5;
+const GAME_START_TIMEOUT: number = 1000 * 3;
 
 @Injectable()
 export class GameService {
