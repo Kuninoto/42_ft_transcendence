@@ -27,7 +27,7 @@ function LeftSide({ playerScore, player } : {playerScore: number, player: UserSe
 				className="aspect-square w-20 rounded-full"
 				height="0"
 				sizes="100vw"
-				src={player.avatar_url || '/placeholder.jpg'}
+				src={player?.avatar_url || '/placeholder.jpg'}
 				width="0"
 			/>
 		</div>
@@ -47,7 +47,7 @@ function RightSide({ playerScore, player } : {playerScore: number, player: UserS
 				width="0"
 			/>
 			<div className="my-auto text-start">
-				<h3 className="text-2xl">{ player.name }</h3>
+				<h3 className="text-2xl">{ player?.name }</h3>
 				<h4 className="text-md">140 w</h4>
 				{playerScore}
 			</div>
@@ -67,14 +67,6 @@ export default function Game() {
 		onExpire: () => console.warn('onExpire called'),
 	})
 
-	const givePoint = (rigthPlayer: boolean): void => {
-		if (rigthPlayer) {
-			setRightPlayerScore((rightPlayerScore: number) => rightPlayerScore + 1)
-		} else {
-			setLeftPlayerScore((leftPlayerScore: number) => leftPlayerScore + 1)
-		}
-	}
-
 	return (
 		<div className="flex h-full flex-col">
 			<div className="mx-auto my-8 flex gap-x-8">
@@ -82,9 +74,9 @@ export default function Game() {
 					playerScore={leftPlayerScore} 
 					player={
 						opponentFound.side === PlayerSide.LEFT
-						?  { avatar_url: user.avatar_url,
-							id: user.id,
-							name: user.name }
+						?  { avatar_url: user?.avatar_url,
+							id: user?.id,
+							name: user?.name }
 						: opponentFound.opponentInfo
 						} />
 				<div className="h-full w-0.5 bg-white"></div>
@@ -92,9 +84,9 @@ export default function Game() {
 	 				playerScore={rightPlayerScore} 
 					player={
 						opponentFound.side === PlayerSide.RIGHT 
-						?  { avatar_url: user.avatar_url,
-							id: user.id,
-							name: user.name }
+						?  { avatar_url: user?.avatar_url,
+							id: user?.id,
+							name: user?.name }
 						: opponentFound.opponentInfo
 						} />
 			</div>
@@ -107,7 +99,7 @@ export default function Game() {
 				</span>
 			</div>
 
-			<Pong givePoint={givePoint} />
+			<Pong />
 		</div>
 	)
 }
