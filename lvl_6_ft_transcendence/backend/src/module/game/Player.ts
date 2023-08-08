@@ -19,6 +19,7 @@ export class Player {
     this.userId = userId;
 
     this.score = 0;
+    this.isReady = false;
   }
   paddleX: number;
   paddleY: number;
@@ -26,6 +27,7 @@ export class Player {
   userId: number;
   score: number;
   side: PlayerSide;
+  isReady: boolean;
 
   setPlayerSide(side: PlayerSide): void {
     this.side = side;
