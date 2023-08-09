@@ -52,7 +52,7 @@ export class UsersService {
     } else {
       this.achievementService.grantNewPongFighter(newUser.id);
     }
-  
+
     return newUser;
   }
 

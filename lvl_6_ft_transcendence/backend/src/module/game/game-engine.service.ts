@@ -177,14 +177,22 @@ export class GameEngineService {
 
       gameRoom.rightPlayer.score += 1;
       gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId, gameRoom.leftPlayer.score, gameRoom.rightPlayer.score);
+      this.gameGateway.emitPlayerScoredEvent(
+        gameRoom.roomId,
+        gameRoom.leftPlayer.score,
+        gameRoom.rightPlayer.score,
+      );
       return true;
     } else if (gameRoom.ball.x + BALL_RADIUS >= CANVAS_WIDTH) {
       // BALL PASSED RIGHT SIDE
 
       gameRoom.leftPlayer.score += 1;
       gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(gameRoom.roomId, gameRoom.leftPlayer.score, gameRoom.rightPlayer.score);
+      this.gameGateway.emitPlayerScoredEvent(
+        gameRoom.roomId,
+        gameRoom.leftPlayer.score,
+        gameRoom.rightPlayer.score,
+      );
       return true;
     }
     return false;
