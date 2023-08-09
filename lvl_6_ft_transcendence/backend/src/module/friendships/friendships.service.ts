@@ -347,7 +347,7 @@ export class FriendshipsService {
   ): Promise<boolean> {
     const blockedUserEntry: BlockedUser =
       await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: receiver, blocked_user: sender }, // sender is the blockedUser
+        { user_who_blocked: { id: receiver.id } , blocked_user: { id: sender.id } }, // sender is the blockedUser
       ]);
 
     return blockedUserEntry ? true : false;
@@ -361,7 +361,7 @@ export class FriendshipsService {
   ): Promise<boolean> {
     const blockedUserEntry: BlockedUser =
       await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: sender, blocked_user: receiver }, // receiver is the blockedUser
+		{ user_who_blocked: { id: sender.id } , blocked_user: { id: receiver.id } }, // receiver is the blockedUser
       ]);
 
     return blockedUserEntry ? true : false;
