@@ -42,9 +42,17 @@ export class UsersService {
   private readonly logger: Logger = new Logger(UsersService.name);
 
   public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
+    const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
+
     const newUser: User = await this.usersRepository.save(newUserInfo);
     this.userStatsService.createUserStats(newUser);
-    this.achievementService.grantNewPongFighter(newUser.id);
+
+    if (developersIntraName.includes(newUser.intra_name)) {
+      this.achievementService.grantPongFightMaestro(newUser.id);
+    } else {
+      this.achievementService.grantNewPongFighter(newUser.id);
+    }
+  
     return newUser;
   }
 
