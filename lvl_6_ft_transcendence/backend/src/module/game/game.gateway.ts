@@ -77,7 +77,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   ): void {
     if (!this.isValidPlayerReadyMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + 'tried to send a wrong PlayerReadyDTO',
+        'Client id=' + client.id + ' tried to send a wrong PlayerReadyDTO',
       );
       return;
     }
@@ -96,7 +96,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + 'tried to send a wrong PaddleMoveDTO',
+        'Client id=' + client.id + ' tried to send a wrong PaddleMoveDTO',
       );
       return;
     }
