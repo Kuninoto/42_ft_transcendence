@@ -187,7 +187,9 @@ export class MeController {
     this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     if (!body.newUsername) {
-      this.logger.error('User which id=' + req.user.id + ' failed to update his username');
+      this.logger.error(
+        'User which id=' + req.user.id + ' failed to update his username',
+      );
       throw new BadRequestException(
         "Expected 'newUsername' as a field of the body's JSON",
       );

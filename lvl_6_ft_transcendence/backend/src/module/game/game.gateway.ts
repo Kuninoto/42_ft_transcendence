@@ -82,10 +82,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
       return;
     }
 
-    this.gameService.playerReady(
-      messageBody.gameRoomId,
-      client.id,
-    );
+    this.gameService.playerReady(messageBody.gameRoomId, client.id);
   }
 
   // Listen for 'paddle-move' messages
@@ -131,7 +128,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(gameRoomId).emit('game-end', gameEndDto);
   }
 
-  emitPlayerScoredEvent(gameRoomId: string, leftPlayerScore: number, rightPlayerScore: number) {
+  emitPlayerScoredEvent(
+    gameRoomId: string,
+    leftPlayerScore: number,
+    rightPlayerScore: number,
+  ) {
     const playerScoredDTO: PlayerScoredDTO = {
       leftPlayerScore: leftPlayerScore,
       rightPlayerScore: rightPlayerScore,
@@ -167,7 +168,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   private isValidPlayerReadyMessage(
     messageBody: any,
   ): messageBody is PlayerReadyDTO {
-    return (typeof messageBody === 'object' &&
-      typeof messageBody.gameRoomId === 'string');
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.gameRoomId === 'string'
+    );
   }
 }
