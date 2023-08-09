@@ -9,8 +9,11 @@ import { User } from './user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum Achievements {
+  // Assigned only to the 3 developers
+  PONGFIGHT_MAESTRO = 'PongFight Maestro',
+
   // First Login
-  NEW_PONG_FIGHTER = 'New Pong Fighter',
+  NEW_PONG_FIGHTER = 'New PongFighter',
   // 1 Win
   BEGINNERS_TRIUMPH = 'Beginners Triumph',
   // 1 Loss
@@ -28,7 +31,9 @@ export enum Achievements {
 }
 
 export const AchievementDescriptions: Record<Achievements, string> = {
-  [Achievements.NEW_PONG_FIGHTER]: "I'm the newest pong fighter, let's FIGHT!",
+  [Achievements.PONGFIGHT_MAESTRO]:
+    "You've participated in the code orchestra, danced a cha-cha with bugs, and composed a masterpiece of pixelated harmony!",
+  [Achievements.NEW_PONG_FIGHTER]: "I'm the newest pongfighter, let's FIGHT!",
   [Achievements.BEGINNERS_TRIUMPH]: 'First taste of victory!',
   [Achievements.FIRST_SETBACK]: 'Maybe this is not that easy...',
   [Achievements.FIRST_BUDDY]: 'I thought friends was a myth',
