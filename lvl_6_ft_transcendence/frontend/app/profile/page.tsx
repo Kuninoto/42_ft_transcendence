@@ -19,7 +19,7 @@ enum modalPage {
 	ACHIEVEMENTS = "achievements"
 }
 
-function Buttons({ userProfile } : { userProfile: IUserProfile }) {
+function Buttons({ setOpenModal, userProfile } : { setOpenModal: ( state: boolean ) => void, userProfile: IUserProfile }) {
 
 	const { user } = useAuth()
 
@@ -43,7 +43,7 @@ function Buttons({ userProfile } : { userProfile: IUserProfile }) {
 
 	return ( 
 		<div className="w-full space-x-2">
-			{ user.id === userProfile?.id
+			{ user?.id === userProfile?.id
 			? <button 
 				onClick={() => {setOpenModal(true)}}	
 				className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
@@ -84,7 +84,7 @@ export default function Profile() {
 
 	const [ userProfile, setUserProfile ] = useState<IUserProfile>()
 	const searchParams = useSearchParams()
-	const id = searchParams.get('id') || user.id
+	const id = searchParams.get('id') || user?.id
 
 	const [modal, setModal] = useState<modalPage>(modalPage.HISTORY)
 	const [openModal, setOpenModal] = useState(false)
@@ -133,7 +133,7 @@ export default function Profile() {
 						<p className="text-3xl">{userProfile?.name || 'Loading...'}</p>
 						<a href={userProfile?.intra_profile_url} className="text-md mb-4 hover:underline text-gray-400">{userProfile?.intra_name || 'Loading...'}</a>
 
-						<Buttons userProfile={userProfile}/>
+						<Buttons setOpenModal={setOpenModal} userProfile={userProfile}/>
 
 					</div>
 

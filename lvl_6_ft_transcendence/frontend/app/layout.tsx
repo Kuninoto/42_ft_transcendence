@@ -1,12 +1,15 @@
 'use client'
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { ToastContainer } from 'react-toastify';
 import { ChatProvider } from '@/contexts/ChatContext'
 import { Press_Start_2P } from 'next/font/google'
 import { usePathname } from 'next/navigation'
 import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
+
+import 'react-toastify/dist/ReactToastify.css';
 
 import Chat from './chat/page'
 import './globals.css'
@@ -58,6 +61,18 @@ export default function RootLayout({
 							</div>
 
 							<FixedPanel handle={handle} />
+							<ToastContainer
+								position="top-right"
+								autoClose={5000}
+								hideProgressBar={false}
+								newestOnTop
+								closeOnClick
+								rtl={false}
+								pauseOnFocusLoss={false}
+								draggable
+								pauseOnHover={false}
+								theme="dark"
+							/>
 						</FullScreen>
 					</body>
 				</html>

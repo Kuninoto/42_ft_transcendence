@@ -16,10 +16,10 @@ export const removeParams: ImageLoader = ({ src } : { src: string }) => {
 };
 
 export interface AuthContextExports {
-	login: (code: string) => Promise<boolean> | void
+	login: (code: string) => void
 	logout: () => void
 	user: UserProfile | {}
-	refreshUser: (user: UserProfile) => void
+	refreshUser: () => void
 }
 
 const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
@@ -45,8 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	function refreshUser(newUserInfo: UserProfile){
-		setUser(newUserInfo)
+	async function refreshUser(){
+		const user = await api.get("/me")
+		setUser(user.data)
 	}
 
 	function logout() {
@@ -55,28 +56,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	async function login(code: string) {
-		return await axios
+							
+		const data = await axios
 			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
-			.then(async function (result) {
-				localStorage.setItem('pong.token', result.data.access_token)
-				return await api.get(`/me`, {
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
-						},
-					})
-					.then(function (newUser) {
-						setUser(newUser.data)
-						return true
-					})
-					.catch((error) => {
-						console.error(error)
-						return false
-					})
-			})
-			.catch((err) => {
-				console.error(err)
-				return false
-			})
+			.then(result => result.data)
+			.catch(e => { throw "Network error" })
+
+		localStorage.setItem('pong.token', data.access_token)
+		const login = await api.get(`/me`, {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+			},
+		})
+		.then(result => result.data)
+		.catch(e => { throw "Network error" })
+
+		setUser(login)
 	}
 
 	const value: AuthContextExports = {
