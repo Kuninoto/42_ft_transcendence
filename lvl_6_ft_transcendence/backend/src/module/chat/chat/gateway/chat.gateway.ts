@@ -30,11 +30,13 @@ import { BlockedUserInterface } from 'src/common/types/blocked-user-interface.in
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() public server: Server;
 
-	constructor(private messageService: MessageService, 
+	constructor(
+		private messageService: MessageService, 
 		private authService: AuthService, 
 		private roomService: RoomService, 
 		private userService: UsersService, 
-		private friendshipService: FriendshipsService) {}
+		private friendshipService: FriendshipsService
+	) {}
 
 	afterInit(server: Server) {
 		Logger.log('Chat-gateway Initialized');
@@ -47,6 +49,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		try {
 			// const user: User = await this.authService.authenticateClientAndRetrieveUser(socket);
 			const user: User = await this.userService.findUserByUID(Number(socket.handshake.headers.authorization));
+			this.userService.updateUserSocketIdByUID(user.id, socket.id);
+
+			this.roomService.joinUserRooms(socket, await this.roomService.findUserRooms(user.id));
 
 			// TODO delete debugging when not needed
 			Logger.debug('Gateway.onConnect[Socket]: ' + socket.handshake.headers.authorization);
@@ -59,20 +64,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			}
 		}
 		catch {
-			return this.disconnect(socket);
+			return socket.disconnect();
 		}
 		Logger.log(socket.data.user.name + ' connected to the chat socket');
 	}
 
 	// TODO Check for disconnection and print the socket id
 	handleDisconnect(socket: Socket) {
+		if (!socket.data.user) {
+			Logger.log('Undefined intruder has disconnected');
+		}
+		else {
+			Logger.log(socket.data.user.name + ' has disconnected');
+			this.userService.updateUserSocketIdByUID(socket.data.user.id, null);
+		}
 	}
-
-	private disconnect(socket: Socket) {
-		Logger.log('Disconnected');
+	
+	/* private disconnect(socket: Socket) {
 		socket.emit('Error', new UnauthorizedException());
 		socket.disconnect();
-	}
+	} */
 
 	@SubscribeMessage('createRoom')
 	async onCreateRoom(@ConnectedSocket() socket: Socket, @MessageBody() room: RoomI): Promise<RoomI> {
@@ -113,57 +124,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const room = await this.roomService.findRoomByName(MessageDto.room.name);
 		
 		if (room) {
-			// TODO delete debug
-			// Logger.debug('------------ Create Message ------------');
-			// Logger.debug('MessageDto:' + MessageDto);
-			// Logger.debug('Room: ' + JSON.stringify(room, null, 2));
-			// Logger.debug('User name: ' + socket.data.user.name);
-			// Logger.debug('----------------------------------------');
-
 			MessageDto.user = socket.data.user;
 			MessageDto.room = room;
 			const message: Message = await this.messageService.createMessage(MessageDto);
-
-			const blockedUsers: BlockedUserInterface[] = await this.friendshipService.getMyBlocklist(socket.data.user.id);
-			const usersInRoom = room.users.map(user => user.id);
-			const usersBlocked = blockedUsers.map(user => user.blocked_uid);
-
-			const usersToReceive = usersInRoom.filter(id => !usersBlocked.includes(id))
-
-			usersToReceive.forEach(id => {
-				const userSocket = this.usersSocketsMap[id]; // Retrieve the socket of the user
-				if (userSocket) {
-					socket.to(room.name).emit('onMessage', message.text);
+			
+			const usersInRoom: number[] = room.users.map(user => user.id);
+			
+			usersInRoom.forEach(async uid => {
+				console.log(uid);
+				const blockRelationship: boolean = await this.friendshipService.isThereABlockRelationship(socket.data.user, uid);
+				Logger.debug(blockRelationship);
+				const userSocket: string = await this.userService.findSocketIDbyUID(uid); // Retrieve the socket of the user
+				Logger.debug('Socket id: ' + userSocket);
+				if (userSocket && !blockRelationship) {
+					socket.to(userSocket).emit('onMessage', message.text);
 				}
-			});
 
-			// Logger.debug('Gateway.newMessage[text]: ' + message.text);
-			// Logger.debug('Gateway.newMessage[room]: ' + room.name);
-			// Logger.debug('Gateway.newMessage[socket]: ' + socket.id);
+				// TODO delete debug
+				Logger.debug(socket.data.user.name + '[' + room.name + ']: ' + message.text);
+			});
 		} else {
 			// TODO implement error response
 			Logger.debug('Gateway.newMessage[error]: error when sending text');
 			throw new Error('Room not found');
 		}
-	}
-
-	// TODO this is a debug function. Delete it at the end
-	@SubscribeMessage('test')
-	async test(@ConnectedSocket() socket: Socket){
-
-		Logger.debug('\t\t\t\t!!!!Debug mode activated!!!!\t\t\t\t');
-		Logger.debug('Current User: ' + socket.data.user.name);
-		Logger.debug('Socket Id: ' + socket.id);
-		socket.to('test').emit('onMessage', 'Test message. BEFORE joining room! Did you receive it?');
-		Logger.debug('Room: ' + JSON.stringify(socket.rooms, null, 2));
-		socket.join('test');
-		socket.to('test').emit('onMessage', 'Test message. INSIDE the room! Did you receive it?');
-		Logger.debug('Room: ' + JSON.stringify(socket.rooms, null, 2));
-		socket.leave('test');
-		socket.to('test').emit('onMessage', 'Test message. AFTER leaving room! Did you receive it?');
-		Logger.debug('Room: ' + JSON.stringify(socket.rooms, null, 2));
-		Logger.debug('\t\t\t\t!!!!Debug mode deactivated!!!!\t\t\t\t');
-
 	}
 
 	@SubscribeMessage('findAllMessages')
@@ -172,7 +156,3 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 }
-function getMyBlocklist() {
-	throw new Error('Function not implemented.');
-}
-

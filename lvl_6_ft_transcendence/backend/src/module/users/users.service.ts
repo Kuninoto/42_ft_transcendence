@@ -265,6 +265,19 @@ export class UsersService {
     return { message: 'Successfully deleted user' };
   }
 
+  public async findSocketIDbyUID(userID: number): Promise<string | null> {
+	const user = await this.usersRepository.findOneBy({ id: userID });
+    return user.socketId;
+  }
+
+  public async updateUserSocketIdByUID(
+    userID: number,
+    newSocketId: string
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userID, {socketId: newSocketId});
+    return { message: 'Successfully updated user socketId' };
+  }
+
   /**********************************
    *               2FA               *
    **********************************/
