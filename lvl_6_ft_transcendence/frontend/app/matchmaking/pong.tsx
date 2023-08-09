@@ -20,7 +20,7 @@ const KEYUP = 'ArrowUp'
 
 export default function Pong() {
 
-	const { opponentFound, emitPaddleMovement, opponentPosition, ballPosition} = useGame()
+	const { opponentFound, emitPaddleMovement, emitOnReady, opponentPosition, ballPosition} = useGame()
 	const { user } = useAuth()
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -47,8 +47,6 @@ export default function Pong() {
 
 	const ball = useRef<Ball>(new Ball())
 
-	const delay = (ms: number) => new Promise((res) => setTimeout(res, ms))
-
 	useEffect(() => {
 		opponentPaddleRef.current.y = opponentPosition
 	}, [opponentPosition])
@@ -64,8 +62,8 @@ export default function Pong() {
 		const backgroundImage = new Image();
 		const paddleImage = new Image();
 
-		backgroundImage.src = `/game/backgrounds/${themes[user.game_theme].background}`;
-		paddleImage.src = `/game/paddles/${themes[user.game_theme].paddle}`;
+		backgroundImage.src = `/game/backgrounds/${themes[user.game_theme]?.background}`;
+		paddleImage.src = `/game/paddles/${themes[user.game_theme]?.paddle}`;
 
 		backgroundImageRef.current = backgroundImage;
 		paddleImageRef.current = paddleImage;
@@ -78,6 +76,8 @@ export default function Pong() {
 			context.drawImage(paddleImageRef.current, playerPaddleRef.current.x , playerPaddleRef.current.y, PADDLE_WIDTH, PADDLE_HEIGHT);
 			context.drawImage(paddleImageRef.current, opponentPaddleRef.current.x, opponentPaddleRef.current.y , PADDLE_WIDTH, PADDLE_HEIGHT);
 		}
+
+		emitOnReady()
 
 		const draw = () => {
 			if (context) {

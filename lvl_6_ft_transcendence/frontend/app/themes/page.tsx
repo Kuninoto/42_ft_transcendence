@@ -6,9 +6,12 @@ import { useState } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { themes, amount } from '@/common/themes'
 import { api } from '@/api/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Themes() {
+
 	const [saving, setSaving] = useState(false)
+	const { refreshUser } = useAuth()
 
 	function save() {
 
@@ -17,6 +20,7 @@ export default function Themes() {
 		api.patch("/me/game-theme", {
 			newGameTheme: themeKeys[selected]
 		}).finally(() => {
+			refreshUser()
 			setSaving(false)
 		})
 

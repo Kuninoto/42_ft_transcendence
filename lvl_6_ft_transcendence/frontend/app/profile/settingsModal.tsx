@@ -31,14 +31,12 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 					})
 				}
 
+				refreshUser()
+				closeModal()
 			} catch (error) {
 
 				console.log(error)
 			}
-		api.get("/me").then((result) => {
-			refreshUser(result.data)
-			closeModal()
-		})
 	}
 
 
@@ -55,7 +53,7 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 
 						<form className="flex flex-col space-y-2" onSubmit={handleSubmit(onSubmit)}>
 
-							<fieldset className="border-2 border-white aspect-square rounded">
+							<fieldset className="border-2 border-white h-full aspect-square rounded">
 								<label>
 									<input {...register("photos")} type="file" className="text-sm cursor-pointer w-36 hidden" accept="image/*"/>
 									<div className="relative h-full w-full">
@@ -65,12 +63,12 @@ export default function SettingsModal ({ closeModal }: { closeModal: () => void 
 										<Image
 											loader={removeParams}
 											alt={'choose new image - image'}
+											fill
+											sizes="100vw"
 											className="h-max w-max"
-											height={0}
 											layout="fill"
 											objectFit="cover"
 											src={user?.avatar_url || '/placeholder.jpg'}
-											width={0}
 										/>
 									</div>
 

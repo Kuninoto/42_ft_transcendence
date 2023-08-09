@@ -9,6 +9,7 @@ import { AiOutlineUserAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
+import { toast } from 'react-toastify';
 
 import FriendsModal from './friendsModal'
 import { api } from '@/api/api'
@@ -29,9 +30,18 @@ export default function FriendsList(): JSX.Element {
 	}
 
 	useEffect(() => {
-		api.get('/me/friends').then(result => {
-			setFriends(result.data)
-		})
+
+		try {
+			api.get('/me/friends')
+				.then(result => {
+					setFriends(result.data)
+				})
+				.catch(e => {throw "Network error"})
+
+		} catch (error) {
+			toast.error(error)
+		}
+
 	}, [])
 
 	return (
