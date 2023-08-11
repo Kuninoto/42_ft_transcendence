@@ -1,11 +1,11 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/entity/index';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
-import { TokenPayload } from './strategy/jwt-auth.strategy';
-import { UsersService } from '../users/users.service';
 import { Socket } from 'socket.io';
+import { User } from 'src/typeorm/index';
+import { UsersService } from '../users/users.service';
+import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 export interface twoFactorAuthDTO {
   secret: string;
@@ -138,5 +138,27 @@ export class AuthService {
     }
 
     return user.id;
+  }
+
+  public async authenticateClientAndRetrieveUser(
+    client: Socket,
+  ): Promise<User> {
+    const authHeader: string | undefined =
+      client.handshake.headers.authorization;
+    if (!authHeader) {
+      throw new Error('Unauthorized client, missing Auth Header');
+    }
+
+    // Authentication: Bearer xxxxx
+    // Get the token itself (xxxxx) without "Bearer"
+    const authToken: string = authHeader.split(' ')[1];
+
+    const user: User | null = await this.authClientFromAuthToken(authToken);
+
+    if (!user) {
+      throw new Error('Unauthorized client, unknown');
+    }
+
+    return user;
   }
 }

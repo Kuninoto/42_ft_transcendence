@@ -8,7 +8,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
 
-@Entity('user-stats')
+@Entity('user_stats')
 export class UserStats {
   @ApiProperty()
   @PrimaryGeneratedColumn({

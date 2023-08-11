@@ -1,5 +1,5 @@
 import { GameType } from 'src/common/types/game-type.enum';
-import { User } from 'src/entity/index';
+import { User } from 'src/typeorm/index';
 
 export interface CreateGameResultDTO {
   game_type: GameType;

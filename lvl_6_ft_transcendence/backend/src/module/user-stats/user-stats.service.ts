@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 import { UserStatsInterface } from 'src/common/types/user-stats-interface.interface';
-import { User, UserStats } from 'src/entity';
+import { User, UserStats } from 'src/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
