@@ -3,6 +3,10 @@ import axios from 'axios'
 export const api = axios.create({
 	baseURL: 'http://localhost:3000/api',
 	headers: {
+		Authorization:
+			typeof window !== 'undefined'
+				? 'Bearer ' + localStorage.getItem('pong.token')
+				: null,
 		'Content-Type': 'application/json',
 	},
 })
@@ -10,14 +14,10 @@ export const api = axios.create({
 export const multipartApi = axios.create({
 	baseURL: 'http://localhost:3000/api',
 	headers: {
+		Authorization:
+			typeof window !== 'undefined'
+				? 'Bearer ' + localStorage.getItem('pong.token')
+				: null,
 		'Content-Type': 'multipart/form-data',
-		'Authorization': `Bearer ${localStorage.getItem('pong.token')}`
 	},
-})
-
-api.interceptors.request.use(req => {
-	const token = localStorage.getItem('pong.token')
-	if (token)
-		req.headers['Authorization'] = `Bearer ${token}` 
-	return req
 })
