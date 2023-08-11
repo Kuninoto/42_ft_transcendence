@@ -1,31 +1,31 @@
 import {
-  Controller,
-  UseGuards,
   Body,
-  Req,
-  Param,
+  Controller,
+  Delete,
   HttpCode,
+  Param,
   Patch,
   Post,
-  Delete,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOkResponse,
-  ApiForbiddenResponse,
-  ApiBody,
-  ApiNotFoundResponse,
-  ApiConflictResponse,
   ApiBadRequestResponse,
+  ApiBody,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
+import { User } from 'src/typeorm/index';
 import { ErrorResponse } from '../../common/types/error-response.interface';
-import { SuccessResponse } from '../../common/types/success-response.interface';
-import { User } from 'src/entity/index';
 import { FriendshipStatus } from '../../common/types/friendship-status.enum';
-import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
-import { FriendshipsService } from './friendships.service';
+import { SuccessResponse } from '../../common/types/success-response.interface';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { FriendshipsService } from './friendships.service';
+import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
 
 @ApiTags('friendships')
 @UseGuards(JwtAuthGuard)

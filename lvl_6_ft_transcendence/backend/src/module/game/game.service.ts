@@ -1,22 +1,22 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
-import { GameQueue } from './GameQueue';
-import { GameRoomsMap } from './GameRoomsMap';
-import { UsersService } from '../users/users.service';
-import { UserStatus } from 'src/common/types/user-status.enum';
+import { InjectRepository } from '@nestjs/typeorm';
 import { GameType } from 'src/common/types/game-type.enum';
 import { PlayerSide } from 'src/common/types/player-side.enum';
-import { Ball } from './Ball';
-import { Player } from './Player';
-import { GameRoom } from './GameRoom';
-import { GameGateway } from './game.gateway';
-import { User } from 'src/entity/index';
-import { GameResult } from 'src/entity/game-result.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
-import { GameEngineService } from './game-engine.service';
-import { UserStatsService } from '../user-stats/user-stats.service';
+import { UserStatus } from 'src/common/types/user-status.enum';
+import { GameResult } from 'src/entity/game-result.entity';
+import { User } from 'src/typeorm/index';
+import { Repository } from 'typeorm';
 import { AchievementService } from '../achievement/achievement.service';
+import { UserStatsService } from '../user-stats/user-stats.service';
+import { UsersService } from '../users/users.service';
+import { Ball } from './Ball';
+import { GameQueue } from './GameQueue';
+import { GameRoom } from './GameRoom';
+import { GameRoomsMap } from './GameRoomsMap';
+import { Player } from './Player';
+import { GameEngineService } from './game-engine.service';
+import { GameGateway } from './game.gateway';
 
 const GAME_START_TIMEOUT: number = 1000 * 3;
 
@@ -211,7 +211,7 @@ export class GameService {
     this.gameGateway.broadcastGameEnd(roomId, winner, loser);
     this.gameRoomsMap.deleteGameRoomByRoomId(roomId);
 
-    // !TODO
+    // TODO
     // Remove the hard coded Game Type
     // when 1v1 is implemented
     await this.saveGameResult(GameType.LADDER, winner, loser);

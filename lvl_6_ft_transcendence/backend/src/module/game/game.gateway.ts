@@ -1,3 +1,4 @@
+import { Inject, Logger, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -9,16 +10,15 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { corsOption } from 'src/common/options/cors.option';
-import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
-import { Inject, Logger, forwardRef } from '@nestjs/common';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
-import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
-import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
+import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerReadyDTO } from './dto/player-ready.dto';
+import { PlayerScoredDTO } from './dto/player-scored.dto';
+import { GameService } from './game.service';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection {

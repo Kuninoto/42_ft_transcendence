@@ -9,7 +9,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { GameType } from 'src/common/types/game-type.enum';
 import { User } from './user.entity';
 
-@Entity('game-result')
+@Entity('game_result')
 export class GameResult {
   @ApiProperty()
   @PrimaryGeneratedColumn({

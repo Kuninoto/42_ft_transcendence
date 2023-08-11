@@ -1,18 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from 'src/module/users/users.module';
-import { AuthModule } from 'src/module/auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
-import { join } from 'path';
-import { FriendshipsModule } from './module/friendships/friendships.module';
-import entities from './entity/index';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import 'dotenv/config';
-import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
-import { MeModule } from './module/me/me.module';
-import { GameModule } from './module/game/game.module';
+import { join } from 'path';
+import { AuthModule } from 'src/module/auth/auth.module';
+import { UsersModule } from 'src/module/users/users.module';
 import { AchievementModule } from './module/achievement/achievement.module';
+import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
+import { ChatModule } from './module/chat/chat.module';
+import { FriendshipsModule } from './module/friendships/friendships.module';
+import { GameModule } from './module/game/game.module';
+import { MeModule } from './module/me/me.module';
 import { UserStatsModule } from './module/user-stats/user-stats.module';
+import entities from './typeorm/index';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
         database: process.env.POSTGRES_DB,
         entities: entities,
         autoLoadEntities: true,
-        // !TODO
+        // TODO
         // Turn off during prod
         synchronize: true,
       }),
@@ -40,9 +41,12 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
       // The base URL path to serve the images from
       serveRoot: '/api/users/avatars/',
 
-      // Do not display a directory index
-      // Do not redirect to a similar file if the requested one isn't found
-      serveStaticOptions: { index: false, redirect: false },
+      serveStaticOptions: {
+        // Don't display a directory index
+        index: false,
+        // Don't redirect to a similar file if the requested one isn't found
+        redirect: false,
+      },
     }),
     AchievementModule,
     AuthModule,
@@ -51,6 +55,7 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
     MeModule,
     UserStatsModule,
     UsersModule,
+    ChatModule,
   ],
   controllers: [],
   providers: [JwtAuthGuard],

@@ -1,39 +1,39 @@
 import {
-  Controller,
-  Get,
-  Body,
-  Patch,
-  Delete,
   BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
   Logger,
+  Patch,
   Req,
   UploadedFile,
-  UseInterceptors,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
-  ApiTags,
-  ApiOkResponse,
   ApiBadRequestResponse,
-  ApiConflictResponse,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
+  ApiOkResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
-import { User } from 'src/entity/index';
+import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
+import { User } from 'src/typeorm/index';
 import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
 import { ErrorResponse } from '../../common/types/error-response.interface';
-import { SuccessResponse } from '../../common/types/success-response.interface';
 import { FriendInterface } from '../../common/types/friend-interface.interface';
 import { FriendRequestInterface } from '../../common/types/friend-request.interface';
-import { multerConfig } from './middleware/multer/multer.config';
+import { GameThemes } from '../../common/types/game-themes.enum';
 import { meUserInfo } from '../../common/types/me-user-info.interface';
+import { SuccessResponse } from '../../common/types/success-response.interface';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { GameThemes } from '../../common/types/game-themes.enum';
-import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
+import { multerConfig } from './middleware/multer/multer.config';
+import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
