@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
+import { toast } from 'react-toastify'
 
 export default function Auth() {
 	const { login } = useAuth()
@@ -11,13 +12,20 @@ export default function Auth() {
 	const router = useRouter()
 
 	useEffect(() => {
-		const code = searchParams.get('code')
-		if (code && login(code)) {
-			router.push('/dashboard')
-		} else {
-			console.error('Error logging in!')
-			router.push('/')
+
+		async function awaitForLogin() {
+			try {
+				const code = searchParams.get('code')
+				if (!code) throw "No code provided"
+				await login(code)
+				router.push("/dashboard")
+			} catch (error) {
+				toast.error(error)
+				router.push("/")
+			}
 		}
+
+		awaitForLogin()
 	}, [])
 
 	return (

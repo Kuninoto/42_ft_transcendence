@@ -25,7 +25,7 @@ services:
       - ./frontend/app:/app/app
       - ./frontend/public:/app/public
       - ./frontend/contexts:/app/contexts
-    restart: on-failure
+    restart: always
 
   adminer:
     container_name: adminer

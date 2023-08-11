@@ -1,4 +1,4 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './GameRoom';
+import { CANVAS_MID_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 import { Socket } from 'socket.io';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 
@@ -11,7 +11,9 @@ export const MAX_SCORE: number = 11;
 
 export class Player {
   constructor(client: Socket, userId: number) {
-    this.paddleY = CANVAS_HEIGHT / 2;
+    this.paddleY = CANVAS_MID_HEIGHT - PADDLE_HEIGHT / 2;
+    // PaddleX is later assigned based
+    // on the side he's assigned
 
     this.client = client;
     this.userId = userId;
@@ -29,15 +31,13 @@ export class Player {
 
   setPlayerSide(side: PlayerSide): void {
     this.side = side;
-    if (side === PlayerSide.LEFT) {
-      this.paddleX = PADDLE_WALL_OFFSET;
-    } else {
-      this.paddleX = CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET;
-    }
+    this.paddleX =
+      side === PlayerSide.LEFT
+        ? PADDLE_WALL_OFFSET
+        : CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET;
   }
 }
 
 export interface IPlayer {
   paddleY: number;
-  score: number;
 }

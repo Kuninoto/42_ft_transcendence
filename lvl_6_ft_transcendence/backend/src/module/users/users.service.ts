@@ -22,31 +22,37 @@ import { FriendshipsService } from '../friendships/friendships.service';
 import { GameThemes } from '../../common/types/game-themes.enum';
 import { FriendInterface } from 'src/common/types/friend-interface.interface';
 import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
-import { UserStats } from 'src/entity/user-stats.entity';
 import { GameService } from '../game/game.service';
+import { UserStatsService } from '../user-stats/user-stats.service';
+import { AchievementService } from '../achievement/achievement.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    @InjectRepository(UserStats)
-    private readonly userStatsRepository: Repository<UserStats>,
+    private readonly userStatsService: UserStatsService,
     @Inject(forwardRef(() => FriendshipsService))
     private readonly friendshipsService: FriendshipsService,
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
+    private readonly achievementService: AchievementService,
   ) {}
 
   private readonly logger: Logger = new Logger(UsersService.name);
 
   public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
+    const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
+
     const newUser: User = await this.usersRepository.save(newUserInfo);
+    this.userStatsService.createUserStats(newUser);
 
-    const newUserStats: UserStats = this.userStatsRepository.create();
-    newUserStats.user = newUser;
-
-    await this.userStatsRepository.save(newUserStats);
+    if (developersIntraName.includes(newUser.intra_name)) {
+      this.achievementService.grantPongFightMaestro(newUser.id);
+    } else {
+      this.achievementService.grantNewPongFighter(newUser.id);
+    }
+  
     return newUser;
   }
 
@@ -83,12 +89,9 @@ export class UsersService {
           .select('*')
           .from(Friendship, 'friendship')
           .where(
-            '(friendship.sender = user.id AND friendship.receiver = :meUserId) OR (friendship.sender = :meUserId AND friendship.receiver = user.id)',
-            { meUserId },
+            '(friendship.sender = :meUserId OR friendship.receiver = :meUserId) AND friendship.status = :acceptedStatus',
+            { meUserId, acceptedStatus: FriendshipStatus.ACCEPTED },
           )
-          .andWhere('friendship.status = :status', {
-            status: FriendshipStatus.ACCEPTED,
-          })
           .getQuery();
         return `NOT EXISTS ${subqueryFriend}`;
       })
@@ -109,7 +112,9 @@ export class UsersService {
           avatar_url: user.avatar_url,
           friendship_status: friendship ? friendship.status : null,
           friend_request_sent_by_me: friendship
-            ? friendship.sender === meUser
+            ? friendship.sender.id === meUser.id
+              ? true
+              : false
             : null,
         };
       }),
@@ -122,16 +127,16 @@ export class UsersService {
     return await this.usersRepository.findOneBy({ intra_name: intraName });
   }
 
-  public async findUserByUID(userID: number): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ id: userID });
+  public async findUserByUID(userId: number): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ id: userId });
   }
 
   public async findUserProfileByUID(
     meUser: User,
-    userID: number,
+    userId: number,
   ): Promise<UserProfile | null> {
     const user: User | null = await this.usersRepository.findOneBy({
-      id: userID,
+      id: userId,
     });
 
     if (!user) {
@@ -141,12 +146,12 @@ export class UsersService {
     const friendship: Friendship | null =
       await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
     const isBlocked = await this.friendshipsService.isThereABlockRelationship(
-      meUser,
-      userID,
+      meUser.id,
+      userId,
     );
 
     const friends: FriendInterface[] =
-      await this.friendshipsService.getMyFriends(user);
+      await this.friendshipsService.findFriendsByUID(user.id);
 
     return {
       id: user.id,
@@ -158,20 +163,21 @@ export class UsersService {
       friendship_id: friendship ? friendship.id : null,
       friendship_status: friendship ? friendship.status : null,
       friend_request_sent_by_me: friendship
-        ? friendship.sender === meUser
+        ? friendship.sender.id === meUser.id
         : null,
       friends: friends,
       is_blocked: isBlocked,
-      stats: user.user_stats,
+      stats: await this.userStatsService.findUserStatsByUID(userId),
+      achievements: await this.achievementService.findAchievementsByUID(userId),
     };
   }
 
   public async findUserSearchInfoByUID(
     meUID: number,
-    userID: number,
+    userId: number,
   ): Promise<UserSearchInfo | null> {
     const meUser: User = await this.findUserByUID(meUID);
-    const user: User = await this.findUserByUID(userID);
+    const user: User = await this.findUserByUID(userId);
     const friendship: Friendship | null =
       await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
 
@@ -222,14 +228,14 @@ export class UsersService {
   }
 
   public async updateUsernameByUID(
-    userID: number,
+    userId: number,
     newName: string,
   ): Promise<SuccessResponse | ErrorResponse> {
     // Check name length boundaries (4-10)
     if (newName.length < 4 || newName.length > 10) {
       this.logger.error(
         'User which id=' +
-          userID +
+          userId +
           ' failed to update his username due to length boundaries',
       );
       throw new BadRequestException(
@@ -242,7 +248,7 @@ export class UsersService {
     if (!newName.match('^[a-zA-Z0-9_]+$')) {
       this.logger.error(
         'User which id=' +
-          userID +
+          userId +
           ' failed to update his username due to using forbidden chars',
       );
       throw new BadRequestException(
@@ -257,7 +263,7 @@ export class UsersService {
       throw new ConflictException('Username is already taken');
     }
 
-    if (await this.doesNameConflictWithAnyIntraName(newName, userID)) {
+    if (await this.doesNameConflictWithAnyIntraName(newName, userId)) {
       this.logger.error(
         'A request to update a name was made with a intra name of another person',
       );
@@ -266,7 +272,7 @@ export class UsersService {
       );
     }
 
-    await this.usersRepository.update(userID, {
+    await this.usersRepository.update(userId, {
       name: newName,
       last_updated_at: new Date(),
     });
@@ -274,11 +280,11 @@ export class UsersService {
   }
 
   public async updateUserAvatarByUID(
-    userID: number,
+    userId: number,
     newAvatarURL: string,
   ): Promise<SuccessResponse> {
     const currentAvatarURL = (
-      await this.usersRepository.findOneBy({ id: userID })
+      await this.usersRepository.findOneBy({ id: userId })
     ).avatar_url;
     const currentAvatarName = currentAvatarURL.slice(
       currentAvatarURL.lastIndexOf('/'),
@@ -292,7 +298,7 @@ export class UsersService {
     // Delete the previous avatar from the file system
     fs.unlink(absoluteAvatarPath, () => {});
 
-    await this.usersRepository.update(userID, {
+    await this.usersRepository.update(userId, {
       avatar_url: newAvatarURL,
       last_updated_at: new Date(),
     });
@@ -300,10 +306,10 @@ export class UsersService {
   }
 
   public async updateUserStatusByUID(
-    userID: number,
+    userId: number,
     newStatus: UserStatus,
   ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
+    await this.usersRepository.update(userId, {
       status: newStatus,
       last_updated_at: new Date(),
     });
@@ -311,37 +317,21 @@ export class UsersService {
   }
 
   public async updateGameThemeByUID(
-    userID: number,
+    userId: number,
     newGameTheme: GameThemes,
   ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
+    await this.usersRepository.update(userId, {
       game_theme: newGameTheme,
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated game theme' };
   }
 
-  public async updatePlayersStatsByUIDs(winnerUID: number, loserUID: number) {
-    await this.userStatsRepository.update(winnerUID, {
-      wins: () => 'wins + 1',
-      win_rate: () =>
-        'CAST(wins AS double precision) / (matches_played + 1) * 100.0',
-      matches_played: () => 'matches_played + 1',
-    });
-
-    await this.userStatsRepository.update(loserUID, {
-      losses: () => 'losses + 1',
-      win_rate: () =>
-        'CAST(wins AS double precision) / (matches_played + 1) * 100.0',
-      matches_played: () => 'matches_played + 1',
-    });
-  }
-
   public async update2faSecretByUID(
-    userID: number,
+    userId: number,
     newSecret: string,
   ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
+    await this.usersRepository.update(userId, {
       secret_2fa: newSecret,
       last_updated_at: new Date(),
     });
@@ -349,10 +339,10 @@ export class UsersService {
   }
 
   public async enable2fa(
-    userID: number,
+    userId: number,
     secret_2fa: string,
   ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
+    await this.usersRepository.update(userId, {
       has_2fa: true,
       secret_2fa: secret_2fa,
       last_updated_at: new Date(),
@@ -360,8 +350,8 @@ export class UsersService {
     return { message: 'Successfully enabled two factor authentication' };
   }
 
-  public async disable2fa(userID: number): Promise<SuccessResponse> {
-    await this.usersRepository.update(userID, {
+  public async disable2fa(userId: number): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, {
       has_2fa: false,
       secret_2fa: null,
       last_updated_at: new Date(),
@@ -369,8 +359,8 @@ export class UsersService {
     return { message: 'Successfully disabled two factor authentication' };
   }
 
-  public async deleteUserByUID(userID: number): Promise<SuccessResponse> {
-    await this.usersRepository.delete(userID);
+  public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
+    await this.usersRepository.delete(userId);
     return { message: 'Successfully deleted user' };
   }
 

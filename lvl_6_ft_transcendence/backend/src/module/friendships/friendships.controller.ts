@@ -79,7 +79,7 @@ export class FriendshipsController {
    * field of the JSON sent on the body
    *
    * {
-   *   "newStatus":"accepted" | "declined" | "unfriend" | "canceled"
+   *   "newStatus":"accepted" | "declined" | "unfriend"
    * }
    */
   @ApiOkResponse({
@@ -100,7 +100,7 @@ export class FriendshipsController {
       properties: {
         newStatus: {
           type: 'string',
-          enum: Object.values(['declined', 'accepted', 'canceled', 'unfriend']),
+          enum: Object.values(['declined', 'accepted', 'unfriend']),
         },
       },
     },
@@ -123,6 +123,15 @@ export class FriendshipsController {
    *           BLOCK           *
    *****************************/
 
+  /**
+   * DELETE /api/block/:userToBlockId
+   *
+   * - Checks if:
+   *   - The userToBlock exists
+   *   - The user is trying to block himself
+   *   - The userToBlock is already blocked
+   * And finally blocks user which id=userToBlockId
+   */
   @ApiOkResponse({
     description:
       'Estabilishes a block relationship between sender and the user which id=userToBlockId',
@@ -146,6 +155,11 @@ export class FriendshipsController {
     );
   }
 
+  /**
+   * DELETE /api/block/:userToUnblockId
+   *
+   * Unblocks user which id=userToUnblockId
+   */
   @ApiOkResponse({
     description:
       'Breaks the block relationship between sender and the user which id=userToUnblockId',

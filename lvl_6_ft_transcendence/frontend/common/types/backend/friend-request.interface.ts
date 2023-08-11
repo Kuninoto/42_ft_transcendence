@@ -4,4 +4,5 @@ export interface FriendRequestInterface {
   name: string;
   avatar_url: string;
   status: string;
+  sent_by_me: boolean;
 }

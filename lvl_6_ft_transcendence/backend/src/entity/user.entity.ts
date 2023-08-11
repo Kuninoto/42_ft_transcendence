@@ -6,11 +6,12 @@ import {
   JoinColumn,
   OneToOne,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiOperation, ApiProperty } from '@nestjs/swagger';
 import { BlockedUser } from './blocked-user.entity';
 import { UserStats } from './user-stats.entity';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { GameResult } from './game-result.entity';
+import { Achievement } from './achievement.entity';
 
 @Entity('user')
 export class User {
@@ -86,6 +87,10 @@ export class User {
   @ApiProperty()
   @OneToOne(() => UserStats, (userStatus) => userStatus.user)
   user_stats: UserStats;
+
+  @ApiProperty()
+  @OneToMany(() => Achievement, (achievement) => achievement.user)
+  achievements: Achievement[];
 
   @ApiProperty()
   @OneToMany(() => GameResult, (gameResult) => gameResult.winner)
