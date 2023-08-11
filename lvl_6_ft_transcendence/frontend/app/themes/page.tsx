@@ -6,13 +6,22 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+<<<<<<< HEAD
+=======
+import { themes, amount } from '@/common/themes'
+import { api } from '@/api/api'
+import { useAuth } from '@/contexts/AuthContext'
+>>>>>>> origin/frontend
 
 export default function Themes() {
+
 	const [saving, setSaving] = useState(false)
+	const { refreshUser } = useAuth()
 
 	function save() {
 		setSaving(true)
 
+<<<<<<< HEAD
 		api
 			.patch('/me/game-theme', {
 				newGameTheme: themeKeys[selected],
@@ -20,6 +29,15 @@ export default function Themes() {
 			.finally(() => {
 				setSaving(false)
 			})
+=======
+		api.patch("/me/game-theme", {
+			newGameTheme: themeKeys[selected]
+		}).finally(() => {
+			refreshUser()
+			setSaving(false)
+		})
+
+>>>>>>> origin/frontend
 	}
 
 	const themeKeys = Object.keys(themes)

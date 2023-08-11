@@ -2,7 +2,6 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
-  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
@@ -13,15 +12,13 @@ import { corsOption } from 'src/common/options/cors.option';
 import { GameService } from './game.service';
 import { AuthService } from '../auth/auth.service';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
-import {
-  CANVAS_HEIGHT,
-  CANVAS_HEIGHT_OFFSET,
-  GameRoom,
-  GameRoomInfoDTO,
-} from './GameRoom';
+import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
+import { PlayerScoredDTO } from './dto/player-scored.dto';
+import { GameRoomInfoDTO } from './dto/game-room-info.dto';
+import { PlayerReadyDTO } from './dto/player-ready.dto';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection {
@@ -45,9 +42,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     try {
       const userId: number =
         await this.authService.authenticateClientAndRetrieveUID(client);
-      //if (this.gameService.isPlayerInQueueOrGame(userId)) {
-      //  throw new Error('Player already connected');
-      //}
+
+      if (this.gameService.isPlayerInQueueOrGame(userId)) {
+        throw new Error('Player already connected');
+      }
 
       // Attach this info to the socket info so that later
       // we can distinguish the reason of the disconnection
@@ -71,6 +69,25 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.logger.log('Player disconnected ' + client.id);
   }
 
+  // Listen for 'player-ready' messages
+  @SubscribeMessage('player-ready')
+  playerReady(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: PlayerReadyDTO,
+  ): void {
+    if (!this.isValidPlayerReadyMessage(messageBody)) {
+      this.logger.error(
+        'Client id=' + client.id + 'tried to send a wrong PlayerReadyDTO',
+      );
+      return;
+    }
+
+    this.gameService.playerReady(
+      messageBody.gameRoomId,
+      client.id,
+    );
+  }
+
   // Listen for 'paddle-move' messages
   @SubscribeMessage('paddle-move')
   paddleMove(
@@ -79,7 +96,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + 'tried to send a wrong PaddleMoveDTO Object',
+        'Client id=' + client.id + 'tried to send a wrong PaddleMoveDTO',
       );
       return;
     }
@@ -100,8 +117,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
 
     const gameRoomInfo: GameRoomInfoDTO = {
       ball: { x: ball.x, y: ball.y },
-      leftPlayer: { paddleY: leftPlayer.paddleY, score: leftPlayer.score },
-      rightPlayer: { paddleY: rightPlayer.paddleY, score: rightPlayer.score },
+      leftPlayer: { paddleY: leftPlayer.paddleY },
+      rightPlayer: { paddleY: rightPlayer.paddleY },
     };
     this.server.to(gameRoom.roomId).emit('game-room-info', gameRoomInfo);
   }
@@ -114,8 +131,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(gameRoomId).emit('game-end', gameEndDto);
   }
 
-  emitPlayerScoredEvent(gameRoomId: string) {
-    this.server.to(gameRoomId).emit('player-scored');
+  emitPlayerScoredEvent(gameRoomId: string, leftPlayerScore: number, rightPlayerScore: number) {
+    const playerScoredDTO: PlayerScoredDTO = {
+      leftPlayerScore: leftPlayerScore,
+      rightPlayerScore: rightPlayerScore,
+    };
+
+    this.server.to(gameRoomId).emit('player-scored', playerScoredDTO);
   }
 
   private isValidPaddleMoveMessage(
@@ -140,5 +162,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     }
 
     return true;
+  }
+
+  private isValidPlayerReadyMessage(
+    messageBody: any,
+  ): messageBody is PlayerReadyDTO {
+    return (typeof messageBody === 'object' &&
+      typeof messageBody.gameRoomId === 'string');
   }
 }

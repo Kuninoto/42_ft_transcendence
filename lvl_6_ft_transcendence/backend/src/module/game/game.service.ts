@@ -7,17 +7,18 @@ import { GameType } from 'src/common/types/game-type.enum';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { Ball } from './Ball';
 import { Player } from './Player';
-import { GAME_START_TIMEOUT, GameRoom } from './GameRoom';
-import { PlayerIds } from 'src/common/types/player-interface.interface';
-import { GameEndDTO } from './dto/game-end.dto';
+import { GameRoom } from './GameRoom';
 import { GameGateway } from './game.gateway';
-import { User, UserStats } from 'src/entity/index';
+import { User } from 'src/entity/index';
 import { GameResult } from 'src/entity/game-result.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 import { GameEngineService } from './game-engine.service';
+import { UserStatsService } from '../user-stats/user-stats.service';
+import { AchievementService } from '../achievement/achievement.service';
+
+const GAME_START_TIMEOUT: number = 1000 * 3;
 
 @Injectable()
 export class GameService {
@@ -31,8 +32,8 @@ export class GameService {
     private readonly gameResultRepository: Repository<GameResult>,
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
-    @InjectRepository(UserStats)
-    private readonly userStatsRepository: Repository<UserStats>,
+    private readonly userStatsService: UserStatsService,
+    private readonly achievementsService: AchievementService,
   ) {}
 
   private readonly logger: Logger = new Logger(GameService.name);
@@ -87,6 +88,37 @@ export class GameService {
     }
   }
 
+  public playerReady(gameRoomId: string, clientId: string) {
+    let gameRoom: GameRoom | undefined =
+      this.gameRoomsMap.findGameRoomById(gameRoomId);
+    if (!gameRoom) {
+      return;
+    }
+
+    const playerToUpdate: Player =
+      gameRoom.leftPlayer.client.id === clientId
+        ? gameRoom.leftPlayer
+        : gameRoom.rightPlayer;
+
+    const updatedGameRoom: Partial<GameRoom> = {
+      // Access object thru dynamic object key
+      [playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer']: {
+        ...playerToUpdate,
+        isReady: true,
+      },
+    };
+
+    this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
+    // Fetch the updated info from gameRoomsMap
+    gameRoom = this.gameRoomsMap.findGameRoomById(gameRoomId);
+
+    if (gameRoom.leftPlayer.isReady && gameRoom.rightPlayer.isReady) {
+      setTimeout(() => {
+        this.gameEngine.startGame(gameRoomId);
+      }, GAME_START_TIMEOUT);
+    }
+  }
+
   public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
     const gameRoom: GameRoom | undefined =
       this.gameRoomsMap.findGameRoomById(gameRoomId);
@@ -100,7 +132,7 @@ export class GameService {
         : gameRoom.rightPlayer;
 
     const updatedGameRoom: Partial<GameRoom> = {
-      // access object thru dynamic object key
+      // Access object thru dynamic object key
       [playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer']: {
         ...playerToUpdate,
         paddleY: newY,
@@ -112,35 +144,6 @@ export class GameService {
 
   public getGameRoomInfo(gameRoomId: string): GameRoom | undefined {
     return this.gameRoomsMap.findGameRoomById(gameRoomId);
-  }
-
-  public async getLeaderboard(): Promise<UserStatsForLeaderboard[]> {
-    // Get user ids, names, wins and win_rates
-    // and sort them by wins and win_rates in descending order
-    // if the number of wins of two players are equal
-    // the one with the bigger win rate is placed above
-    const leaderboardData: {
-      wins: number;
-      uid: number;
-      name: string;
-      win_rate: number;
-    }[] = await this.userStatsRepository
-      .createQueryBuilder('userStats')
-      .select('user.id', 'uid')
-      .addSelect('user.name', 'name')
-      .addSelect('userStats.wins', 'wins')
-      .addSelect('win_rate')
-      .leftJoin('userStats.user', 'user')
-      .orderBy('userStats.wins', 'DESC')
-      .addOrderBy('win_rate', 'DESC')
-      .getRawMany();
-
-    return leaderboardData.map((leaderboardRow) => ({
-      uid: leaderboardRow.uid,
-      name: leaderboardRow.name,
-      wins: leaderboardRow.wins,
-      win_rate: leaderboardRow.win_rate,
-    }));
   }
 
   public async findGameResultsWhereUserPlayed(
@@ -181,13 +184,6 @@ export class GameService {
     // Emit 'opponent-found' event to both players
     await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
     await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
-
-    // !TODO
-    // Switch the game start to when both players sent the 'player-ready' message ???
-
-    setTimeout(() => {
-      this.gameEngine.startGame(roomId);
-    }, GAME_START_TIMEOUT);
   }
 
   private async emitOpponentFoundEvent(
@@ -217,8 +213,17 @@ export class GameService {
 
     // !TODO
     // Remove the hard coded Game Type
+    // when 1v1 is implemented
     await this.saveGameResult(GameType.LADDER, winner, loser);
-    await this.usersService.updatePlayersStatsByUIDs(
+
+    await this.achievementsService.grantWinsAchievementsIfEligible(
+      winner.userId,
+    );
+    await this.achievementsService.grantLossesAchievementsIfEligible(
+      loser.userId,
+    );
+
+    await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
       loser.userId,
     );

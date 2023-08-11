@@ -11,6 +11,7 @@ import { AiOutlineUserAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
+import { toast } from 'react-toastify';
 
 import FriendsModal from './friendsModal'
 
@@ -29,9 +30,16 @@ export default function FriendsList(): JSX.Element {
 	}
 
 	useEffect(() => {
-		api.get('/me/friends').then((result) => {
-			setFriends(result.data)
-		})
+		try {
+			api.get('/me/friends')
+				.then(result => {
+					setFriends(result.data)
+				})
+				.catch(e => { throw "Network error" })
+
+		} catch (error) {
+			toast.error(error)
+		}
 	}, [])
 
 	return (
@@ -143,9 +151,8 @@ export default function FriendsList(): JSX.Element {
 						>
 							Groups
 							<RxTriangleUp
-								className={`transition-all duration-200 ${
-									openGroupsAccordean && '-rotate-180'
-								}`}
+								className={`transition-all duration-200 ${openGroupsAccordean && '-rotate-180'
+									}`}
 								size={24}
 							/>
 						</button>
