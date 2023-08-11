@@ -165,7 +165,7 @@ export class ChatGateway
   }
 
   @SubscribeMessage('newChatRoomMessage')
-  async onNewMessage(
+  async onNewChatRoomMessage(
     @ConnectedSocket() socket: Socket,
     @MessageBody() messageBody: NewChatRoomMessageDTO,
   ): Promise<void> {
