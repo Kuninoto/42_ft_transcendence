@@ -167,6 +167,7 @@ export class UsersService {
         : null,
       friends: friends,
       is_blocked: isBlocked,
+      match_history: await this.findMatchHistoryByUID(userId),
       stats: await this.userStatsService.findUserStatsByUID(userId),
       achievements: await this.achievementService.findAchievementsByUID(userId),
     };

@@ -13,6 +13,7 @@ import { Server, Socket } from 'socket.io';
 import { corsOption } from 'src/common/options/cors.option';
 import { ChatRoomMessageI } from 'src/common/types/chat-room-message.interface';
 import { DirectMessageI } from 'src/common/types/direct-message.interface';
+import { Achievements } from 'src/entity/achievement.entity';
 import { User } from 'src/entity/user.entity';
 import { AuthService } from 'src/module/auth/auth.service';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
@@ -86,6 +87,16 @@ export class ChatGateway
       this.logger.log(socket.data.user.name + ' has disconnected');
       this.usersService.updateSocketIdByUID(socket.data.user.id, null);
     }
+  }
+
+  async achievementUnlocked(
+    userId: number,
+    achievement: Achievements,
+  ): Promise<void> {
+    const socketId: string = await this.usersService.findSocketIdbyUID(userId);
+    this.server
+      .to(socketId)
+      .emit('achievementUnlocked', { achievement: achievement });
   }
 
   @SubscribeMessage('createRoom')
@@ -251,13 +262,31 @@ export class ChatGateway
   }
 
   /*
-  TODO
-  Assign Admins (perhaps via controller instead of socket messages)
+    TODO
+    Assign Admins (perhaps via controller instead of socket messages)
 
-  Admin functionalities (socket messages)
+    Admin functionalities (socket messages)
 
-  Game Invite (I take this one)
+    Game Invite (I take this one)
  */
+
+  // @SubscribeMessage('gameInvite')
+  // async onGameInvite(
+  //   @ConnectedSocket() socket: Socket,
+  //   @MessageBody() messageBody: GameInviteDTO,
+  // ): Promise<void> {
+  //   /* if (!this.isValidGameInviteDTO(messageBody)) {
+  //     this.logger.error(
+  //       'Client with socket id=' +
+  //         socket.id +
+  //         ' tried to send a wrong GameInviteDTO',
+  //     );
+  //     return;
+  //   } */
+  //   // Make receiver join the game socket
+  //   // and enter the game with the sender
+  // }
+  
 
   private isValidJoinRoomDTO(messageBody: any): messageBody is JoinRoomDTO {
     return (

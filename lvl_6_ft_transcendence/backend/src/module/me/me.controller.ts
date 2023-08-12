@@ -134,24 +134,6 @@ export class MeController {
   }
 
   /**
-   * GET /api/me/match-history
-   *
-   * Finds and returns the 'me' user's match history
-   */
-  @ApiOkResponse({
-    description:
-      "Finds and returns the 'me' user's match history (GameResultInterface[])",
-  })
-  @Get('match-history')
-  public async getMyMatchHistory(
-    @Req() req: { user: User },
-  ): Promise<GameResultInterface[]> {
-    this.logger.log('"' + req.user.name + '" requested his match history');
-
-    return await this.usersService.findMatchHistoryByUID(req.user.id);
-  }
-
-  /**
    * PATCH /api/me/username
    *
    * This is the route to visit to update 'me'
