@@ -1,17 +1,19 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { UserStatus } from 'src/common/types/user-status.enum';
 import {
-  PrimaryGeneratedColumn,
   Column,
   Entity,
-  OneToMany,
   JoinColumn,
+  ManyToMany,
+  OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ApiOperation, ApiProperty } from '@nestjs/swagger';
-import { BlockedUser } from './blocked-user.entity';
-import { UserStats } from './user-stats.entity';
-import { UserStatus } from 'src/common/types/user-status.enum';
-import { GameResult } from './game-result.entity';
+import { ChatRoom } from '../typeorm/index';
 import { Achievement } from './achievement.entity';
+import { BlockedUser } from './blocked-user.entity';
+import { GameResult } from './game-result.entity';
+import { UserStats } from './user-stats.entity';
 
 @Entity('user')
 export class User {
@@ -20,6 +22,15 @@ export class User {
     type: 'bigint',
   })
   id: number;
+
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    unique: true,
+    nullable: true,
+    default: null,
+  })
+  socketId: string;
 
   @ApiProperty()
   @Column({
@@ -80,25 +91,32 @@ export class User {
   game_theme: string;
 
   @ApiProperty()
-  @OneToMany(() => BlockedUser, (blockedUser) => blockedUser.user_who_blocked)
+  @OneToMany(
+    () => BlockedUser,
+    (blockedUser: BlockedUser) => blockedUser.user_who_blocked,
+  )
   @JoinColumn({ name: 'blocked_users' })
   blocked_users: BlockedUser[];
 
   @ApiProperty()
-  @OneToOne(() => UserStats, (userStatus) => userStatus.user)
+  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user)
   user_stats: UserStats;
 
   @ApiProperty()
-  @OneToMany(() => Achievement, (achievement) => achievement.user)
+  @OneToMany(() => Achievement, (achievement: Achievement) => achievement.user)
   achievements: Achievement[];
 
   @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult) => gameResult.winner)
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner)
   game_results_as_winner: GameResult[];
 
   @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult) => gameResult.loser)
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser)
   game_results_as_loser: GameResult[];
+
+  @ApiProperty()
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users)
+  chat_rooms: ChatRoom[];
 
   @ApiProperty()
   @Column({

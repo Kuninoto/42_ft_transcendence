@@ -1,6 +1,6 @@
 COMPOSE_FILE_PATH=./docker-compose.yml
 
-all: build up_detached ps
+all: build up_detached ps logs
 
 build:
 #	@if ! [ -f "./backend/.env" ] || ! [ -f "./frontend/.env" ]; then \
@@ -45,6 +45,9 @@ rmi: stop
 delete_volumes:
 	docker-compose -f $(COMPOSE_FILE_PATH) down --volumes
 #	rm -rf ./data
+
+logs:
+	docker logs nest -f
 
 system_prune:
 	docker system prune

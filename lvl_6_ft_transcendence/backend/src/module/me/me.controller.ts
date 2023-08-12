@@ -1,39 +1,39 @@
 import {
-  Controller,
-  Get,
-  Body,
-  Patch,
-  Delete,
   BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
   Logger,
+  Patch,
   Req,
   UploadedFile,
-  UseInterceptors,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
-  ApiTags,
-  ApiOkResponse,
   ApiBadRequestResponse,
-  ApiConflictResponse,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
+  ApiOkResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
-import { User } from 'src/entity/index';
+import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
+import { User } from 'src/typeorm/index';
 import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
 import { ErrorResponse } from '../../common/types/error-response.interface';
-import { SuccessResponse } from '../../common/types/success-response.interface';
 import { FriendInterface } from '../../common/types/friend-interface.interface';
 import { FriendRequestInterface } from '../../common/types/friend-request.interface';
-import { multerConfig } from './middleware/multer/multer.config';
+import { GameThemes } from '../../common/types/game-themes.enum';
 import { meUserInfo } from '../../common/types/me-user-info.interface';
+import { SuccessResponse } from '../../common/types/success-response.interface';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { GameThemes } from '../../common/types/game-themes.enum';
-import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
+import { multerConfig } from './middleware/multer/multer.config';
+import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 
 @ApiTags('me')
 @UseGuards(JwtAuthGuard)
@@ -134,24 +134,6 @@ export class MeController {
   }
 
   /**
-   * GET /api/me/match-history
-   *
-   * Finds and returns the 'me' user's match history
-   */
-  @ApiOkResponse({
-    description:
-      "Finds and returns the 'me' user's match history (GameResultInterface[])",
-  })
-  @Get('match-history')
-  public async getMyMatchHistory(
-    @Req() req: { user: User },
-  ): Promise<GameResultInterface[]> {
-    this.logger.log('"' + req.user.name + '" requested his match history');
-
-    return await this.usersService.findMatchHistoryByUID(req.user.id);
-  }
-
-  /**
    * PATCH /api/me/username
    *
    * This is the route to visit to update 'me'
@@ -187,7 +169,9 @@ export class MeController {
     this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     if (!body.newUsername) {
-      this.logger.error('User which id=' + req.user.id + ' failed to update his username');
+      this.logger.error(
+        'User which id=' + req.user.id + ' failed to update his username',
+      );
       throw new BadRequestException(
         "Expected 'newUsername' as a field of the body's JSON",
       );

@@ -1,27 +1,30 @@
+import { Inject, Logger, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { corsOption } from 'src/common/options/cors.option';
-import { GameService } from './game.service';
+import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { AuthService } from '../auth/auth.service';
-import { Inject, Logger, forwardRef } from '@nestjs/common';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
-import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { GameEndDTO } from './dto/game-end.dto';
-import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
+import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerReadyDTO } from './dto/player-ready.dto';
+import { PlayerScoredDTO } from './dto/player-scored.dto';
+import { GameService } from './game.service';
 
-@WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
-export class GameGateway implements OnGatewayInit, OnGatewayConnection {
+@WebSocketGateway({ namespace: 'game-gateway', cors: GatewayCorsOption })
+export class GameGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   public server: Server;
 
@@ -55,7 +58,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     } catch (error) {
       this.logger.error(error.message + ', disconnecting...');
 
-      client.data.disconnectedByGameEngine = true;
+      client.data.disconnectedByServer = true;
       // Due to lifecycle hooks, this line calls handleDisconnect();
       // Refer to: https://docs.nestjs.com/websockets/gateways
       client.disconnect();
@@ -77,15 +80,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   ): void {
     if (!this.isValidPlayerReadyMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + 'tried to send a wrong PlayerReadyDTO',
+        'Client id=' + client.id + ' tried to send a wrong PlayerReadyDTO',
       );
       return;
     }
 
-    this.gameService.playerReady(
-      messageBody.gameRoomId,
-      client.id,
-    );
+    this.gameService.playerReady(messageBody.gameRoomId, client.id);
   }
 
   // Listen for 'paddle-move' messages
@@ -96,7 +96,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + 'tried to send a wrong PaddleMoveDTO',
+        'Client id=' + client.id + ' tried to send a wrong PaddleMoveDTO',
       );
       return;
     }
@@ -131,7 +131,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     this.server.to(gameRoomId).emit('game-end', gameEndDto);
   }
 
-  emitPlayerScoredEvent(gameRoomId: string, leftPlayerScore: number, rightPlayerScore: number) {
+  emitPlayerScoredEvent(
+    gameRoomId: string,
+    leftPlayerScore: number,
+    rightPlayerScore: number,
+  ) {
     const playerScoredDTO: PlayerScoredDTO = {
       leftPlayerScore: leftPlayerScore,
       rightPlayerScore: rightPlayerScore,
@@ -167,7 +171,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
   private isValidPlayerReadyMessage(
     messageBody: any,
   ): messageBody is PlayerReadyDTO {
-    return (typeof messageBody === 'object' &&
-      typeof messageBody.gameRoomId === 'string');
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.gameRoomId === 'string'
+    );
   }
 }

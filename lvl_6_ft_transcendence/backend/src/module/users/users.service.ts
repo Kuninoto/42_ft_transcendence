@@ -7,24 +7,31 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { BlockedUser, Friendship, GameResult, User } from 'src/entity/index';
-import { CreateUserDTO } from './dto/create-user.dto';
-import { SuccessResponse } from '../../common/types/success-response.interface';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import * as path from 'path';
 import * as fs from 'fs';
-import { UserProfile } from '../../common/types/user-profile.interface';
-import { UserStatus } from '../../common/types/user-status.enum';
-import { UserSearchInfo } from '../../common/types/user-search-info.interface';
-import { FriendshipStatus } from '../../common/types/friendship-status.enum';
-import { FriendshipsService } from '../friendships/friendships.service';
-import { GameThemes } from '../../common/types/game-themes.enum';
+import * as path from 'path';
+import { ChatRoomI } from 'src/common/types/chat-room.interface';
 import { FriendInterface } from 'src/common/types/friend-interface.interface';
 import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
+import {
+  BlockedUser,
+  ChatRoom,
+  Friendship,
+  GameResult,
+  User,
+} from 'src/typeorm/index';
+import { Repository } from 'typeorm';
+import { ErrorResponse } from '../../common/types/error-response.interface';
+import { FriendshipStatus } from '../../common/types/friendship-status.enum';
+import { GameThemes } from '../../common/types/game-themes.enum';
+import { SuccessResponse } from '../../common/types/success-response.interface';
+import { UserProfile } from '../../common/types/user-profile.interface';
+import { UserSearchInfo } from '../../common/types/user-search-info.interface';
+import { UserStatus } from '../../common/types/user-status.enum';
+import { AchievementService } from '../achievement/achievement.service';
+import { FriendshipsService } from '../friendships/friendships.service';
 import { GameService } from '../game/game.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
-import { AchievementService } from '../achievement/achievement.service';
+import { CreateUserDTO } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -52,7 +59,7 @@ export class UsersService {
     } else {
       this.achievementService.grantNewPongFighter(newUser.id);
     }
-  
+
     return newUser;
   }
 
@@ -167,6 +174,7 @@ export class UsersService {
         : null,
       friends: friends,
       is_blocked: isBlocked,
+      match_history: await this.findMatchHistoryByUID(userId),
       stats: await this.userStatsService.findUserStatsByUID(userId),
       achievements: await this.achievementService.findAchievementsByUID(userId),
     };
@@ -327,6 +335,25 @@ export class UsersService {
     return { message: 'Successfully updated game theme' };
   }
 
+  public async findSocketIdbyUID(userId: number): Promise<string | null> {
+    const user: User | null = await this.usersRepository.findOneBy({
+      id: userId,
+    });
+    return user?.socketId;
+  }
+
+  public async updateSocketIdByUID(
+    userId: number,
+    newSocketId: string,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, { socketId: newSocketId });
+    return { message: 'Successfully updated socketId' };
+  }
+
+  /**********************************
+   *               2FA               *
+   **********************************/
+
   public async update2faSecretByUID(
     userId: number,
     newSecret: string,
@@ -362,6 +389,28 @@ export class UsersService {
   public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
     await this.usersRepository.delete(userId);
     return { message: 'Successfully deleted user' };
+  }
+
+  public async findChatRoomsWhereUserIs(uid: number): Promise<ChatRoomI[] | null> {
+    const rooms: ChatRoom[] | undefined = (
+      await this.usersRepository.findOne({
+        where: { id: uid },
+        relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
+      })
+    )?.chat_rooms;
+
+    if (!rooms) {
+      return null;
+    }
+
+    const roomInterfaces: ChatRoomI[] = rooms.map((room: ChatRoom) => ({
+      id: room.id,
+      name: room.name,
+      ownerName: room.owner.name,
+      users: room.users,
+    }));
+
+    return roomInterfaces;
   }
 
   private async isNameAlreadyTaken(newName: string): Promise<boolean> {
