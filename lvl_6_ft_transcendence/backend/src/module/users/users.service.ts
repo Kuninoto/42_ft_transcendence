@@ -9,9 +9,16 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ChatRoomI } from 'src/common/types/chat-room.interface';
 import { FriendInterface } from 'src/common/types/friend-interface.interface';
 import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
-import { BlockedUser, Friendship, GameResult, User } from 'src/typeorm/index';
+import {
+  BlockedUser,
+  ChatRoom,
+  Friendship,
+  GameResult,
+  User,
+} from 'src/typeorm/index';
 import { Repository } from 'typeorm';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { FriendshipStatus } from '../../common/types/friendship-status.enum';
@@ -382,6 +389,28 @@ export class UsersService {
   public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
     await this.usersRepository.delete(userId);
     return { message: 'Successfully deleted user' };
+  }
+
+  public async findChatRoomsWhereUserIs(uid: number): Promise<ChatRoomI[] | null> {
+    const rooms: ChatRoom[] | undefined = (
+      await this.usersRepository.findOne({
+        where: { id: uid },
+        relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
+      })
+    )?.chat_rooms;
+
+    if (!rooms) {
+      return null;
+    }
+
+    const roomInterfaces: ChatRoomI[] = rooms.map((room: ChatRoom) => ({
+      id: room.id,
+      name: room.name,
+      ownerName: room.owner.name,
+      users: room.users,
+    }));
+
+    return roomInterfaces;
   }
 
   private async isNameAlreadyTaken(newName: string): Promise<boolean> {

@@ -9,9 +9,9 @@ import { AchievementService } from './achievement.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Achievement]),
+    forwardRef(() => ChatModule),
     forwardRef(() => FriendshipsModule),
     UserStatsModule,
-    ChatModule,
   ],
   providers: [AchievementService],
   exports: [AchievementService],

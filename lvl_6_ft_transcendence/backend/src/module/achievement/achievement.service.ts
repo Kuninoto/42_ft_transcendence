@@ -19,36 +19,18 @@ export class AchievementService {
     private readonly userStatsService: UserStatsService,
     @Inject(forwardRef(() => FriendshipsService))
     private readonly friendshipsService: FriendshipsService,
+    @Inject(forwardRef(() => ChatGateway))
     private readonly chatGateway: ChatGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(AchievementService.name);
 
   public async grantPongFightMaestro(userId: number): Promise<void> {
-    this.achievementRepository.save({
-      achievement: Achievements.PONGFIGHT_MAESTRO,
-      user: { id: userId },
-    });
-
-    this.chatGateway.achievementUnlocked(
-      userId,
-      Achievements.PONGFIGHT_MAESTRO,
-    );
-    this.logger.log(
-      'User with id=' + userId + ' just received Pong Fight Maestro!',
-    );
+    this.grantAchievement(userId, Achievements.PONGFIGHT_MAESTRO);
   }
 
   public async grantNewPongFighter(userId: number): Promise<void> {
-    this.achievementRepository.save({
-      achievement: Achievements.NEW_PONG_FIGHTER,
-      user: { id: userId },
-    });
-
-    this.chatGateway.achievementUnlocked(userId, Achievements.NEW_PONG_FIGHTER);
-    this.logger.log(
-      'User with id=' + userId + ' just received New Pong Fighter!',
-    );
+    this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER);
   }
 
   public async grantWinsAchievementsIfEligible(userId: number): Promise<void> {
@@ -63,30 +45,12 @@ export class AchievementService {
         Achievements.BEGINNERS_TRIUMPH,
       )
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.BEGINNERS_TRIUMPH,
-        user: { id: userId },
-      });
-
-      this.chatGateway.achievementUnlocked(
-        userId,
-        Achievements.BEGINNERS_TRIUMPH,
-      );
-
-      this.logger.log(
-        'User with id=' + userId + ' just received Beginners Triumph!',
-      );
+      this.grantAchievement(userId, Achievements.BEGINNERS_TRIUMPH);
     } else if (
       nrWins === 5 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.PONG_MASTER)
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.PONG_MASTER,
-        user: { id: userId },
-      });
-
-      this.chatGateway.achievementUnlocked(userId, Achievements.PONG_MASTER);
-      this.logger.log('User with id=' + userId + ' just received Pong Master!');
+      this.grantAchievement(userId, Achievements.PONG_MASTER);
     }
   }
 
@@ -104,16 +68,7 @@ export class AchievementService {
     ).losses;
 
     if (nrLosses === 1) {
-      this.achievementRepository.save({
-        achievement: Achievements.FIRST_SETBACK,
-        user: { id: userId },
-      });
-
-      this.chatGateway.achievementUnlocked(userId, Achievements.FIRST_SETBACK);
-
-      this.logger.log(
-        'User with id=' + userId + ' just received First Setback!',
-      );
+      this.grantAchievement(userId, Achievements.FIRST_SETBACK);
     }
   }
 
@@ -128,24 +83,12 @@ export class AchievementService {
       nrFriends === 1 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.FIRST_BUDDY)
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.FIRST_BUDDY,
-        user: { id: userId },
-      });
-
-      this.chatGateway.achievementUnlocked(userId, Achievements.FIRST_BUDDY);
-      this.logger.log('User with id=' + userId + ' just received First Buddy!');
+      this.grantAchievement(userId, Achievements.FIRST_BUDDY);
     } else if (
       nrFriends === 5 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.FRIENDLY)
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.FRIENDLY,
-        user: { id: userId },
-      });
-
-      this.chatGateway.achievementUnlocked(userId, Achievements.FRIENDLY);
-      this.logger.log('User with id=' + userId + ' just received Friendly!');
+      this.grantAchievement(userId, Achievements.FRIENDLY);
     }
   }
 
@@ -226,6 +169,21 @@ export class AchievementService {
 
     return userAchievements.some(
       (achievement) => achievement.achievement === achievementToCheck,
+    );
+  }
+
+  private async grantAchievement(
+    userId: number,
+    achievement: Achievements,
+  ): Promise<void> {
+    this.achievementRepository.save({
+      achievement: achievement,
+      user: { id: userId },
+    });
+
+    this.chatGateway.achievementUnlocked(userId, achievement);
+    this.logger.log(
+      'User with id=' + userId + ' just received ' + achievement + '!',
     );
   }
 }

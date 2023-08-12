@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -10,7 +10,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { corsOption } from 'src/common/options/cors.option';
+import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { ChatRoomMessageI } from 'src/common/types/chat-room-message.interface';
 import { DirectMessageI } from 'src/common/types/direct-message.interface';
 import { Achievements } from 'src/entity/achievement.entity';
@@ -27,14 +27,9 @@ import { OnDirectMessageDTO } from './dto/on-direct-message.dto';
 import { MessageService } from './message.service';
 import { RoomService } from './room.service';
 
-// The first number defines the socket PORT
-// Cross-Origin Resource Sharing (CORS) configures the behavior for the WebSocket gateway.
-// origin option defines who can connect to the socket. (i.e., domain or IP address)
-// In this case any origin is allowed
-// namespace is the url path. ex: localhost:3000/chat
 @WebSocketGateway({
   namespace: 'chat',
-  cors: corsOption,
+  cors: GatewayCorsOption,
 })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -46,6 +41,7 @@ export class ChatGateway
     private readonly messageService: MessageService,
     private readonly authService: AuthService,
     private readonly roomService: RoomService,
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly friendshipService: FriendshipsService,
   ) {}
@@ -67,7 +63,7 @@ export class ChatGateway
 
       this.roomService.joinUserRooms(
         socket,
-        await this.roomService.findRoomsWhereUserIs(user.id),
+        await this.usersService.findChatRoomsWhereUserIs(user.id),
       );
 
       socket.data.user = user;
@@ -286,7 +282,6 @@ export class ChatGateway
   //   // Make receiver join the game socket
   //   // and enter the game with the sender
   // }
-  
 
   private isValidJoinRoomDTO(messageBody: any): messageBody is JoinRoomDTO {
     return (

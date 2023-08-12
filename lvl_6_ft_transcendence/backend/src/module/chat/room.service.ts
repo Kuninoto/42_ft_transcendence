@@ -12,8 +12,6 @@ export class RoomService {
   constructor(
     @InjectRepository(ChatRoom)
     private readonly chatRoomRepository: Repository<ChatRoom>,
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
   ) {}
 
   private readonly logger: Logger = new Logger(RoomService.name);
@@ -83,28 +81,6 @@ export class RoomService {
     });
 
     return room;
-  }
-
-  public async findRoomsWhereUserIs(uid: number): Promise<ChatRoomI[] | null> {
-    const rooms: ChatRoom[] | undefined = (
-      await this.usersRepository.findOne({
-        where: { id: uid },
-        relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
-      })
-    )?.chat_rooms;
-
-    if (!rooms) {
-      return null;
-    }
-
-    const roomInterfaces: ChatRoomI[] = rooms.map((room: ChatRoom) => ({
-      id: room.id,
-      name: room.name,
-      ownerName: room.owner.name,
-      users: room.users,
-    }));
-
-    return roomInterfaces;
   }
 
   public async findRoomByName(name: string): Promise<ChatRoom | null> {
