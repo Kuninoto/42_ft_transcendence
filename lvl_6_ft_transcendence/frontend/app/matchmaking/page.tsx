@@ -4,40 +4,17 @@ import { PlayerSide } from '@/common/types/backend/player-side.enum'
 import { UserSearchInfo } from '@/common/types/backend/user-search-info.interface'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'
-import moment from 'moment'
 import Image from 'next/image'
-import { useState } from 'react'
-import { useTimer } from 'react-timer-hook'
 
 import Pong from './pong'
-<<<<<<< HEAD
 
-function LeftSide({
-	player,
-	playerScore,
-}: {
-	player: UserSearchInfo
-	playerScore: number
-}) {
+function LeftSide({ player }: { player: UserSearchInfo }) {
+	const { leftPlayerScore } = useGame()
+
 	return (
 		<div className="my-4 flex gap-4">
 			<div className="my-auto text-end">
-				<h3 className="text-2xl">{player.name}</h3>
-=======
-import { UserSearchInfo } from '@/common/types/backend/user-search-info.interface'
-import { PlayerSide } from '@/common/types/backend/player-side.enum'
-import { removeParams, useAuth } from '@/contexts/AuthContext'
-import { useGame } from '@/contexts/GameContext';
-
-function LeftSide({ player } : {player: UserSearchInfo}) {
-
-	const { leftPlayerScore } = useGame()
-
-	return(
-		<div className="my-4 flex gap-4">
-			<div className="my-auto text-end">
-				<h3 className="text-2xl">{ player?.name }</h3>
->>>>>>> origin/frontend
+				<h3 className="text-2xl">{player?.name}</h3>
 				<h4 className="text-md">140 w</h4>
 				{leftPlayerScore}
 			</div>
@@ -47,29 +24,17 @@ function LeftSide({ player } : {player: UserSearchInfo}) {
 				height="0"
 				loader={removeParams}
 				sizes="100vw"
-				src={player?.avatar_url || '/placeholder.jpg'}
+				src={player?.avatar_url || '/placeholder.gif'}
 				width="0"
 			/>
 		</div>
 	)
 }
 
-<<<<<<< HEAD
-function RightSide({
-	player,
-	playerScore,
-}: {
-	player: UserSearchInfo
-	playerScore: number
-}) {
-	return (
-=======
-function RightSide({player } : {player: UserSearchInfo}) {
-
+function RightSide({ player }: { player: UserSearchInfo }) {
 	const { rightPlayerScore } = useGame()
 
-	return(
->>>>>>> origin/frontend
+	return (
 		<div className="my-4 flex gap-4">
 			<Image
 				alt={'player 1 profile picture'}
@@ -77,17 +42,27 @@ function RightSide({player } : {player: UserSearchInfo}) {
 				height="0"
 				loader={removeParams}
 				sizes="100vw"
-				src={player?.avatar_url || '/placeholder.jpg'}
+				src={player?.avatar_url || '/placeholder.gif'}
 				width="0"
 			/>
 			<div className="my-auto text-start">
-<<<<<<< HEAD
-				<h3 className="text-2xl">{player.name}</h3>
-=======
-				<h3 className="text-2xl">{ player?.name }</h3>
->>>>>>> origin/frontend
+				<h3 className="text-2xl">{player?.name}</h3>
 				<h4 className="text-md">140 w</h4>
 				{rightPlayerScore}
+			</div>
+		</div>
+	)
+}
+
+function FinalModal() {
+	return (
+		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
+			<div className="absolute left-0 top-0 h-screen w-screen bg-black/70"></div>
+			<div className="px-8 py-32 ">
+				<div className="group relative grid items-start justify-center  gap-8">
+					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
+					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none"></div>
+				</div>
 			</div>
 		</div>
 	)
@@ -99,56 +74,26 @@ export default function Game() {
 
 	return (
 		<div className="flex h-full flex-col">
+			<FinalModal />
 			<div className="mx-auto my-8 flex gap-x-8">
-<<<<<<< HEAD
 				<LeftSide
 					player={
 						opponentFound.side === PlayerSide.LEFT
-							? {
-									avatar_url: user.avatar_url,
-									id: user.id,
-									name: user.name,
-							  }
+							? { avatar_url: user?.avatar_url, id: user?.id, name: user?.name }
 							: opponentFound.opponentInfo
 					}
-					playerScore={leftPlayerScore}
 				/>
 				<div className="h-full w-0.5 bg-white"></div>
 				<RightSide
 					player={
 						opponentFound.side === PlayerSide.RIGHT
-							? {
-									avatar_url: user.avatar_url,
-									id: user.id,
-									name: user.name,
-							  }
+							? { avatar_url: user?.avatar_url, id: user?.id, name: user?.name }
 							: opponentFound.opponentInfo
 					}
-					playerScore={rightPlayerScore}
 				/>
-=======
-				<LeftSide 
-					player={
-						opponentFound.side === PlayerSide.LEFT
-						?  { avatar_url: user?.avatar_url,
-							id: user?.id,
-							name: user?.name }
-						: opponentFound.opponentInfo
-						} />
-				<div className="h-full w-0.5 bg-white"></div>
-				<RightSide 
-					player={
-						opponentFound.side === PlayerSide.RIGHT 
-						?  { avatar_url: user?.avatar_url,
-							id: user?.id,
-							name: user?.name }
-						: opponentFound.opponentInfo
-						} />
->>>>>>> origin/frontend
 			</div>
 
 			<Pong />
 		</div>
 	)
 }
-
