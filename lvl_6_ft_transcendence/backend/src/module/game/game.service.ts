@@ -66,8 +66,9 @@ export class GameService {
     const playerRoom: GameRoom | null =
       this.gameRoomsMap.findRoomWithPlayerByClientId(playerClientId);
 
+    // If a room with player is found its because he was on an on going game
     if (playerRoom) {
-      // if the left player's client id === disconnected player's client Id
+      // If the left player's client id === disconnected player's client Id
       // right player winned
       const winnerSide: PlayerSide =
         playerRoom.leftPlayer.client.id === playerClientId
@@ -76,8 +77,7 @@ export class GameService {
 
       await this.gameEngine.endGameDueToDisconnection(playerRoom, winnerSide);
     } else {
-      // If player is connected to the socket
-      // and isn't on a gameRoom he can only be in queue
+      // Player was on queue
       const leavingPlayer: Player =
         this.gameQueue.removePlayerFromQueueByClientId(playerClientId);
 
@@ -179,9 +179,10 @@ export class GameService {
       ball: new Ball(),
       leftPlayer: leftPlayer,
       rightPlayer: rightPlayer,
+      onGoing: false,
     });
 
-    // Emit 'opponent-found' event to both players
+    // Emit 'opponentFound' event to both players
     await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
     await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
   }
@@ -197,7 +198,7 @@ export class GameService {
         opponentUID,
       );
 
-    player.client.emit('opponent-found', {
+    player.client.emit('opponentFound', {
       roomId: roomId,
       side: player.side,
       opponentInfo: opponentInfo,

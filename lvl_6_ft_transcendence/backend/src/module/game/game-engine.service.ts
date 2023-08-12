@@ -44,6 +44,7 @@ export class GameEngineService {
 
   public startGame(roomId: string): void {
     const gameRoom: GameRoom = this.gameRoomsMap.findGameRoomById(roomId);
+    gameRoom.onGoing = true;
 
     gameRoom.gameLoopIntervalId = setInterval(() => {
       // Fetch the game room info (which can possibly be updated by
@@ -96,11 +97,6 @@ export class GameEngineService {
         gameRoom.leftPlayer,
       );
     }
-    gameRoom.rightPlayer.client.data.disconnectedByServer = true;
-    gameRoom.rightPlayer.client.disconnect();
-
-    gameRoom.leftPlayer.client.data.disconnectedByServer = true;
-    gameRoom.leftPlayer.client.disconnect();
   }
 
   public async endGameDueToDisconnection(
@@ -116,10 +112,6 @@ export class GameEngineService {
         gameRoom.leftPlayer,
         gameRoom.rightPlayer,
       );
-
-      // Manually disconnect winner
-      gameRoom.leftPlayer.client.data.disconnectedByServer = true;
-      gameRoom.leftPlayer.client.disconnect();
     } else {
       // RIGHT PLAYER WINS
       await this.gameService.gameEnded(
@@ -127,10 +119,6 @@ export class GameEngineService {
         gameRoom.rightPlayer,
         gameRoom.leftPlayer,
       );
-
-      // Manually disconnect winner
-      gameRoom.rightPlayer.client.data.disconnectedByServer = true;
-      gameRoom.rightPlayer.client.disconnect();
     }
   }
 
