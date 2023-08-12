@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GameResult, UserStats } from 'src/typeorm/index';
 import { AchievementModule } from '../achievement/achievement.module';
 import { AuthModule } from '../auth/auth.module';
+import { ChatModule } from '../chat/chat.module';
 import { UserStatsModule } from '../user-stats/user-stats.module';
 import { UsersModule } from '../users/users.module';
 import { GameQueue } from './GameQueue';
@@ -19,6 +20,7 @@ import { GameService } from './game.service';
     forwardRef(() => UsersModule),
     AchievementModule,
     UserStatsModule,
+    ChatModule,
   ],
   controllers: [GameController],
   providers: [

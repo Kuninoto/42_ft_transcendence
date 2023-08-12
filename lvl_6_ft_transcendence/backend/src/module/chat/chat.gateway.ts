@@ -19,6 +19,7 @@ import { AuthService } from 'src/module/auth/auth.service';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { ChatRoom } from 'src/typeorm';
+import { GameService } from '../game/game.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { InviteToRoomDTO } from './dto/invite-to-room.dto';
 import { JoinRoomDTO } from './dto/join-room.dto';
@@ -38,12 +39,13 @@ export class ChatGateway
   public server: Server;
 
   constructor(
-    private readonly messageService: MessageService,
     private readonly authService: AuthService,
-    private readonly roomService: RoomService,
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly friendshipService: FriendshipsService,
+    private readonly gameService: GameService,
+    private readonly roomService: RoomService,
+    private readonly messageService: MessageService,
   ) {}
 
   private readonly logger: Logger = new Logger(ChatGateway.name);
@@ -52,13 +54,10 @@ export class ChatGateway
     this.logger.log('Chat-Gateway Initialized');
   }
 
-  // Check for connection and print the socket id
   async handleConnection(socket: Socket) {
     try {
-      // const user: User = await this.authService.authenticateClientAndRetrieveUser(socket);
-      const user: User = await this.usersService.findUserByUID(
-        Number(socket.handshake.headers.authorization),
-      );
+      const user: User =
+        await this.authService.authenticateClientAndRetrieveUser(socket);
       this.usersService.updateSocketIdByUID(user.id, socket.id);
 
       this.roomService.joinUserRooms(
@@ -66,7 +65,7 @@ export class ChatGateway
         await this.usersService.findChatRoomsWhereUserIs(user.id),
       );
 
-      socket.data.user = user;
+      socket.data.userId = user.id;
       this.logger.log(
         '"' + socket.data.user.name + '" connected to the chat socket',
       );
@@ -75,13 +74,15 @@ export class ChatGateway
     }
   }
 
-  // TODO Check for disconnection and print the socket id
-  handleDisconnect(socket: Socket) {
-    if (!socket.data.user) {
+  async handleDisconnect(client: Socket): Promise<void> {
+    await this.gameService.disconnectPlayer(client.id);
+    if (!client.data.userId) {
       this.logger.log('Undefined intruder has disconnected');
     } else {
-      this.logger.log(socket.data.user.name + ' has disconnected');
-      this.usersService.updateSocketIdByUID(socket.data.user.id, null);
+      this.logger.log(
+        'User with id=' + client.data.userId + ' has disconnected',
+      );
+      this.usersService.updateSocketIdByUID(client.data.userId, null);
     }
   }
 
@@ -111,13 +112,13 @@ export class ChatGateway
 
   @SubscribeMessage('joinRoom')
   async onJoinRoom(
-    @ConnectedSocket() socket: Socket,
+    @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: JoinRoomDTO,
   ) {
     if (!this.isValidJoinRoomDTO(messageBody)) {
       this.logger.error(
-        'Client with socket id=' +
-          socket.id +
+        'Client with client id=' +
+          client.id +
           ' tried to send a wrong JoinRoomDTO',
       );
       return;
@@ -134,12 +135,15 @@ export class ChatGateway
       return;
     }
 
-    this.roomService.joinRoom(messageBody.roomName, socket.data.user);
+    const user: User = await this.usersService.findUserByUID(
+      client.data.userId,
+    );
+    const username: string | undefined = user.name;
 
-    const username: string | undefined = socket.data.user.name;
+    this.roomService.joinRoom(messageBody.roomName, user);
+    client.join(messageBody.roomName);
 
-    socket.join(messageBody.roomName);
-    socket.to(messageBody.roomName).emit('joinedRoom', { username });
+    client.to(messageBody.roomName).emit('joinedRoom', { username });
   }
 
   @SubscribeMessage('inviteToRoom')
@@ -196,7 +200,7 @@ export class ChatGateway
 
     const message: ChatRoomMessageI =
       await this.messageService.newChatRoomMessage(
-        socket.data.user,
+        socket.data.userId,
         room,
         messageBody.text,
       );
@@ -206,7 +210,7 @@ export class ChatGateway
     usersInRoom.forEach(async (uid) => {
       const blockRelationship: boolean =
         await this.friendshipService.isThereABlockRelationship(
-          socket.data.user.id,
+          socket.data.userId,
           uid,
         );
 
@@ -234,7 +238,7 @@ export class ChatGateway
       return;
     }
 
-    if (socket.data.user.id == messageBody.receiverUID) {
+    if (socket.data.userId == messageBody.receiverUID) {
       // self message
       return;
     }
@@ -250,7 +254,7 @@ export class ChatGateway
 
     const newDirectMessage: DirectMessageI =
       await this.messageService.newDirectMessage(
-        socket.data.user.id,
+        socket.data.userId,
         messageBody.receiverUID,
         messageBody.text,
       );

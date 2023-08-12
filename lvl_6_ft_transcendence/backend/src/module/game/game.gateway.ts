@@ -2,16 +2,12 @@ import { Inject, Logger, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
-import { AuthService } from '../auth/auth.service';
+import { ChatGateway } from '../chat/chat.gateway';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
@@ -22,65 +18,37 @@ import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameService } from './game.service';
 
 @WebSocketGateway({ namespace: 'game-gateway', cors: GatewayCorsOption })
-export class GameGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
-  @WebSocketServer()
-  public server: Server;
-
+export class GameGateway {
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
-    private readonly authService: AuthService,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(GameGateway.name);
 
-  afterInit(server: Server): void {
-    this.logger.log('Game-gateway Initialized');
-  }
-
-  async handleConnection(client: Socket): Promise<void> {
-    this.logger.log('Player connected ' + client.id);
-    try {
-      const userId: number =
-        await this.authService.authenticateClientAndRetrieveUID(client);
-
-      if (this.gameService.isPlayerInQueueOrGame(userId)) {
-        throw new Error('Player already connected');
-      }
-
-      // Attach this info to the socket info so that later
-      // we can distinguish the reason of the disconnection
-      client.data.disconnectedByServer = false;
-      const newPlayer: Player = new Player(client, userId);
-      this.gameService.queueToLadder(newPlayer);
-    } catch (error) {
-      this.logger.error(error.message + ', disconnecting...');
-
-      client.data.disconnectedByServer = true;
-      // Due to lifecycle hooks, this line calls handleDisconnect();
-      // Refer to: https://docs.nestjs.com/websockets/gateways
-      client.disconnect();
+  @SubscribeMessage('queueToLadder')
+  async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
+    this.logger.log('Player connected UID= ' + client.data.userId);
+    if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) {
+      return;
     }
+
+    const newPlayer: Player = new Player(client, client.data.userId);
+    this.gameService.queueToLadder(newPlayer);
   }
 
-  async handleDisconnect(client: Socket): Promise<void> {
-    if (client.data.disconnectedByServer === false) {
-      await this.gameService.disconnectPlayer(client.id);
-    }
-    this.logger.log('Player disconnected ' + client.id);
-  }
-
-  // Listen for 'player-ready' messages
-  @SubscribeMessage('player-ready')
+  // Listen for 'playerReady' messages
+  @SubscribeMessage('playerReady')
   playerReady(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: PlayerReadyDTO,
   ): void {
     if (!this.isValidPlayerReadyMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + ' tried to send a wrong PlayerReadyDTO',
+        'User id=' +
+          client.data.userId +
+          ' tried to send a wrong PlayerReadyDTO',
       );
       return;
     }
@@ -88,15 +56,17 @@ export class GameGateway
     this.gameService.playerReady(messageBody.gameRoomId, client.id);
   }
 
-  // Listen for 'paddle-move' messages
-  @SubscribeMessage('paddle-move')
+  // Listen for 'paddleMove' messages
+  @SubscribeMessage('paddleMove')
   paddleMove(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: PaddleMoveDTO,
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.error(
-        'Client id=' + client.id + ' tried to send a wrong PaddleMoveDTO',
+        'User id=' +
+          client.data.userId +
+          ' tried to send a wrong PaddleMoveDTO',
       );
       return;
     }
@@ -120,15 +90,17 @@ export class GameGateway
       leftPlayer: { paddleY: leftPlayer.paddleY },
       rightPlayer: { paddleY: rightPlayer.paddleY },
     };
-    this.server.to(gameRoom.roomId).emit('game-room-info', gameRoomInfo);
+    this.chatGateway.server
+      .to(gameRoom.roomId)
+      .emit('gameRoomInfo', gameRoomInfo);
   }
 
   broadcastGameEnd(gameRoomId: string, winner: Player, loser: Player): void {
-    const gameEndDto: GameEndDTO = {
+    const gameEnd: GameEndDTO = {
       winner: { userId: winner.userId, score: winner.score },
       loser: { userId: loser.userId, score: loser.score },
     };
-    this.server.to(gameRoomId).emit('game-end', gameEndDto);
+    this.chatGateway.server.to(gameRoomId).emit('gameEnd', gameEnd);
   }
 
   emitPlayerScoredEvent(
@@ -141,7 +113,9 @@ export class GameGateway
       rightPlayerScore: rightPlayerScore,
     };
 
-    this.server.to(gameRoomId).emit('player-scored', playerScoredDTO);
+    this.chatGateway.server
+      .to(gameRoomId)
+      .emit('playerScored', playerScoredDTO);
   }
 
   private isValidPaddleMoveMessage(

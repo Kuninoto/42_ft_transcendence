@@ -16,14 +16,14 @@ export class MessageService {
   ) {}
 
   async newChatRoomMessage(
-    userWhoSent: User,
+    authorUID: number,
     toChatRoom: ChatRoom,
     text: string,
   ): Promise<ChatRoomMessageI> {
     const newMessage: Message = this.messageRepository.create({
       text: text,
       room: { id: toChatRoom.id },
-      user: { id: userWhoSent.id },
+      user: { id: authorUID },
     });
 
     await this.messageRepository.save(newMessage);
