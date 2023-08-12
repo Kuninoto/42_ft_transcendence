@@ -62,10 +62,6 @@ export class AuthController {
     @Req() req: any,
   ): Promise<{ access_token: string }> {
     const jwt: { access_token: string } = this.authService.login(req.user);
-    await this.usersService.updateUserStatusByUID(
-      req.user.id,
-      UserStatus.ONLINE,
-    );
     return jwt;
   }
 
@@ -78,10 +74,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('logout')
   public async logout(@Req() req: any): Promise<SuccessResponse> {
-    await this.usersService.updateUserStatusByUID(
-      req.user.id,
-      UserStatus.OFFLINE,
-    );
     this.logger.log('User "' + req.user.name + '" logged out');
 
     req.logOut(() => {});

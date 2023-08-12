@@ -23,6 +23,7 @@ export class GameGateway implements OnGatewayInit {
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
+    @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
   ) {}
 

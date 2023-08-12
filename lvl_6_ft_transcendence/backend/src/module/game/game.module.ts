@@ -4,6 +4,7 @@ import { GameResult, UserStats } from 'src/typeorm/index';
 import { AchievementModule } from '../achievement/achievement.module';
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
+import { ConnectionGateway } from '../connection/connection.gateway';
 import { UserStatsModule } from '../user-stats/user-stats.module';
 import { UsersModule } from '../users/users.module';
 import { GameQueue } from './GameQueue';
@@ -18,9 +19,10 @@ import { GameService } from './game.service';
     TypeOrmModule.forFeature([GameResult, UserStats]),
     forwardRef(() => AuthModule),
     forwardRef(() => UsersModule),
-    AchievementModule,
+    forwardRef(() => ConnectionGateway),
+    forwardRef(() => AchievementModule),
     UserStatsModule,
-    ChatModule,
+    forwardRef(() => ChatModule),
   ],
   controllers: [GameController],
   providers: [
