@@ -8,7 +8,6 @@ export default function Friends({
 }: {
 	friends: FriendInterface[] | undefined
 }) {
-	console.log("load")
 	return (
 		<div className="h-full w-full space-y-4">
 			{!hasValues(friends) ? (
