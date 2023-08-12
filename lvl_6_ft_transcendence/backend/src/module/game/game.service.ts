@@ -196,6 +196,7 @@ export class GameService {
         player.userId,
         opponentUID,
       );
+
     player.client.emit('opponent-found', {
       roomId: roomId,
       side: player.side,

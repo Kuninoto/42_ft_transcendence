@@ -1,14 +1,15 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AchievementInterface } from 'src/common/types/achievement-interface.interface';
 import {
   Achievement,
   AchievementDescriptions,
   Achievements,
 } from 'src/entity/achievement.entity';
 import { Repository } from 'typeorm';
-import { UserStatsService } from '../user-stats/user-stats.service';
+import { ChatGateway } from '../chat/chat.gateway';
 import { FriendshipsService } from '../friendships/friendships.service';
-import { AchievementInterface } from 'src/common/types/achievement-interface.interface';
+import { UserStatsService } from '../user-stats/user-stats.service';
 
 @Injectable()
 export class AchievementService {
@@ -18,6 +19,7 @@ export class AchievementService {
     private readonly userStatsService: UserStatsService,
     @Inject(forwardRef(() => FriendshipsService))
     private readonly friendshipsService: FriendshipsService,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(AchievementService.name);
@@ -28,6 +30,10 @@ export class AchievementService {
       user: { id: userId },
     });
 
+    this.chatGateway.achievementUnlocked(
+      userId,
+      Achievements.PONGFIGHT_MAESTRO,
+    );
     this.logger.log(
       'User with id=' + userId + ' just received Pong Fight Maestro!',
     );
@@ -39,6 +45,7 @@ export class AchievementService {
       user: { id: userId },
     });
 
+    this.chatGateway.achievementUnlocked(userId, Achievements.NEW_PONG_FIGHTER);
     this.logger.log(
       'User with id=' + userId + ' just received New Pong Fighter!',
     );
@@ -61,6 +68,11 @@ export class AchievementService {
         user: { id: userId },
       });
 
+      this.chatGateway.achievementUnlocked(
+        userId,
+        Achievements.BEGINNERS_TRIUMPH,
+      );
+
       this.logger.log(
         'User with id=' + userId + ' just received Beginners Triumph!',
       );
@@ -73,6 +85,7 @@ export class AchievementService {
         user: { id: userId },
       });
 
+      this.chatGateway.achievementUnlocked(userId, Achievements.PONG_MASTER);
       this.logger.log('User with id=' + userId + ' just received Pong Master!');
     }
   }
@@ -96,6 +109,8 @@ export class AchievementService {
         user: { id: userId },
       });
 
+      this.chatGateway.achievementUnlocked(userId, Achievements.FIRST_SETBACK);
+
       this.logger.log(
         'User with id=' + userId + ' just received First Setback!',
       );
@@ -118,6 +133,7 @@ export class AchievementService {
         user: { id: userId },
       });
 
+      this.chatGateway.achievementUnlocked(userId, Achievements.FIRST_BUDDY);
       this.logger.log('User with id=' + userId + ' just received First Buddy!');
     } else if (
       nrFriends === 5 &&
@@ -128,6 +144,7 @@ export class AchievementService {
         user: { id: userId },
       });
 
+      this.chatGateway.achievementUnlocked(userId, Achievements.FRIENDLY);
       this.logger.log('User with id=' + userId + ' just received Friendly!');
     }
   }
@@ -146,6 +163,11 @@ export class AchievementService {
       achievement: Achievements.DECLINED_TOMORROW_BUDDIES,
       user: { id: userId },
     });
+
+    this.chatGateway.achievementUnlocked(
+      userId,
+      Achievements.DECLINED_TOMORROW_BUDDIES,
+    );
 
     this.logger.log(
       'User with id=' + userId + ' just received Declined Tomorrow Buddies!',
@@ -166,6 +188,11 @@ export class AchievementService {
       achievement: Achievements.BREAKING_THE_PADDLE_BOND,
       user: { id: userId },
     });
+
+    this.chatGateway.achievementUnlocked(
+      userId,
+      Achievements.BREAKING_THE_PADDLE_BOND,
+    );
 
     this.logger.log(
       'User with id=' + userId + ' just received Breaking The Paddle Bond!',
