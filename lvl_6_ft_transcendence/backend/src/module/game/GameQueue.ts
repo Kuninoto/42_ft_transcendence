@@ -37,9 +37,9 @@ export class GameQueue {
     return true;
   }
 
-  public removePlayerFromQueueByClientId(clientId: string): Player | null {
+  public removePlayerFromQueueByUID(playerUID: number): Player | null {
     const playerIndex: number = this.players.findIndex((player) => {
-      return player.client.id === clientId;
+      return player.userId === playerUID;
     });
 
     if (playerIndex === -1) {

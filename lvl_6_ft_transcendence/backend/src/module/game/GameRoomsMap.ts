@@ -7,11 +7,11 @@ export class GameRoomsMap {
     this.gameRoomMap.set(newGameRoom.roomId, newGameRoom);
   }
 
-  public findRoomWithPlayerByClientId(clientId: string): GameRoom | null {
+  public findRoomWithPlayerByUID(userId: number): GameRoom | null {
     for (const gameRoom of this.gameRoomMap.values()) {
       if (
-        gameRoom.leftPlayer.client.id === clientId ||
-        gameRoom.rightPlayer.client.id === clientId
+        gameRoom.leftPlayer.userId === userId ||
+        gameRoom.rightPlayer.userId === userId
       ) {
         return gameRoom;
       }

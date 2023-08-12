@@ -391,7 +391,9 @@ export class UsersService {
     return { message: 'Successfully deleted user' };
   }
 
-  public async findChatRoomsWhereUserIs(uid: number): Promise<ChatRoomI[] | null> {
+  public async findChatRoomsWhereUserIs(
+    uid: number,
+  ): Promise<ChatRoomI[] | null> {
     const rooms: ChatRoom[] | undefined = (
       await this.usersRepository.findOne({
         where: { id: uid },

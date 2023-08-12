@@ -6,12 +6,14 @@ import { User } from 'src/entity/user.entity';
 import { Repository } from 'typeorm';
 import { ChatRoom } from '../../entity/chat-room.entity';
 import { CreateRoomDTO } from './dto/create-room.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class RoomService {
   constructor(
     @InjectRepository(ChatRoom)
     private readonly chatRoomRepository: Repository<ChatRoom>,
+    private readonly usersService: UsersService,
   ) {}
 
   private readonly logger: Logger = new Logger(RoomService.name);
@@ -37,37 +39,22 @@ export class RoomService {
     this.chatRoomRepository.save(room);
   }
 
-  /* async getRoomsForUser(
-    userId: number,
-    options: IPaginationOptions,
-  ): Promise<Pagination<ChatRoomI>> {
-    const query = this.chatRoomRepository
-      .createQueryBuilder('room')
-      .leftJoin('room.users', 'user')
-      .where('user.id = :userId', { userId });
+  public async joinUserRooms(client: Socket) {
+    const roomsToJoin: ChatRoomI[] | null =
+      await this.usersService.findChatRoomsWhereUserIs(client.data.userId);
 
-    return paginate(query, options);
-  } */
-
-  public async joinUserRooms(socket: Socket, rooms: ChatRoomI[]) {
-    this.logger.debug('Rooms to join: ' + JSON.stringify(rooms, null, 2));
-    if (!rooms) {
-      this.logger.error('Rooms array is undefined.');
+    if (!roomsToJoin) {
+      this.logger.error('No rooms to join');
       return;
     }
 
-    // Get room names from rooms
-    const roomNames: string[] = this.getNamesFromRooms(rooms);
+    const roomNames: string[] = roomsToJoin.map((room) => room.name);
 
+    // Join each room
     for (const roomName of roomNames) {
-      this.logger.debug('Room name: ' + roomName);
-      await socket.join(roomName); // Join each room
+      this.logger.debug('Joining Room "' + roomName + '"');
+      await client.join(roomName);
     }
-  }
-
-  private getNamesFromRooms(rooms: ChatRoomI[]): string[] {
-    const names = rooms.map((room) => room.name);
-    return names;
   }
 
   //////////////////

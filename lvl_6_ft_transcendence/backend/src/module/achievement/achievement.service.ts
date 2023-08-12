@@ -7,7 +7,7 @@ import {
   Achievements,
 } from 'src/entity/achievement.entity';
 import { Repository } from 'typeorm';
-import { ChatGateway } from '../chat/chat.gateway';
+import { ConnectionGateway } from '../connection/connection.gateway';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 
@@ -19,8 +19,7 @@ export class AchievementService {
     private readonly userStatsService: UserStatsService,
     @Inject(forwardRef(() => FriendshipsService))
     private readonly friendshipsService: FriendshipsService,
-    @Inject(forwardRef(() => ChatGateway))
-    private readonly chatGateway: ChatGateway,
+    private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(AchievementService.name);
@@ -102,19 +101,7 @@ export class AchievementService {
       return;
     }
 
-    this.achievementRepository.save({
-      achievement: Achievements.DECLINED_TOMORROW_BUDDIES,
-      user: { id: userId },
-    });
-
-    this.chatGateway.achievementUnlocked(
-      userId,
-      Achievements.DECLINED_TOMORROW_BUDDIES,
-    );
-
-    this.logger.log(
-      'User with id=' + userId + ' just received Declined Tomorrow Buddies!',
-    );
+    this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
   }
 
   public async grantBreakingThePaddleBond(userId: number): Promise<void> {
@@ -127,19 +114,7 @@ export class AchievementService {
       return;
     }
 
-    this.achievementRepository.save({
-      achievement: Achievements.BREAKING_THE_PADDLE_BOND,
-      user: { id: userId },
-    });
-
-    this.chatGateway.achievementUnlocked(
-      userId,
-      Achievements.BREAKING_THE_PADDLE_BOND,
-    );
-
-    this.logger.log(
-      'User with id=' + userId + ' just received Breaking The Paddle Bond!',
-    );
+    this.grantAchievement(userId, Achievements.BREAKING_THE_PADDLE_BOND);
   }
 
   public async findAchievementsByUID(
@@ -181,7 +156,7 @@ export class AchievementService {
       user: { id: userId },
     });
 
-    this.chatGateway.achievementUnlocked(userId, achievement);
+    this.connectionGateway.achievementUnlocked(userId, achievement);
     this.logger.log(
       'User with id=' + userId + ' just received ' + achievement + '!',
     );
