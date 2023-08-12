@@ -1,4 +1,5 @@
 import { FriendInterface } from '@/common/types/friend-interface.interface'
+import { hasValues } from '@/common/utils/hasValues'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -7,9 +8,10 @@ export default function Friends({
 }: {
 	friends: FriendInterface[] | undefined
 }) {
+	console.log("load")
 	return (
 		<div className="h-full w-full space-y-4">
-			{friends?.length === 0 ? (
+			{!hasValues(friends) ? (
 				<div className="flex h-full w-full flex-col place-content-start items-center space-y-8">
 					<div className="relative aspect-square w-96">
 						<Image

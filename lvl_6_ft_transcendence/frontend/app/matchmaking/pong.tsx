@@ -14,6 +14,7 @@ import {
 	PADDLE_WALL_OFFSET,
 	PADDLE_WIDTH,
 } from './definitions'
+import { hasValues } from '@/common/utils/hasValues'
 
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
@@ -61,52 +62,22 @@ export default function Pong() {
 	}, [ballPosition])
 
 	useEffect(() => {
-		const canvas = canvasRef.current
-		const context = canvas && canvas.getContext('2d')
+	
+		if (hasValues(user)) {
+			const canvas = canvasRef.current
+			const context = canvas && canvas.getContext('2d')
 
-		const backgroundImage = new Image()
-		const paddleImage = new Image()
+			const backgroundImage = new Image()
+			const paddleImage = new Image()
 
-		backgroundImage.src = `/game/backgrounds/${themes[user.game_theme]
-			?.background}`
-		paddleImage.src = `/game/paddles/${themes[user.game_theme]?.paddle}`
+			backgroundImage.src = `/game/backgrounds/${themes[user.game_theme]
+				?.background}`
+			paddleImage.src = `/game/paddles/${themes[user.game_theme]?.paddle}`
 
-		backgroundImageRef.current = backgroundImage
-		paddleImageRef.current = paddleImage
+			backgroundImageRef.current = backgroundImage
+			paddleImageRef.current = paddleImage
 
-		backgroundImage.onload = () => {
-			context.drawImage(
-				backgroundImageRef.current,
-				0,
-				0,
-				CANVAS_WIDTH,
-				CANVAS_HEIGHT
-			)
-		}
-
-		paddleImage.onload = () => {
-			context.drawImage(
-				paddleImageRef.current,
-				playerPaddleRef.current.x,
-				playerPaddleRef.current.y,
-				PADDLE_WIDTH,
-				PADDLE_HEIGHT
-			)
-			context.drawImage(
-				paddleImageRef.current,
-				opponentPaddleRef.current.x,
-				opponentPaddleRef.current.y,
-				PADDLE_WIDTH,
-				PADDLE_HEIGHT
-			)
-		}
-
-		emitOnReady()
-
-		const draw = () => {
-			if (context) {
-				context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-
+			backgroundImage.onload = () => {
 				context.drawImage(
 					backgroundImageRef.current,
 					0,
@@ -114,8 +85,9 @@ export default function Pong() {
 					CANVAS_WIDTH,
 					CANVAS_HEIGHT
 				)
+			}
 
-				context.fillStyle = '#FFF'
+			paddleImage.onload = () => {
 				context.drawImage(
 					paddleImageRef.current,
 					playerPaddleRef.current.x,
@@ -130,42 +102,75 @@ export default function Pong() {
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				)
+			}
 
-				context.beginPath()
-				context.arc(ball.current.x, ball.current.y, BALL_SIZE, 0, Math.PI * 2)
-				context.fill()
+			emitOnReady()
+
+			const draw = () => {
+				if (context) {
+					context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+
+					context.drawImage(
+						backgroundImageRef.current,
+						0,
+						0,
+						CANVAS_WIDTH,
+						CANVAS_HEIGHT
+					)
+
+					context.fillStyle = '#FFF'
+					context.drawImage(
+						paddleImageRef.current,
+						playerPaddleRef.current.x,
+						playerPaddleRef.current.y,
+						PADDLE_WIDTH,
+						PADDLE_HEIGHT
+					)
+					context.drawImage(
+						paddleImageRef.current,
+						opponentPaddleRef.current.x,
+						opponentPaddleRef.current.y,
+						PADDLE_WIDTH,
+						PADDLE_HEIGHT
+					)
+
+					context.beginPath()
+					context.arc(ball.current.x, ball.current.y, BALL_SIZE, 0, Math.PI * 2)
+					context.fill()
+				}
+			}
+
+			const update = () => {
+				playerPaddleRef.current.move()
+				opponentPaddleRef.current.move()
+
+				draw()
+				requestAnimationFrame(update)
+			}
+
+			const handleKeyDown = ({ key }: KeyboardEvent) => {
+				if (key === 's' || key === 'w' || key === KEYDOWN || key === KEYUP) {
+					playerPaddleRef.current.allowMove(key === 's' || key === KEYDOWN)
+				}
+			}
+
+			const handleKeyUp = ({ key }: KeyboardEvent) => {
+				if (key === 's' || key === 'w' || KEYDOWN === key || KEYUP === key) {
+					playerPaddleRef.current.blockMove()
+				}
+			}
+
+			document.addEventListener('keydown', handleKeyDown)
+			document.addEventListener('keyup', handleKeyUp)
+
+			update()
+			return () => {
+				document.removeEventListener('keydown', handleKeyDown)
+				document.removeEventListener('keyup', handleKeyUp)
+				context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 			}
 		}
 
-		const update = () => {
-			playerPaddleRef.current.move()
-			opponentPaddleRef.current.move()
-
-			draw()
-			requestAnimationFrame(update)
-		}
-
-		const handleKeyDown = ({ key }: KeyboardEvent) => {
-			if (key === 's' || key === 'w' || key === KEYDOWN || key === KEYUP) {
-				playerPaddleRef.current.allowMove(key === 's' || key === KEYDOWN)
-			}
-		}
-
-		const handleKeyUp = ({ key }: KeyboardEvent) => {
-			if (key === 's' || key === 'w' || KEYDOWN === key || KEYUP === key) {
-				playerPaddleRef.current.blockMove()
-			}
-		}
-
-		document.addEventListener('keydown', handleKeyDown)
-		document.addEventListener('keyup', handleKeyUp)
-
-		update()
-		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
-			document.removeEventListener('keyup', handleKeyUp)
-			context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-		}
 	}, [canvasRef])
 
 	return (

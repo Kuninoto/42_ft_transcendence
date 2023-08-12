@@ -1,6 +1,7 @@
 'use client'
 
 import { FriendshipStatus } from '@/common/types/backend/friendship-status.enum'
+import { toast } from 'react-toastify'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -12,6 +13,7 @@ import { api } from '@/api/api'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { UserProfile as IUserProfile } from '@/common/type/backend/user-profile.interface'
 import SettingsModal from './settingsModal'
+import { hasValues } from '@/common/utils/hasValues'
 
 enum modalPage {
 	HISTORY = "history",
@@ -19,64 +21,132 @@ enum modalPage {
 	ACHIEVEMENTS = "achievements"
 }
 
-function Buttons({ setOpenModal, userProfile }: { setOpenModal: (state: boolean) => void, userProfile: IUserProfile }) {
+type buttons = {
+	setOpenModal: (state: boolean) => void
+	userProfile: IUserProfile
+	refrestProfile: () => void
+}
+
+function Buttons({ setOpenModal, userProfile , refrestProfile}: buttons) {
 
 	const { user } = useAuth()
 
-	const [requestSent, setRequestSent] = useState(false)
-
 	function removeFriendship(friendshipId: number) {
-		api
+		try {
+			api
 			.patch(`/friendships/${friendshipId}/update`, {
 				newStatus: FriendshipStatus.UNFRIEND,
 			})
-			.then((a) => console.log(a.data))
+			.then(() => refrestProfile())
+			.catch(() => { throw "Network error" })
+		} catch (error) {
+			toast.error(error)
+		}
+	}
+
+	function unblock(userId: number) {
+		try {
+			api.delete(`/friendships/block/${userId}`)
+				.then(() => refrestProfile() )
+				.catch(() => { throw "Network error" })
+		} catch (error) {
+			toast.error(error)
+		}
+	}
+
+	function block(userId: number) {
+		try {
+			api.post(`/friendships/block/${userId}`)
+				.then(() => refrestProfile() )
+				.catch(() => { throw "Network error" })
+		} catch (error) {
+			toast.error(error)
+		}
 	}
 
 	function sendFriendRequest(userId: number) {
-		api.post(`/friendships/send-request/${userId}`)
-			.then(result => {
-				setRequestSent(true)
-				console.log(result)
-			}
-			)
-			.catch(error => console.error(error))
+		try {
+			api.post(`/friendships/send-request/${userId}`)
+				.then(() => refrestProfile() )
+				.catch(() => { throw "Network error" })
+		} catch (error) {
+			toast.error(error)
+		}
+	}
+
+	function sendFriendRequest(userId: number) {
+		try {
+			api.post(`/friendships/send-request/${userId}`)
+				.then(() => refrestProfile() )
+				.catch(() => { throw "Network error" })
+		} catch (error) {
+			toast.error(error)
+		}
+	}
+
+	if (!hasValues(userProfile)) {
+		return (
+			<div
+				className="rounded border border-white w-full py-2 text-white">
+				Button?
+			</div>
+		)
+	}
+
+	if (user?.id === userProfile.id) {
+		return (
+			<button
+				onClick={() => { setOpenModal(true) }}
+				className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+				Settings
+			</button>
+		)
+	}
+
+
+	if (userProfile.friendship_status === FriendshipStatus.ACCEPTED) {
+		return (
+			<button
+				onClick={() => removeFriendship(userProfile.friendship_id)}
+				className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+				Remove friend
+			</button>
+		)
+	}
+
+	if (userProfile.friend_request_sent_by_me) {
+		return(
+			<button
+				onClick={() => removeFriendship(userProfile.friendship_id)}
+				className="rounded border bg-white text-black w-full py-2 mix-blend-lighten hover:bg-transparent hover:text-white">
+					Cancel
+			</button>
+		)
+	}
+
+	if (userProfile.is_blocked) {
+		return(
+			<button
+				onClick={() => unblock(userProfile.id)}
+				className="rounded border bg-white text-black w-full py-2 mix-blend-lighten hover:bg-transparent hover:text-white">
+					Unblock
+			</button>
+		)
 	}
 
 	return (
-		<div className="w-full space-x-2">
-			{user?.id === userProfile?.id
-				? <button
-					onClick={() => { setOpenModal(true) }}
-					className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-					Settings
-				</button>
-				: user?.friendship_status === FriendshipStatus.ACCEPTED
-					?
-					<button
-						onClick={() => removeFriendship(userProfile?.friendship_id)}
-						className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-						Remove friend
-					</button>
-					: userProfile?.friend_request_sent_by_me || requestSent ?
-						<button
-							onClick={() => removeFriendship(userProfile?.friendship_id)}
-							className="rounded border bg-white text-black w-full py-2 mix-blend-lighten hover:bg-transparent hover:text-white">
-							Cancel
-						</button>
-						:
-						<>
-							<button
-								onClick={() => sendFriendRequest(userProfile?.id)}
-								className="rounded border border-white w-7/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-								Add friend
-							</button>
-							<button className="rounded border border-white w-4/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-								Block
-							</button>
-						</>
-			}
-		</div>
+		<>
+			<button
+				onClick={() => sendFriendRequest(userProfile.id)}
+				className="rounded border border-white w-7/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+					Add friend
+			</button>
+			<button 
+				onClick={() => block(userProfile.id)}
+				className="rounded border border-white w-4/12 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+					Block
+			</button>
+		</>
 	)
 }
 
@@ -91,17 +161,33 @@ export default function Profile() {
 	const [modal, setModal] = useState<modalPage>(modalPage.HISTORY)
 	const [openModal, setOpenModal] = useState(false)
 
+	const refrestProfile = () => {
 
-	useEffect(() => {
-		if (id) {
+		try {
 			api.get(`/users/${id}`)
 				.then((result) => {
 					console.log(result.data)
 					setUserProfile(result.data)
 				})
-				.catch((error) => {
-					console.error(error)
+			.catch(() => { throw "Network error" })
+		} catch (error) {
+			toast.error(error)
+		}
+	}
+
+	useEffect(() => {
+		if (id) {
+
+		try {
+			api.get(`/users/${id}`)
+				.then((result) => {
+					console.log(result.data)
+					setUserProfile(result.data)
 				})
+			.catch(() => { throw "Network error" })
+		} catch (error) {
+			toast.error(error)
+		}
 		}
 	}, [id, user])
 
@@ -122,6 +208,7 @@ export default function Profile() {
 						<Image
 							alt={'player profile picutre'}
 							className="h-max w-max"
+							unoptimized
 							height={0}
 							layout="fill"
 							loader={removeParams}
@@ -135,7 +222,9 @@ export default function Profile() {
 						<p className="text-3xl">{userProfile?.name || 'NOT FOUND'}</p>
 						<a href={userProfile?.intra_profile_url} className="text-md mb-4 hover:underline text-gray-400">{userProfile?.intra_name || 'Loading...'}</a>
 
-						<Buttons setOpenModal={setOpenModal} userProfile={userProfile} />
+						<div className="w-full space-x-2">
+							<Buttons setOpenModal={setOpenModal} userProfile={userProfile} refrestProfile={refrestProfile}/>
+						</div>
 
 					</div>
 
@@ -180,9 +269,9 @@ export default function Profile() {
 					<div className="h-full rounded-b border border-white p-4">
 						{modal === modalPage.HISTORY
 							? <History />
-							: modalPage === modalPage.FRIENDS
+							: modal === modalPage.FRIENDS
 								? <Friends friends={userProfile?.friends} />
-								: <div></div>
+								: <div>here</div>
 						}
 					</div>
 				</div>

@@ -29,20 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const pathname = usePathname()
 	const [user, setUser] = useState<{} | UserProfile>({})
 
-	//	useEffect(() => {
-	//		const token = localStorage.getItem('pong.token')
-	//
-	//		if (token && pathname === '/') router.push('/dashboard')
-	//
-	//		if (token) {
-	//			api
-	//				.get<UserProfile>('/me')
-	//				.then((result) => setUser(result.data))
-	//				.catch(() => logout())
-	//		} else if (pathname !== '/' && pathname !== '/auth') {
-	//			router.push('/')
-	//		}
-	//	}, [])
+	useEffect(() => {
+		const token = localStorage.getItem('pong.token')
+
+		if (token && pathname === '/') router.push('/dashboard')
+
+		if (token && pathname !== '/') {
+			api
+				.get<UserProfile>('/me')
+				.then((result) => setUser(result.data))
+				.catch(() => logout())
+		} else if (pathname !== '/' && pathname !== '/auth') {
+			router.push('/')
+		}
+	}, [])
 
 	async function refreshUser() {
 		const user = await api.get("/me")

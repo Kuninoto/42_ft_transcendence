@@ -60,8 +60,8 @@ export default function Chat() {
 					</div>
 				</div>
 				<div className="relative flex h-full w-8/12 flex-col place-content-between">
-					<div className="relative h-[17rem] space-y-4 overflow-scroll p-2">
-						<div className="flex w-full place-content-end">
+					<div className="relative h-[17rem] space-y-4 overflow-auto p-2 text-sm">
+						<div className="flex w-full place-content-end ">
 							<div className="w-min max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
 								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
 							</div>

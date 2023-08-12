@@ -2,7 +2,9 @@
 
 import { api } from '@/api/api'
 import { UserStatsForLeaderboard } from '@/common/types/backend/user-stats-for-leaderboard.interface'
+import { hasValues } from '@/common/utils/hasValues'
 import { removeParams } from '@/contexts/AuthContext'
+import { CgTrophy } from 'react-icons/cg'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -35,10 +37,9 @@ function Podium({
 				/>
 			</div>
 			<div className="text-xl">{user?.name || 'NOT FOUND'}</div>
-			{user && (
-				<div className="text-sm">
-					{' '}
-					#{top} • {user?.wins}
+			{hasValues(user) && (
+				<div className="text-sm flex items-center">
+					#{top} • {user?.wins} <CgTrophy className="-mt-0.5" size={20}/>
 				</div>
 			)}
 		</Link>
@@ -61,6 +62,7 @@ export default function Leaderboard() {
 				.get('/game/leaderboard')
 				.then((result) => {
 					setUsers(result.data)
+					console.log(result.data)
 					isLoading(false)
 				})
 				.catch((e) => {

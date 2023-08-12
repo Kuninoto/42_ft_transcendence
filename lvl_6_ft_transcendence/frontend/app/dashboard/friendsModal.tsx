@@ -129,7 +129,7 @@ export default function FriendsModal({
 							value={search}
 						/>
 
-						<div className="mt-8 h-56 space-y-3 overflow-scroll border-none ">
+						<div className="mt-8 h-56 space-y-3 overflow-auto border-none ">
 							{!!search ? (
 								<>
 									<div className="mb-4">
