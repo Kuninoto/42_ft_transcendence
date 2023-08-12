@@ -3,13 +3,14 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { corsOption } from 'src/common/options/cors.option';
+import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { AuthService } from '../auth/auth.service';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
@@ -20,8 +21,10 @@ import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameService } from './game.service';
 
-@WebSocketGateway({ namespace: 'game-gateway', cors: corsOption })
-export class GameGateway implements OnGatewayInit, OnGatewayConnection {
+@WebSocketGateway({ namespace: 'game-gateway', cors: GatewayCorsOption })
+export class GameGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   public server: Server;
 
@@ -55,7 +58,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
     } catch (error) {
       this.logger.error(error.message + ', disconnecting...');
 
-      client.data.disconnectedByGameEngine = true;
+      client.data.disconnectedByServer = true;
       // Due to lifecycle hooks, this line calls handleDisconnect();
       // Refer to: https://docs.nestjs.com/websockets/gateways
       client.disconnect();

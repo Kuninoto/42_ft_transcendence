@@ -1,16 +1,16 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { GameGateway } from './game.gateway';
+import { PlayerSide } from 'src/common/types/player-side.enum';
+import { BALL_RADIUS, Ball } from './Ball';
 import {
   CANVAS_HEIGHT,
   CANVAS_MID_WIDTH,
   CANVAS_WIDTH,
   GameRoom,
 } from './GameRoom';
-import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH } from './Player';
-import { BALL_RADIUS, Ball } from './Ball';
-import { GameService } from './game.service';
-import { PlayerSide } from 'src/common/types/player-side.enum';
 import { GameRoomsMap } from './GameRoomsMap';
+import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
+import { GameGateway } from './game.gateway';
+import { GameService } from './game.service';
 
 const GAME_LOOP_INTERVAL: number = 10;
 const RESET_GAME_DELAY: number = 2;
@@ -151,7 +151,7 @@ export class GameEngineService {
   private ballCollidedWithPaddle(gameRoom: GameRoom): boolean {
     // If ball X position is smaller than canvas'
     // midpoint it is on the left side
-    const player =
+    const player: Player =
       gameRoom.ball.x < CANVAS_MID_WIDTH
         ? gameRoom.leftPlayer
         : gameRoom.rightPlayer;

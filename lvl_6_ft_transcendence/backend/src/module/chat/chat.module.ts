@@ -1,12 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import {
-  BlockedUser,
-  ChatRoom,
-  DirectMessage,
-  Message,
-  User,
-} from 'src/typeorm';
+import { ChatRoom, DirectMessage, Message } from 'src/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { FriendshipsModule } from '../friendships/friendships.module';
 import { UsersModule } from '../users/users.module';
@@ -18,18 +12,13 @@ import { RoomService } from './room.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      User,
-      ChatRoom,
-      DirectMessage,
-      Message,
-      BlockedUser,
-    ]),
-    AuthModule,
-    UsersModule,
+    TypeOrmModule.forFeature([ChatRoom, Message, DirectMessage]),
+    forwardRef(() => AuthModule),
+    forwardRef(() => UsersModule),
     FriendshipsModule,
   ],
   providers: [ChatGateway, ChatService, RoomService, MessageService],
   controllers: [ChatController],
+  exports: [ChatGateway],
 })
 export class ChatModule {}
