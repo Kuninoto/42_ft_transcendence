@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 import { UserStatsInterface } from 'src/common/types/user-stats-interface.interface';
-import { User, UserStats } from 'src/entity';
+import { User, UserStats } from 'src/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -23,17 +23,18 @@ export class UserStatsService {
     // and sort them by wins and win_rates in descending order
     // if the number of wins of two players are equal
     // the one with the bigger win rate is placed above
-    const leaderboardData: UserStatsForLeaderboard[] = await this.userStatsRepository
-      .createQueryBuilder('userStats')
-      .select('user.id', 'uid')
-      .addSelect('user.avatar_url', 'avatar_url')
-      .addSelect('user.name', 'name')
-      .addSelect('userStats.wins', 'wins')
-      .addSelect('win_rate')
-      .leftJoin('userStats.user', 'user')
-      .orderBy('userStats.wins', 'DESC')
-      .addOrderBy('win_rate', 'DESC')
-      .getRawMany();
+    const leaderboardData: UserStatsForLeaderboard[] =
+      await this.userStatsRepository
+        .createQueryBuilder('userStats')
+        .select('user.id', 'uid')
+        .addSelect('user.avatar_url', 'avatar_url')
+        .addSelect('user.name', 'name')
+        .addSelect('userStats.wins', 'wins')
+        .addSelect('win_rate')
+        .leftJoin('userStats.user', 'user')
+        .orderBy('userStats.wins', 'DESC')
+        .addOrderBy('win_rate', 'DESC')
+        .getRawMany();
 
     return leaderboardData.map((leaderboardRow) => ({
       uid: leaderboardRow.uid,

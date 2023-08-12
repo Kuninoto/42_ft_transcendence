@@ -1,11 +1,11 @@
-import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { AppModule } from './app.module';
+import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as session from 'express-session';
 import * as passport from 'passport';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { corsOption } from './common/options/cors.option';
+import { AppModule } from './app.module';
+import { AppCorsOption } from './common/options/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
@@ -43,13 +43,14 @@ async function bootstrap() {
 
   checkRequiredEnvVariables();
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['verbose'],
-  });
+  const app: NestExpressApplication =
+    await NestFactory.create<NestExpressApplication>(AppModule, {
+      logger: ['verbose'],
+    });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Transcendence API')
-    .setDescription('The API for the transcendence project')
+    .setDescription('API for the transcendence project')
     .setVersion('1.0')
     .addTag('Transcendence')
     //  .addBearerAuth()
@@ -57,7 +58,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('help', app, document);
 
-  app.enableCors(corsOption);
+  app.enableCors(AppCorsOption);
 
   const oneDay: number = 86400000;
   app.use(

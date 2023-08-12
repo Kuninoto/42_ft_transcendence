@@ -1,14 +1,15 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AchievementInterface } from 'src/common/types/achievement-interface.interface';
 import {
   Achievement,
   AchievementDescriptions,
   Achievements,
 } from 'src/entity/achievement.entity';
 import { Repository } from 'typeorm';
-import { UserStatsService } from '../user-stats/user-stats.service';
+import { ChatGateway } from '../chat/chat.gateway';
 import { FriendshipsService } from '../friendships/friendships.service';
-import { AchievementInterface } from 'src/common/types/achievement-interface.interface';
+import { UserStatsService } from '../user-stats/user-stats.service';
 
 @Injectable()
 export class AchievementService {
@@ -18,30 +19,18 @@ export class AchievementService {
     private readonly userStatsService: UserStatsService,
     @Inject(forwardRef(() => FriendshipsService))
     private readonly friendshipsService: FriendshipsService,
+    @Inject(forwardRef(() => ChatGateway))
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(AchievementService.name);
 
   public async grantPongFightMaestro(userId: number): Promise<void> {
-    this.achievementRepository.save({
-      achievement: Achievements.PONGFIGHT_MAESTRO,
-      user: { id: userId },
-    });
-
-    this.logger.log(
-      'User with id=' + userId + ' just received Pong Fight Maestro!',
-    );
+    this.grantAchievement(userId, Achievements.PONGFIGHT_MAESTRO);
   }
 
   public async grantNewPongFighter(userId: number): Promise<void> {
-    this.achievementRepository.save({
-      achievement: Achievements.NEW_PONG_FIGHTER,
-      user: { id: userId },
-    });
-
-    this.logger.log(
-      'User with id=' + userId + ' just received New Pong Fighter!',
-    );
+    this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER);
   }
 
   public async grantWinsAchievementsIfEligible(userId: number): Promise<void> {
@@ -56,24 +45,12 @@ export class AchievementService {
         Achievements.BEGINNERS_TRIUMPH,
       )
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.BEGINNERS_TRIUMPH,
-        user: { id: userId },
-      });
-
-      this.logger.log(
-        'User with id=' + userId + ' just received Beginners Triumph!',
-      );
+      this.grantAchievement(userId, Achievements.BEGINNERS_TRIUMPH);
     } else if (
       nrWins === 5 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.PONG_MASTER)
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.PONG_MASTER,
-        user: { id: userId },
-      });
-
-      this.logger.log('User with id=' + userId + ' just received Pong Master!');
+      this.grantAchievement(userId, Achievements.PONG_MASTER);
     }
   }
 
@@ -91,14 +68,7 @@ export class AchievementService {
     ).losses;
 
     if (nrLosses === 1) {
-      this.achievementRepository.save({
-        achievement: Achievements.FIRST_SETBACK,
-        user: { id: userId },
-      });
-
-      this.logger.log(
-        'User with id=' + userId + ' just received First Setback!',
-      );
+      this.grantAchievement(userId, Achievements.FIRST_SETBACK);
     }
   }
 
@@ -113,22 +83,12 @@ export class AchievementService {
       nrFriends === 1 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.FIRST_BUDDY)
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.FIRST_BUDDY,
-        user: { id: userId },
-      });
-
-      this.logger.log('User with id=' + userId + ' just received First Buddy!');
+      this.grantAchievement(userId, Achievements.FIRST_BUDDY);
     } else if (
       nrFriends === 5 &&
       !this.userAlreadyHaveThisAchievement(userId, Achievements.FRIENDLY)
     ) {
-      this.achievementRepository.save({
-        achievement: Achievements.FRIENDLY,
-        user: { id: userId },
-      });
-
-      this.logger.log('User with id=' + userId + ' just received Friendly!');
+      this.grantAchievement(userId, Achievements.FRIENDLY);
     }
   }
 
@@ -146,6 +106,11 @@ export class AchievementService {
       achievement: Achievements.DECLINED_TOMORROW_BUDDIES,
       user: { id: userId },
     });
+
+    this.chatGateway.achievementUnlocked(
+      userId,
+      Achievements.DECLINED_TOMORROW_BUDDIES,
+    );
 
     this.logger.log(
       'User with id=' + userId + ' just received Declined Tomorrow Buddies!',
@@ -166,6 +131,11 @@ export class AchievementService {
       achievement: Achievements.BREAKING_THE_PADDLE_BOND,
       user: { id: userId },
     });
+
+    this.chatGateway.achievementUnlocked(
+      userId,
+      Achievements.BREAKING_THE_PADDLE_BOND,
+    );
 
     this.logger.log(
       'User with id=' + userId + ' just received Breaking The Paddle Bond!',
@@ -199,6 +169,21 @@ export class AchievementService {
 
     return userAchievements.some(
       (achievement) => achievement.achievement === achievementToCheck,
+    );
+  }
+
+  private async grantAchievement(
+    userId: number,
+    achievement: Achievements,
+  ): Promise<void> {
+    this.achievementRepository.save({
+      achievement: achievement,
+      user: { id: userId },
+    });
+
+    this.chatGateway.achievementUnlocked(userId, achievement);
+    this.logger.log(
+      'User with id=' + userId + ' just received ' + achievement + '!',
     );
   }
 }

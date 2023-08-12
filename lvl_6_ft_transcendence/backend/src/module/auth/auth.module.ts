@@ -1,12 +1,12 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from 'src/module/auth/auth.controller';
-import { PassportModule } from '@nestjs/passport';
-import { FortyTwoAuthStrategy } from 'src/module/auth/strategy/fortytwo-auth.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
-import { SessionSerializer } from './session.serializer';
+import { PassportModule } from '@nestjs/passport';
+import { AuthController } from 'src/module/auth/auth.controller';
+import { FortyTwoAuthStrategy } from 'src/module/auth/strategy/fortytwo-auth.strategy';
 import { UsersModule } from '../users/users.module';
+import { AuthService } from './auth.service';
+import { SessionSerializer } from './session.serializer';
+import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
 
 console.log('JWT_SECRET= ' + process.env.JWT_SECRET);
 console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);

@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   Entity,
@@ -6,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { ApiProperty } from '@nestjs/swagger';
 
 export enum Achievements {
   // Assigned only to the 3 developers
@@ -15,7 +15,7 @@ export enum Achievements {
   // First Login
   NEW_PONG_FIGHTER = 'New PongFighter',
   // 1 Win
-  BEGINNERS_TRIUMPH = 'Beginners Triumph',
+  BEGINNERS_TRIUMPH = "Beginner's Triumph",
   // 1 Loss
   FIRST_SETBACK = 'First Setback',
   // 1 Friend

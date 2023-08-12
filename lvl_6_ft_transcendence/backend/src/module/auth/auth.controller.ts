@@ -1,31 +1,31 @@
 import {
-  Controller,
-  Req,
-  Res,
+  BadRequestException,
   Body,
+  Controller,
   Get,
-  Patch,
-  Post,
-  UseGuards,
-  UnauthorizedException,
   HttpCode,
   Logger,
-  BadRequestException,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
-import { AuthService, twoFactorAuthDTO } from './auth.service';
-import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
-import { JwtAuthGuard } from './guard/jwt-auth.guard';
 import {
   ApiBadRequestResponse,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { User } from 'src/entity/index';
 import { UsersService } from 'src/module/users/users.service';
+import { User } from 'src/typeorm/index';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
 import { UserStatus } from '../../common/types/user-status.enum';
+import { AuthService, twoFactorAuthDTO } from './auth.service';
+import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
+import { JwtAuthGuard } from './guard/jwt-auth.guard';
 
 /**
  * Guards act as Middleware of validation

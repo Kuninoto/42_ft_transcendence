@@ -1,24 +1,24 @@
 import {
-  Injectable,
-  Logger,
   BadRequestException,
   ConflictException,
   ForbiddenException,
-  NotFoundException,
   Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
   forwardRef,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, Friendship, BlockedUser } from 'src/entity/index';
-import { UsersService } from '../users/users.service';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import { SuccessResponse } from '../../common/types/success-response.interface';
-import { FriendInterface } from '../../common/types/friend-interface.interface';
+import { BlockedUser, Friendship, User } from 'src/typeorm/index';
+import { Repository } from 'typeorm';
 import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
+import { ErrorResponse } from '../../common/types/error-response.interface';
+import { FriendInterface } from '../../common/types/friend-interface.interface';
 import { FriendRequestInterface } from '../../common/types/friend-request.interface';
 import { FriendshipStatus } from '../../common/types/friendship-status.enum';
+import { SuccessResponse } from '../../common/types/success-response.interface';
 import { AchievementService } from '../achievement/achievement.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FriendshipsService {
@@ -29,6 +29,7 @@ export class FriendshipsService {
     private readonly friendshipRepository: Repository<Friendship>,
     @InjectRepository(BlockedUser)
     private readonly blockedUserRepository: Repository<BlockedUser>,
+    @Inject(forwardRef(() => AchievementService))
     private readonly achievementsService: AchievementService,
   ) {}
 
@@ -381,7 +382,10 @@ export class FriendshipsService {
   ): Promise<boolean> {
     const blockedUserEntry: BlockedUser =
       await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: { id: receiverUID }, blocked_user: { id: senderUID } }, // sender is the blockedUser
+        {
+          user_who_blocked: { id: receiverUID },
+          blocked_user: { id: senderUID },
+        }, // sender is the blockedUser
       ]);
 
     return blockedUserEntry ? true : false;
@@ -395,7 +399,10 @@ export class FriendshipsService {
   ): Promise<boolean> {
     const blockedUserEntry: BlockedUser =
       await this.blockedUserRepository.findOneBy([
-        { user_who_blocked: { id: senderUID }, blocked_user: { id: receiverUID } }, // receiver is the blockedUser
+        {
+          user_who_blocked: { id: senderUID },
+          blocked_user: { id: receiverUID },
+        }, // receiver is the blockedUser
       ]);
 
     return blockedUserEntry ? true : false;
