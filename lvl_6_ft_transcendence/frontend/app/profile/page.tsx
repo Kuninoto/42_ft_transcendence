@@ -15,6 +15,7 @@ import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { UserProfile as IUserProfile } from '@/common/type/backend/user-profile.interface'
 import SettingsModal from './settingsModal'
 import { hasValues } from '@/common/utils/hasValues'
+import Achievements from './achievements'
 
 enum modalPage {
 	HISTORY = "history",
@@ -229,17 +230,12 @@ export default function Profile() {
 
 					</div>
 
-					<div>
-						<span> since {moment(user?.created_at, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS).format("DD/MM/YY")} </span>
+					<div className="text-xl"> 
+						<div> Wins { user?.stats?.wins || "0"} </div>
+						<div> Loses {user?.stats?.losses || "0"} </div>
+						<div> Win Rate {user?.stats?.win_rate || "0"} </div>
 					</div>
-					<div>
-						<span>#1</span>
-						<span>120w</span>
-					</div>
-					<div>
-						<span>#1</span>
-						<span>120w</span>
-					</div>
+					<div className="text-gray-400"> since {moment(user?.created_at, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS).format("DD/MM/YY")} </div>
 				</div>
 
 				<div className="pb-12">
@@ -270,8 +266,8 @@ export default function Profile() {
 						{modal === modalPage.HISTORY
 							? <History />
 							: modal === modalPage.FRIENDS
-								? <Friends friends={userProfile?.friends} />
-								: <div>here</div>
+								? <Friends friends={userProfile.friends} />
+								: <Achievements achievements={userProfile.achievements}/>
 						}
 					</div>
 				</div>

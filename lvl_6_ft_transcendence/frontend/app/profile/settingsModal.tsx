@@ -82,7 +82,10 @@ export default function SettingsModal({
 								<label htmlFor="name">Name:</label>
 								<input
 									id="name"
-									{...register('name', { maxLength: { value: 10, message: "2 < name.length < 11"}, minLength: { value: 3, message: "2 < name.length < 11"}, pattern: { value: /^[A-Za-z0-9_]+$/, message: "Invalid character"}})}
+									{...register('name', { 
+										minLength: { value: 4, message: "Usernames length must at least 4 characters long"}, 
+										maxLength: { value: 10, message: "Usernames length must have up to 10 characters long "},
+										pattern: { value: /^[A-Za-z0-9_]+$/, message: "Invalid character"}})}
 									className="rounded border border-white bg-transparent px-2 py-2 w-full outline-none"
 									type="text"
 								/>
