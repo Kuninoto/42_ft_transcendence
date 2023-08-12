@@ -19,13 +19,13 @@ const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
 
 export default function Pong() {
-<<<<<<< HEAD
-	const { ballPosition, emitPaddleMovement, opponentFound, opponentPosition } =
-		useGame()
-=======
-
-	const { opponentFound, emitPaddleMovement, emitOnReady, opponentPosition, ballPosition} = useGame()
->>>>>>> origin/frontend
+	const {
+		ballPosition,
+		emitOnReady,
+		emitPaddleMovement,
+		opponentFound,
+		opponentPosition,
+	} = useGame()
 	const { user } = useAuth()
 
 	const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -67,15 +67,9 @@ export default function Pong() {
 		const backgroundImage = new Image()
 		const paddleImage = new Image()
 
-<<<<<<< HEAD
-		backgroundImage.src = `/game/backgrounds/${
-			themes[user.game_theme].background
-		}`
-		paddleImage.src = `/game/paddles/${themes[user.game_theme].paddle}`
-=======
-		backgroundImage.src = `/game/backgrounds/${themes[user.game_theme]?.background}`;
-		paddleImage.src = `/game/paddles/${themes[user.game_theme]?.paddle}`;
->>>>>>> origin/frontend
+		backgroundImage.src = `/game/backgrounds/${themes[user.game_theme]
+			?.background}`
+		paddleImage.src = `/game/paddles/${themes[user.game_theme]?.paddle}`
 
 		backgroundImageRef.current = backgroundImage
 		paddleImageRef.current = paddleImage

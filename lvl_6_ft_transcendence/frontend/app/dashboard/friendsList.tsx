@@ -7,18 +7,25 @@ import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { AiOutlineUserAdd } from 'react-icons/ai'
+import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'
+import GroupsModal from './groupsModal'
+
+enum openModalType {
+	FRIENDS = 'friends',
+	GROUPS = 'groups',
+	NULL = '',
+}
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
 
-	const [openModal, setOpenModal] = useState(false)
+	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [friends, setFriends] = useState<Friend[]>([])
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
@@ -31,12 +38,14 @@ export default function FriendsList(): JSX.Element {
 
 	useEffect(() => {
 		try {
-			api.get('/me/friends')
-				.then(result => {
+			api
+				.get('/me/friends')
+				.then((result) => {
 					setFriends(result.data)
 				})
-				.catch(e => { throw "Network error" })
-
+				.catch((e) => {
+					throw 'Network error'
+				})
 		} catch (error) {
 			toast.error(error)
 		}
@@ -44,12 +53,14 @@ export default function FriendsList(): JSX.Element {
 
 	return (
 		<div className="flex h-full w-full">
-			{openModal && (
+			{openModal === openModalType.FRIENDS ? (
 				<FriendsModal
 					addFriend={addFriend}
-					closeModal={() => setOpenModal(false)}
+					closeModal={() => setOpenModal(openModalType.NULL)}
 				/>
-			)}
+			) : openModal === openModalType.GROUPS ? (
+				<GroupsModal closeModal={() => setOpenModal(openModalType.NULL)} />
+			) : null}
 
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
@@ -57,12 +68,10 @@ export default function FriendsList(): JSX.Element {
 						<div className="relative aspect-square w-16 overflow-hidden rounded-xl">
 							<Image
 								alt={'avatar'}
-								height={0}
-								layout="fill"
+								fill
 								loader={removeParams}
-								objectFit="cover"
-								src={user.avatar_url || '/placeholder.jpg'}
-								width={0}
+								sizes="100vw"
+								src={user.avatar_url || '/placeholder.gif'}
 							/>
 						</div>
 						<div className="mx-4 my-auto">
@@ -72,31 +81,31 @@ export default function FriendsList(): JSX.Element {
 					</div>
 				</div>
 
-				<div className="my-2">
+				<div className="my-2 space-y-2">
 					<>
-						<div
-							className="group my-2 flex w-full place-content-between border-b border-white px-4 py-1 text-start transition-all duration-200 hover:cursor-pointer hover:text-[#F32E7C]"
-							onClick={() => setOpenFriendsAccordean(!openFriendsAccordean)}
-						>
-							Friends
-							<div className="flex">
-								<button
-									onClick={(e) => {
-										e.preventDefault()
-										e.stopPropagation()
-										setOpenModal(true)
-									}}
-								>
-									<AiOutlineUserAdd
-										className="text-white hover:text-[#F32E7C]"
-										size={24}
-									/>
-								</button>
-								<RxTriangleUp
-									className={`transition-all duration-200 group-hover:text-[#F32E7C]
-									${openFriendsAccordean && '-rotate-180'}`}
+						<div className="flex items-center space-x-2 border-b border-white p-2">
+							<button
+								onClick={() => {
+									setOpenModal(openModalType.FRIENDS)
+								}}
+							>
+								<AiOutlineUserAdd
+									className="text-white hover:text-[#F32E7C]"
 									size={24}
 								/>
+							</button>
+							<div
+								className="group flex w-full place-content-between text-start transition-all duration-200 hover:cursor-pointer hover:text-[#F32E7C]"
+								onClick={() => setOpenFriendsAccordean(!openFriendsAccordean)}
+							>
+								Friends
+								<div className="flex">
+									<RxTriangleUp
+										className={`transition-all duration-200 group-hover:text-[#F32E7C]
+									${openFriendsAccordean && '-rotate-180'}`}
+										size={24}
+									/>
+								</div>
 							</div>
 						</div>
 						<div
@@ -119,7 +128,7 @@ export default function FriendsList(): JSX.Element {
 													fill
 													height={0}
 													sizes="100vw"
-													src={friend.avatar_url || '/placeholder.jpg'}
+													src={friend.avatar_url || '/placeholder.gif'}
 													width={0}
 												/>
 											</div>
@@ -145,17 +154,31 @@ export default function FriendsList(): JSX.Element {
 						</div>
 					</>
 					<>
-						<button
-							className="my-2 flex w-full place-content-between border-b border-white px-4 py-1 text-start"
-							onClick={() => setOpenGroupsAccordean(!openGroupsAccordean)}
-						>
-							Groups
-							<RxTriangleUp
-								className={`transition-all duration-200 ${openGroupsAccordean && '-rotate-180'
-									}`}
-								size={24}
-							/>
-						</button>
+						<div className="flex items-center space-x-2 border-b border-white p-2">
+							<button
+								onClick={() => {
+									setOpenModal(openModalType.GROUPS)
+								}}
+							>
+								<AiOutlineUsergroupAdd
+									className="aspect-square text-white hover:text-[#F32E7C]"
+									size={24}
+								/>
+							</button>
+							<div
+								className="group flex h-full w-full place-content-between text-start transition-all duration-200 hover:cursor-pointer hover:text-[#F32E7C]"
+								onClick={() => setOpenGroupsAccordean(!openGroupsAccordean)}
+							>
+								Groups
+								<div className="flex">
+									<RxTriangleUp
+										className={`transition-all duration-200 group-hover:text-[#F32E7C]
+									${openGroupsAccordean && '-rotate-180'}`}
+										size={24}
+									/>
+								</div>
+							</div>
+						</div>
 						<div
 							className={`flex flex-col space-y-2 overflow-hidden transition-all 
 						${openGroupsAccordean ? 'max-h-full' : 'max-h-0'}`}

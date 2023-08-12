@@ -158,7 +158,7 @@ export default function FriendsModal({
 																height={0}
 																loader={removeParams}
 																sizes="100%"
-																src={user.avatar_url || '/placeholder.jpg'}
+																src={user.avatar_url || '/placeholder.gif'}
 																width={0}
 															/>
 															<span className="text-xl">{user.name}</span>{' '}
@@ -205,8 +205,8 @@ export default function FriendsModal({
 														className="aspect-square w-8 rounded"
 														height={0}
 														loader={removeParams}
-														sizes="100%"
-														src={request?.avatar_url || '/placeholder.jpg'}
+														sizes="100vw"
+														src={request?.avatar_url || '/placeholder.gif'}
 														width={0}
 													/>
 													<span className="text-xl">{request?.name}</span>

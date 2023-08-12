@@ -1,8 +1,9 @@
-<<<<<<< HEAD
 import { Ball } from '@/app/matchmaking/definitions'
 import { PlayerSide } from '@/common/types/backend/player-side.enum'
+import { GameEndDTO } from '@/common/types/game-end.dto'
 import { GameRoomDTO } from '@/common/types/game-room-info'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
+import { PlayerScoredDTO } from '@/common/types/player-scored.dto'
 import { useRouter } from 'next/navigation'
 import {
 	createContext,
@@ -12,56 +13,35 @@ import {
 	useState,
 } from 'react'
 import io from 'socket.io-client'
-=======
-import io from "socket.io-client";
-import { createContext, ReactNode, useContext, useEffect, useState, useRef } from 'react'
-import { OponentFoundDTO } from "@/common/types/oponent-found";
-import { useRouter } from 'next/navigation'
-import { GameRoomDTO } from "@/common/types/game-room-info";
-import { PlayerSide } from "@/common/types/backend/player-side.enum";
-import { Ball } from "@/app/matchmaking/definitions";
-import { PlayerScoredDTO } from "@/common/types/player-scored.dto";
-import { GameEndDTO } from "@/common/types/game-end.dto";
-import { useAuth } from "./AuthContext";
->>>>>>> origin/frontend
 
-let socket: io
+import { useAuth } from './AuthContext'
+
+let socket: any
 
 type GameContextType = {
 	ballPosition: Ball
 	cancel: () => void
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
+	leftPlayerScore: number
 	opponentFound: OponentFoundDTO
 	opponentPosition: number
-<<<<<<< HEAD
-=======
-	ballPosition: Ball
 	rightPlayerScore: number
-	leftPlayerScore: number
->>>>>>> origin/frontend
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType)
 
 export function GameProvider({ children }: { children: ReactNode }) {
-<<<<<<< HEAD
+	const { user } = useAuth()
+
 	const [opponentFound, setOpponentFound] = useState<OponentFoundDTO>(
 		{} as OponentFoundDTO
 	)
 	const [opponentPosition, setOpponentPosition] = useState(0)
 	const [ballPosition, setBallPosition] = useState<Ball>({} as Ball)
-=======
-	
-	const { user } = useAuth()
 
-    const [ opponentFound, setOpponentFound ] = useState<OponentFoundDTO>({} as OponentFoundDTO)
-    const [ opponentPosition, setOpponentPosition ] = useState(0)
-    const [ ballPosition, setBallPosition ] = useState<Ball>({})
-	
-    const [ rightPlayerScore, setRightPlayerScore ] = useState(0)
-    const [ leftPlayerScore, setLeftPlayerScore ] = useState(0)
->>>>>>> origin/frontend
+	const [rightPlayerScore, setRightPlayerScore] = useState(0)
+	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
 	const router = useRouter()
 
@@ -76,29 +56,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-<<<<<<< HEAD
-=======
 	function emitOnReady() {
-		socket.emit("player-ready", {
-			gameRoomId: opponentFound.roomId
+		socket.emit('player-ready', {
+			gameRoomId: opponentFound.roomId,
 		})
 	}
-	
+
 	useEffect(() => {
 		const handleBeforeUnload = (event) => {
-			event.preventDefault();
-			event.returnValue = "monkey";
-		};
-	
-		window.addEventListener('beforeunload', handleBeforeUnload);
-	
+			event.preventDefault()
+			event.returnValue = 'monkey'
+		}
+
+		window.addEventListener('beforeunload', handleBeforeUnload)
+
 		return () => {
-		  window.removeEventListener('beforeunload', handleBeforeUnload);
-		};
-	  }, []);
+			window.removeEventListener('beforeunload', handleBeforeUnload)
+		}
+	}, [])
 
-
->>>>>>> origin/frontend
 	useEffect(() => {
 		socket = io('http://localhost:3000/game-gateway', {
 			extraHeaders: {
@@ -106,22 +82,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			},
 		})
 
-		socket.on('opponent-found', function (data: OponentFoundDTO) {
+		socket.on('opponent-found', function(data: OponentFoundDTO) {
 			setOpponentFound(data)
 			router.push('/matchmaking')
 		})
 
 		return () => {
-<<<<<<< HEAD
-			console.log('disconnect')
-=======
->>>>>>> origin/frontend
 			socket.disconnect()
 		}
 	}, [])
 
 	useEffect(() => {
-		socket.on('game-room-info', function (data: GameRoomDTO) {
+		socket.on('game-room-info', function(data: GameRoomDTO) {
 			if (opponentFound.side === PlayerSide.LEFT) {
 				setOpponentPosition(data.rightPlayer.paddleY)
 			} else {
@@ -131,24 +103,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			setBallPosition(data.ball)
 		})
 
-
-		socket.on('game-end', function (data: GameEndDTO) {
-			if (data.winner.userId === user.id)
-				console.log("winner")
-			else
-				console.log("loser")
+		socket.on('game-end', function(data: GameEndDTO) {
+			if (data.winner.userId === user.id) console.log('winner')
+			else console.log('loser')
 			console.log(data)
-<<<<<<< HEAD
 		})
-=======
-		} )
 
-		socket.on('player-scored', function (data: PlayerScoredDTO ) {
+		socket.on('player-scored', function(data: PlayerScoredDTO) {
 			setLeftPlayerScore(data.leftPlayerScore)
 			setRightPlayerScore(data.rightPlayerScore)
-		} )
-
->>>>>>> origin/frontend
+		})
 	}, [opponentFound])
 
 	const value: GameContextType = {
@@ -156,14 +120,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		cancel,
 		emitOnReady,
 		emitPaddleMovement,
+		leftPlayerScore,
 		opponentFound,
 		opponentPosition,
-<<<<<<< HEAD
-=======
-		ballPosition,
 		rightPlayerScore,
-		leftPlayerScore,
->>>>>>> origin/frontend
 	}
 
 	return <GameContext.Provider value={value}>{children}</GameContext.Provider>
