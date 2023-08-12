@@ -70,6 +70,8 @@ export default function FriendsList(): JSX.Element {
 								alt={'avatar'}
 								fill
 								loader={removeParams}
+								objectFit="cover"
+								layout="fill"
 								sizes="100vw"
 								src={user.avatar_url || '/placeholder.gif'}
 							/>

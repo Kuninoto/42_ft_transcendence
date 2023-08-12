@@ -27,6 +27,7 @@ type GameContextType = {
 	opponentFound: OponentFoundDTO
 	opponentPosition: number
 	rightPlayerScore: number
+	gameEndInfo: GameEndDTO
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType)
@@ -43,23 +44,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
+	const [ gameEndInfo, setGameEndInfo ] = useState<GameEndDTO>({} as GameEndDTO) 
+
 	const router = useRouter()
 
 	function cancel() {
 		router.push('/dashboard')
-	}
-
-	function emitPaddleMovement(newY: number) {
-		socket.emit('paddle-move', {
-			gameRoomId: opponentFound.roomId,
-			newY: newY,
-		})
-	}
-
-	function emitOnReady() {
-		socket.emit('player-ready', {
-			gameRoomId: opponentFound.roomId,
-		})
 	}
 
 	useEffect(() => {
@@ -87,6 +77,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			router.push('/matchmaking')
 		})
 
+		socket.on('connect_error', err => console.log(err))
+		socket.on('connect_failed', err => console.log(err))
+		socket.on('disconnect', err => console.log(err))
+
 		return () => {
 			socket.disconnect()
 		}
@@ -104,6 +98,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		})
 
 		socket.on('game-end', function(data: GameEndDTO) {
+			setGameEndInfo(data)
 			if (data.winner.userId === user.id) console.log('winner')
 			else console.log('loser')
 			console.log(data)
@@ -115,6 +110,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		})
 	}, [opponentFound])
 
+
+	function emitPaddleMovement(newY: number) {
+		if (!socket) return
+		socket.emit('paddle-move', {
+			gameRoomId: opponentFound.roomId,
+			newY: newY,
+		})
+	}
+
+	function emitOnReady() {
+
+		if (!socket) return
+
+		socket.emit('player-ready', {
+			gameRoomId: opponentFound.roomId,
+		})
+	}
+
 	const value: GameContextType = {
 		ballPosition,
 		cancel,
@@ -124,6 +137,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		opponentFound,
 		opponentPosition,
 		rightPlayerScore,
+		gameEndInfo,
 	}
 
 	return <GameContext.Provider value={value}>{children}</GameContext.Provider>
