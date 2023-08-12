@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import moment from 'moment'
 import { useEffect, useState } from 'react'
 
 import Friends from './friends'
@@ -229,8 +230,7 @@ export default function Profile() {
 					</div>
 
 					<div>
-						<span>#1</span>
-						<span>120w</span>
+						<span> since {moment(user?.created_at, moment.HTML5_FMT.DATETIME_LOCAL_SECONDS).format("DD/MM/YY")} </span>
 					</div>
 					<div>
 						<span>#1</span>
