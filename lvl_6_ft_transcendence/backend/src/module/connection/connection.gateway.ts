@@ -8,12 +8,14 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { UserStatus } from 'src/common/types/user-status.enum';
 import { Achievements } from 'src/entity/achievement.entity';
 import { User } from 'src/entity/user.entity';
 import { AuthService } from 'src/module/auth/auth.service';
 import { UsersService } from 'src/module/users/users.service';
 import { RoomService } from '../chat/room.service';
 import { GameService } from '../game/game.service';
+import { NewUserStatusDTO } from './dto/new-user-status.dto';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -26,6 +28,7 @@ export class ConnectionGateway
   public server: Server;
 
   constructor(
+    @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
@@ -45,6 +48,8 @@ export class ConnectionGateway
         await this.authService.authenticateClientAndRetrieveUser(client);
       client.data.userId = user.id;
 
+      await this.changeUserStatus(user.id, UserStatus.ONLINE);
+
       this.usersService.updateSocketIdByUID(user.id, client.id);
       this.roomService.joinUserRooms(client);
       this.logger.log('"' + user.name + '" connected to the connection socket');
@@ -56,9 +61,21 @@ export class ConnectionGateway
 
   async handleDisconnect(client: Socket): Promise<void> {
     await this.gameService.disconnectPlayer(client.data.userId);
-
+    await this.changeUserStatus(client.data.userId, UserStatus.OFFLINE);
+    
     this.logger.log('User with id=' + client.data.userId + ' has disconnected');
     this.usersService.updateSocketIdByUID(client.data.userId, null);
+  }
+
+  async changeUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
+    await this.usersService.updateUserStatusByUID(userId, newStatus);
+
+    // broadcast new user status to all users connected to the socket
+    const newUserStatus: NewUserStatusDTO = {
+      uid: userId,
+      newStatus: newStatus,
+    };
+    this.server.emit('newUserStatus', newUserStatus);
   }
 
   async achievementUnlocked(

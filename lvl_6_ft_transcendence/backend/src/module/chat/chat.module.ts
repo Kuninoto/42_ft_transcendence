@@ -19,7 +19,7 @@ import { RoomService } from './room.service';
     forwardRef(() => UsersModule),
     FriendshipsModule,
     forwardRef(() => GameModule),
-    ConnectionModule,
+    forwardRef(() => ConnectionModule),
   ],
   providers: [ChatGateway, ChatService, RoomService, MessageService],
   controllers: [ChatController],

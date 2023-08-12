@@ -7,10 +7,11 @@ import * as passport from 'passport';
 import { AppModule } from './app.module';
 import { AppCorsOption } from './common/options/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
+import { SpelunkerModule } from 'nestjs-spelunker';
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
-function checkRequiredEnvVariables() {
+function checkRequiredEnvVariables(): void {
   const requiredEnvVariables = [
     'POSTGRES_HOST',
     'POSTGRES_USER',
@@ -81,6 +82,15 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new Passport42ExceptionFilter());
   app.setGlobalPrefix('api');
+
+  const tree = SpelunkerModule.explore(app);
+  const root = SpelunkerModule.graph(tree);
+  const edges = SpelunkerModule.findGraphEdges(root);
+  console.log('graph LR');
+  const mermaidEdges = edges.map(
+    ({ from, to }) => `  ${from.module.name}-->${to.module.name}`,
+  );
+  console.log(mermaidEdges.join('\n'));
 
   await app.listen(3000, () => logger.log('Listening on port 3000'));
 }

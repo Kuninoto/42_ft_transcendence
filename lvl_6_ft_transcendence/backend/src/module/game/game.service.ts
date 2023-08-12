@@ -8,6 +8,7 @@ import { GameResult } from 'src/entity/game-result.entity';
 import { User } from 'src/typeorm/index';
 import { Repository } from 'typeorm';
 import { AchievementService } from '../achievement/achievement.service';
+import { ConnectionGateway } from '../connection/connection.gateway';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { UsersService } from '../users/users.service';
 import { Ball } from './Ball';
@@ -33,7 +34,9 @@ export class GameService {
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly userStatsService: UserStatsService,
+    @Inject(forwardRef(() => AchievementService))
     private readonly achievementsService: AchievementService,
+    private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(GameService.name);
@@ -47,7 +50,7 @@ export class GameService {
 
   public queueToLadder(player: Player): void {
     this.gameQueue.enqueue(player);
-    this.usersService.updateUserStatusByUID(player.userId, UserStatus.IN_QUEUE);
+    this.connectionGateway.changeUserStatus(player.userId, UserStatus.IN_QUEUE);
 
     // If there's no more players on the queue, assign the left side and keep him waiting
     if (this.gameQueue.size() === 1) {
@@ -89,13 +92,7 @@ export class GameService {
       await this.gameEngine.endGameDueToDisconnection(playerRoom, winnerSide);
     } else {
       // Remove player from queue if he was there
-      const leavingPlayer: Player =
-        this.gameQueue.removePlayerFromQueueByUID(playerUserId);
-
-      await this.usersService.updateUserStatusByUID(
-        leavingPlayer.userId,
-        UserStatus.ONLINE,
-      );
+      this.gameQueue.removePlayerFromQueueByUID(playerUserId);
     }
   }
 
