@@ -2,12 +2,13 @@ import { Inject, Logger, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
-import { ChatGateway } from '../chat/chat.gateway';
+import { ConnectionGateway } from '../connection/connection.gateway';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
@@ -17,15 +18,23 @@ import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameService } from './game.service';
 
-@WebSocketGateway({ namespace: 'game-gateway', cors: GatewayCorsOption })
-export class GameGateway {
+@WebSocketGateway({ cors: GatewayCorsOption })
+export class GameGateway implements OnGatewayInit {
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
-    private readonly chatGateway: ChatGateway,
+    private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(GameGateway.name);
+
+  afterInit(server: Server) {
+    this.logger.log('Game-Gateway Initialized');
+  }
+
+  /******************************
+   *          MESSAGES          *
+   ******************************/
 
   @SubscribeMessage('queueToLadder')
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
@@ -78,11 +87,11 @@ export class GameGateway {
     );
   }
 
-  broadcastGameRoomInfo(gameRoom: GameRoom): void {
-    if (!gameRoom) {
-      return;
-    }
+  /******************************
+   *           EVENTS           *
+   ******************************/
 
+  public broadcastGameRoomInfo(gameRoom: GameRoom): void {
     const { ball, leftPlayer, rightPlayer } = gameRoom;
 
     const gameRoomInfo: GameRoomInfoDTO = {
@@ -90,20 +99,24 @@ export class GameGateway {
       leftPlayer: { paddleY: leftPlayer.paddleY },
       rightPlayer: { paddleY: rightPlayer.paddleY },
     };
-    this.chatGateway.server
+    this.connectionGateway.server
       .to(gameRoom.roomId)
       .emit('gameRoomInfo', gameRoomInfo);
   }
 
-  broadcastGameEnd(gameRoomId: string, winner: Player, loser: Player): void {
+  public broadcastGameEnd(
+    gameRoomId: string,
+    winner: Player,
+    loser: Player,
+  ): void {
     const gameEnd: GameEndDTO = {
       winner: { userId: winner.userId, score: winner.score },
       loser: { userId: loser.userId, score: loser.score },
     };
-    this.chatGateway.server.to(gameRoomId).emit('gameEnd', gameEnd);
+    this.connectionGateway.server.to(gameRoomId).emit('gameEnd', gameEnd);
   }
 
-  emitPlayerScoredEvent(
+  public emitPlayerScoredEvent(
     gameRoomId: string,
     leftPlayerScore: number,
     rightPlayerScore: number,
@@ -113,7 +126,7 @@ export class GameGateway {
       rightPlayerScore: rightPlayerScore,
     };
 
-    this.chatGateway.server
+    this.connectionGateway.server
       .to(gameRoomId)
       .emit('playerScored', playerScoredDTO);
   }

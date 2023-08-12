@@ -44,8 +44,6 @@ export class GameEngineService {
 
   public startGame(roomId: string): void {
     const gameRoom: GameRoom = this.gameRoomsMap.findGameRoomById(roomId);
-    gameRoom.onGoing = true;
-
     gameRoom.gameLoopIntervalId = setInterval(() => {
       // Fetch the game room info (which can possibly be updated by
       // game-gateway on 'paddle-move' message) and pass it to the gameLoop()

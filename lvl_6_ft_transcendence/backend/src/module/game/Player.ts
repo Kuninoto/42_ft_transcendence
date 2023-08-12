@@ -1,6 +1,6 @@
-import { CANVAS_MID_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 import { Socket } from 'socket.io';
 import { PlayerSide } from 'src/common/types/player-side.enum';
+import { CANVAS_MID_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 
 export const PADDLE_HEIGHT: number = 80;
 export const PADDLE_WIDTH: number = 10;

@@ -2,24 +2,19 @@ import { Inject, Logger, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { ChatRoomMessageI } from 'src/common/types/chat-room-message.interface';
 import { DirectMessageI } from 'src/common/types/direct-message.interface';
-import { Achievements } from 'src/entity/achievement.entity';
 import { User } from 'src/entity/user.entity';
-import { AuthService } from 'src/module/auth/auth.service';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { ChatRoom } from 'src/typeorm';
-import { GameService } from '../game/game.service';
+import { ConnectionGateway } from '../connection/connection.gateway';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { InviteToRoomDTO } from './dto/invite-to-room.dto';
 import { JoinRoomDTO } from './dto/join-room.dto';
@@ -29,23 +24,16 @@ import { MessageService } from './message.service';
 import { RoomService } from './room.service';
 
 @WebSocketGateway({
-  namespace: 'chat',
   cors: GatewayCorsOption,
 })
-export class ChatGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
-  @WebSocketServer()
-  public server: Server;
-
+export class ChatGateway implements OnGatewayInit {
   constructor(
-    private readonly authService: AuthService,
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly friendshipService: FriendshipsService,
-    private readonly gameService: GameService,
     private readonly roomService: RoomService,
     private readonly messageService: MessageService,
+    private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(ChatGateway.name);
@@ -54,47 +42,9 @@ export class ChatGateway
     this.logger.log('Chat-Gateway Initialized');
   }
 
-  async handleConnection(socket: Socket) {
-    try {
-      const user: User =
-        await this.authService.authenticateClientAndRetrieveUser(socket);
-      this.usersService.updateSocketIdByUID(user.id, socket.id);
-
-      this.roomService.joinUserRooms(
-        socket,
-        await this.usersService.findChatRoomsWhereUserIs(user.id),
-      );
-
-      socket.data.userId = user.id;
-      this.logger.log(
-        '"' + socket.data.user.name + '" connected to the chat socket',
-      );
-    } catch {
-      socket.disconnect();
-    }
-  }
-
-  async handleDisconnect(client: Socket): Promise<void> {
-    await this.gameService.disconnectPlayer(client.id);
-    if (!client.data.userId) {
-      this.logger.log('Undefined intruder has disconnected');
-    } else {
-      this.logger.log(
-        'User with id=' + client.data.userId + ' has disconnected',
-      );
-      this.usersService.updateSocketIdByUID(client.data.userId, null);
-    }
-  }
-
-  async achievementUnlocked(
-    userId: number,
-    achievement: Achievements,
-  ): Promise<void> {
-    const socketId: string = await this.usersService.findSocketIdbyUID(userId);
-    this.server
-      .to(socketId)
-      .emit('achievementUnlocked', { achievement: achievement });
-  }
+  /******************************
+   *          MESSAGES          *
+   ******************************/
 
   @SubscribeMessage('createRoom')
   async onCreateRoom(
@@ -169,7 +119,7 @@ export class ChatGateway
       return;
     }
 
-    this.server.to(invited.socketId).emit('roomInvite', {
+    this.connectionGateway.server.to(invited.socketId).emit('roomInvite', {
       inviterId: socket.data.user.id,
       roomName: messageBody.roomName,
     });
@@ -258,7 +208,9 @@ export class ChatGateway
         messageBody.receiverUID,
         messageBody.text,
       );
-    this.server.to(receiverSocketId).emit('newDirectMessage', newDirectMessage);
+    this.connectionGateway.server
+      .to(receiverSocketId)
+      .emit('newDirectMessage', newDirectMessage);
   }
 
   /*

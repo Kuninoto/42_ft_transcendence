@@ -14,6 +14,7 @@ import { GameModule } from './module/game/game.module';
 import { MeModule } from './module/me/me.module';
 import { UserStatsModule } from './module/user-stats/user-stats.module';
 import entities from './typeorm/index';
+import { ConnectionModule } from './module/connection/connection.module';
 
 @Module({
   imports: [
@@ -50,14 +51,14 @@ import entities from './typeorm/index';
     }),
     AchievementModule,
     AuthModule,
+    ChatModule,
     FriendshipsModule,
     GameModule,
     MeModule,
     UserStatsModule,
     UsersModule,
-    ChatModule,
+    ConnectionModule,
   ],
-  controllers: [],
   providers: [JwtAuthGuard],
 })
 export class AppModule {}

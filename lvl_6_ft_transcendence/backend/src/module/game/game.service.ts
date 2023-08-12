@@ -49,7 +49,7 @@ export class GameService {
     this.gameQueue.enqueue(player);
     this.usersService.updateUserStatusByUID(player.userId, UserStatus.IN_QUEUE);
 
-    // If there's no other player waiting, assign the left side and keep him waiting
+    // If there's no more players on the queue, assign the left side and keep him waiting
     if (this.gameQueue.size() === 1) {
       player.setPlayerSide(PlayerSide.LEFT);
     } else {
@@ -62,24 +62,35 @@ export class GameService {
     }
   }
 
-  public async disconnectPlayer(playerClientId: string): Promise<void> {
+  /**
+   * Disconnects a player from the game mechanism.
+   *
+   * If he was on the queue, leaves;
+   * If he was an on an on-going game, the remaining player wins.
+   * If he wasn't in neither of the above, does nothing.
+   * @param playerUserId userId of the disconnecting player
+   */
+  public async disconnectPlayer(playerUserId: number): Promise<void> {
     const playerRoom: GameRoom | null =
-      this.gameRoomsMap.findRoomWithPlayerByClientId(playerClientId);
+      this.gameRoomsMap.findRoomWithPlayerByUID(playerUserId);
 
-    // If a room with player is found its because he was on an on going game
+    /* If a room with the disconnecting player is found
+    it's because he was on an on-going game.
+    Upon game end we delete the gameRoom from the gameRoomsMap */
     if (playerRoom) {
-      // If the left player's client id === disconnected player's client Id
-      // right player winned
+      // If the left player's client id === disconnecting player's userId
+      // Right player winned
+      // else Left player winned
       const winnerSide: PlayerSide =
-        playerRoom.leftPlayer.client.id === playerClientId
+        playerRoom.leftPlayer.userId === playerUserId
           ? PlayerSide.RIGHT
           : PlayerSide.LEFT;
 
       await this.gameEngine.endGameDueToDisconnection(playerRoom, winnerSide);
     } else {
-      // Player was on queue
+      // Remove player from queue if he was there
       const leavingPlayer: Player =
-        this.gameQueue.removePlayerFromQueueByClientId(playerClientId);
+        this.gameQueue.removePlayerFromQueueByUID(playerUserId);
 
       await this.usersService.updateUserStatusByUID(
         leavingPlayer.userId,
@@ -142,10 +153,6 @@ export class GameService {
     this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
-  public getGameRoomInfo(gameRoomId: string): GameRoom | undefined {
-    return this.gameRoomsMap.findGameRoomById(gameRoomId);
-  }
-
   public async findGameResultsWhereUserPlayed(
     userId: number,
   ): Promise<GameResult[]> {
@@ -154,55 +161,6 @@ export class GameService {
       relations: { winner: true, loser: true },
     });
     return gameResults;
-  }
-
-  private async joinPlayersToRoom(
-    playerOne: Player,
-    playerTwo: Player,
-  ): Promise<void> {
-    const roomId: string = crypto.randomUUID();
-
-    // Join both players to the same room
-    playerOne.client.join(roomId);
-    playerTwo.client.join(roomId);
-
-    // Determine the left and right players based on their 'side' property
-    // assigned earlier based on who first entered the queue
-    const { leftPlayer, rightPlayer } =
-      playerOne.side === PlayerSide.LEFT
-        ? { leftPlayer: playerOne, rightPlayer: playerTwo }
-        : { leftPlayer: playerTwo, rightPlayer: playerOne };
-
-    this.gameRoomsMap.createNewGameRoom({
-      roomId: roomId,
-      gameType: GameType.LADDER,
-      ball: new Ball(),
-      leftPlayer: leftPlayer,
-      rightPlayer: rightPlayer,
-      onGoing: false,
-    });
-
-    // Emit 'opponentFound' event to both players
-    await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
-    await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
-  }
-
-  private async emitOpponentFoundEvent(
-    player: Player,
-    roomId: string,
-    opponentUID: number,
-  ): Promise<void> {
-    const opponentInfo: UserSearchInfo =
-      await this.usersService.findUserSearchInfoByUID(
-        player.userId,
-        opponentUID,
-      );
-
-    player.client.emit('opponentFound', {
-      roomId: roomId,
-      side: player.side,
-      opponentInfo: opponentInfo,
-    });
   }
 
   public async gameEnded(
@@ -229,6 +187,54 @@ export class GameService {
       winner.userId,
       loser.userId,
     );
+  }
+
+  private async joinPlayersToRoom(
+    playerOne: Player,
+    playerTwo: Player,
+  ): Promise<void> {
+    const roomId: string = crypto.randomUUID();
+
+    // Join both players to the same room
+    playerOne.client.join(roomId);
+    playerTwo.client.join(roomId);
+
+    // Determine the left and right players based on their 'side' property
+    // assigned earlier based on who first entered the queue
+    const { leftPlayer, rightPlayer } =
+      playerOne.side === PlayerSide.LEFT
+        ? { leftPlayer: playerOne, rightPlayer: playerTwo }
+        : { leftPlayer: playerTwo, rightPlayer: playerOne };
+
+    this.gameRoomsMap.createNewGameRoom({
+      roomId: roomId,
+      gameType: GameType.LADDER,
+      ball: new Ball(),
+      leftPlayer: leftPlayer,
+      rightPlayer: rightPlayer,
+    });
+
+    // Emit 'opponentFound' event to both players
+    await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
+    await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
+  }
+
+  private async emitOpponentFoundEvent(
+    player: Player,
+    roomId: string,
+    opponentUID: number,
+  ): Promise<void> {
+    const opponentInfo: UserSearchInfo =
+      await this.usersService.findUserSearchInfoByUID(
+        player.userId,
+        opponentUID,
+      );
+
+    player.client.emit('opponentFound', {
+      roomId: roomId,
+      side: player.side,
+      opponentInfo: opponentInfo,
+    });
   }
 
   private async saveGameResult(
