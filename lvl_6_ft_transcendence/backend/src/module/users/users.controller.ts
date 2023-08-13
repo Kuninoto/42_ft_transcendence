@@ -14,7 +14,6 @@ import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { User } from 'src/typeorm/index';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { UsersService } from './users.service';
-
 import { UserProfile } from '../../common/types/user-profile.interface';
 import { UserSearchInfo } from '../../common/types/user-search-info.interface';
 
@@ -27,7 +26,7 @@ export class UsersController {
   private readonly logger: Logger = new Logger(UsersController.name);
 
   /**
-   * GET /api/users?username=
+   * GET /api/users/search?username=
    *
    * This is the route to visit to search for UserSearchInfo
    * by username proximity

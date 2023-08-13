@@ -9,6 +9,8 @@ import {
 import { Repository } from 'typeorm';
 import { ConnectionGateway } from '../connection/connection.gateway';
 
+const FIRST_ACHIEVEMENT_TIMEOUT: number = 10;
+
 @Injectable()
 export class AchievementService {
   constructor(
@@ -21,11 +23,11 @@ export class AchievementService {
   private readonly logger: Logger = new Logger(AchievementService.name);
 
   public async grantPongFightMaestro(userId: number): Promise<void> {
-    await this.grantAchievement(userId, Achievements.PONGFIGHT_MAESTRO);
+    await this.grantAchievement(userId, Achievements.PONGFIGHT_MAESTRO, FIRST_ACHIEVEMENT_TIMEOUT);
   }
 
   public async grantNewPongFighter(userId: number): Promise<void> {
-    await this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER);
+    await this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER, FIRST_ACHIEVEMENT_TIMEOUT);
   }
 
   public async grantWinsAchievementsIfEligible(
@@ -151,13 +153,20 @@ export class AchievementService {
   private async grantAchievement(
     userId: number,
     achievement: Achievements,
+    timeout?: number,
   ): Promise<void> {
     this.achievementRepository.save({
       achievement: achievement,
       user: { id: userId },
     });
 
-    this.connectionGateway.achievementUnlocked(userId, achievement);
+    if (timeout) {
+      setTimeout(() => {
+        this.connectionGateway.achievementUnlocked(userId, achievement);
+      }, timeout)
+    } else {
+      this.connectionGateway.achievementUnlocked(userId, achievement);
+    }
     this.logger.log(
       'User with id=' + userId + ' just received ' + achievement + '!',
     );
