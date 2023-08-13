@@ -29,7 +29,6 @@ import { UserSearchInfo } from '../../common/types/user-search-info.interface';
 import { UserStatus } from '../../common/types/user-status.enum';
 import { AchievementService } from '../achievement/achievement.service';
 import { FriendshipsService } from '../friendships/friendships.service';
-import { GameService } from '../game/game.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 
@@ -41,8 +40,8 @@ export class UsersService {
     private readonly userStatsService: UserStatsService,
     @Inject(forwardRef(() => FriendshipsService))
     private readonly friendshipsService: FriendshipsService,
-    @Inject(forwardRef(() => GameService))
-    private readonly gameService: GameService,
+    @InjectRepository(GameResult)
+    private readonly gameResultRepository: Repository<GameResult>,
     private readonly achievementService: AchievementService,
   ) {}
 
@@ -211,8 +210,11 @@ export class UsersService {
   public async findMatchHistoryByUID(
     userId: number,
   ): Promise<GameResultInterface[]> {
-    const gameResults: GameResult[] =
-      await this.gameService.findGameResultsWhereUserPlayed(userId);
+    // Find game results where winner or loser id = userId
+    const gameResults: GameResult[] = await this.gameResultRepository.find({
+      where: [{ winner: { id: userId } }, { loser: { id: userId } }],
+      relations: { winner: true, loser: true },
+    });
 
     const matchHistory: GameResultInterface[] = gameResults.map(
       (gameResult) => {

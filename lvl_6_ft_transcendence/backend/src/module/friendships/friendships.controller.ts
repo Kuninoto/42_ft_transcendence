@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -60,7 +61,7 @@ export class FriendshipsController {
     description:
       "If there's already a friend request between the two users (sender & receiver) or if sender & receiver are already friends",
   })
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Post('send-request/:receiverId')
   public async sendFriendRequest(
     @Req() req: { user: User },
@@ -143,7 +144,7 @@ export class FriendshipsController {
   @ApiNotFoundResponse({
     description: "If user with id=userToBlockId doesn't exist",
   })
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Post('block/:userToBlockId')
   public async blockUser(
     @Req() req: { user: User },

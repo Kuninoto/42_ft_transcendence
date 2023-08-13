@@ -7,14 +7,13 @@ import { join } from 'path';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { UsersModule } from 'src/module/users/users.module';
 import { AchievementModule } from './module/achievement/achievement.module';
-import { JwtAuthGuard } from './module/auth/guard/jwt-auth.guard';
 import { ChatModule } from './module/chat/chat.module';
+import { ConnectionModule } from './module/connection/connection.module';
 import { FriendshipsModule } from './module/friendships/friendships.module';
 import { GameModule } from './module/game/game.module';
 import { MeModule } from './module/me/me.module';
 import { UserStatsModule } from './module/user-stats/user-stats.module';
 import entities from './typeorm/index';
-import { ConnectionModule } from './module/connection/connection.module';
 
 @Module({
   imports: [
@@ -52,13 +51,12 @@ import { ConnectionModule } from './module/connection/connection.module';
     AchievementModule,
     AuthModule,
     ChatModule,
+    ConnectionModule,
     FriendshipsModule,
     GameModule,
     MeModule,
     UserStatsModule,
     UsersModule,
-    ConnectionModule,
   ],
-  providers: [JwtAuthGuard],
 })
 export class AppModule {}

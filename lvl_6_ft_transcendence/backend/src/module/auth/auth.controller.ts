@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpStatus,
   Logger,
   Patch,
   Post,
@@ -22,7 +23,6 @@ import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm/index';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
-import { UserStatus } from '../../common/types/user-status.enum';
 import { AuthService, twoFactorAuthDTO } from './auth.service';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
@@ -196,7 +196,7 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse({ description: 'If the OTP is invalid' })
   @UseGuards(JwtAuthGuard)
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
   public auth2fa(
     @Req() req: { user: User },
@@ -208,7 +208,7 @@ export class AuthController {
     );
 
     if (!isCodeValid) {
-      this.logger.error('A request was made with a invalid auth code (2FA)');
+      this.logger.warn('A request was made with a invalid auth code (2FA)');
       throw new UnauthorizedException('Invalid authentication code');
     }
 

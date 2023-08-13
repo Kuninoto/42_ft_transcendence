@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
 import { UserStatsInterface } from 'src/common/types/user-stats-interface.interface';
 import { User, UserStats } from 'src/typeorm';
 import { Repository } from 'typeorm';
+import { AchievementService } from '../achievement/achievement.service';
 
 @Injectable()
 export class UserStatsService {
   constructor(
     @InjectRepository(UserStats)
     private readonly userStatsRepository: Repository<UserStats>,
+    @Inject(forwardRef(() => AchievementService))
+    private readonly achievementService: AchievementService,
   ) {}
 
   public async createUserStats(forUser: User): Promise<UserStats> {
@@ -74,5 +77,18 @@ export class UserStatsService {
         'CAST(wins AS double precision) / (matches_played + 1) * 100.0',
       matches_played: () => 'matches_played + 1',
     });
+
+    const winnerWins: number = (await this.findUserStatsByUID(winnerUID)).wins;
+    const loserLosses: number = (await this.findUserStatsByUID(loserUID))
+      .losses;
+
+    await this.achievementService.grantWinsAchievementsIfEligible(
+      winnerUID,
+      winnerWins,
+    );
+    await this.achievementService.grantLossesAchievementsIfEligible(
+      loserUID,
+      loserLosses,
+    );
   }
 }

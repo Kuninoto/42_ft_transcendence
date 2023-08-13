@@ -30,7 +30,6 @@ export class ConnectionGateway
   constructor(
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
-    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly gameService: GameService,
     private readonly roomService: RoomService,
@@ -49,10 +48,11 @@ export class ConnectionGateway
       client.data.userId = user.id;
 
       await this.changeUserStatus(user.id, UserStatus.ONLINE);
-
       this.usersService.updateSocketIdByUID(user.id, client.id);
+
       this.roomService.joinUserRooms(client);
-      this.logger.log('"' + user.name + '" connected to the connection socket');
+
+      this.logger.log('"' + user.name + '" connected to the connection gateway');
     } catch (error) {
       this.logger.warn(error + '. disconnecting...');
       client.disconnect();
@@ -62,7 +62,7 @@ export class ConnectionGateway
   async handleDisconnect(client: Socket): Promise<void> {
     await this.gameService.disconnectPlayer(client.data.userId);
     await this.changeUserStatus(client.data.userId, UserStatus.OFFLINE);
-    
+
     this.logger.log('User with id=' + client.data.userId + ' has disconnected');
     this.usersService.updateSocketIdByUID(client.data.userId, null);
   }
@@ -70,7 +70,7 @@ export class ConnectionGateway
   async changeUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
     await this.usersService.updateUserStatusByUID(userId, newStatus);
 
-    // broadcast new user status to all users connected to the socket
+    // Broadcast new user status to all users connected to the socket
     const newUserStatus: NewUserStatusDTO = {
       uid: userId,
       newStatus: newStatus,

@@ -16,11 +16,10 @@ import { GameService } from './game.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([GameResult, UserStats]),
+    TypeOrmModule.forFeature([GameResult]),
     forwardRef(() => AuthModule),
     forwardRef(() => UsersModule),
     forwardRef(() => ConnectionGateway),
-    forwardRef(() => AchievementModule),
     UserStatsModule,
     forwardRef(() => ChatModule),
   ],
