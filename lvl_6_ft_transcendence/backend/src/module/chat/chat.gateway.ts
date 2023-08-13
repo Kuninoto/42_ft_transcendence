@@ -71,7 +71,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: JoinRoomDTO,
   ) {
     if (!this.isValidJoinRoomDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with client id=' +
           client.id +
           ' tried to send a wrong JoinRoomDTO',
@@ -107,7 +107,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: InviteToRoomDTO,
   ): Promise<void> {
     if (!this.isValidInviteToRoomDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with socket id=' +
           socket.id +
           ' tried to send a wrong InviteToRoomDTO',
@@ -137,7 +137,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: NewChatRoomMessageDTO,
   ): Promise<void> {
     if (!this.isValidNewChatRoomMessageDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with socket id=' +
           socket.id +
           ' tried to send a wrong NewChatRoomMessageDTO',
@@ -186,7 +186,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: OnDirectMessageDTO,
   ): Promise<void> {
     if (!this.isValidOnDirectMessageDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with socket id=' +
           socket.id +
           ' tried to send a wrong OnDirectMessageDTO',
@@ -234,7 +234,7 @@ export class ChatGateway implements OnGatewayInit {
   //   @MessageBody() messageBody: GameInviteDTO,
   // ): Promise<void> {
   //   /* if (!this.isValidGameInviteDTO(messageBody)) {
-  //     this.logger.error(
+  //     this.logger.warn(
   //       'Client with socket id=' +
   //         socket.id +
   //         ' tried to send a wrong GameInviteDTO',

@@ -71,7 +71,7 @@ export class GameGateway implements OnGatewayInit {
     @MessageBody() messageBody: GameInviteDTO
   ): Promise<void> {
     if (!this.isValidGameInviteMessage(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'User id=' +
           client.data.userId +
           ' tried to send a wrong GameInviteDTO',
@@ -115,7 +115,7 @@ export class GameGateway implements OnGatewayInit {
     @MessageBody() messageBody: PlayerReadyDTO,
   ): void {
     if (!this.isValidPlayerReadyMessage(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'User id=' +
           client.data.userId +
           ' tried to send a wrong PlayerReadyDTO',
@@ -133,7 +133,7 @@ export class GameGateway implements OnGatewayInit {
     @MessageBody() messageBody: PaddleMoveDTO,
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'User id=' +
           client.data.userId +
           ' tried to send a wrong PaddleMoveDTO',

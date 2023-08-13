@@ -169,7 +169,7 @@ export class MeController {
     this.logger.log('Updating "' + req.user.name + '"\'s username');
 
     if (!body.newUsername) {
-      this.logger.error(
+      this.logger.warn(
         'User which id=' + req.user.id + ' failed to update his username',
       );
       throw new BadRequestException(
@@ -256,7 +256,7 @@ export class MeController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!file) {
-      this.logger.error('"' + req.user.name + '" failed to upload his avatar');
+      this.logger.warn('"' + req.user.name + '" failed to upload his avatar');
       throw new BadRequestException('Invalid file');
     }
 
