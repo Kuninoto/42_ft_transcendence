@@ -55,15 +55,18 @@ export class ConnectionGateway
 
       this.logger.log('"' + user.name + '" connected!');
     } catch (error) {
-      this.logger.warn(error + '. disconnecting...');
+      this.logger.warn(error + '. Disconnecting...');
       client.disconnect();
     }
   }
 
   async handleDisconnect(client: Socket): Promise<void> {
+    if (!client.data.userId)
+      return;
+      
     await this.gameService.disconnectPlayer(client.data.userId);
     await this.changeUserStatus(client.data.userId, UserStatus.OFFLINE);
-
+      
     this.logger.log('User with id=' + client.data.userId + ' has disconnected');
     this.connectionService.deleteSocketIdByUID(client.data.userId);
   }
