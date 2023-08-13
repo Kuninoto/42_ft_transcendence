@@ -16,6 +16,8 @@ export enum Achievements {
   NEW_PONG_FIGHTER = 'New PongFighter',
   // 1 Win
   BEGINNERS_TRIUMPH = "Beginner's Triumph",
+  // Win due to opponent disconnection
+  UNEXPECTED_VICTORY = "Unexpected Victory",
   // 1 Loss
   FIRST_SETBACK = 'First Setback',
   // 1 Friend
@@ -35,6 +37,7 @@ export const AchievementDescriptions: Record<Achievements, string> = {
     "You've participated in the code orchestra, danced a cha-cha with bugs, and composed a masterpiece of pixelated harmony!",
   [Achievements.NEW_PONG_FIGHTER]: "I'm the newest pongfighter, let's FIGHT!",
   [Achievements.BEGINNERS_TRIUMPH]: 'First taste of victory!',
+  [Achievements.UNEXPECTED_VICTORY]: "You won, but we know it wasn't on 11",
   [Achievements.FIRST_SETBACK]: 'Maybe this is not that easy...',
   [Achievements.FIRST_BUDDY]: 'I thought friends was a myth',
   [Achievements.DECLINED_TOMORROW_BUDDIES]: 'Declined today, buddies tomorrow?',
