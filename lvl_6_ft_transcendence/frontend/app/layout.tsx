@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { ToastContainer } from 'react-toastify';
 import { ChatProvider } from '@/contexts/ChatContext'
 import { Press_Start_2P } from 'next/font/google'
 import { usePathname } from 'next/navigation'
@@ -8,8 +9,11 @@ import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
 
+import 'react-toastify/dist/ReactToastify.css';
+
 import Chat from './chat/page'
 import './globals.css'
+import { SocketProvider } from '@/contexts/SocketContext';
 
 const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
@@ -47,21 +51,35 @@ export default function RootLayout({
 	const handle = useFullScreenHandle()
 
 	return (
-		<AuthProvider>
-			<ChatProvider>
-				<html lang="en">
-					<body className={`overflow-hidden ${pressStart.className}`}>
-						<FullScreen handle={handle}>
-							<div className="h-screen bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80%">
-								{children}
-								<Chat />
-							</div>
+		<SocketProvider>
+			<AuthProvider>
+				<ChatProvider>
+					<html lang="en">
+						<body className={`overflow-hidden ${pressStart.className}`}>
+							<FullScreen handle={handle}>
+								<div className="h-screen bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80%">
+									{children}
+									<Chat />
+								</div>
 
-							<FixedPanel handle={handle} />
-						</FullScreen>
-					</body>
-				</html>
-			</ChatProvider>
-		</AuthProvider>
+								<FixedPanel handle={handle} />
+								<ToastContainer
+									position="top-right"
+									autoClose={5000}
+									hideProgressBar={false}
+									newestOnTop
+									closeOnClick
+									rtl={false}
+									pauseOnFocusLoss={false}
+									draggable
+									pauseOnHover={false}
+									theme="dark"
+								/>
+							</FullScreen>
+						</body>
+					</html>
+				</ChatProvider>
+			</AuthProvider>
+		</SocketProvider>
 	)
 }

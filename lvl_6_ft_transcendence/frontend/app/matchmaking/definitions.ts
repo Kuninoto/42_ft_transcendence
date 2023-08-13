@@ -1,4 +1,4 @@
-import { PlayerSide } from "@/common/types/backend/player-side.enum"
+import { PlayerSide } from '@/common/types/backend/player-side.enum'
 
 export const PADDLE_HEIGHT = 80
 export const PADDLE_WALL_OFFSET = 16
@@ -11,11 +11,10 @@ export const CANVAS_HEIGHT = 400
 export const CANVAS_WIDTH = 800
 
 export class Paddle {
-
-	#fixedSpeed: number = 0
-	#position: { x: number; y: number }
-
 	#emitPaddleMovement: (newY: number) => void
+	#fixedSpeed: number = 0
+
+	#position: { x: number; y: number }
 
 	constructor(emitPaddleMovement: (newY: number) => void, offset: number) {
 		this.#emitPaddleMovement = emitPaddleMovement
@@ -79,16 +78,16 @@ export class Paddle {
 		this.#fixedSpeed = 0
 	}
 
-	set y(position: number) {
-		this.#position.y = position
-	}
-
 	get x(): number {
 		return this.#position.x
 	}
 
 	get y(): number {
 		return this.#position.y
+	}
+
+	set y(position: number) {
+		this.#position.y = position
 	}
 }
 
@@ -98,17 +97,16 @@ export class Ball {
 		y: 0,
 	}
 
-	get x(): number {
-		return this.#position.x
-	}
-
-	move({ x, y } : {x : number, y: number}) {
+	move({ x, y }: { x: number; y: number }) {
 		this.#position.x = x
 		this.#position.y = y
+	}
+
+	get x(): number {
+		return this.#position.x
 	}
 
 	get y(): number {
 		return this.#position.y
 	}
-
 }

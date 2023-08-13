@@ -1,13 +1,13 @@
 'use client'
 
 import { useGame } from '@/contexts/GameContext'
-import Image from 'next/image'
-import io from "socket.io-client";
-import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import Image from 'next/image'
 
 export default function Loading() {
-	const { cancel } = useGame()
+	const { cancel, queue } = useGame()
+
+	useEffect(() => { queue() }, [])
 
 	return (
 		<div className="flex h-full">

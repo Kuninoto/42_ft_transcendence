@@ -1,22 +1,25 @@
 'use client'
 
+import { api } from '@/api/api'
+import { amount, themes } from '@/common/themes'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
-import { themes, amount } from '@/common/themes'
-import { api } from '@/api/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Themes() {
+
 	const [saving, setSaving] = useState(false)
+	const { refreshUser } = useAuth()
 
 	function save() {
-
 		setSaving(true)
 
 		api.patch("/me/game-theme", {
 			newGameTheme: themeKeys[selected]
 		}).finally(() => {
+			refreshUser()
 			setSaving(false)
 		})
 
@@ -26,21 +29,19 @@ export default function Themes() {
 
 	function goBackward() {
 		setSelected((prevSelect: number) => {
-			if (prevSelect == 0)
-				return amount - 1
+			if (prevSelect == 0) return amount - 1
 			return prevSelect - 1
-		} )
+		})
 	}
 
 	function goForward() {
-		setSelected((prevSelect : number) => {
-			if (prevSelect == amount - 1)
-				return 0
+		setSelected((prevSelect: number) => {
+			if (prevSelect == amount - 1) return 0
 			return prevSelect + 1
-		} )
+		})
 	}
 
-	const [ selected , setSelected ] = useState<number>(0)
+	const [selected, setSelected] = useState<number>(0)
 
 	return (
 		<>
@@ -51,27 +52,27 @@ export default function Themes() {
 				GO BACK
 			</Link>
 
-			<div className="flex overflow-hidden h-full w-full place-content-center items-center space-x-6">
+			<div className="flex h-full w-full place-content-center items-center space-x-6 overflow-hidden">
 				<button onClick={goBackward}>
 					<FiChevronLeft size={96} />
 				</button>
-				<div className="flex relative h-2/3 w-2/3 place-content-center items-center border-2 border-white">
+				<div className="relative flex h-2/3 w-2/3 place-content-center items-center border-2 border-white">
 					<button className="z-10" onClick={save}>
 						{saving ? 'SAVING...' : 'SAVE'}
 					</button>
-					<Image 
-						className="absolute"
-						src={`/game/backgrounds/${themes[themeKeys[selected]].background}`}
+					<Image
 						alt="background"
+						className="absolute"
 						fill
 						priority
+						src={`/game/backgrounds/${themes[themeKeys[selected]].background}`}
 					/>
-					<div className='absolute place-content-center flex w-3 h-24 left-4'>
-						<Image 
-							src={`/game/paddles/${themes[themeKeys[selected]].paddle}`}
+					<div className="absolute left-4 flex h-24 w-3 place-content-center">
+						<Image
 							alt="paddle"
 							fill
 							priority
+							src={`/game/paddles/${themes[themeKeys[selected]].paddle}`}
 						/>
 					</div>
 				</div>

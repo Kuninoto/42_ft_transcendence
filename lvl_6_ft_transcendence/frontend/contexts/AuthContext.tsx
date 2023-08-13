@@ -1,8 +1,9 @@
 import { api } from '@/api/api'
-import { ImageLoader } from 'next/image'
 import { UserProfile } from '@/common/type/backend/user-profile.interface'
+import { hasValues } from '@/common/utils/hasValues'
 import axios from 'axios'
-import { useRouter, usePathname } from 'next/navigation'
+import { ImageLoader } from 'next/image'
+import { usePathname, useRouter } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
@@ -10,16 +11,17 @@ import {
 	useEffect,
 	useState,
 } from 'react'
+import { useSocket } from './SocketContext'
 
-export const removeParams: ImageLoader = ({ src } : { src: string }) => {
-	return src.replace(/&?w=\d+&?/, '').replace(/&?p=\d+&?/, '');
-};
+export const removeParams: ImageLoader = ({ src }: { src: string }) => {
+	return src.replace(/&?w=\d+&?/, '').replace(/&?p=\d+&?/, '')
+}
 
 export interface AuthContextExports {
-	login: (code: string) => Promise<boolean> | void
+	login: (code: string) => void
 	logout: () => void
 	user: UserProfile | {}
-	refreshUser: (user: UserProfile) => void
+	refreshUser: () => void
 }
 
 const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
@@ -29,24 +31,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const pathname = usePathname()
 	const [user, setUser] = useState<{} | UserProfile>({})
 
-	useEffect(() => {
+	const { connect } = useSocket()
 
+	useEffect(() => {
 		const token = localStorage.getItem('pong.token')
 
-		if (token && pathname === "/" )
-			router.push("/dashboard")
-
 		if (token) {
-			api.get<UserProfile>('/me')
-				.then((result: axios) => setUser(result.data))
+			if ( pathname === "/") router.push('/dashboard')
+
+			api
+				.get<UserProfile>('/me')
+				.then((result) => {
+					if (hasValues(result.data)) setUser(result.data)
+					else logout()
+				})
 				.catch(() => logout())
-		} else if (pathname !== "/" && pathname !== "/auth") {
+		} 
+		else if (pathname !== '/' && pathname !== '/auth') {
 			router.push('/')
 		}
 	}, [])
 
-	function refreshUser(newUserInfo: UserProfile){
-		setUser(newUserInfo)
+	async function refreshUser() {
+		const user = await api.get("/me")
+		setUser(user.data)
 	}
 
 	function logout() {
@@ -55,35 +63,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	async function login(code: string) {
-		return await axios
+
+		const data = await axios
 			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
-			.then(async function (result: axios) {
-				localStorage.setItem('pong.token', result.data.access_token)
-				return await api.get(`/me`, {
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
-						},
-					})
-					.then(function (newUser : axios) {
-						setUser(newUser.data)
-						return true
-					})
-					.catch((error: axios) => {
-						console.error(error)
-						return false
-					})
-			})
-			.catch((err: axios) => {
-				console.error(err)
-				return false
-			})
+			.then(result => result.data)
+			.catch(() => { throw "Network error" })
+
+		localStorage.setItem('pong.token', data.accessToken)
+		const login = await api.get(`/me`, {
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+			},
+		})
+			.then(result => result.data)
+			.catch((e) => { throw(e.response.data.message)})
+
+		connect()
+
+		setUser(login)
 	}
 
 	const value: AuthContextExports = {
 		login,
 		logout,
+		refreshUser,
 		user,
-		refreshUser
 	}
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
