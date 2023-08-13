@@ -8,10 +8,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { PlayerSide } from 'src/common/types/player-side.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
+import { GameInviteDTO } from './dto/game-invite.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerReadyDTO } from './dto/player-ready.dto';
@@ -46,6 +48,39 @@ export class GameGateway implements OnGatewayInit {
 
     const newPlayer: Player = new Player(client, client.data.userId);
     this.gameService.queueToLadder(newPlayer);
+  }
+
+  @SubscribeMessage('gameInvite')
+  async gameInvite(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: GameInviteDTO
+  ): Promise<void> {
+    if (!this.isValidPaddleMoveMessage(messageBody)) {
+      this.logger.error(
+        'User id=' +
+          client.data.userId +
+          ' tried to send a wrong GameInviteDTO',
+      );
+      return;
+    }
+
+    if (this.gameService.isPlayerInQueueOrGame(client.data.userId)
+    ||  this.gameService.isPlayerInQueueOrGame(messageBody.uidToInvite)) {
+      return;
+    }
+
+    const newPlayer: Player = new Player(client, client.data.userId);
+    newPlayer.setPlayerSide(PlayerSide.LEFT);
+
+    // !TODO
+    // Wait for the invited player to accept the invite
+    // send 'invitedToGame' with acknowledge
+    // to wait for invited's answer
+
+    // Write a function on connectionGateway around these lines:
+
+    // this.connectionGateway.server.to(invitedSocketId).emit('invitedToGame',
+    //  invitedToGameDTO, (answer) => { resolve invited response })
   }
 
   // Listen for 'playerReady' messages
@@ -130,6 +165,15 @@ export class GameGateway implements OnGatewayInit {
     this.connectionGateway.server
       .to(gameRoomId)
       .emit('playerScored', playerScoredDTO);
+  }
+
+  private isValidGameInviteMessage(
+    messageBody: any,
+  ): messageBody is GameInviteDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.uidToInvite === 'number'
+    );
   }
 
   private isValidPaddleMoveMessage(
