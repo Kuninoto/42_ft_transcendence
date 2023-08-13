@@ -23,19 +23,20 @@ export function SocketProvider({ children }: { children: ReactNode }) {
                 Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
             },
         })
+
+
+        socket.on("achievementUnlocked", () => {
+            toast.warning("🎉 New achievement unlocked!", {
+                position: "bottom-right",
+                icon: false
+            })
+        })
     }
 
 	useEffect(() => {
 		if (localStorage.getItem('pong.token')) {
             connect()
 		} 
-
-        socket?.on("achievementUnlocked", () => {
-            toast.warning("🎉 New achievement unlocked!", {
-                position: "bottom-right",
-                icon: false
-            })
-        })
 	}, [])
 
 	const value: SocketContextType = {
