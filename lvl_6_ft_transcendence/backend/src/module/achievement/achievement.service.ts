@@ -30,6 +30,17 @@ export class AchievementService {
     await this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER, FIRST_ACHIEVEMENT_TIMEOUT);
   }
 
+  public async grantUnexpectedVictory(userId: number): Promise<void> {
+    if (
+      !(await this.userAlreadyHaveThisAchievement(
+        userId,
+        Achievements.DECLINED_TOMORROW_BUDDIES,
+      ))
+    ) {
+      await this.grantAchievement(userId, Achievements.UNEXPECTED_VICTORY);
+    }
+  }
+
   public async grantWinsAchievementsIfEligible(
     userId: number,
     nrWins: number,
@@ -96,28 +107,24 @@ export class AchievementService {
 
   public async grantDeclinedTomorrowBuddies(userId: number): Promise<void> {
     if (
-      await this.userAlreadyHaveThisAchievement(
+      !(await this.userAlreadyHaveThisAchievement(
         userId,
         Achievements.DECLINED_TOMORROW_BUDDIES,
-      )
+      ))
     ) {
-      return;
+      await this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
     }
-
-    await this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
   }
 
   public async grantBreakingThePaddleBond(userId: number): Promise<void> {
     if (
-      await this.userAlreadyHaveThisAchievement(
+      !(await this.userAlreadyHaveThisAchievement(
         userId,
         Achievements.BREAKING_THE_PADDLE_BOND,
-      )
+      ))
     ) {
-      return;
+      await this.grantAchievement(userId, Achievements.BREAKING_THE_PADDLE_BOND);
     }
-
-    await this.grantAchievement(userId, Achievements.BREAKING_THE_PADDLE_BOND);
   }
 
   public async findAchievementsByUID(

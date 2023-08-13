@@ -245,6 +245,7 @@ export class FriendshipsService {
       where: { id: friendshipId },
       relations: {
         sender: true,
+        receiver: true,
       },
     });
 
@@ -287,11 +288,20 @@ export class FriendshipsService {
       friendship.status = newFriendshipStatus;
       await this.friendshipRepository.save(friendship);
 
-      const nrFriends: number = (await this.findFriendsByUID(user.id)).length;
+      const senderUID: number = friendship.sender.id;
+      const receiverUID: number = friendship.receiver.id;
+
+      const senderNrFriends: number = (await this.findFriendsByUID(friendship.sender.id)).length;
+      const receiverNrFriends: number = (await this.findFriendsByUID(friendship.receiver.id)).length;
 
       await this.achievementsService.grantFriendsAchievementsIfEligible(
-        user.id,
-        nrFriends,
+        senderUID,
+        senderNrFriends,
+      );
+
+      await this.achievementsService.grantFriendsAchievementsIfEligible(
+        receiverUID,
+        receiverNrFriends,
       );
     }
 
