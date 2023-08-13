@@ -124,7 +124,7 @@ export class AuthController {
       req.user.secret_2fa,
     );
     if (!is2faCodeValid) {
-      this.logger.error('A request was made with a wrong auth code (2FA)');
+      this.logger.warn('A request was made with a wrong auth code (2FA)');
       throw new BadRequestException('Wrong authentication code');
     }
 

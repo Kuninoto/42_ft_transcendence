@@ -87,6 +87,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.leftPlayer,
         gameRoom.rightPlayer,
+        false,
       );
     } else {
       // RIGHT PLAYER WINS
@@ -95,6 +96,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.rightPlayer,
         gameRoom.leftPlayer,
+        false,
       );
     }
   }
@@ -112,6 +114,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.leftPlayer,
         gameRoom.rightPlayer,
+        true,
       );
     } else {
       // RIGHT PLAYER WINS
@@ -120,6 +123,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.rightPlayer,
         gameRoom.leftPlayer,
+        true,
       );
     }
   }

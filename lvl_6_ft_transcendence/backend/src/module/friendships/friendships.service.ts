@@ -141,7 +141,7 @@ export class FriendshipsService {
     receiverUID: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (receiverUID == sender.id) {
-      this.logger.error(
+      this.logger.warn(
         '"' + sender.name + '" tried to add himself as a friend',
       );
       throw new BadRequestException('You cannot add yourself as a friend');
@@ -151,7 +151,7 @@ export class FriendshipsService {
       id: receiverUID,
     });
     if (!receiver) {
-      this.logger.error(
+      this.logger.warn(
         '"' +
           sender.name +
           '" tried to friend request a user that doesn\'t exist',
@@ -166,7 +166,7 @@ export class FriendshipsService {
       receiver.id,
     );
     if (isSenderBlocked) {
-      this.logger.error(
+      this.logger.warn(
         '"' +
           sender.name +
           '" tried to friend request "' +
@@ -183,7 +183,7 @@ export class FriendshipsService {
       receiver.id,
     );
     if (isReceiverBlocked) {
-      this.logger.error(
+      this.logger.warn(
         '"' +
           sender.name +
           '" tried to friend request "' +
@@ -198,7 +198,7 @@ export class FriendshipsService {
     const hasBeenSentAlready: boolean =
       await this.hasFriendRequestBeenSentAlready(sender.id, receiver.id);
     if (hasBeenSentAlready) {
-      this.logger.error(
+      this.logger.warn(
         '"' +
           sender.name +
           '" tried to friend request "' +
@@ -215,7 +215,7 @@ export class FriendshipsService {
       receiver,
     );
     if (areTheyFriends) {
-      this.logger.error(
+      this.logger.warn(
         '"' +
           sender.name +
           '" tried to friend request "' +
@@ -250,7 +250,7 @@ export class FriendshipsService {
     });
 
     if (!friendship) {
-      this.logger.error(
+      this.logger.warn(
         '"' +
           user.name +
           '" tried to update the status of a non-existing friendship',
@@ -264,7 +264,7 @@ export class FriendshipsService {
       (newFriendshipStatus == FriendshipStatus.ACCEPTED ||
         newFriendshipStatus == FriendshipStatus.DECLINED)
     ) {
-      this.logger.error(
+      this.logger.warn(
         '"' + user.name + '" tried to answer a friend request that he has sent',
       );
       throw new BadRequestException(
@@ -320,7 +320,7 @@ export class FriendshipsService {
     userToBlockId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (sender.id === userToBlockId) {
-      this.logger.error('"' + sender.name + '" tried to block himself');
+      this.logger.warn('"' + sender.name + '" tried to block himself');
       throw new ConflictException('You cannot block yourself');
     }
 
@@ -329,7 +329,7 @@ export class FriendshipsService {
     });
 
     if (!userToBlock) {
-      this.logger.error(
+      this.logger.warn(
         '"' + sender.name + '" tried to block a non-existing user',
       );
       throw new NotFoundException(
@@ -348,7 +348,7 @@ export class FriendshipsService {
     userToUnblockId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (sender.id == userToUnblockId) {
-      this.logger.error('"' + sender.name + '" tried to unblock himself');
+      this.logger.warn('"' + sender.name + '" tried to unblock himself');
       throw new ConflictException('You cannot unblock yourself');
     }
 
@@ -357,7 +357,7 @@ export class FriendshipsService {
     });
 
     if (!userToUnblock) {
-      this.logger.error(
+      this.logger.warn(
         '"' + sender.name + '" tried to unblock a non-existing user',
       );
       throw new NotFoundException(
@@ -483,7 +483,7 @@ export class FriendshipsService {
       userToBlock.id,
     );
     if (isAlreadyBlocked) {
-      this.logger.error(
+      this.logger.warn(
         '"' +
           userWhoIsBlocking.name +
           '" tried to block a already-blocked user',

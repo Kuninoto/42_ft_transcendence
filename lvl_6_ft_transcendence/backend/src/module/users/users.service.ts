@@ -243,7 +243,7 @@ export class UsersService {
   ): Promise<SuccessResponse | ErrorResponse> {
     // Check name length boundaries (4-10)
     if (newName.length < 4 || newName.length > 10) {
-      this.logger.error(
+      this.logger.warn(
         'User which id=' +
           userId +
           ' failed to update his username due to length boundaries',
@@ -256,7 +256,7 @@ export class UsersService {
     // Check if newName is only composed by
     // a-z, A-Z, 0-9, _ and -
     if (!newName.match('^[a-zA-Z0-9_-]+$')) {
-      this.logger.error(
+      this.logger.warn(
         'User which id=' +
           userId +
           ' failed to update his username due to using forbidden chars',
@@ -267,14 +267,14 @@ export class UsersService {
     }
 
     if (await this.isNameAlreadyTaken(newName)) {
-      this.logger.error(
+      this.logger.warn(
         'A request to update a name was made with a name already taken',
       );
       throw new ConflictException('Username is already taken');
     }
 
     if (await this.doesNameConflictWithAnyIntraName(newName, userId)) {
-      this.logger.error(
+      this.logger.warn(
         'A request to update a name was made with a intra name of another person',
       );
       throw new ConflictException(

@@ -46,7 +46,7 @@ export class RoomService {
       await this.usersService.findChatRoomsWhereUserIs(client.data.userId);
 
     if (!roomsToJoin) {
-      this.logger.error('No rooms to join');
+      this.logger.warn('No rooms to join');
       return;
     }
 
