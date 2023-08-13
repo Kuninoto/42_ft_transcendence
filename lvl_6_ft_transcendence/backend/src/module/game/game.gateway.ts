@@ -65,7 +65,7 @@ export class GameGateway implements OnGatewayInit {
     this.gameService.disconnectPlayer(client.data.userId);
   }
 
-  @SubscribeMessage('gameInvite')
+  /* @SubscribeMessage('gameInvite')
   async gameInvite(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: GameInviteDTO
@@ -106,7 +106,7 @@ export class GameGateway implements OnGatewayInit {
           this.gameService.joinPlayersToRoom(newPlayer, invitedPlayer)
           : dismiss
       })
-  }
+  } */
 
   // Listen for 'playerReady' messages
   @SubscribeMessage('playerReady')
