@@ -163,15 +163,17 @@ export class GameService {
     roomId: string,
     winner: Player,
     loser: Player,
+    wonByDisconnection: boolean,
   ): Promise<void> {
     this.gameGateway.broadcastGameEnd(roomId, winner, loser);
     this.gameRoomsMap.deleteGameRoomByRoomId(roomId);
 
     await this.saveGameResult(gameType, winner, loser);
-
+  
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
       loser.userId,
+      wonByDisconnection,
     );
   }
 

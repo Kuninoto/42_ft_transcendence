@@ -63,7 +63,7 @@ export class UserStatsService {
     return userStatsInterfaces;
   }
 
-  public async updateUserStatsUponGameEnd(winnerUID: number, loserUID: number) {
+  public async updateUserStatsUponGameEnd(winnerUID: number, loserUID: number, wonByDisconnection: boolean) {
     await this.userStatsRepository.update(winnerUID, {
       wins: () => 'wins + 1',
       win_rate: () =>
@@ -86,6 +86,11 @@ export class UserStatsService {
       winnerUID,
       winnerWins,
     );
+
+    if (wonByDisconnection) {
+      await this.achievementService.grantUnexpectedVictory(winnerUID);
+    }
+
     await this.achievementService.grantLossesAchievementsIfEligible(
       loserUID,
       loserLosses,
