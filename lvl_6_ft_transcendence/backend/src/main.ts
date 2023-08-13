@@ -83,15 +83,6 @@ async function bootstrap() {
   app.useGlobalFilters(new Passport42ExceptionFilter());
   app.setGlobalPrefix('api');
 
-  const tree = SpelunkerModule.explore(app);
-  const root = SpelunkerModule.graph(tree);
-  const edges = SpelunkerModule.findGraphEdges(root);
-  console.log('graph LR');
-  const mermaidEdges = edges.map(
-    ({ from, to }) => `  ${from.module.name}-->${to.module.name}`,
-  );
-  console.log(mermaidEdges.join('\n'));
-
   await app.listen(3000, () => logger.log('Listening on port 3000'));
 }
 
