@@ -18,19 +18,18 @@ import { FriendRequestInterface } from '../../common/types/friend-request.interf
 import { FriendshipStatus } from '../../common/types/friendship-status.enum';
 import { SuccessResponse } from '../../common/types/success-response.interface';
 import { AchievementService } from '../achievement/achievement.service';
-import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FriendshipsService {
   constructor(
-    @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
+    @Inject(forwardRef(() => AchievementService))
+    private readonly achievementsService: AchievementService,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
     @InjectRepository(Friendship)
     private readonly friendshipRepository: Repository<Friendship>,
     @InjectRepository(BlockedUser)
     private readonly blockedUserRepository: Repository<BlockedUser>,
-    @Inject(forwardRef(() => AchievementService))
-    private readonly achievementsService: AchievementService,
   ) {}
 
   private readonly logger: Logger = new Logger(FriendshipsService.name);
@@ -107,8 +106,12 @@ export class FriendshipsService {
   }
 
   public async getMyBlocklist(meUID: number): Promise<BlockedUserInterface[]> {
-    const myBlockedUsers: BlockedUser[] =
-      await this.usersService.findBlockedUsersByUID(meUID);
+    const myBlockedUsers: BlockedUser[] = (
+      await this.usersRepository.findOne({
+        where: { id: meUID },
+        relations: ['blocked_users', 'blocked_users.blocked_user'],
+      })
+    ).blocked_users;
 
     const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsers.map(
       (blockedUser) => {
@@ -144,9 +147,9 @@ export class FriendshipsService {
       throw new BadRequestException('You cannot add yourself as a friend');
     }
 
-    const receiver: User | null = await this.usersService.findUserByUID(
-      receiverUID,
-    );
+    const receiver: User | null = await this.usersRepository.findOneBy({
+      id: receiverUID,
+    });
     if (!receiver) {
       this.logger.error(
         '"' +
@@ -282,12 +285,14 @@ export class FriendshipsService {
     } else {
       // ACCEPTED
       friendship.status = newFriendshipStatus;
+      await this.friendshipRepository.save(friendship);
+
+      const nrFriends: number = (await this.findFriendsByUID(user.id)).length;
 
       await this.achievementsService.grantFriendsAchievementsIfEligible(
         user.id,
+        nrFriends,
       );
-
-      await this.friendshipRepository.save(friendship);
     }
 
     Logger.log(
@@ -309,9 +314,9 @@ export class FriendshipsService {
       throw new ConflictException('You cannot block yourself');
     }
 
-    const userToBlock: User | null = await this.usersService.findUserByUID(
-      userToBlockId,
-    );
+    const userToBlock: User | null = await this.usersRepository.findOneBy({
+      id: userToBlockId,
+    });
 
     if (!userToBlock) {
       this.logger.error(
@@ -337,9 +342,10 @@ export class FriendshipsService {
       throw new ConflictException('You cannot unblock yourself');
     }
 
-    const userToUnblock: User | null = await this.usersService.findUserByUID(
-      userToUnblockId,
-    );
+    const userToUnblock: User | null = await this.usersRepository.findOneBy({
+      id: userToUnblockId,
+    });
+
     if (!userToUnblock) {
       this.logger.error(
         '"' + sender.name + '" tried to unblock a non-existing user',

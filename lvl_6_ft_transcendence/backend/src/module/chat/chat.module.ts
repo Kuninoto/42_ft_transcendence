@@ -15,7 +15,6 @@ import { RoomService } from './room.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([ChatRoom, Message, DirectMessage]),
-    forwardRef(() => AuthModule),
     forwardRef(() => UsersModule),
     FriendshipsModule,
     forwardRef(() => GameModule),

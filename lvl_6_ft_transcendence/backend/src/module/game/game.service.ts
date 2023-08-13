@@ -7,7 +7,6 @@ import { UserStatus } from 'src/common/types/user-status.enum';
 import { GameResult } from 'src/entity/game-result.entity';
 import { User } from 'src/typeorm/index';
 import { Repository } from 'typeorm';
-import { AchievementService } from '../achievement/achievement.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { UsersService } from '../users/users.service';
@@ -34,8 +33,7 @@ export class GameService {
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly userStatsService: UserStatsService,
-    @Inject(forwardRef(() => AchievementService))
-    private readonly achievementsService: AchievementService,
+    @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
   ) {}
 
@@ -172,13 +170,6 @@ export class GameService {
     // Remove the hard coded Game Type
     // when 1v1 is implemented
     await this.saveGameResult(GameType.LADDER, winner, loser);
-
-    await this.achievementsService.grantWinsAchievementsIfEligible(
-      winner.userId,
-    );
-    await this.achievementsService.grantLossesAchievementsIfEligible(
-      loser.userId,
-    );
 
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,

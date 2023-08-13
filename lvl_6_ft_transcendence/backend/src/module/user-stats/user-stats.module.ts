@@ -1,10 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserStats } from 'src/typeorm';
+import { AchievementModule } from '../achievement/achievement.module';
 import { UserStatsService } from './user-stats.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserStats])],
+  imports: [
+    TypeOrmModule.forFeature([UserStats]),
+    forwardRef(() => AchievementModule),
+  ],
   providers: [UserStatsService],
   exports: [UserStatsService],
 })

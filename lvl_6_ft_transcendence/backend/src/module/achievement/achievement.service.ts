@@ -8,92 +8,93 @@ import {
 } from 'src/entity/achievement.entity';
 import { Repository } from 'typeorm';
 import { ConnectionGateway } from '../connection/connection.gateway';
-import { FriendshipsService } from '../friendships/friendships.service';
-import { UserStatsService } from '../user-stats/user-stats.service';
 
 @Injectable()
 export class AchievementService {
   constructor(
     @InjectRepository(Achievement)
     private readonly achievementRepository: Repository<Achievement>,
-    private readonly userStatsService: UserStatsService,
-    @Inject(forwardRef(() => FriendshipsService))
-    private readonly friendshipsService: FriendshipsService,
+    @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(AchievementService.name);
 
   public async grantPongFightMaestro(userId: number): Promise<void> {
-    this.grantAchievement(userId, Achievements.PONGFIGHT_MAESTRO);
+    await this.grantAchievement(userId, Achievements.PONGFIGHT_MAESTRO);
   }
 
   public async grantNewPongFighter(userId: number): Promise<void> {
-    this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER);
+    await this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER);
   }
 
-  public async grantWinsAchievementsIfEligible(userId: number): Promise<void> {
-    const nrWins: number = (
-      await this.userStatsService.findUserStatsByUID(userId)
-    ).wins;
-
+  public async grantWinsAchievementsIfEligible(
+    userId: number,
+    nrWins: number,
+  ): Promise<void> {
     if (
       nrWins === 1 &&
-      !this.userAlreadyHaveThisAchievement(
+      !(await this.userAlreadyHaveThisAchievement(
         userId,
         Achievements.BEGINNERS_TRIUMPH,
-      )
+      ))
     ) {
-      this.grantAchievement(userId, Achievements.BEGINNERS_TRIUMPH);
+      await this.grantAchievement(userId, Achievements.BEGINNERS_TRIUMPH);
     } else if (
       nrWins === 5 &&
-      !this.userAlreadyHaveThisAchievement(userId, Achievements.PONG_MASTER)
+      !(await this.userAlreadyHaveThisAchievement(
+        userId,
+        Achievements.PONG_MASTER,
+      ))
     ) {
-      this.grantAchievement(userId, Achievements.PONG_MASTER);
+      await this.grantAchievement(userId, Achievements.PONG_MASTER);
     }
   }
 
   public async grantLossesAchievementsIfEligible(
     userId: number,
+    nrLosses: number,
   ): Promise<void> {
     if (
-      this.userAlreadyHaveThisAchievement(userId, Achievements.FIRST_SETBACK)
+      await this.userAlreadyHaveThisAchievement(
+        userId,
+        Achievements.FIRST_SETBACK,
+      )
     ) {
       return;
     }
 
-    const nrLosses: number = (
-      await this.userStatsService.findUserStatsByUID(userId)
-    ).losses;
-
     if (nrLosses === 1) {
-      this.grantAchievement(userId, Achievements.FIRST_SETBACK);
+      await this.grantAchievement(userId, Achievements.FIRST_SETBACK);
     }
   }
 
   public async grantFriendsAchievementsIfEligible(
     userId: number,
+    nrFriends: number,
   ): Promise<void> {
-    const nrFriends: number = (
-      await this.friendshipsService.findFriendsByUID(userId)
-    ).length;
-
     if (
       nrFriends === 1 &&
-      !this.userAlreadyHaveThisAchievement(userId, Achievements.FIRST_BUDDY)
+      !(await this.userAlreadyHaveThisAchievement(
+        userId,
+        Achievements.FIRST_BUDDY,
+      ))
     ) {
-      this.grantAchievement(userId, Achievements.FIRST_BUDDY);
+      await this.grantAchievement(userId, Achievements.FIRST_BUDDY);
     } else if (
       nrFriends === 5 &&
-      !this.userAlreadyHaveThisAchievement(userId, Achievements.FRIENDLY)
+      !(await this.userAlreadyHaveThisAchievement(
+        userId,
+        Achievements.FRIENDLY,
+      ))
     ) {
-      this.grantAchievement(userId, Achievements.FRIENDLY);
+      await this.grantAchievement(userId, Achievements.FRIENDLY);
     }
   }
 
   public async grantDeclinedTomorrowBuddies(userId: number): Promise<void> {
     if (
-      this.userAlreadyHaveThisAchievement(
+      await this.userAlreadyHaveThisAchievement(
         userId,
         Achievements.DECLINED_TOMORROW_BUDDIES,
       )
@@ -101,12 +102,12 @@ export class AchievementService {
       return;
     }
 
-    this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
+    await this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
   }
 
   public async grantBreakingThePaddleBond(userId: number): Promise<void> {
     if (
-      this.userAlreadyHaveThisAchievement(
+      await this.userAlreadyHaveThisAchievement(
         userId,
         Achievements.BREAKING_THE_PADDLE_BOND,
       )
@@ -114,7 +115,7 @@ export class AchievementService {
       return;
     }
 
-    this.grantAchievement(userId, Achievements.BREAKING_THE_PADDLE_BOND);
+    await this.grantAchievement(userId, Achievements.BREAKING_THE_PADDLE_BOND);
   }
 
   public async findAchievementsByUID(
