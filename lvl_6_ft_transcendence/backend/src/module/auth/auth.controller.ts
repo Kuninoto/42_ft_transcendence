@@ -57,7 +57,7 @@ export class AuthController {
    * This is the route that the OAuth2 Provider (42)
    * will call (with the code param) after the user
    * is authenticated
-   * @returns JWT's access_token
+   * @returns JWT's access token and a boolean informing if user has 2fa
    */
   @ApiOkResponse({ description: 'The access token of the logged in user' })
   @UseGuards(FortyTwoAuthGuard)

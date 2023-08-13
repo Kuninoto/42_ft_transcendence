@@ -9,5 +9,4 @@ export const AppCorsOption: CorsOptions = {
 export const GatewayCorsOption: CorsOptions = {
   origin: process.env.FRONTEND_URL,
   methods: ['GET', 'POST'],
-  allowedHeaders: ['content-type'],
 };

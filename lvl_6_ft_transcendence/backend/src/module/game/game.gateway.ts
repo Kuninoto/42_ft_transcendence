@@ -22,8 +22,12 @@ import { GameService } from './game.service';
 import { ConnectionService } from '../connection/connection.service';
 import { GameInviteResponseDTO } from './dto/game-invite-response.dto';
 import { GameInviteResponse } from 'src/common/types/game-invite-response.enum';
+import { InvitedToGameDTO } from './dto/invited-to-game.dto';
 
-@WebSocketGateway({ cors: GatewayCorsOption })
+@WebSocketGateway({
+  namespace: 'connection',
+  cors: GatewayCorsOption
+})
 export class GameGateway implements OnGatewayInit {
   constructor(
     @Inject(forwardRef(() => GameService))
@@ -46,7 +50,7 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('queueToLadder')
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
-    this.logger.log('Player connected UID= ' + client.data.userId);
+    this.logger.log('Player UID= ' + client.data.userId + ' connected');
     if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) {
       return;
     }
@@ -55,7 +59,13 @@ export class GameGateway implements OnGatewayInit {
     this.gameService.queueToLadder(newPlayer);
   }
 
-  /* @SubscribeMessage('gameInvite')
+  @SubscribeMessage('leaveQueue')
+  async leaveQueue(@ConnectedSocket() client: Socket): Promise<void> {
+    this.logger.log('Player UID= ' + client.data.userId + ' disconnected');
+    this.gameService.disconnectPlayer(client.data.userId);
+  }
+
+  @SubscribeMessage('gameInvite')
   async gameInvite(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: GameInviteDTO
@@ -85,14 +95,18 @@ export class GameGateway implements OnGatewayInit {
     const socketIdToInvite: string =
       this.connectionService.findSocketIdByUID(messageBody.uidToInvite);
     
-    this.connectionGateway.server.to(socketIdToInvite).emit('invitedToGame',
-      null,
-      (answerBody: GameInviteResponseDTO) => {
-        answerBody.answer === GameInviteResponse.ACCEPT ?
-        this.gameService.joinPlayersToRoom(newPlayer, invitedPlayer)
-        : dismiss
+    const invitedToGame: InvitedToGameDTO = {
+      inviterUID: client.data.userId,
+    }
+    this.connectionGateway.server
+      .to(socketIdToInvite)
+      .emit('invitedToGame', invitedToGame,
+        (answerBody: GameInviteResponseDTO) => {
+          answerBody.answer === GameInviteResponse.ACCEPT ?
+          this.gameService.joinPlayersToRoom(newPlayer, invitedPlayer)
+          : dismiss
       })
-  } */
+  }
 
   // Listen for 'playerReady' messages
   @SubscribeMessage('playerReady')
