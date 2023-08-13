@@ -4,9 +4,10 @@ import { Socket } from 'socket.io';
 import { ChatRoomI } from 'src/common/types/chat-room.interface';
 import { User } from 'src/entity/user.entity';
 import { Repository } from 'typeorm';
-import { ChatRoom } from '../../entity/chat-room.entity';
+import { ChatRoom, ChatRoomType } from '../../entity/chat-room.entity';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { UsersService } from '../users/users.service';
+import { ChatRoomSearchInfo } from 'src/common/types/chat-room-search-info.interface';
 
 @Injectable()
 export class RoomService {
@@ -83,5 +84,27 @@ export class RoomService {
     if (!room) {
       return null;
     }
+  }
+
+  public async findRoomsByRoomNameProximity(
+    chatRoomNameQuery: string,
+  ): Promise<ChatRoomSearchInfo[]> {
+    const chatRooms: ChatRoom[] = await this.chatRoomRepository
+      .createQueryBuilder('chat_room')
+      .leftJoin('chat_room.owner', 'owner')
+      .where('chat_room.name LIKE :roomNameProximity', {
+        roomNameProximity: chatRoomNameQuery + '%',
+      })
+      .andWhere('chat_room.type NOT private')
+      .getMany();
+
+    const chatRommSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
+      (room: ChatRoom) => ({
+        name: room.name,
+        protected: room.type === ChatRoomType.PROTECTED ? true : false,
+      }),
+    );
+
+    return chatRommSearchInfos;
   }
 }

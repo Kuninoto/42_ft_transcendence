@@ -83,6 +83,7 @@ export class GameEngineService {
     if (gameRoom.leftPlayer.score === MAX_SCORE) {
       // LEFT PLAYER WINS
       await this.gameService.gameEnded(
+        gameRoom.gameType,
         gameRoom.roomId,
         gameRoom.leftPlayer,
         gameRoom.rightPlayer,
@@ -90,6 +91,7 @@ export class GameEngineService {
     } else {
       // RIGHT PLAYER WINS
       await this.gameService.gameEnded(
+        gameRoom.gameType,
         gameRoom.roomId,
         gameRoom.rightPlayer,
         gameRoom.leftPlayer,
@@ -106,6 +108,7 @@ export class GameEngineService {
     if (winnerSide === PlayerSide.LEFT) {
       // LEFT PLAYER WINS
       await this.gameService.gameEnded(
+        gameRoom.gameType,
         gameRoom.roomId,
         gameRoom.leftPlayer,
         gameRoom.rightPlayer,
@@ -113,6 +116,7 @@ export class GameEngineService {
     } else {
       // RIGHT PLAYER WINS
       await this.gameService.gameEnded(
+        gameRoom.gameType,
         gameRoom.roomId,
         gameRoom.rightPlayer,
         gameRoom.leftPlayer,

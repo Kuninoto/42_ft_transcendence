@@ -159,6 +159,7 @@ export class GameService {
   }
 
   public async gameEnded(
+    gameType: GameType,
     roomId: string,
     winner: Player,
     loser: Player,
@@ -166,10 +167,7 @@ export class GameService {
     this.gameGateway.broadcastGameEnd(roomId, winner, loser);
     this.gameRoomsMap.deleteGameRoomByRoomId(roomId);
 
-    // TODO
-    // Remove the hard coded Game Type
-    // when 1v1 is implemented
-    await this.saveGameResult(GameType.LADDER, winner, loser);
+    await this.saveGameResult(gameType, winner, loser);
 
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
