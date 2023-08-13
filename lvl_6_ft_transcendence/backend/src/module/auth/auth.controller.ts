@@ -16,14 +16,18 @@ import {
 import {
   ApiBadRequestResponse,
   ApiOkResponse,
+  ApiBody,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { AccessTokenInterface } from 'src/common/types/access-token-interface.interface';
 import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm/index';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
 import { AuthService, twoFactorAuthDTO } from './auth.service';
+import { LoginDTO } from './dto/login.dto';
+import { TwoFactorAuthCodeDTO } from './dto/two-factor-auth-code.dto';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 
@@ -59,10 +63,9 @@ export class AuthController {
   @UseGuards(FortyTwoAuthGuard)
   @Get('login/callback')
   public async loginCallback(
-    @Req() req: any,
-  ): Promise<{ access_token: string }> {
-    const jwt: { access_token: string } = this.authService.login(req.user);
-    return jwt;
+    @Req() req: { user: User },
+  ): Promise<LoginDTO> {
+    return this.authService.login(req.user);
   }
 
   /**
@@ -114,8 +117,8 @@ export class AuthController {
   @Patch('2fa/enable')
   public async enable2fa(
     @Req() req: { user: User },
-    @Body() body: { twoFactorAuthCode: string },
-  ): Promise<{ access_token: string } | ErrorResponse> {
+    @Body() body: TwoFactorAuthCodeDTO,
+  ): Promise<AccessTokenInterface | ErrorResponse> {
     const is2faCodeValid = this.authService.is2faCodeValid(
       body.twoFactorAuthCode,
       req.user.secret_2fa,
@@ -128,7 +131,7 @@ export class AuthController {
     this.logger.log('Enabling 2FA for "' + req.user.name + '"');
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
 
-    const jwt: { access_token: string } = this.authService.authenticate2fa(
+    const jwt: AccessTokenInterface = this.authService.authenticate2fa(
       req.user,
     );
 
@@ -194,14 +197,25 @@ export class AuthController {
     description:
       'A new access_token that proves that the user is two factor authenticated',
   })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['twoFactorAuthCode'],
+      properties: {
+        twoFactorAuthCode: {
+          type: 'string',
+        },
+      },
+    },
+  })
   @ApiUnauthorizedResponse({ description: 'If the OTP is invalid' })
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
   public auth2fa(
     @Req() req: { user: User },
-    @Body() body: { twoFactorAuthCode: string },
-  ): { access_token: string } | ErrorResponse {
+    @Body() body: TwoFactorAuthCodeDTO,
+  ): AccessTokenInterface | ErrorResponse {
     const isCodeValid = this.authService.is2faCodeValid(
       body.twoFactorAuthCode,
       req.user.secret_2fa,
