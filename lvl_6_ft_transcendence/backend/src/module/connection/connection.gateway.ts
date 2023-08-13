@@ -11,11 +11,13 @@ import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { Achievements } from 'src/entity/achievement.entity';
 import { User } from 'src/entity/user.entity';
-import { AuthService } from 'src/module/auth/auth.service';
 import { UsersService } from 'src/module/users/users.service';
+import { TokenPayload } from '../auth/strategy/jwt-auth.strategy';
 import { RoomService } from '../chat/room.service';
 import { GameService } from '../game/game.service';
 import { NewUserStatusDTO } from './dto/new-user-status.dto';
+import { JwtService } from '@nestjs/jwt';
+import { ConnectionService } from './connection.service';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -28,11 +30,11 @@ export class ConnectionGateway
   public server: Server;
 
   constructor(
-    @Inject(forwardRef(() => AuthService))
-    private readonly authService: AuthService,
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly gameService: GameService,
     private readonly roomService: RoomService,
+    private readonly connectionService: ConnectionService,
   ) {}
 
   private readonly logger: Logger = new Logger(ConnectionGateway.name);
@@ -44,11 +46,11 @@ export class ConnectionGateway
   async handleConnection(client: Socket): Promise<void> {
     try {
       const user: User =
-        await this.authService.authenticateClientAndRetrieveUser(client);
+        await this.connectionService.authenticateClientAndRetrieveUser(client);
       client.data.userId = user.id;
 
       await this.changeUserStatus(user.id, UserStatus.ONLINE);
-      this.usersService.updateSocketIdByUID(user.id, client.id);
+      this.connectionService.updateSocketIdByUID(user.id, client.id);
 
       this.roomService.joinUserRooms(client);
 
@@ -64,7 +66,7 @@ export class ConnectionGateway
     await this.changeUserStatus(client.data.userId, UserStatus.OFFLINE);
 
     this.logger.log('User with id=' + client.data.userId + ' has disconnected');
-    this.usersService.updateSocketIdByUID(client.data.userId, null);
+    this.connectionService.deleteSocketIdByUID(client.data.userId);
   }
 
   async changeUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
@@ -82,7 +84,8 @@ export class ConnectionGateway
     userId: number,
     achievement: Achievements,
   ): Promise<void> {
-    const socketId: string = await this.usersService.findSocketIdbyUID(userId);
+    const socketId: string = this.connectionService.findSocketIdByUID(userId);
+  
     this.server
       .to(socketId)
       .emit('achievementUnlocked', { achievement: achievement });

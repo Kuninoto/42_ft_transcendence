@@ -1,0 +1,75 @@
+import { Injectable, Logger} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/typeorm';
+import { Socket } from 'socket.io';
+import { TokenPayload } from '../auth/strategy/jwt-auth.strategy';
+import { JwtService } from '@nestjs/jwt';
+import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
+
+@Injectable()
+export class ConnectionService {
+  constructor(
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    private readonly jwtService: JwtService,
+    private userIdToSocketId: UserIdToSocketIdMap,
+  ) {}
+
+  private readonly logger: Logger = new Logger(ConnectionService.name);
+
+
+  public async authenticateClientAndRetrieveUser(
+    client: Socket,
+  ): Promise<User> {
+    const authHeader: string | undefined =
+      client.handshake.headers.authorization;
+    if (!authHeader) {
+      throw new Error('Unauthorized client, missing Auth Header');
+    }
+
+    // Authentication: Bearer xxxxx
+    // Get the token itself (xxxxx) without "Bearer"
+    const authToken: string = authHeader.split(' ')[1];
+
+    const user: User | null = await this.authClientFromAuthToken(authToken);
+
+    if (!user) {
+      throw new Error('Unauthorized client, unknown');
+    }
+
+    this.updateSocketIdByUID(user.id, client.id);
+    return user;
+  }
+
+  public findSocketIdByUID(userId: number): string | undefined {
+    return this.userIdToSocketId.findSocketIdByUID(userId);
+  }
+
+  public updateSocketIdByUID(userId: number, socketId: string): void {
+    this.userIdToSocketId.updateSocketIdByUID(userId, socketId);
+  }
+
+  public deleteSocketIdByUID(userId: number): void {
+    this.userIdToSocketId.deleteSocketIdByUID(userId);
+  }
+
+  private async authClientFromAuthToken(token: string): Promise<User | null> {
+    // verify() throws if JWT's signature is not valid
+    try {
+      const payload: TokenPayload = await this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      if (payload.has_2fa && !payload.is_2fa_authed) {
+        throw new Error('Unauthorized Client');
+      }
+
+      const userId: number = payload.id;
+
+      return await this.usersRepository.findOneBy({ id: userId });
+    } catch (error) {
+      return null;
+    }
+  }
+}

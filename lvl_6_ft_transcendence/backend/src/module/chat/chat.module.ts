@@ -22,6 +22,6 @@ import { RoomService } from './room.service';
   ],
   providers: [ChatGateway, ChatService, RoomService, MessageService],
   controllers: [ChatController],
-  exports: [ChatGateway],
+  exports: [ChatGateway, ChatService, RoomService, MessageService],
 })
 export class ChatModule {}

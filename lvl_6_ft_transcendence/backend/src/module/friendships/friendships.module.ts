@@ -8,7 +8,7 @@ import { FriendshipsService } from './friendships.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Friendship, BlockedUser]),
-    AchievementModule,
+    forwardRef(() => AchievementModule),
   ],
   controllers: [FriendshipsController],
   providers: [FriendshipsService],

@@ -1,10 +1,8 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
-import { Socket } from 'socket.io';
 import { User } from 'src/typeorm/index';
-import { UsersService } from '../users/users.service';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 export interface twoFactorAuthDTO {
@@ -15,9 +13,7 @@ export interface twoFactorAuthDTO {
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService,
-    @Inject(forwardRef(() => UsersService))
-    private usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
   private readonly logger: Logger = new Logger(AuthService.name);
@@ -81,8 +77,8 @@ export class AuthService {
     };
   }
 
-  public generateQRCodeDataURL(otpAuthURL: string): string {
-    return toDataURL(otpAuthURL);
+  public async generateQRCodeDataURL(otpAuthURL: string): Promise<string> {
+    return await toDataURL(otpAuthURL);
   }
 
   public is2faCodeValid(
@@ -93,72 +89,5 @@ export class AuthService {
       token: twoFactorAuthCode,
       secret: secret_2fa,
     });
-  }
-
-  /****************************
-   *     Socket's User Auth    *
-   *****************************/
-
-  private async authClientFromAuthToken(token: string): Promise<User | null> {
-    // verify() throws if JWT's signature is not valid
-    try {
-      const payload: TokenPayload = await this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
-      });
-
-      if (payload.has_2fa && !payload.is_2fa_authed) {
-        throw new Error('Unauthorized Client');
-      }
-
-      const userId: number = payload.id;
-
-      return this.usersService.findUserByUID(userId);
-    } catch (error) {
-      return null;
-    }
-  }
-
-  public async authenticateClientAndRetrieveUID(
-    client: Socket,
-  ): Promise<number> {
-    const authHeader: string | undefined =
-      client.handshake.headers.authorization;
-    if (!authHeader) {
-      throw new Error('Unauthorized client: missing Authorization header');
-    }
-
-    // Authentication: Bearer xxxxx
-    // Get the token itself (xxxxx) without "Bearer"
-    const authToken: string = authHeader.split(' ')[1];
-
-    const user: User | null = await this.authClientFromAuthToken(authToken);
-
-    if (!user) {
-      throw new Error('Unauthorized client: unknown');
-    }
-
-    return user.id;
-  }
-
-  public async authenticateClientAndRetrieveUser(
-    client: Socket,
-  ): Promise<User> {
-    const authHeader: string | undefined =
-      client.handshake.headers.authorization;
-    if (!authHeader) {
-      throw new Error('Unauthorized client, missing Auth Header');
-    }
-
-    // Authentication: Bearer xxxxx
-    // Get the token itself (xxxxx) without "Bearer"
-    const authToken: string = authHeader.split(' ')[1];
-
-    const user: User | null = await this.authClientFromAuthToken(authToken);
-
-    if (!user) {
-      throw new Error('Unauthorized client, unknown');
-    }
-
-    return user;
   }
 }

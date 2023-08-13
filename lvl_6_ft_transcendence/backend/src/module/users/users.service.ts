@@ -254,15 +254,15 @@ export class UsersService {
     }
 
     // Check if newName is only composed by
-    // a-z, A-Z, 0-9 and _
-    if (!newName.match('^[a-zA-Z0-9_]+$')) {
+    // a-z, A-Z, 0-9, _ and -
+    if (!newName.match('^[a-zA-Z0-9_-]+$')) {
       this.logger.error(
         'User which id=' +
           userId +
           ' failed to update his username due to using forbidden chars',
       );
       throw new BadRequestException(
-        'Usernames must only use a-z, A-Z, 0-9 and _',
+        'Usernames must only use a-z, A-Z, 0-9, _ and -',
       );
     }
 
@@ -335,21 +335,6 @@ export class UsersService {
       last_updated_at: new Date(),
     });
     return { message: 'Successfully updated game theme' };
-  }
-
-  public async findSocketIdbyUID(userId: number): Promise<string | null> {
-    const user: User | null = await this.usersRepository.findOneBy({
-      id: userId,
-    });
-    return user?.socketId;
-  }
-
-  public async updateSocketIdByUID(
-    userId: number,
-    newSocketId: string,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userId, { socketId: newSocketId });
-    return { message: 'Successfully updated socketId' };
   }
 
   /**********************************
