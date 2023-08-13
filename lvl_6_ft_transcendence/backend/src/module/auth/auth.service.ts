@@ -2,7 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
+import { AccessTokenInterface } from 'src/common/types/access-token-interface.interface';
 import { User } from 'src/typeorm/index';
+import { LoginDTO } from './dto/login.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 export interface twoFactorAuthDTO {
@@ -19,7 +21,7 @@ export class AuthService {
   private readonly logger: Logger = new Logger(AuthService.name);
 
   // Return the signed JWT as access_token
-  public login(user: User): { access_token: string } {
+  public login(user: User): LoginDTO {
     const payload: TokenPayload = {
       id: user.id,
       has_2fa: user.has_2fa,
@@ -27,12 +29,13 @@ export class AuthService {
 
     this.logger.log('"' + user.name + '" logged in with 42 auth!');
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload),
+      has2fa: user.has_2fa,
     };
   }
 
   // Return the signed JWT as access_token
-  public authenticate2fa(user: User): { access_token: string } {
+  public authenticate2fa(user: User): AccessTokenInterface {
     const payload: TokenPayload = {
       id: user.id,
       has_2fa: true,
