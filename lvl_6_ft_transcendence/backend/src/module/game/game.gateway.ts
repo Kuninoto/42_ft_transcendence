@@ -13,16 +13,16 @@ import { ConnectionGateway } from '../connection/connection.gateway';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
-import { GameInviteDTO } from './dto/game-invite.dto';
+import { SendGameInviteDTO } from './dto/game-invite.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameService } from './game.service';
 import { ConnectionService } from '../connection/connection.service';
-import { GameInviteResponseDTO } from './dto/game-invite-response.dto';
-import { GameInviteResponse } from 'src/common/types/game-invite-response.enum';
 import { InvitedToGameDTO } from './dto/invited-to-game.dto';
+import { RespondToGameInviteDTO } from './dto/respond-to-game-invite.dto';
+import { GameInviteMap } from './GameInviteMap';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -32,6 +32,7 @@ export class GameGateway implements OnGatewayInit {
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
+    private gameInviteMap: GameInviteMap,
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
     @Inject(forwardRef(() => ConnectionService))
@@ -65,50 +66,70 @@ export class GameGateway implements OnGatewayInit {
     this.gameService.disconnectPlayer(client.data.userId);
   }
 
-  /* @SubscribeMessage('gameInvite')
-  async gameInvite(
+  @SubscribeMessage('sendGameInvite')
+  async sendGameInvite(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: GameInviteDTO
+    @MessageBody() messageBody: SendGameInviteDTO
   ): Promise<void> {
-    if (!this.isValidGameInviteMessage(messageBody)) {
+    if (!this.isValidSendGameInviteMessage(messageBody)) {
       this.logger.warn(
         'User id=' +
           client.data.userId +
-          ' tried to send a wrong GameInviteDTO',
+          ' tried to send a wrong SendGameInviteDTO',
       );
       return;
     }
 
     if (this.gameService.isPlayerInQueueOrGame(client.data.userId)
-    ||  this.gameService.isPlayerInQueueOrGame(messageBody.uidToInvite)) {
+    ||  this.gameService.isPlayerInQueueOrGame(messageBody.recipientUID)) {
       return;
     }
 
     const newPlayer: Player = new Player(client, client.data.userId);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
-    // !TODO
-    // Wait for the invited player to accept the invite
-    // send 'invitedToGame' with acknowledge
-    // to wait for invited's answer
-
     const socketIdToInvite: string =
-      this.connectionService.findSocketIdByUID(messageBody.uidToInvite);
+      this.connectionService.findSocketIdByUID(messageBody.recipientUID);
     
+    const inviteId: number = this.gameInviteMap.createNewInvite(crypto.randomUUID());
+
     const invitedToGame: InvitedToGameDTO = {
-      inviterUID: client.data.userId,
-    }
+      senderUID: client.data.userId,
+      inviteId: inviteId,
+    };
+
     this.connectionGateway.server
       .to(socketIdToInvite)
-      .emit('invitedToGame', invitedToGame,
-        (answerBody: GameInviteResponseDTO) => {
-          answerBody.answer === GameInviteResponse.ACCEPT ?
-          this.gameService.joinPlayersToRoom(newPlayer, invitedPlayer)
-          : dismiss
-      })
-  } */
+      .emit('invitedToGame', invitedToGame);
 
-  // Listen for 'playerReady' messages
+    // Join inviter to room.
+    // Inviter will keep waiting in the game screen for the recipient
+    
+    // perhaps skip a bit of the invite part and use the player-ready message
+    
+    // Send ack message with inviteId to the inviter
+
+  }
+
+  @SubscribeMessage('respondToGameInvite')
+  respondToGameInvite(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: RespondToGameInviteDTO
+  ): void {
+    if (!this.isValidRespondToGameInviteMessage(messageBody)) {
+      this.logger.warn(
+        'User id=' +
+          client.data.userId +
+          ' tried to send a wrong RespondToGameInviteDTO',
+      );
+      return;
+    }
+
+  }
+
+  /*
+  * Listen for 'playerReady' messages
+  */
   @SubscribeMessage('playerReady')
   playerReady(
     @ConnectedSocket() client: Socket,
@@ -126,7 +147,9 @@ export class GameGateway implements OnGatewayInit {
     this.gameService.playerReady(messageBody.gameRoomId, client.id);
   }
 
-  // Listen for 'paddleMove' messages
+  /*
+  * Listen for 'paddleMove' messages
+  */
   @SubscribeMessage('paddleMove')
   paddleMove(
     @ConnectedSocket() client: Socket,
@@ -192,12 +215,22 @@ export class GameGateway implements OnGatewayInit {
       .emit('playerScored', playerScoredDTO);
   }
 
-  private isValidGameInviteMessage(
+  private isValidSendGameInviteMessage(
     messageBody: any,
-  ): messageBody is GameInviteDTO {
+  ): messageBody is SendGameInviteDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.uidToInvite === 'number'
+      typeof messageBody.recipientUID === 'number'
+    );
+  }
+
+  private isValidRespondToGameInviteMessage(
+    messageBody: any,
+  ): messageBody is RespondToGameInviteDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.inviteId === 'number' &&
+      typeof messageBody.accepted === 'boolean'
     );
   }
 

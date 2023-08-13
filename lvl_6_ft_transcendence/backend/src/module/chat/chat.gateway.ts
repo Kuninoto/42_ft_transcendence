@@ -231,13 +231,13 @@ export class ChatGateway implements OnGatewayInit {
   // @SubscribeMessage('gameInvite')
   // async onGameInvite(
   //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody() messageBody: GameInviteDTO,
+  //   @MessageBody() messageBody: SendGameInviteDTO,
   // ): Promise<void> {
-  //   /* if (!this.isValidGameInviteDTO(messageBody)) {
+  //   /* if (!this.isValidSendGameInviteDTO(messageBody)) {
   //     this.logger.warn(
   //       'Client with socket id=' +
   //         socket.id +
-  //         ' tried to send a wrong GameInviteDTO',
+  //         ' tried to send a wrong SendGameInviteDTO',
   //     );
   //     return;
   //   } */

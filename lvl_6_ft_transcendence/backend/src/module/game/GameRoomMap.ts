@@ -1,6 +1,6 @@
 import { GameRoom } from './GameRoom';
 
-export class GameRoomsMap {
+export class GameRoomMap {
   private gameRoomMap: Map<string, GameRoom> = new Map<string, GameRoom>();
 
   public createNewGameRoom(newGameRoom: GameRoom): void {
