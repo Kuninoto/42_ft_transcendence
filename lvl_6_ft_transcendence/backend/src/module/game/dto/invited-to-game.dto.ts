@@ -1,3 +1,4 @@
 export interface InvitedToGameDTO {
-  inviterUID: number;
+  senderUID: number;
+  inviteId: number;
 }
