@@ -72,7 +72,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			socket?.on('connect_failed', err => console.log(err))
 			socket?.on('disconnect', err => console.log(err))
 		}
-
 	}, [])
 
 	useEffect(() => {

@@ -52,6 +52,8 @@ export class GameEngineService {
   }
 
   private gameLoop(gameRoom: GameRoom): void {
+    console.log(gameRoom.leftPlayer.paddleX, gameRoom.leftPlayer.paddleY)
+    console.log(gameRoom.rightPlayer.paddleX, gameRoom.rightPlayer.paddleY)
     gameRoom.ball.moveBySpeed();
     this.gameGateway.broadcastGameRoomInfo(gameRoom);
 
