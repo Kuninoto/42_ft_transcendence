@@ -25,6 +25,7 @@ import { MessageService } from './message.service';
 import { RoomService } from './room.service';
 
 @WebSocketGateway({
+  namespace: 'connection',
   cors: GatewayCorsOption,
 })
 export class ChatGateway implements OnGatewayInit {

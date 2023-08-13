@@ -12,12 +12,11 @@ import { UserStatus } from 'src/common/types/user-status.enum';
 import { Achievements } from 'src/entity/achievement.entity';
 import { User } from 'src/entity/user.entity';
 import { UsersService } from 'src/module/users/users.service';
-import { TokenPayload } from '../auth/strategy/jwt-auth.strategy';
 import { RoomService } from '../chat/room.service';
 import { GameService } from '../game/game.service';
 import { NewUserStatusDTO } from './dto/new-user-status.dto';
-import { JwtService } from '@nestjs/jwt';
 import { ConnectionService } from './connection.service';
+import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -54,7 +53,7 @@ export class ConnectionGateway
 
       this.roomService.joinUserRooms(client);
 
-      this.logger.log('"' + user.name + '" connected to the connection gateway');
+      this.logger.log('"' + user.name + '" connected!');
     } catch (error) {
       this.logger.warn(error + '. disconnecting...');
       client.disconnect();
@@ -86,8 +85,11 @@ export class ConnectionGateway
   ): Promise<void> {
     const socketId: string = this.connectionService.findSocketIdByUID(userId);
   
+    const achievementUnlocked: AchievementUnlockedDTO = {
+      achievement
+    }
     this.server
       .to(socketId)
-      .emit('achievementUnlocked', { achievement: achievement });
+      .emit('achievementUnlocked', achievementUnlocked)
   }
 }
