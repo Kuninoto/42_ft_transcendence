@@ -15,6 +15,7 @@ import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { ChatRoom } from 'src/typeorm';
 import { ConnectionGateway } from '../connection/connection.gateway';
+import { ConnectionService } from '../connection/connection.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { InviteToRoomDTO } from './dto/invite-to-room.dto';
 import { JoinRoomDTO } from './dto/join-room.dto';
@@ -33,7 +34,10 @@ export class ChatGateway implements OnGatewayInit {
     private readonly friendshipService: FriendshipsService,
     private readonly roomService: RoomService,
     private readonly messageService: MessageService,
+    @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
+    @Inject(forwardRef(() => ConnectionService))
+    private readonly connectionService: ConnectionService,
   ) {}
 
   private readonly logger: Logger = new Logger(ChatGateway.name);
@@ -119,7 +123,8 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    this.connectionGateway.server.to(invited.socketId).emit('roomInvite', {
+    const invitedSocketId: string = this.connectionService.findSocketIdByUID(invited.id);
+    this.connectionGateway.server.to(invitedSocketId).emit('roomInvite', {
       inviterId: socket.data.user.id,
       roomName: messageBody.roomName,
     });
@@ -165,7 +170,7 @@ export class ChatGateway implements OnGatewayInit {
         );
 
       // Retrieve the socketId of the user
-      const userSocketId: string = await this.usersService.findSocketIdbyUID(
+      const userSocketId: string = await this.connectionService.findSocketIdByUID(
         uid,
       );
       if (userSocketId && !blockRelationship) {
@@ -194,7 +199,7 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     const receiverSocketId: string | null =
-      await this.usersService.findSocketIdbyUID(messageBody.receiverUID);
+      this.connectionService.findSocketIdByUID(messageBody.receiverUID);
 
     if (!receiverSocketId) {
       // TODO

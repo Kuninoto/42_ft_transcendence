@@ -177,7 +177,7 @@ export class GameService {
     );
   }
 
-  private async joinPlayersToRoom(
+  public async joinPlayersToRoom(
     playerOne: Player,
     playerTwo: Player,
   ): Promise<void> {

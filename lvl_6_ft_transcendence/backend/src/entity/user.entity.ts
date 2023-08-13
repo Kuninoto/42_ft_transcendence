@@ -26,15 +26,6 @@ export class User {
   @ApiProperty()
   @Column({
     type: 'varchar',
-    unique: true,
-    nullable: true,
-    default: null,
-  })
-  socketId: string;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
     length: 10,
     unique: true,
     nullable: false,

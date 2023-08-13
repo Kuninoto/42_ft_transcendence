@@ -11,7 +11,7 @@ import { UsersService } from './users.service';
   imports: [
     TypeOrmModule.forFeature([User, GameResult]),
     FriendshipsModule,
-    AchievementModule,
+    forwardRef(() => AchievementModule),
     UserStatsModule,
   ],
   controllers: [UsersController],

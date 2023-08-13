@@ -45,7 +45,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     if (!payload.has_2fa || (payload.has_2fa && payload.is_2fa_authed)) {
       return user;
     } else {
-      this.logger.error('User has 2fa but is not 2fa authenticated');
+      this.logger.error('User has 2FA but is not 2FA authenticated');
       throw new UnauthorizedException('Unauthenticated request');
     }
   }

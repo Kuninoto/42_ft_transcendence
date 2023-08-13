@@ -13,13 +13,14 @@ import { GameEngineService } from './game-engine.service';
 import { GameController } from './game.controller';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
+import { ConnectionModule } from '../connection/connection.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([GameResult]),
     forwardRef(() => AuthModule),
     forwardRef(() => UsersModule),
-    forwardRef(() => ConnectionGateway),
+    forwardRef(() => ConnectionModule),
     UserStatsModule,
     forwardRef(() => ChatModule),
   ],

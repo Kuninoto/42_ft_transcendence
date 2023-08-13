@@ -19,6 +19,9 @@ import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { GameService } from './game.service';
+import { ConnectionService } from '../connection/connection.service';
+import { GameInviteResponseDTO } from './dto/game-invite-response.dto';
+import { GameInviteResponse } from 'src/common/types/game-invite-response.enum';
 
 @WebSocketGateway({ cors: GatewayCorsOption })
 export class GameGateway implements OnGatewayInit {
@@ -27,6 +30,8 @@ export class GameGateway implements OnGatewayInit {
     private readonly gameService: GameService,
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
+    @Inject(forwardRef(() => ConnectionService))
+    private readonly connectionService: ConnectionService,
   ) {}
 
   private readonly logger: Logger = new Logger(GameGateway.name);
@@ -50,12 +55,12 @@ export class GameGateway implements OnGatewayInit {
     this.gameService.queueToLadder(newPlayer);
   }
 
-  @SubscribeMessage('gameInvite')
+  /* @SubscribeMessage('gameInvite')
   async gameInvite(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: GameInviteDTO
   ): Promise<void> {
-    if (!this.isValidPaddleMoveMessage(messageBody)) {
+    if (!this.isValidGameInviteMessage(messageBody)) {
       this.logger.error(
         'User id=' +
           client.data.userId +
@@ -77,11 +82,17 @@ export class GameGateway implements OnGatewayInit {
     // send 'invitedToGame' with acknowledge
     // to wait for invited's answer
 
-    // Write a function on connectionGateway around these lines:
-
-    // this.connectionGateway.server.to(invitedSocketId).emit('invitedToGame',
-    //  invitedToGameDTO, (answer) => { resolve invited response })
-  }
+    const socketIdToInvite: string =
+      this.connectionService.findSocketIdByUID(messageBody.uidToInvite);
+    
+    this.connectionGateway.server.to(socketIdToInvite).emit('invitedToGame',
+      null,
+      (answerBody: GameInviteResponseDTO) => {
+        answerBody.answer === GameInviteResponse.ACCEPT ?
+        this.gameService.joinPlayersToRoom(newPlayer, invitedPlayer)
+        : dismiss
+      })
+  } */
 
   // Listen for 'playerReady' messages
   @SubscribeMessage('playerReady')

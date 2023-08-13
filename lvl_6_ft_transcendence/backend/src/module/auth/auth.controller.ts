@@ -178,7 +178,7 @@ export class AuthController {
 
     await this.usersService.update2faSecretByUID(req.user.id, info2fa.secret);
 
-    return res.json(this.authService.generateQRCodeDataURL(info2fa.otpAuthURL));
+    return res.json(await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL));
   }
 
   /**
