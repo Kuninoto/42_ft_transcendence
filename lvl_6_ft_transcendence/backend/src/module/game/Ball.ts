@@ -1,11 +1,16 @@
-import { CANVAS_HEIGHT, CANVAS_MID_HEIGHT, CANVAS_MID_WIDTH } from './GameRoom';
+import { CANVAS_HEIGHT, CANVAS_MID_WIDTH } from './GameRoom';
 import { PADDLE_HEIGHT } from './Player';
 
 export const BALL_RADIUS: number = 4;
-const SPEED_CAP: number = 9;
+
+// 75 degrees
+const MAX_BOUNCE_ANGLE: number = 75;
+const MAX_BOUNCE_SPEED: number = 6;
+
+const BALL_SPEED: number = 2;
 
 const randomBallSpeed = () => {
-  return Math.round(Math.random()) % 2 === 0 ? -2 : 2;
+  return Math.round(Math.random()) % 2 === 0 ? -BALL_SPEED : BALL_SPEED;
 };
 
 const randomBallStartingHeight = () => {
@@ -36,16 +41,16 @@ export class Ball {
   }
 
   bounceInX() {
-    if (Math.abs(this.speed.x) >= SPEED_CAP) {
-      this.speed.x *= -1;
-    } else {
-      this.speed.x *= -1.1;
-    }
+    this.speed.x *= -1;
   }
 
   bounceOnCollidePoint(collidePoint: number) {
-    this.speed.y =
-      (-collidePoint / (PADDLE_HEIGHT / 2)) * 6 + -1 * Math.random() * 2;
+    const normalizedCollidePoint: number = collidePoint / PADDLE_HEIGHT;
+    const bounceAngle: number = normalizedCollidePoint * MAX_BOUNCE_ANGLE;
+    const bounceSpeed: number = normalizedCollidePoint * MAX_BOUNCE_SPEED;
+
+    this.speed.x = bounceSpeed * Math.cos(bounceAngle);
+    this.speed.y = bounceSpeed * -Math.sin(bounceAngle);
   }
 
   reset() {
