@@ -65,15 +65,17 @@ export class GameEngineService {
 
     if (this.somePlayerScored(gameRoom)) {
       this.gameGateway.broadcastGameRoomInfo(gameRoom);
-      sleep(RESET_GAME_DELAY);
-    }
 
-    if (
-      gameRoom.rightPlayer.score === MAX_SCORE ||
-      gameRoom.leftPlayer.score === MAX_SCORE
-    ) {
-      this.endGame(gameRoom);
-      return;
+      // Check if game should end
+      if (
+        gameRoom.rightPlayer.score === MAX_SCORE ||
+        gameRoom.leftPlayer.score === MAX_SCORE
+      ) {
+        this.endGame(gameRoom);
+        return;
+      }
+
+      sleep(RESET_GAME_DELAY);
     }
   }
 
