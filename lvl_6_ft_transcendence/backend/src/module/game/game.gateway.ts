@@ -106,10 +106,9 @@ export class GameGateway implements OnGatewayInit {
       .to(socketIdToInvite)
       .emit('invitedToGame', invitedToGame);
 
-      
-      // Join inviter to room.
-      // Inviter will keep waiting in the game screen for the recipient
-      client.join(roomId);
+    // Join inviter to room.
+    // Inviter will keep waiting in the game screen for the recipient
+    client.join(roomId);
 
     // perhaps skip a bit of the invite part and use the player-ready message
 
