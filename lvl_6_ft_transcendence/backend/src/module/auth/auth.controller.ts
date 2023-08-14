@@ -25,7 +25,7 @@ import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm/index';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
-import { AuthService, twoFactorAuthDTO } from './auth.service';
+import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { OtpDTO } from './dto/otp.dto';
 import { OtpInfoDTO } from './dto/otpInfo.dto';
@@ -218,6 +218,8 @@ export class AuthController {
     @Req() req: { user: User },
     @Body() body: OtpDTO,
   ): AccessTokenInterface | ErrorResponse {
+
+    console.log("asdagjkew")
     const isCodeValid = this.authService.is2faCodeValid(
       body.otp,
       req.user.secret_2fa,
