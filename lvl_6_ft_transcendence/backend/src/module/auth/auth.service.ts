@@ -5,12 +5,8 @@ import { toDataURL } from 'qrcode';
 import { AccessTokenInterface } from 'src/common/types/access-token-interface.interface';
 import { User } from 'src/typeorm/index';
 import { LoginDTO } from './dto/login.dto';
+import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
-
-export interface twoFactorAuthDTO {
-  secret: string;
-  otpAuthURL: string;
-}
 
 @Injectable()
 export class AuthService {
@@ -48,27 +44,16 @@ export class AuthService {
     };
   }
 
-  // Verifies if the JWT is valid
-  public async verify(token: string): Promise<boolean> {
-    // verify() throws if the token is invalid
-    try {
-      await this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
   /****************************
    *            2FA            *
    *****************************/
 
-  public async generate2faSecret(): Promise<twoFactorAuthDTO> {
-    const secret = authenticator.generateSecret();
+  public async generate2faSecret(): Promise<OtpInfoDTO> {
+    const secret: string = authenticator.generateSecret();
 
-    const otpAuthURL = authenticator.keyuri(
+    const otpAuthURL: string = authenticator.keyuri(
       process.env.GOOGLE_AUTH_APP_NAME,
-      process.env.GOOGLE_AUTH_APP_NAME,
+      null,
       secret,
     );
 
@@ -86,10 +71,6 @@ export class AuthService {
     otp: string,
     secret_2fa: string,
   ): boolean {
-
-    return authenticator.verify({
-      token: otp,
-      secret: secret_2fa,
-    });
+    return authenticator.check(otp, secret_2fa);
   }
 }
