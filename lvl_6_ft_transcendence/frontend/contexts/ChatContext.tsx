@@ -31,4 +31,3 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 export function useChat() {
 	return useContext(ChatContext)
 }
-
