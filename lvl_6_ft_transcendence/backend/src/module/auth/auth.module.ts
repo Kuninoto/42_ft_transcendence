@@ -7,6 +7,7 @@ import { FortyTwoAuthStrategy } from 'src/module/auth/strategy/fortytwo-auth.str
 import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 import { SessionSerializer } from './session.serializer';
+import { Authenticate2faAuthStrategy } from './strategy/authenticate2fa-auth.strategy';
 import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
 
 console.log('JWT_SECRET= ' + process.env.JWT_SECRET);
@@ -22,6 +23,7 @@ console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);
   providers: [
     AuthService,
     FortyTwoAuthStrategy,
+    Authenticate2faAuthStrategy,
     JwtAuthStrategy,
     SessionSerializer,
   ],

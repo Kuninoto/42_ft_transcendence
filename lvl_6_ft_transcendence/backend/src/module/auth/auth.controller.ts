@@ -25,7 +25,7 @@ import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm/index';
 import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
-import { AuthService, twoFactorAuthDTO } from './auth.service';
+import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { OtpDTO } from './dto/otp.dto';
 import { OtpInfoDTO } from './dto/otpInfo.dto';
@@ -210,7 +210,8 @@ export class AuthController {
       },
     },
   })
-  @ApiUnauthorizedResponse({ description: 'If the OTP is invalid' })
+  @ApiUnauthorizedResponse({ description: 'If the user which id is provided in the JWT or if the OTP is invalid' })
+  @ApiBadRequestResponse({ description: 'If request\s body is malformed' })
   @UseGuards(Authenticate2faAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
@@ -218,7 +219,7 @@ export class AuthController {
     @Req() req: { user: User },
     @Body() body: OtpDTO,
   ): AccessTokenInterface | ErrorResponse {
-    const isCodeValid = this.authService.is2faCodeValid(
+    const isCodeValid: boolean = this.authService.is2faCodeValid(
       body.otp,
       req.user.secret_2fa,
     );
