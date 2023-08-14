@@ -7,7 +7,7 @@ import { User } from 'src/typeorm/index';
 import { TokenPayload } from './jwt-auth.strategy';
 
 @Injectable()
-export class Authenticate2faAuthStrategy extends PassportStrategy(Strategy) {
+export class twoFactorAuthStrategy extends PassportStrategy(Strategy, '2fa') {
   private readonly logger: Logger = new Logger('Authenticate2faAuthStrategy');
 
   constructor(private readonly usersService: UsersService) {

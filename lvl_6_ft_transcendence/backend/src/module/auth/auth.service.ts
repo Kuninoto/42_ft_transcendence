@@ -53,7 +53,7 @@ export class AuthService {
 
     const otpAuthURL: string = authenticator.keyuri(
       process.env.GOOGLE_AUTH_APP_NAME,
-      null,
+      process.env.GOOGLE_AUTH_APP_NAME,
       secret,
     );
 

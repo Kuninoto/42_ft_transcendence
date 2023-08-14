@@ -41,7 +41,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Unauthenticated request');
     }
 
-    // if user doesn't have 2fa or has 2fa and is 2f authenticated, return user
+    // If user doesn't have 2fa or has 2fa and is 2f authenticated, return user
     if (!payload.has_2fa || (payload.has_2fa && payload.is_2fa_authed)) {
       return user;
     } else {

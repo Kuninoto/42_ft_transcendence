@@ -29,9 +29,9 @@ import { AuthService } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { OtpDTO } from './dto/otp.dto';
 import { OtpInfoDTO } from './dto/otpInfo.dto';
-import { Authenticate2faAuthGuard } from './guard/authenticate2fa-auth.guard';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 /**
  * Guards act as Middleware of validation
@@ -211,8 +211,8 @@ export class AuthController {
     },
   })
   @ApiUnauthorizedResponse({ description: 'If the user which id is provided in the JWT or if the OTP is invalid' })
-  @ApiBadRequestResponse({ description: 'If request\s body is malformed' })
-  @UseGuards(Authenticate2faAuthGuard)
+  @ApiBadRequestResponse({ description: 'If request\'s body is malformed' })
+  @UseGuards(AuthGuard('2fa'))
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
   public auth2fa(
