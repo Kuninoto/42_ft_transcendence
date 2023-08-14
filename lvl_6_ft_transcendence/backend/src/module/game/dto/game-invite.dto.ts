@@ -1,3 +1,3 @@
 export interface SendGameInviteDTO {
-    recipientUID: number;
+  recipientUID: number;
 }

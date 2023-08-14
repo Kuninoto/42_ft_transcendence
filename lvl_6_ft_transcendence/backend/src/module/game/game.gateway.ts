@@ -10,23 +10,23 @@ import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
+import { ConnectionService } from '../connection/connection.service';
+import { GameInviteMap } from './GameInviteMap';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
 import { SendGameInviteDTO } from './dto/game-invite.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
+import { InvitedToGameDTO } from './dto/invited-to-game.dto';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
-import { GameService } from './game.service';
-import { ConnectionService } from '../connection/connection.service';
-import { InvitedToGameDTO } from './dto/invited-to-game.dto';
 import { RespondToGameInviteDTO } from './dto/respond-to-game-invite.dto';
-import { GameInviteMap } from './GameInviteMap';
+import { GameService } from './game.service';
 
 @WebSocketGateway({
   namespace: 'connection',
-  cors: GatewayCorsOption
+  cors: GatewayCorsOption,
 })
 export class GameGateway implements OnGatewayInit {
   constructor(
@@ -69,7 +69,7 @@ export class GameGateway implements OnGatewayInit {
   @SubscribeMessage('sendGameInvite')
   async sendGameInvite(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendGameInviteDTO
+    @MessageBody() messageBody: SendGameInviteDTO,
   ): Promise<void> {
     if (!this.isValidSendGameInviteMessage(messageBody)) {
       this.logger.warn(
@@ -80,18 +80,23 @@ export class GameGateway implements OnGatewayInit {
       return;
     }
 
-    if (this.gameService.isPlayerInQueueOrGame(client.data.userId)
-    ||  this.gameService.isPlayerInQueueOrGame(messageBody.recipientUID)) {
+    if (
+      this.gameService.isPlayerInQueueOrGame(client.data.userId) ||
+      this.gameService.isPlayerInQueueOrGame(messageBody.recipientUID)
+    ) {
       return;
     }
 
     const newPlayer: Player = new Player(client, client.data.userId);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
-    const socketIdToInvite: string =
-      this.connectionService.findSocketIdByUID(messageBody.recipientUID);
-    
-    const inviteId: number = this.gameInviteMap.createNewInvite(crypto.randomUUID());
+    const socketIdToInvite: string = this.connectionService.findSocketIdByUID(
+      messageBody.recipientUID,
+    );
+
+    const inviteId: number = this.gameInviteMap.createNewInvite(
+      crypto.randomUUID(),
+    );
 
     const invitedToGame: InvitedToGameDTO = {
       senderUID: client.data.userId,
@@ -104,17 +109,22 @@ export class GameGateway implements OnGatewayInit {
 
     // Join inviter to room.
     // Inviter will keep waiting in the game screen for the recipient
-    
-    // perhaps skip a bit of the invite part and use the player-ready message
-    
-    // Send ack message with inviteId to the inviter
 
+    // perhaps skip a bit of the invite part and use the player-ready message
+
+    // Send ack message with inviteId to the inviter
   }
 
+  /**
+   * Listen for 'respondToGameInvite' messages
+   *
+   * @param client client's socket
+   * @param messageBody body of the received message
+   */
   @SubscribeMessage('respondToGameInvite')
   respondToGameInvite(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: RespondToGameInviteDTO
+    @MessageBody() messageBody: RespondToGameInviteDTO,
   ): void {
     if (!this.isValidRespondToGameInviteMessage(messageBody)) {
       this.logger.warn(
@@ -124,12 +134,14 @@ export class GameGateway implements OnGatewayInit {
       );
       return;
     }
-
   }
 
-  /*
-  * Listen for 'playerReady' messages
-  */
+  /**
+   * Listen for 'playerReady' messages
+   *
+   * @param client client's socket
+   * @param messageBody body of the received message
+   */
   @SubscribeMessage('playerReady')
   playerReady(
     @ConnectedSocket() client: Socket,
@@ -148,8 +160,8 @@ export class GameGateway implements OnGatewayInit {
   }
 
   /*
-  * Listen for 'paddleMove' messages
-  */
+   * Listen for 'paddleMove' messages
+   */
   @SubscribeMessage('paddleMove')
   paddleMove(
     @ConnectedSocket() client: Socket,

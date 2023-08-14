@@ -23,11 +23,19 @@ export class AchievementService {
   private readonly logger: Logger = new Logger(AchievementService.name);
 
   public async grantPongFightMaestro(userId: number): Promise<void> {
-    await this.grantAchievement(userId, Achievements.PONGFIGHT_MAESTRO, FIRST_ACHIEVEMENT_TIMEOUT);
+    await this.grantAchievement(
+      userId,
+      Achievements.PONGFIGHT_MAESTRO,
+      FIRST_ACHIEVEMENT_TIMEOUT,
+    );
   }
 
   public async grantNewPongFighter(userId: number): Promise<void> {
-    await this.grantAchievement(userId, Achievements.NEW_PONG_FIGHTER, FIRST_ACHIEVEMENT_TIMEOUT);
+    await this.grantAchievement(
+      userId,
+      Achievements.NEW_PONG_FIGHTER,
+      FIRST_ACHIEVEMENT_TIMEOUT,
+    );
   }
 
   public async grantUnexpectedVictory(userId: number): Promise<void> {
@@ -112,7 +120,10 @@ export class AchievementService {
         Achievements.DECLINED_TOMORROW_BUDDIES,
       ))
     ) {
-      await this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
+      await this.grantAchievement(
+        userId,
+        Achievements.DECLINED_TOMORROW_BUDDIES,
+      );
     }
   }
 
@@ -123,7 +134,10 @@ export class AchievementService {
         Achievements.BREAKING_THE_PADDLE_BOND,
       ))
     ) {
-      await this.grantAchievement(userId, Achievements.BREAKING_THE_PADDLE_BOND);
+      await this.grantAchievement(
+        userId,
+        Achievements.BREAKING_THE_PADDLE_BOND,
+      );
     }
   }
 
@@ -170,7 +184,7 @@ export class AchievementService {
     if (timeout) {
       setTimeout(() => {
         this.connectionGateway.achievementUnlocked(userId, achievement);
-      }, timeout)
+      }, timeout);
     } else {
       this.connectionGateway.achievementUnlocked(userId, achievement);
     }
