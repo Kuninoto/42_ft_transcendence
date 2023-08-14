@@ -136,6 +136,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				Logger.debug(blockRelationship);
 				const userSocket: string = await this.userService.findSocketIDbyUID(uid); // Retrieve the socket of the user
 				Logger.debug('Socket id: ' + userSocket);
+				Logger.debug('User: ' + JSON.stringify(message.user , null, 2 ));
+
 				if (userSocket && !blockRelationship) {
 					socket.to(userSocket).emit('onMessage', message.text);
 				}
