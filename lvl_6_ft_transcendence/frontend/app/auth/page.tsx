@@ -14,16 +14,15 @@ export default function Auth() {
 	const { user } = useAuth()
 
 	useEffect(() => {
-
 		async function awaitForLogin() {
 			try {
 				const code = searchParams.get('code')
-				if (!code) throw "No code provided"
+				if (!code) throw 'No code provided'
 				await login(code)
-				router.push("/dashboard")
+				router.push('/dashboard')
 			} catch (error) {
 				toast.error(error)
-				router.push("/")
+				router.push('/')
 			}
 		}
 

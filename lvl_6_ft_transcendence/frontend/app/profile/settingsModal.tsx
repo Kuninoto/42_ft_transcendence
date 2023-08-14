@@ -1,34 +1,32 @@
 'use client'
 
 import { api, multipartApi } from '@/api/api'
-import { useEffect, useState} from 'react'
-import { toast } from 'react-toastify'
-import OtpInput from "react18-input-otp";
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'react-toastify'
+import OtpInput from 'react18-input-otp'
 
-function QRCode({
-	closeModal,
-}: {
-	closeModal: () => void
-}) {
-	const [otp, setOtp] = useState('');
-	const [QRCodeEncode, setQRCodeEncode] = useState("")
+function QRCode() {
+	const [otp, setOtp] = useState('')
+	const [QRCodeEncode, setQRCodeEncode] = useState('')
 
-	const { user, refreshUser } = useAuth()
+	const { refreshUser, user } = useAuth()
 
 	const enable2fa = () => {
 		try {
-			api.patch("/auth/2fa/enable", {
-				twoFactorAuthCode: otp
-			})
-			.then(() => {
-				setOtp('')
-				refreshUser()
-			})
-			.catch(() => {throw "Network error"})
-
+			api
+				.patch('/auth/2fa/enable', {
+					twoFactorAuthCode: otp,
+				})
+				.then(() => {
+					setOtp('')
+					refreshUser()
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
 		} catch (error) {
 			toast.error(error)
 		}
@@ -36,12 +34,14 @@ function QRCode({
 
 	const disable2fa = () => {
 		try {
-			api.patch("/auth/2fa/disable")
-			.then(() => {
-				refreshUser()
-			})
-			.catch(() => {throw "Network error"})
-
+			api
+				.patch('/auth/2fa/disable')
+				.then(() => {
+					refreshUser()
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
 		} catch (error) {
 			toast.error(error)
 		}
@@ -49,34 +49,33 @@ function QRCode({
 
 	useEffect(() => {
 		try {
-			api.post("/auth/2fa/generate")
-			.then((result) => setQRCodeEncode(result.data))
-			.catch(() => {throw "Network error"})
-
+			api
+				.post('/auth/2fa/generate')
+				.then((result) => setQRCodeEncode(result.data))
+				.catch(() => {
+					throw 'Network error'
+				})
 		} catch (error) {
 			toast.error(error)
-			
 		}
 	}, [])
 
 	if (user?.has_2fa) {
-		return(
-			<div className="flex flex-col place-conten-center items-center">
-				
+		return (
+			<div className="place-conten-center flex flex-col items-center">
 				<button
+					className="w-full rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 					onClick={disable2fa}
-					className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black" >
+				>
 					Disable
 				</button>
-
 			</div>
 		)
 	}
 
 	return (
-		<div className="flex flex-col space-y-4 h-full items-center">
-
-			<div className="relative w-48 aspect-square">
+		<div className="flex h-full flex-col items-center space-y-4">
+			<div className="relative aspect-square w-48">
 				<Image
 					alt={'choose new image - image'}
 					className="h-max w-max"
@@ -89,19 +88,19 @@ function QRCode({
 			</div>
 
 			<OtpInput
-				value={otp}
-				onChange={(newOtp) => setOtp(newOtp)}
-				numInputs={6}
-				onSubmit={console.log(otp)}
 				containerStyle="w-full place-content-center flex text-xl space-x-1"
 				inputStyle="border bg-transparent !w-8 aspect-square rounded"
 				isInputNum
+				numInputs={6}
+				onChange={(newOtp) => setOtp(newOtp)}
+				onSubmit={console.log(otp)}
+				value={otp}
 			/>
 
-
-			<button 
+			<button
+				className="w-full rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 				onClick={enable2fa}
-				className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black" >
+			>
 				Enable
 			</button>
 		</div>
@@ -115,12 +114,16 @@ export default function SettingsModal({
 }) {
 	const { refreshUser, user } = useAuth()
 
-	const { handleSubmit, register , setError, formState: {errors}} = useForm<FormData>({
+	const {
+		formState: { errors },
+		handleSubmit,
+		register,
+		setError,
+	} = useForm<FormData>({
 		defaultValues: {
 			name: user.name,
 		},
 	})
-
 
 	async function onSubmit({ name, photos }: { name: string; photos: File[] }) {
 		try {
@@ -139,7 +142,10 @@ export default function SettingsModal({
 			refreshUser()
 			closeModal()
 		} catch (error) {
-			setError('name', { type: 'Conflict', message: error.response.data.message})
+			setError('name', {
+				message: error.response.data.message,
+				type: 'Conflict',
+			})
 		}
 	}
 
@@ -152,10 +158,9 @@ export default function SettingsModal({
 			<div className="px-8 py-32">
 				<div className="group relative grid items-start justify-center  gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
-					<div className="relative items-center space-x-16 h-full flex rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
-
+					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
 						<form
-							className="flex flex-col space-y-2 w-64"
+							className="flex w-64 flex-col space-y-2"
 							onSubmit={handleSubmit(onSubmit)}
 						>
 							<fieldset className="aspect-square h-full rounded border-2 border-white">
@@ -183,34 +188,50 @@ export default function SettingsModal({
 								</label>
 							</fieldset>
 
-							<fieldset className="flex items-center w-full">
+							<fieldset className="flex w-full items-center">
 								<label htmlFor="name">Name:</label>
 								<input
 									id="name"
-									{...register('name', { 
-										minLength: { value: 4, message: "Usernames length must at least 4 characters long"}, 
-										maxLength: { value: 10, message: "Usernames length must have up to 10 characters long "},
-										pattern: { value: /^[A-Za-z0-9_-]+$/, message: "Invalid character"}})}
-									className="rounded border border-white bg-transparent px-2 py-2 w-full outline-none"
+									{...register('name', {
+										maxLength: {
+											message:
+												'Usernames length must have up to 10 characters long ',
+											value: 10,
+										},
+										minLength: {
+											message:
+												'Usernames length must at least 4 characters long',
+											value: 4,
+										},
+										pattern: {
+											message: 'Invalid character',
+											value: /^[A-Za-z0-9_-]+$/,
+										},
+									})}
+									className="w-full rounded border border-white bg-transparent px-2 py-2 outline-none"
 									type="text"
 								/>
 							</fieldset>
 
-							{ errors.name && <span className="text-[0.5rem] text-end text-red-600">{errors.name.message}</span> }
+							{errors.name && (
+								<span className="text-end text-[0.5rem] text-red-600">
+									{errors.name.message}
+								</span>
+							)}
 
-							<input 
-								className="rounded border border-white w-full py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-								type="submit" 
-								value="Submit" />
+							<input
+								className="w-full rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+								type="submit"
+								value="Submit"
+							/>
 						</form>
 
-						<div className="h-full bg-white w-px"></div>
+						<div className="h-full w-px bg-white"></div>
 
 						<div className="flex flex-col space-y-8">
 							<h2>2FA Authentication</h2>
 							<QRCode />
 						</div>
-
 					</div>
 				</div>
 			</div>

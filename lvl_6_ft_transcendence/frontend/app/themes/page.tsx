@@ -2,27 +2,27 @@
 
 import { api } from '@/api/api'
 import { amount, themes } from '@/common/themes'
+import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
-import { useAuth } from '@/contexts/AuthContext'
 
 export default function Themes() {
-
 	const [saving, setSaving] = useState(false)
 	const { refreshUser } = useAuth()
 
 	function save() {
 		setSaving(true)
 
-		api.patch("/me/game-theme", {
-			newGameTheme: themeKeys[selected]
-		}).finally(() => {
-			refreshUser()
-			setSaving(false)
-		})
-
+		api
+			.patch('/me/game-theme', {
+				newGameTheme: themeKeys[selected],
+			})
+			.finally(() => {
+				refreshUser()
+				setSaving(false)
+			})
 	}
 
 	const themeKeys = Object.keys(themes)

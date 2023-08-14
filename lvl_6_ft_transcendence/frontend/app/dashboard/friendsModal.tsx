@@ -22,7 +22,6 @@ export default function FriendsModal({
 	const [searchLoading, setSearchLoading] = useState(true)
 	const [searchUsers, setSearchUsers] = useState<SearchUserInfo[]>([])
 
-	
 	function cancel(
 		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
 		friendshipId: number
@@ -31,15 +30,17 @@ export default function FriendsModal({
 		e.stopPropagation()
 
 		try {
-				setRequests((prevReq) =>
-					prevReq.filter((prevReq) => prevReq.friendship_id !== friendshipId)
-				)
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.friendship_id !== friendshipId)
+			)
 
 			api
-			.patch(`/friendships/${friendshipId}/update`, {
-				newStatus: FriendshipStatus.UNFRIEND,
-			})
-			.catch(() => { throw "Network error" })
+				.patch(`/friendships/${friendshipId}/update`, {
+					newStatus: FriendshipStatus.UNFRIEND,
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
 		} catch (error) {
 			toast.error(error)
 		}
@@ -53,18 +54,18 @@ export default function FriendsModal({
 		e.stopPropagation()
 
 		try {
-		api
-			.patch(`/friendships/${friendship_id}/update`, {
-				newStatus: FriendshipStatus.ACCEPTED,
-			})
-			.then(() => {
-				addFriend(
-					requests.filter((req) => req.friendship_id === friendship_id)[0]
-				)
-				setRequests((prevReq) =>
-					prevReq.filter((prevReq) => prevReq.friendship_id !== friendship_id)
-				)
-			})
+			api
+				.patch(`/friendships/${friendship_id}/update`, {
+					newStatus: FriendshipStatus.ACCEPTED,
+				})
+				.then(() => {
+					addFriend(
+						requests.filter((req) => req.friendship_id === friendship_id)[0]
+					)
+					setRequests((prevReq) =>
+						prevReq.filter((prevReq) => prevReq.friendship_id !== friendship_id)
+					)
+				})
 		} catch (error) {
 			toast.error(error)
 		}
@@ -78,17 +79,16 @@ export default function FriendsModal({
 		e.stopPropagation()
 
 		try {
-		setRequests((prevReq) =>
-			prevReq.filter((prevReq) => prevReq.friendship_id != friendship_id)
-		)
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.friendship_id != friendship_id)
+			)
 
-		api.patch(`/friendships/${friendship_id}/update`, {
+			api.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.DECLINED,
-		})
+			})
 		} catch (error) {
 			toast.error(error)
 		}
-
 	}
 
 	function block(
@@ -99,14 +99,14 @@ export default function FriendsModal({
 		e.stopPropagation()
 
 		try {
-		setRequests((prevReq) => prevReq.filter((prevReq) => prevReq.uid != userId))
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.uid != userId)
+			)
 
-		api.post(`/friendships/block/${userId}`)
+			api.post(`/friendships/block/${userId}`)
 		} catch (error) {
 			toast.error(error)
 		}
-
-
 	}
 
 	function sendFriendRequest(
@@ -117,52 +117,49 @@ export default function FriendsModal({
 		e.stopPropagation()
 
 		try {
-		setRequests((prevReq) => prevReq.filter((prevReq) => prevReq.uid != userId))
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.uid != userId)
+			)
 
-		api
-			.post(`/friendships/send-request/${userId}`)
-			.then((result) => console.log(result))
-			.catch((error) => console.error(error))
+			api
+				.post(`/friendships/send-request/${userId}`)
+				.then((result) => console.log(result))
+				.catch((error) => console.error(error))
 		} catch (error) {
 			toast.error(error)
 		}
-
-
 	}
 
 	useEffect(() => {
 		setRequestsLoading(true)
 
-
 		try {
-		api
-			.get(`/me/friend-request`)
-			.then((result) => {
-				console.log(result.data)
-				setRequests(result.data)
-			})
-			.catch((error) => console.error(error))
-			.finally(() => setRequestsLoading(false))
+			api
+				.get(`/me/friend-request`)
+				.then((result) => {
+					console.log(result.data)
+					setRequests(result.data)
+				})
+				.catch((error) => console.error(error))
+				.finally(() => setRequestsLoading(false))
 		} catch (error) {
 			toast.error(error)
 		}
-
-
 	}, [])
 
 	useEffect(() => {
 		setSearchLoading(true)
 
 		try {
-		api
-		api
-			.get(`/users/search?username=${search}`)
-			.then((result) => {
-				console.log(result.data)
-				setSearchUsers(result.data)
-			})
-			.catch((error) => console.error(error))
-			.finally(() => setSearchLoading(false))
+			api
+			api
+				.get(`/users/search?username=${search}`)
+				.then((result) => {
+					console.log(result.data)
+					setSearchUsers(result.data)
+				})
+				.catch((error) => console.error(error))
+				.finally(() => setSearchLoading(false))
 		} catch (error) {
 			toast.error(error)
 		}
@@ -270,50 +267,48 @@ export default function FriendsModal({
 													<span className="text-xl">{request?.name}</span>
 												</div>
 												<div className="flex space-x-2">
-
-													{
-														request?.sent_by_me ?
-													<button
-														className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-														onClick={(e) => cancel(e, request?.friendship_id)}
-													>
+													{request?.sent_by_me ? (
+														<button
+															className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+															onClick={(e) => cancel(e, request?.friendship_id)}
+														>
 															Cancel
-													</button>
-
-
-														:
+														</button>
+													) : (
 														<>
-													<button
-														className="group/button flex items-center space-x-2 rounded border border-green-600 p-1 text-sm text-green-600 mix-blend-lighten hover:bg-green-600 hover:text-white"
-														onClick={(e) => accept(e, request?.friendship_id)}
-													>
-														<MdOutlineDone size={24} />
-														<span className="hidden group-hover/button:flex">
-															Accept
-														</span>
-													</button>
-													<button
-														className="group/button flex items-center space-x-2 rounded border border-red-600 p-1 text-sm text-red-600 mix-blend-lighten hover:bg-red-600 hover:text-white"
-														onClick={(e) => decline(e, request?.friendship_id)}
-													>
-														<MdOutlineClear size={24} />
-														<span className="hidden group-hover/button:flex">
-															Decline
-														</span>
-													</button>
-													<button
-														className="group/button flex items-center space-x-2 rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
-														onClick={(e) => block(e, request?.uid)}
-													>
-														<MdOutlineBlock size={24} />
-														<span className="hidden group-hover/button:flex">
-															Block
-														</span>
-													</button>
+															<button
+																onClick={(e) =>
+																	accept(e, request?.friendship_id)
+																}
+																className="group/button flex items-center space-x-2 rounded border border-green-600 p-1 text-sm text-green-600 mix-blend-lighten hover:bg-green-600 hover:text-white"
+															>
+																<MdOutlineDone size={24} />
+																<span className="hidden group-hover/button:flex">
+																	Accept
+																</span>
+															</button>
+															<button
+																onClick={(e) =>
+																	decline(e, request?.friendship_id)
+																}
+																className="group/button flex items-center space-x-2 rounded border border-red-600 p-1 text-sm text-red-600 mix-blend-lighten hover:bg-red-600 hover:text-white"
+															>
+																<MdOutlineClear size={24} />
+																<span className="hidden group-hover/button:flex">
+																	Decline
+																</span>
+															</button>
+															<button
+																className="group/button flex items-center space-x-2 rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+																onClick={(e) => block(e, request?.uid)}
+															>
+																<MdOutlineBlock size={24} />
+																<span className="hidden group-hover/button:flex">
+																	Block
+																</span>
+															</button>
 														</>
-
-													}
-
+													)}
 												</div>
 											</Link>
 										))
