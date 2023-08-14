@@ -44,6 +44,7 @@ export class Ball {
     this.speed.x *= -1;
   }
 
+  // Refer to: https://gamedev.stackexchange.com/questions/4253/in-pong-how-do-you-calculate-the-balls-direction-when-it-bounces-off-the-paddl
   bounceOnCollidePoint(collidePoint: number) {
     const normalizedCollidePoint: number = collidePoint / PADDLE_HEIGHT;
     const bounceAngle: number = normalizedCollidePoint * MAX_BOUNCE_ANGLE;
