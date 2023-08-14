@@ -2,24 +2,39 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
+import OtpInput from 'react18-input-otp'
 
 export default function Auth() {
-	const { login } = useAuth()
+	const { login, login2fa } = useAuth()
 
 	const searchParams = useSearchParams()
 	const router = useRouter()
 
-	const { user } = useAuth()
+	const [otp, setOtp] = useState('')
+	const [get2fa, setGet2fa] = useState(false)
+
+	const send2fa = async () => {
+		try {
+			await login2fa(otp)
+			router.push('/dashboard')
+		} catch (error) {
+			toast.error(error)
+			router.push('/')
+		}
+	}
 
 	useEffect(() => {
 		async function awaitForLogin() {
 			try {
 				const code = searchParams.get('code')
 				if (!code) throw 'No code provided'
-				await login(code)
-				router.push('/dashboard')
+				if (await login(code)) {
+					router.push('/dashboard')
+				}else {
+					setGet2fa(true)
+				}
 			} catch (error) {
 				toast.error(error)
 				router.push('/')
@@ -31,9 +46,32 @@ export default function Auth() {
 
 	return (
 		<div className="flex h-full w-full place-content-center items-center">
-			<h1 className="text-5xl after:inline-block after:w-0 after:animate-ellipsis after:overflow-hidden after:align-bottom after:content-['\2026']">
-				Loading
-			</h1>
+
+			{ get2fa 
+				?  <div className="flex h-full flex-col items-center space-y-4">
+
+					<OtpInput
+						containerStyle="w-full place-content-center flex text-xl space-x-1"
+						inputStyle="border bg-transparent !w-8 aspect-square rounded"
+						isInputNum
+						numInputs={6}
+						onChange={(newOtp) => setOtp(newOtp)}
+						value={otp}
+					/>
+
+					<button
+						className="w-full rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+						onClick={send2fa}
+					>
+						Enable
+					</button>
+				</div>
+				:
+				<h1 className="text-5xl after:inline-block after:w-0 after:animate-ellipsis after:overflow-hidden after:align-bottom after:content-['\2026']">
+					Loading
+				</h1>
+			}
+
 		</div>
 	)
 }
