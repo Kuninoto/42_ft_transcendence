@@ -94,9 +94,8 @@ export class GameGateway implements OnGatewayInit {
       messageBody.recipientUID,
     );
 
-    const inviteId: number = this.gameInviteMap.createNewInvite(
-      crypto.randomUUID(),
-    );
+    const roomId: string = crypto.randomUUID();
+    const inviteId: number = this.gameInviteMap.createNewInvite(roomId);
 
     const invitedToGame: InvitedToGameDTO = {
       senderUID: client.data.userId,
@@ -107,8 +106,10 @@ export class GameGateway implements OnGatewayInit {
       .to(socketIdToInvite)
       .emit('invitedToGame', invitedToGame);
 
-    // Join inviter to room.
-    // Inviter will keep waiting in the game screen for the recipient
+      
+      // Join inviter to room.
+      // Inviter will keep waiting in the game screen for the recipient
+      client.join(roomId);
 
     // perhaps skip a bit of the invite part and use the player-ready message
 
