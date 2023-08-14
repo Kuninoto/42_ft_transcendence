@@ -27,7 +27,7 @@ import { ErrorResponse } from '../../common/types/error-response.interface';
 import { SuccessResponse } from '../../common/types/success-response.interface';
 import { AuthService, twoFactorAuthDTO } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
-import { TwoFactorAuthCodeDTO } from './dto/two-factor-auth-code.dto';
+import { OtpDTO } from './dto/otp.dto';
 import { Authenticate2faAuthGuard } from './guard/authenticate2fa-auth.guard';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
@@ -116,10 +116,10 @@ export class AuthController {
   @Patch('2fa/enable')
   public async enable2fa(
     @Req() req: { user: User },
-    @Body() body: TwoFactorAuthCodeDTO,
+    @Body() body: OtpDTO,
   ): Promise<AccessTokenInterface | ErrorResponse> {
     const is2faCodeValid = this.authService.is2faCodeValid(
-      body.twoFactorAuthCode,
+      body.otp,
       req.user.secret_2fa,
     );
     if (!is2faCodeValid) {
@@ -201,9 +201,9 @@ export class AuthController {
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['twoFactorAuthCode'],
+      required: ['otp'],
       properties: {
-        twoFactorAuthCode: {
+        otp: {
           type: 'string',
         },
       },
@@ -215,13 +215,10 @@ export class AuthController {
   @Post('2fa/authenticate')
   public auth2fa(
     @Req() req: { user: User },
-    @Body() body: TwoFactorAuthCodeDTO,
+    @Body() body: OtpDTO,
   ): AccessTokenInterface | ErrorResponse {
-    if (!body.twoFactorAuthCode) {
-      throw new BadRequestException('Missing "twoFactorAuthCode" body field');
-    }
     const isCodeValid = this.authService.is2faCodeValid(
-      body.twoFactorAuthCode,
+      body.otp,
       req.user.secret_2fa,
     );
 
