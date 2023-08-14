@@ -1,5 +1,6 @@
 import { UserProfile as IUserProfile } from '@/common/type/backend/user-profile.interface'
 import { GameResultInterface } from '@/common/types/backend/game-result-interface.interface'
+import { hasValues } from '@/common/utils/hasValues'
 import Link from 'next/link'
 
 export default function History({
@@ -11,7 +12,9 @@ export default function History({
 }) {
 	return (
 		<div className="w-full space-y-4">
-			{history?.map((match, index) => {
+			{!hasValues(history) 
+			? <div className="w-full text-center py-8 text-2xl"> Start playing</div>	
+			: history?.map((match, index) => {
 				const opponent =
 					match.winner.userId === userProfile?.id ? match.loser : match.winner
 
