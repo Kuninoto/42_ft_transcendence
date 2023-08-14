@@ -1,87 +1,168 @@
 'use client'
 
 import { api } from '@/api/api'
-import { removeParams, useAuth } from '@/contexts/AuthContext'
-import { MdOutlineBlock, MdOutlineClear, MdOutlineDone  } from "react-icons/md"
+import { Friend, SearchUserInfo } from '@/common/types'
+import { FriendshipStatus } from '@/common/types/backend/friendship-status.enum'
+import { removeParams } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Friend, SearchUserInfo } from '@/common/types'
+import { MdOutlineBlock, MdOutlineClear, MdOutlineDone } from 'react-icons/md'
 
-export default function FriendsModal({ addFriend, closeModal }: { addFriend: (user: Friend) => void, closeModal: () => void }) {
-
+export default function FriendsModal({
+	addFriend,
+	closeModal,
+}: {
+	addFriend: (user: Friend) => void
+	closeModal: () => void
+}) {
 	const [search, setSearch] = useState('')
 	const [requests, setRequests] = useState<Friend[]>([])
 	const [requestsLoading, setRequestsLoading] = useState(true)
 	const [searchLoading, setSearchLoading] = useState(true)
 	const [searchUsers, setSearchUsers] = useState<SearchUserInfo[]>([])
 
-	function accept(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, friendship_id: number) {
+	function cancel(
+		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+		friendshipId: number
+	) {
 		e.preventDefault()
 		e.stopPropagation()
 
-		api.patch(`/friendships/${friendship_id}/update`, {
-			newStatus: "accepted"	
-		}).then(() => {
-			addFriend(requests.filter(req => req.friendship_id === friendship_id)[0])
-			setRequests(prevReq => prevReq.filter(prevReq => prevReq.friendship_id !== friendship_id))
-		})
+		try {
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.friendship_id !== friendshipId)
+			)
+
+			api
+				.patch(`/friendships/${friendshipId}/update`, {
+					newStatus: FriendshipStatus.UNFRIEND,
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error) {
+			toast.error(error)
+		}
 	}
 
-	function decline(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, friendship_id: number) {
+	function accept(
+		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+		friendship_id: number
+	) {
 		e.preventDefault()
 		e.stopPropagation()
 
-		setRequests(prevReq => prevReq.filter(prevReq => prevReq.friendship_id != friendship_id))
-
-		console.log(friendship_id)
-		api.patch(`/friendships/${friendship_id}/update`, {
-			newStatus: "declined"	
-		})
+		try {
+			api
+				.patch(`/friendships/${friendship_id}/update`, {
+					newStatus: FriendshipStatus.ACCEPTED,
+				})
+				.then(() => {
+					addFriend(
+						requests.filter((req) => req.friendship_id === friendship_id)[0]
+					)
+					setRequests((prevReq) =>
+						prevReq.filter((prevReq) => prevReq.friendship_id !== friendship_id)
+					)
+				})
+		} catch (error) {
+			toast.error(error)
+		}
 	}
 
-	function block(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, userId: number) {
+	function decline(
+		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+		friendship_id: number
+	) {
 		e.preventDefault()
 		e.stopPropagation()
 
-		setRequests(prevReq => prevReq.filter(prevReq => prevReq.uid != userId))
+		try {
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.friendship_id != friendship_id)
+			)
 
-		api.post(`/friendships/block/${userId}`)
+			api.patch(`/friendships/${friendship_id}/update`, {
+				newStatus: FriendshipStatus.DECLINED,
+			})
+		} catch (error) {
+			toast.error(error)
+		}
 	}
 
-	function sendFriendRequest(e: React.MouseEvent<HTMLButtonElement, MouseEvent>, userId: number) {
+	function block(
+		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+		userId: number
+	) {
 		e.preventDefault()
 		e.stopPropagation()
 
-		setRequests(prevReq => prevReq.filter(prevReq => prevReq.uid != userId))
+		try {
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.uid != userId)
+			)
 
-		api.post(`/friendships/send-request/${userId}`)
-			.then(result => console.log(result))
-			.catch(error => console.error(error))
+			api.post(`/friendships/block/${userId}`)
+		} catch (error) {
+			toast.error(error)
+		}
+	}
+
+	function sendFriendRequest(
+		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+		userId: number
+	) {
+		e.preventDefault()
+		e.stopPropagation()
+
+		try {
+			setRequests((prevReq) =>
+				prevReq.filter((prevReq) => prevReq.uid != userId)
+			)
+
+			api
+				.post(`/friendships/send-request/${userId}`)
+				.then((result) => console.log(result))
+				.catch((error) => console.error(error))
+		} catch (error) {
+			toast.error(error)
+		}
 	}
 
 	useEffect(() => {
 		setRequestsLoading(true)
-		api.get(`/me/friend-request`)
-		.then(result => {
-			console.log(result.data)
-			setRequests(result.data)
-		})
-		.catch(error => console.error(error))
-		.finally(() => setRequestsLoading(false))		
 
+		try {
+			api
+				.get(`/me/friend-request`)
+				.then((result) => {
+					console.log(result.data)
+					setRequests(result.data)
+				})
+				.catch((error) => console.error(error))
+				.finally(() => setRequestsLoading(false))
+		} catch (error) {
+			toast.error(error)
+		}
 	}, [])
 
 	useEffect(() => {
 		setSearchLoading(true)
-		api.get(`/users/search?username=${search}`)
-		.then(result => {
-			console.log(result.data)
-			setSearchUsers(result.data)
-		})
-		.catch(error => console.error(error))
-		.finally(() => setSearchLoading(false))		
 
+		try {
+			api
+			api
+				.get(`/users/search?username=${search}`)
+				.then((result) => {
+					console.log(result.data)
+					setSearchUsers(result.data)
+				})
+				.catch((error) => console.error(error))
+				.finally(() => setSearchLoading(false))
+		} catch (error) {
+			toast.error(error)
+		}
 	}, [search])
 
 	return (
@@ -103,7 +184,7 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 							value={search}
 						/>
 
-						<div className="mt-8 h-56 space-y-3 overflow-scroll border-none ">
+						<div className="mt-8 h-56 space-y-3 overflow-auto border-none ">
 							{!!search ? (
 								<>
 									<div className="mb-4">
@@ -112,93 +193,127 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 										&quot;
 									</div>
 
-        							{ searchLoading ?
+									{searchLoading ? (
 										<div> Loading... </div>
-									: searchUsers && searchUsers.length === 0 ?
+									) : searchUsers && searchUsers.length === 0 ? (
 										<div> No one </div>
-									:
-									<>
-										{ searchUsers.map(user => {
-											return (
-											<Link key={user.id}
-												className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-												href={`/profile?id=${user.id}`}
-											>
-												<div className="flex space-x-6">
-													<Image
-														loader={removeParams}
-														alt="profile picture"
-														src={user.avatar_url || "/placeholder.jpg"}
-														className="aspect-square w-8 rounded"
-														height={0}
-														width={0}
-														sizes="100%"
-													/>
-													<span className="text-xl">{user.name}</span> </div>
-												<button onClick={(e) => sendFriendRequest(e,user.id)} className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
-													Add friend
-												</button>
-											</Link>
-										)})}
-									</>
-									}
+									) : (
+										<>
+											{searchUsers.map((user) => {
+												return (
+													<Link
+														className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
+														href={`/profile?id=${user.id}`}
+														key={user.id}
+													>
+														<div className="flex space-x-6">
+															<Image
+																alt="profile picture"
+																className="aspect-square w-8 rounded"
+																height={0}
+																loader={removeParams}
+																sizes="100%"
+																src={user.avatar_url || '/placeholder.gif'}
+																width={0}
+															/>
+															<span className="text-xl">{user.name}</span>{' '}
+														</div>
+														<button
+															className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+															onClick={(e) => sendFriendRequest(e, user.id)}
+														>
+															Add friend
+														</button>
+													</Link>
+												)
+											})}
+										</>
+									)}
 								</>
 							) : (
 								<>
 									<div>Friend requests</div>
-									{
-										requestsLoading ? 
-											<div>Loading ...</div>
-										: requests.length === 0 ?
-											<div className='mx-auto rounded overflow-hidden w-64 relative h-48'>
-												<Image 
-													className="mx-auto"
-													src='/norequests.jpg'
-													alt='no requests'
-													width={0}
-													height={0}
-													fill
-													sizes="100vw"
-												/>
-											</div>
-
-										: requests?.map(request =>
-												<Link 
-													key={request?.uid}
-													className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-													href={`/profile?id=${request?.uid}`}
-												>
-													<div className="flex space-x-6">
-														<Image
-															loader={removeParams}
-															alt="profile picture"
-															className="aspect-square w-8 rounded"
-															height={0}
-															sizes="100%"
-															src={request?.avatar_url || "/placeholder.jpg"}
-															width={0}
-														/>
-														<span className="text-xl">{request?.name}</span>
-													</div>
-													<div className='flex space-x-2'>
-														<button onClick={(e) => accept(e, request?.friendship_id)} className="flex group/button space-x-2 items-center rounded border border-green-600 p-1 text-sm text-green-600 mix-blend-lighten hover:bg-green-600 hover:text-white">
-															<MdOutlineDone size={24}/>
-															<span className='group-hover/button:flex hidden'>Accept</span>
+									{requestsLoading ? (
+										<div>Loading ...</div>
+									) : requests.length === 0 ? (
+										<div className="relative mx-auto h-48 w-64 overflow-hidden rounded">
+											<Image
+												alt="no requests"
+												className="mx-auto"
+												fill
+												height={0}
+												sizes="100vw"
+												src="/norequests.jpg"
+												width={0}
+											/>
+										</div>
+									) : (
+										requests?.map((request) => (
+											<Link
+												className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
+												href={`/profile?id=${request?.uid}`}
+												key={request?.uid}
+											>
+												<div className="flex space-x-6">
+													<Image
+														alt="profile picture"
+														className="aspect-square w-8 rounded"
+														height={0}
+														loader={removeParams}
+														sizes="100vw"
+														src={request?.avatar_url || '/placeholder.gif'}
+														width={0}
+													/>
+													<span className="text-xl">{request?.name}</span>
+												</div>
+												<div className="flex space-x-2">
+													{request?.sent_by_me ? (
+														<button
+															className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+															onClick={(e) => cancel(e, request?.friendship_id)}
+														>
+															Cancel
 														</button>
-														<button onClick={(e) => decline(e, request?.friendship_id)} className="flex group/button space-x-2 items-center rounded border border-red-600 p-1 text-sm text-red-600 mix-blend-lighten hover:bg-red-600 hover:text-white">
-															<MdOutlineClear size={24}/>
-															<span className='group-hover/button:flex hidden'>Decline</span>
-														</button>
-														<button onClick={(e) => block(e, request?.uid)} className="flex group/button space-x-2 items-center rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
-															<MdOutlineBlock size={24}/>
-															<span className='group-hover/button:flex hidden'>Block</span>
-														</button>
-
-													</div>
-												</Link>
-											)}
+													) : (
+														<>
+															<button
+																onClick={(e) =>
+																	accept(e, request?.friendship_id)
+																}
+																className="group/button flex items-center space-x-2 rounded border border-green-600 p-1 text-sm text-green-600 mix-blend-lighten hover:bg-green-600 hover:text-white"
+															>
+																<MdOutlineDone size={24} />
+																<span className="hidden group-hover/button:flex">
+																	Accept
+																</span>
+															</button>
+															<button
+																onClick={(e) =>
+																	decline(e, request?.friendship_id)
+																}
+																className="group/button flex items-center space-x-2 rounded border border-red-600 p-1 text-sm text-red-600 mix-blend-lighten hover:bg-red-600 hover:text-white"
+															>
+																<MdOutlineClear size={24} />
+																<span className="hidden group-hover/button:flex">
+																	Decline
+																</span>
+															</button>
+															<button
+																className="group/button flex items-center space-x-2 rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+																onClick={(e) => block(e, request?.uid)}
+															>
+																<MdOutlineBlock size={24} />
+																<span className="hidden group-hover/button:flex">
+																	Block
+																</span>
+															</button>
+														</>
+													)}
+												</div>
+											</Link>
+										))
+									)}
 								</>
-
 							)}
 						</div>
 					</div>
@@ -207,4 +322,3 @@ export default function FriendsModal({ addFriend, closeModal }: { addFriend: (us
 		</div>
 	)
 }
-

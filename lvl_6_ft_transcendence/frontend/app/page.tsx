@@ -5,15 +5,11 @@ import Image from 'next/image'
 import { useEffect } from 'react'
 
 export default function page() {
-	
-	const { user } = useAuth()	
+	const { user } = useAuth()
 
 	useEffect(() => {
-
 		if (!!user) {
-
 		}
-
 	})
 
 	return (

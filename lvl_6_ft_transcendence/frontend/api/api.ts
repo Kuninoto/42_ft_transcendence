@@ -11,8 +11,14 @@ export const multipartApi = axios.create({
 	baseURL: 'http://localhost:3000/api',
 	headers: {
 		'Content-Type': 'multipart/form-data',
-		'Authorization': `Bearer ${localStorage.getItem('pong.token')}`
 	},
+})
+
+multipartApi.interceptors.request.use(req => {
+	const token = localStorage.getItem('pong.token')
+	if (token)
+		req.headers['Authorization'] = `Bearer ${token}` 
+	return req
 })
 
 api.interceptors.request.use(req => {
