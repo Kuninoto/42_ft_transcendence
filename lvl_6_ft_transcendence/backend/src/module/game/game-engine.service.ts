@@ -12,7 +12,7 @@ import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 
-const GAME_LOOP_INTERVAL: number = 10;
+const GAME_LOOP_INTERVAL: number = 8;
 const RESET_GAME_DELAY: number = 2;
 
 // Hacky way to make js wait

@@ -5,9 +5,9 @@ export const BALL_RADIUS: number = 4;
 
 // 75 degrees
 const MAX_BOUNCE_ANGLE: number = 75;
-const MAX_BOUNCE_SPEED: number = 6;
+const MAX_BOUNCE_SPEED: number = 10;
 
-const BALL_SPEED: number = 2;
+const BALL_SPEED: number = 3.5;
 
 const randomBallSpeed = () => {
   return Math.round(Math.random()) % 2 === 0 ? -BALL_SPEED : BALL_SPEED;
@@ -50,7 +50,7 @@ export class Ball {
     const bounceAngle: number = normalizedCollidePoint * MAX_BOUNCE_ANGLE;
     const bounceSpeed: number = normalizedCollidePoint * MAX_BOUNCE_SPEED;
 
-    this.speed.x = bounceSpeed * Math.cos(bounceAngle);
+    //this.speed.x = bounceSpeed * Math.cos(bounceAngle);
     this.speed.y = bounceSpeed * -Math.sin(bounceAngle);
   }
 

@@ -1,7 +1,10 @@
 import { Player } from './Player';
+import { Logger } from '@nestjs/common';
 
 export class GameQueue {
   private players: Player[];
+
+  private readonly logger: Logger = new Logger(GameQueue.name);
 
   constructor() {
     this.players = [];
@@ -9,11 +12,11 @@ export class GameQueue {
 
   public enqueue(player: Player): void {
     this.players.push(player);
-    console.log('gameQueue now has ' + this.size() + ' players');
+    this.logger.log(this.size() + ' players in queue');
   }
 
   public dequeue(): Player | undefined {
-    console.log('gameQueue now has ' + (this.size() - 1) + ' players');
+    this.logger.log(this.size() + ' players in queue');
     return this.players.shift();
   }
 
