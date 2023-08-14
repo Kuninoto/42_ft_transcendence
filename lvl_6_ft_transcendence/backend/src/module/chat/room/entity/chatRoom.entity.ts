@@ -20,11 +20,11 @@ export class ChatRoom {
 	@Column({ nullable: false })
 	ownerId: number;
 
-	@Column({ nullable: false })
-	password: string;
+	// @Column({ nullable: false })
+	// password: string;
 
-	@Column({ nullable: false })
-	public: boolean;
+	// @Column({ nullable: false })
+	// public: boolean;
 
 	// @Column({ nullable: false })
 	// ownerId: number;
