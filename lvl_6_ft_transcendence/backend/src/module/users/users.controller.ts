@@ -71,7 +71,7 @@ export class UsersController {
       await this.usersService.findUserProfileByUID(req.user, userID);
 
     if (!userProfile) {
-      this.logger.error(
+      this.logger.warn(
         '"' + req.user.name + '" request the profile of a non-existing user',
       );
       throw new NotFoundException('User with id= ' + userID + "doesn't exist");

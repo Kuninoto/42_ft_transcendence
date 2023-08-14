@@ -71,7 +71,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: JoinRoomDTO,
   ) {
     if (!this.isValidJoinRoomDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with client id=' +
           client.id +
           ' tried to send a wrong JoinRoomDTO',
@@ -107,7 +107,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: InviteToRoomDTO,
   ): Promise<void> {
     if (!this.isValidInviteToRoomDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with socket id=' +
           socket.id +
           ' tried to send a wrong InviteToRoomDTO',
@@ -116,7 +116,7 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     const invited: User | null = await this.usersService.findUserByUID(
-      messageBody.invitedId,
+      messageBody.invitedUID,
     );
     if (!invited) {
       // TODO
@@ -124,7 +124,9 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const invitedSocketId: string = this.connectionService.findSocketIdByUID(invited.id);
+    const invitedSocketId: string = this.connectionService.findSocketIdByUID(
+      invited.id,
+    );
     this.connectionGateway.server.to(invitedSocketId).emit('roomInvite', {
       inviterId: socket.data.user.id,
       roomName: messageBody.roomName,
@@ -137,7 +139,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: NewChatRoomMessageDTO,
   ): Promise<void> {
     if (!this.isValidNewChatRoomMessageDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with socket id=' +
           socket.id +
           ' tried to send a wrong NewChatRoomMessageDTO',
@@ -171,9 +173,8 @@ export class ChatGateway implements OnGatewayInit {
         );
 
       // Retrieve the socketId of the user
-      const userSocketId: string = await this.connectionService.findSocketIdByUID(
-        uid,
-      );
+      const userSocketId: string =
+        await this.connectionService.findSocketIdByUID(uid);
       if (userSocketId && !blockRelationship) {
         socket.to(userSocketId).emit('newChatRoomMessage', message);
       }
@@ -186,7 +187,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: OnDirectMessageDTO,
   ): Promise<void> {
     if (!this.isValidOnDirectMessageDTO(messageBody)) {
-      this.logger.error(
+      this.logger.warn(
         'Client with socket id=' +
           socket.id +
           ' tried to send a wrong OnDirectMessageDTO',
@@ -228,23 +229,6 @@ export class ChatGateway implements OnGatewayInit {
     Game Invite (I take this one)
  */
 
-  // @SubscribeMessage('gameInvite')
-  // async onGameInvite(
-  //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody() messageBody: GameInviteDTO,
-  // ): Promise<void> {
-  //   /* if (!this.isValidGameInviteDTO(messageBody)) {
-  //     this.logger.error(
-  //       'Client with socket id=' +
-  //         socket.id +
-  //         ' tried to send a wrong GameInviteDTO',
-  //     );
-  //     return;
-  //   } */
-  //   // Make receiver join the game socket
-  //   // and enter the game with the sender
-  // }
-
   private isValidJoinRoomDTO(messageBody: any): messageBody is JoinRoomDTO {
     return (
       typeof messageBody === 'object' &&
@@ -257,8 +241,8 @@ export class ChatGateway implements OnGatewayInit {
   ): messageBody is InviteToRoomDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.invitedId === 'number' &&
-      messageBody.invitedId > 0 &&
+      typeof messageBody.invitedUID === 'number' &&
+      messageBody.invitedUID > 0 &&
       typeof messageBody.roomName === 'string'
     );
   }

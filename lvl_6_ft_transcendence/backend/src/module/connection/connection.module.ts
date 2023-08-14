@@ -19,7 +19,12 @@ import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
     GameModule,
     ChatModule,
   ],
-  providers: [JwtAuthStrategy, UserIdToSocketIdMap, ConnectionService, ConnectionGateway],
+  providers: [
+    JwtAuthStrategy,
+    UserIdToSocketIdMap,
+    ConnectionService,
+    ConnectionGateway,
+  ],
   exports: [ConnectionGateway, ConnectionService],
 })
 export class ConnectionModule {}

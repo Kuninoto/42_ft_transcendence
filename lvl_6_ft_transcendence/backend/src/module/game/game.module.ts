@@ -1,19 +1,18 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GameResult, UserStats } from 'src/typeorm/index';
-import { AchievementModule } from '../achievement/achievement.module';
+import { GameResult } from 'src/typeorm/index';
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
-import { ConnectionGateway } from '../connection/connection.gateway';
 import { UserStatsModule } from '../user-stats/user-stats.module';
 import { UsersModule } from '../users/users.module';
 import { GameQueue } from './GameQueue';
-import { GameRoomsMap } from './GameRoomsMap';
+import { GameRoomMap } from './GameRoomMap';
 import { GameEngineService } from './game-engine.service';
 import { GameController } from './game.controller';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 import { ConnectionModule } from '../connection/connection.module';
+import { GameInviteMap } from './GameInviteMap';
 
 @Module({
   imports: [
@@ -28,7 +27,8 @@ import { ConnectionModule } from '../connection/connection.module';
   providers: [
     GameGateway,
     GameQueue,
-    GameRoomsMap,
+    GameRoomMap,
+    GameInviteMap,
     GameService,
     GameEngineService,
   ],

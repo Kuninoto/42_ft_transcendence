@@ -1,3 +1,3 @@
-export interface GameInviteDTO {
-    uidToInvite: number;
+export interface SendGameInviteDTO {
+  recipientUID: number;
 }

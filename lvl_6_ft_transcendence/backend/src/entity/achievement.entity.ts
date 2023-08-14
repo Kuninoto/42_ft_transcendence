@@ -17,7 +17,7 @@ export enum Achievements {
   // 1 Win
   BEGINNERS_TRIUMPH = "Beginner's Triumph",
   // Win due to opponent disconnection
-  UNEXPECTED_VICTORY = "Unexpected Victory",
+  UNEXPECTED_VICTORY = 'Unexpected Victory',
   // 1 Loss
   FIRST_SETBACK = 'First Setback',
   // 1 Friend

@@ -35,7 +35,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     const user: User | null = await this.usersService.findUserByUID(payload.id);
 
     if (!user) {
-      this.logger.error(
+      this.logger.warn(
         "A request was made with a token refering to a user that doesn't exist",
       );
       throw new UnauthorizedException('Unauthenticated request');
@@ -45,7 +45,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     if (!payload.has_2fa || (payload.has_2fa && payload.is_2fa_authed)) {
       return user;
     } else {
-      this.logger.error('User has 2FA but is not 2FA authenticated');
+      this.logger.warn('User has 2FA but is not 2FA authenticated');
       throw new UnauthorizedException('Unauthenticated request');
     }
   }

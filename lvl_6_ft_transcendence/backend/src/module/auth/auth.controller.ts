@@ -62,9 +62,7 @@ export class AuthController {
   @ApiOkResponse({ description: 'The access token of the logged in user' })
   @UseGuards(FortyTwoAuthGuard)
   @Get('login/callback')
-  public async loginCallback(
-    @Req() req: { user: User },
-  ): Promise<LoginDTO> {
+  public async loginCallback(@Req() req: { user: User }): Promise<LoginDTO> {
     return this.authService.login(req.user);
   }
 
@@ -124,7 +122,7 @@ export class AuthController {
       req.user.secret_2fa,
     );
     if (!is2faCodeValid) {
-      this.logger.error('A request was made with a wrong auth code (2FA)');
+      this.logger.warn('A request was made with a wrong auth code (2FA)');
       throw new BadRequestException('Wrong authentication code');
     }
 
@@ -181,7 +179,9 @@ export class AuthController {
 
     await this.usersService.update2faSecretByUID(req.user.id, info2fa.secret);
 
-    return res.json(await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL));
+    return res.json(
+      await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL),
+    );
   }
 
   /**
