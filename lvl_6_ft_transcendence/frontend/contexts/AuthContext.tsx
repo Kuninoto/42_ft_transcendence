@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const [user, setUser] = useState<{} | UserProfile>({})
+	const [get2fa, setGet2fa] = useState(false)
 
 	const [tempToken, setTempToken] = useState("")
 
@@ -66,8 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	async function login2fa( otp: string ) {
-
-
 		console.log(tempToken)
 		const data = await api.post('/auth/2fa/authenticate', {
 			headers: {
