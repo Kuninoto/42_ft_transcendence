@@ -28,6 +28,7 @@ import { SuccessResponse } from '../../common/types/success-response.interface';
 import { AuthService, twoFactorAuthDTO } from './auth.service';
 import { LoginDTO } from './dto/login.dto';
 import { OtpDTO } from './dto/otp.dto';
+import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { Authenticate2faAuthGuard } from './guard/authenticate2fa-auth.guard';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
@@ -175,7 +176,7 @@ export class AuthController {
     @Req() req: { user: User },
     @Res() res: any,
   ) {
-    const info2fa: twoFactorAuthDTO =
+    const info2fa: OtpInfoDTO =
       await this.authService.generate2faSecret();
 
     await this.usersService.update2faSecretByUID(req.user.id, info2fa.secret);
