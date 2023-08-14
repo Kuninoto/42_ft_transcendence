@@ -8,7 +8,7 @@ import { TokenPayload } from './jwt-auth.strategy';
 
 @Injectable()
 export class twoFactorAuthStrategy extends PassportStrategy(Strategy, '2fa') {
-  private readonly logger: Logger = new Logger('Authenticate2faAuthStrategy');
+  private readonly logger: Logger = new Logger('twoFactorAuthStrategy');
 
   constructor(private readonly usersService: UsersService) {
     super({
