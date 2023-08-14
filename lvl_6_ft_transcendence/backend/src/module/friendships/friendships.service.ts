@@ -291,8 +291,12 @@ export class FriendshipsService {
       const senderUID: number = friendship.sender.id;
       const receiverUID: number = friendship.receiver.id;
 
-      const senderNrFriends: number = (await this.findFriendsByUID(friendship.sender.id)).length;
-      const receiverNrFriends: number = (await this.findFriendsByUID(friendship.receiver.id)).length;
+      const senderNrFriends: number = (
+        await this.findFriendsByUID(friendship.sender.id)
+      ).length;
+      const receiverNrFriends: number = (
+        await this.findFriendsByUID(friendship.receiver.id)
+      ).length;
 
       await this.achievementsService.grantFriendsAchievementsIfEligible(
         senderUID,

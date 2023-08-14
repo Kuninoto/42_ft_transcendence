@@ -61,12 +61,11 @@ export class ConnectionGateway
   }
 
   async handleDisconnect(client: Socket): Promise<void> {
-    if (!client.data.userId)
-      return;
-      
+    if (!client.data.userId) return;
+
     await this.gameService.disconnectPlayer(client.data.userId);
     await this.changeUserStatus(client.data.userId, UserStatus.OFFLINE);
-      
+
     this.logger.log('User with id=' + client.data.userId + ' has disconnected');
     this.connectionService.deleteSocketIdByUID(client.data.userId);
   }
@@ -87,12 +86,10 @@ export class ConnectionGateway
     achievement: Achievements,
   ): Promise<void> {
     const socketId: string = this.connectionService.findSocketIdByUID(userId);
-  
+
     const achievementUnlocked: AchievementUnlockedDTO = {
-      achievement
-    }
-    this.server
-      .to(socketId)
-      .emit('achievementUnlocked', achievementUnlocked)
+      achievement,
+    };
+    this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
   }
 }

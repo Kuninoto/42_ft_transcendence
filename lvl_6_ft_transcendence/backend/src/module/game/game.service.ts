@@ -169,7 +169,7 @@ export class GameService {
     this.GameRoomMap.deleteGameRoomByRoomId(roomId);
 
     await this.saveGameResult(gameType, winner, loser);
-  
+
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
       loser.userId,
