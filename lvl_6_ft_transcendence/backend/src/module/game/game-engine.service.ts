@@ -7,7 +7,7 @@ import {
   CANVAS_WIDTH,
   GameRoom,
 } from './GameRoom';
-import { GameRoomsMap } from './GameRoomsMap';
+import { GameRoomMap } from './GameRoomMap';
 import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
@@ -39,15 +39,15 @@ export class GameEngineService {
     private readonly gameGateway: GameGateway,
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
-    private readonly gameRoomsMap: GameRoomsMap,
+    private readonly GameRoomMap: GameRoomMap,
   ) {}
 
   public startGame(roomId: string): void {
-    const gameRoom: GameRoom = this.gameRoomsMap.findGameRoomById(roomId);
+    const gameRoom: GameRoom = this.GameRoomMap.findGameRoomById(roomId);
     gameRoom.gameLoopIntervalId = setInterval(() => {
       // Fetch the game room info (which can possibly be updated by
       // game-gateway on 'paddle-move' message) and pass it to the gameLoop()
-      this.gameLoop(this.gameRoomsMap.findGameRoomById(roomId));
+      this.gameLoop(this.GameRoomMap.findGameRoomById(roomId));
     }, GAME_LOOP_INTERVAL);
   }
 
@@ -67,15 +67,17 @@ export class GameEngineService {
 
     if (this.somePlayerScored(gameRoom)) {
       this.gameGateway.broadcastGameRoomInfo(gameRoom);
-      sleep(RESET_GAME_DELAY);
-    }
 
-    if (
-      gameRoom.rightPlayer.score === MAX_SCORE ||
-      gameRoom.leftPlayer.score === MAX_SCORE
-    ) {
-      this.endGame(gameRoom);
-      return;
+      // Check if game should end
+      if (
+        gameRoom.rightPlayer.score === MAX_SCORE ||
+        gameRoom.leftPlayer.score === MAX_SCORE
+      ) {
+        this.endGame(gameRoom);
+        return;
+      }
+
+      sleep(RESET_GAME_DELAY);
     }
   }
 
@@ -89,6 +91,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.leftPlayer,
         gameRoom.rightPlayer,
+        false,
       );
     } else {
       // RIGHT PLAYER WINS
@@ -97,6 +100,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.rightPlayer,
         gameRoom.leftPlayer,
+        false,
       );
     }
   }
@@ -114,6 +118,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.leftPlayer,
         gameRoom.rightPlayer,
+        true,
       );
     } else {
       // RIGHT PLAYER WINS
@@ -122,6 +127,7 @@ export class GameEngineService {
         gameRoom.roomId,
         gameRoom.rightPlayer,
         gameRoom.leftPlayer,
+        true,
       );
     }
   }

@@ -13,7 +13,7 @@ import { UsersService } from '../users/users.service';
 import { Ball } from './Ball';
 import { GameQueue } from './GameQueue';
 import { GameRoom } from './GameRoom';
-import { GameRoomsMap } from './GameRoomsMap';
+import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
 import { GameEngineService } from './game-engine.service';
 import { GameGateway } from './game.gateway';
@@ -24,7 +24,7 @@ const GAME_START_TIMEOUT: number = 1000 * 3;
 export class GameService {
   constructor(
     private readonly gameQueue: GameQueue,
-    private readonly gameRoomsMap: GameRoomsMap,
+    private readonly GameRoomMap: GameRoomMap,
     private readonly gameEngine: GameEngineService,
     @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
@@ -42,7 +42,7 @@ export class GameService {
   public isPlayerInQueueOrGame(playerUID: number): boolean {
     return (
       this.gameQueue.isPlayerInQueue(playerUID) ||
-      this.gameRoomsMap.isPlayerInGame(playerUID)
+      this.GameRoomMap.isPlayerInGame(playerUID)
     );
   }
 
@@ -73,11 +73,11 @@ export class GameService {
    */
   public async disconnectPlayer(playerUserId: number): Promise<void> {
     const playerRoom: GameRoom | null =
-      this.gameRoomsMap.findRoomWithPlayerByUID(playerUserId);
+      this.GameRoomMap.findRoomWithPlayerByUID(playerUserId);
 
     /* If a room with the disconnecting player is found
     it's because he was on an on-going game.
-    Upon game end we delete the gameRoom from the gameRoomsMap */
+    Upon game end we delete the gameRoom from the GameRoomMap */
     if (playerRoom) {
       // If the left player's client id === disconnecting player's userId
       // Right player winned
@@ -96,7 +96,7 @@ export class GameService {
 
   public playerReady(gameRoomId: string, clientId: string) {
     let gameRoom: GameRoom | undefined =
-      this.gameRoomsMap.findGameRoomById(gameRoomId);
+      this.GameRoomMap.findGameRoomById(gameRoomId);
     if (!gameRoom) {
       return;
     }
@@ -114,9 +114,9 @@ export class GameService {
       },
     };
 
-    this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
-    // Fetch the updated info from gameRoomsMap
-    gameRoom = this.gameRoomsMap.findGameRoomById(gameRoomId);
+    this.GameRoomMap.updateGameRoomById(gameRoomId, updatedGameRoom);
+    // Fetch the updated info from GameRoomMap
+    gameRoom = this.GameRoomMap.findGameRoomById(gameRoomId);
 
     if (gameRoom.leftPlayer.isReady && gameRoom.rightPlayer.isReady) {
       setTimeout(() => {
@@ -127,7 +127,7 @@ export class GameService {
 
   public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
     const gameRoom: GameRoom | undefined =
-      this.gameRoomsMap.findGameRoomById(gameRoomId);
+      this.GameRoomMap.findGameRoomById(gameRoomId);
     if (!gameRoom) {
       return;
     }
@@ -145,7 +145,7 @@ export class GameService {
       },
     };
 
-    this.gameRoomsMap.updateGameRoomById(gameRoomId, updatedGameRoom);
+    this.GameRoomMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
   public async findGameResultsWhereUserPlayed(
@@ -166,10 +166,10 @@ export class GameService {
     wonByDisconnection: boolean,
   ): Promise<void> {
     this.gameGateway.broadcastGameEnd(roomId, winner, loser);
-    this.gameRoomsMap.deleteGameRoomByRoomId(roomId);
+    this.GameRoomMap.deleteGameRoomByRoomId(roomId);
 
     await this.saveGameResult(gameType, winner, loser);
-  
+
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
       loser.userId,
@@ -194,7 +194,7 @@ export class GameService {
         ? { leftPlayer: playerOne, rightPlayer: playerTwo }
         : { leftPlayer: playerTwo, rightPlayer: playerOne };
 
-    this.gameRoomsMap.createNewGameRoom({
+    this.GameRoomMap.createNewGameRoom({
       roomId: roomId,
       gameType: GameType.LADDER,
       ball: new Ball(),

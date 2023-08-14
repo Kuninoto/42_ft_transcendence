@@ -14,9 +14,7 @@ export interface twoFactorAuthDTO {
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   private readonly logger: Logger = new Logger(AuthService.name);
 

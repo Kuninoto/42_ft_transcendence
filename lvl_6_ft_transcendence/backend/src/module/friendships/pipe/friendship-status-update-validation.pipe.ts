@@ -18,7 +18,7 @@ export class FriendshipStatusUpdateValidationPipe
     const response = value.newStatus;
 
     if (!response || !this.allowedResponses.includes(response)) {
-      this.logger.error(
+      this.logger.warn(
         'A request to update a friendship status was made with an invalid status',
       );
       throw new BadRequestException('Invalid friendship status');

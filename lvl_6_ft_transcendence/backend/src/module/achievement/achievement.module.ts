@@ -6,8 +6,8 @@ import { AchievementService } from './achievement.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Achievement]), 
-    forwardRef(() => ConnectionModule)
+    TypeOrmModule.forFeature([Achievement]),
+    forwardRef(() => ConnectionModule),
   ],
   providers: [AchievementService],
   exports: [AchievementService],
