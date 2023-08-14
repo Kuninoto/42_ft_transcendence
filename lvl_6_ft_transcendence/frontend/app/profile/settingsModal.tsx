@@ -18,7 +18,7 @@ function QRCode() {
 		try {
 			api
 				.patch('/auth/2fa/enable', {
-					twoFactorAuthCode: otp,
+					otp,
 				})
 				.then(() => {
 					setOtp('')
@@ -93,7 +93,6 @@ function QRCode() {
 				isInputNum
 				numInputs={6}
 				onChange={(newOtp) => setOtp(newOtp)}
-				onSubmit={console.log(otp)}
 				value={otp}
 			/>
 
