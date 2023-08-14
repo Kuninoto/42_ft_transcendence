@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const [user, setUser] = useState<{} | UserProfile>({})
+	const [get2fa, setGet2fa] = useState(false)
 
 	const { connect } = useSocket()
 
@@ -62,12 +63,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		localStorage.removeItem('pong.token')
 	}
 
+	async function log2fa() {
+
+	}
+
 	async function login(code: string) {
 
 		const data = await axios
 			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
 			.then(result => result.data)
 			.catch(() => { throw "Network error" })
+
+		if (data.has2fa) 
+		{
+			setGet2fa(true)
+			return;
+		}
 
 		localStorage.setItem('pong.token', data.accessToken)
 		const login = await api.get(`/me`, {
@@ -79,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			.catch((e) => { throw(e.response.data.message)})
 
 		connect()
-
 		setUser(login)
 	}
 
