@@ -83,11 +83,12 @@ export class AuthService {
   }
 
   public is2faCodeValid(
-    twoFactorAuthCode: string,
+    otp: string,
     secret_2fa: string,
   ): boolean {
+
     return authenticator.verify({
-      token: twoFactorAuthCode,
+      token: otp,
       secret: secret_2fa,
     });
   }
