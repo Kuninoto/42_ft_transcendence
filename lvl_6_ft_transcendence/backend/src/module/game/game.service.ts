@@ -17,6 +17,7 @@ import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
 import { GameEngineService } from './game-engine.service';
 import { GameGateway } from './game.gateway';
+import { OpponentFoundDTO } from './dto/opponent-found.dto';
 
 const GAME_START_TIMEOUT: number = 1000 * 3;
 
@@ -218,11 +219,12 @@ export class GameService {
         opponentUID,
       );
 
-    player.client.emit('opponentFound', {
+    const opponentFound: OpponentFoundDTO = {
       roomId: roomId,
       side: player.side,
       opponentInfo: opponentInfo,
-    });
+    }
+    player.client.emit('opponentFound', opponentFound);
   }
 
   private async saveGameResult(
