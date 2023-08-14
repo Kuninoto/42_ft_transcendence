@@ -4,10 +4,10 @@ import { api } from '@/api/api'
 import { UserStatsForLeaderboard } from '@/common/types/backend/user-stats-for-leaderboard.interface'
 import { hasValues } from '@/common/utils/hasValues'
 import { removeParams } from '@/contexts/AuthContext'
-import { CgTrophy } from 'react-icons/cg'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { CgTrophy } from 'react-icons/cg'
 import { toast } from 'react-toastify'
 
 function Podium({
@@ -38,8 +38,8 @@ function Podium({
 			</div>
 			<div className="text-xl">{user?.name || 'NOT FOUND'}</div>
 			{hasValues(user) && (
-				<div className="text-sm flex items-center">
-					#{top} • {user?.wins} <CgTrophy className="-mt-0.5" size={20}/>
+				<div className="flex items-center text-sm">
+					#{top} • {user?.wins} <CgTrophy className="-mt-0.5" size={20} />
 				</div>
 			)}
 		</Link>

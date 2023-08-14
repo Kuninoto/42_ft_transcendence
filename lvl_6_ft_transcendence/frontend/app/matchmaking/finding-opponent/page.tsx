@@ -1,13 +1,15 @@
 'use client'
 
 import { useGame } from '@/contexts/GameContext'
-import { useEffect } from 'react'
 import Image from 'next/image'
+import { useEffect } from 'react'
 
 export default function Loading() {
 	const { cancel, queue } = useGame()
 
-	useEffect(() => { queue() }, [])
+	useEffect(() => {
+		queue()
+	}, [])
 
 	return (
 		<div className="flex h-full">

@@ -1,19 +1,18 @@
 'use client'
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { ToastContainer } from 'react-toastify';
 import { ChatProvider } from '@/contexts/ChatContext'
+import { SocketProvider } from '@/contexts/SocketContext'
 import { Press_Start_2P } from 'next/font/google'
 import { usePathname } from 'next/navigation'
 import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
-
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 import Chat from './chat/page'
 import './globals.css'
-import { SocketProvider } from '@/contexts/SocketContext';
 
 const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
@@ -64,15 +63,15 @@ export default function RootLayout({
 
 								<FixedPanel handle={handle} />
 								<ToastContainer
-									position="top-right"
 									autoClose={5000}
+									closeOnClick
+									draggable
 									hideProgressBar={false}
 									newestOnTop
-									closeOnClick
-									rtl={false}
 									pauseOnFocusLoss={false}
-									draggable
 									pauseOnHover={false}
+									position="top-right"
+									rtl={false}
 									theme="dark"
 								/>
 							</FullScreen>

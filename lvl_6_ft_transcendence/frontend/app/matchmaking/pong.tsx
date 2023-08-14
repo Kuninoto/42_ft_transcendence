@@ -1,5 +1,6 @@
 import { themes } from '@/common/themes'
 import { PlayerSide } from '@/common/types/backend/player-side.enum'
+import { hasValues } from '@/common/utils/hasValues'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'
 import { useEffect, useRef } from 'react'
@@ -14,7 +15,6 @@ import {
 	PADDLE_WALL_OFFSET,
 	PADDLE_WIDTH,
 } from './definitions'
-import { hasValues } from '@/common/utils/hasValues'
 
 const KEYDOWN = 'ArrowDown'
 const KEYUP = 'ArrowUp'
@@ -62,7 +62,6 @@ export default function Pong() {
 	}, [ballPosition])
 
 	useEffect(() => {
-	
 		if (hasValues(user)) {
 			const canvas = canvasRef.current
 			const context = canvas && canvas.getContext('2d')
@@ -170,7 +169,6 @@ export default function Pong() {
 				context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 			}
 		}
-
 	}, [canvasRef])
 
 	return (
