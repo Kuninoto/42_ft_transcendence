@@ -7,7 +7,7 @@ export const BALL_RADIUS: number = 4;
 const MAX_BOUNCE_ANGLE: number = 75;
 const MAX_BOUNCE_SPEED: number = 10;
 
-const BALL_SPEED: number = 3.5;
+const BALL_SPEED: number = 2.5;
 
 const randomBallSpeed = () => {
   return Math.round(Math.random()) % 2 === 0 ? -BALL_SPEED : BALL_SPEED;

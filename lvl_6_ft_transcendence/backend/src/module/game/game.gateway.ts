@@ -11,7 +11,6 @@ import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
-import { GameInviteMap } from './GameInviteMap';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
@@ -23,6 +22,9 @@ import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { RespondToGameInviteDTO } from './dto/respond-to-game-invite.dto';
 import { GameService } from './game.service';
+import { OpponentFoundDTO } from './dto/opponent-found.dto';
+import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
+import { OpponentInfo } from 'src/common/types/opponent-info.interface';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -32,7 +34,6 @@ export class GameGateway implements OnGatewayInit {
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
-    private gameInviteMap: GameInviteMap,
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
     @Inject(forwardRef(() => ConnectionService))
@@ -90,12 +91,16 @@ export class GameGateway implements OnGatewayInit {
     const newPlayer: Player = new Player(client, client.data.userId);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
-    const socketIdToInvite: string = this.connectionService.findSocketIdByUID(
+    const roomId: string = crypto.randomUUID();
+    const inviteId: number = this.gameService.createGameInvite({
+      roomId: roomId,
+      senderUID: client.data.userId,
+      recipientUID: messageBody.recipientUID,
+    });
+    
+    const recipientSocketId: string = this.connectionService.findSocketIdByUID(
       messageBody.recipientUID,
     );
-
-    const roomId: string = crypto.randomUUID();
-    const inviteId: number = this.gameInviteMap.createNewInvite(roomId);
 
     const invitedToGame: InvitedToGameDTO = {
       senderUID: client.data.userId,
@@ -103,16 +108,12 @@ export class GameGateway implements OnGatewayInit {
     };
 
     this.connectionGateway.server
-      .to(socketIdToInvite)
+      .to(recipientSocketId)
       .emit('invitedToGame', invitedToGame);
 
     // Join inviter to room.
     // Inviter will keep waiting in the game screen for the recipient
     client.join(roomId);
-
-    // perhaps skip a bit of the invite part and use the player-ready message
-
-    // Send ack message with inviteId to the inviter
   }
 
   /**
@@ -122,17 +123,26 @@ export class GameGateway implements OnGatewayInit {
    * @param messageBody body of the received message
    */
   @SubscribeMessage('respondToGameInvite')
-  respondToGameInvite(
+  async respondToGameInvite(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: RespondToGameInviteDTO,
-  ): void {
+  ): Promise<OpponentInfo | null> {
     if (!this.isValidRespondToGameInviteMessage(messageBody)) {
       this.logger.warn(
         'User id=' +
           client.data.userId +
           ' tried to send a wrong RespondToGameInviteDTO',
       );
-      return;
+      return null;
+    }
+
+    if (messageBody.accepted === true) {
+      // refer to:
+      // https://stackoverflow.com/questions/49612658/socket-io-acknowledgement-in-nest-js
+      return await this.gameService.gameInviteAccepted(messageBody.inviteId, client);
+    } else {
+      this.gameService.gameInviteDeclined(messageBody.inviteId);
+      return null;
     }
   }
 
