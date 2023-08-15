@@ -13,7 +13,7 @@ import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 
 const GAME_LOOP_INTERVAL: number = 8;
-const RESET_GAME_DELAY: number = 2;
+const RESET_GAME_DELAY: number = 5;
 
 // Hacky way to make js wait
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -52,8 +52,6 @@ export class GameEngineService {
   }
 
   private gameLoop(gameRoom: GameRoom): void {
-    console.log(gameRoom.leftPlayer.paddleX, gameRoom.leftPlayer.paddleY)
-    console.log(gameRoom.rightPlayer.paddleX, gameRoom.rightPlayer.paddleY)
     gameRoom.ball.moveBySpeed();
     this.gameGateway.broadcastGameRoomInfo(gameRoom);
 
@@ -76,7 +74,6 @@ export class GameEngineService {
         this.endGame(gameRoom);
         return;
       }
-
       sleep(RESET_GAME_DELAY);
     }
   }

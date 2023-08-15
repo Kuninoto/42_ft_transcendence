@@ -12,6 +12,7 @@ import * as path from 'path';
 import { ChatRoomI } from 'src/common/types/chat-room.interface';
 import { FriendInterface } from 'src/common/types/friend-interface.interface';
 import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
+import { OpponentInfo } from 'src/common/types/opponent-info.interface';
 import {
   BlockedUser,
   ChatRoom,
@@ -29,6 +30,7 @@ import { UserSearchInfo } from '../../common/types/user-search-info.interface';
 import { UserStatus } from '../../common/types/user-status.enum';
 import { AchievementService } from '../achievement/achievement.service';
 import { FriendshipsService } from '../friendships/friendships.service';
+import { OpponentFoundDTO } from '../game/dto/opponent-found.dto';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 
@@ -196,6 +198,16 @@ export class UsersService {
       friend_request_sent_by_me: friendship
         ? friendship.sender === meUser
         : null,
+    };
+  }
+
+  public async findOpponentInfoByUID(userId: number): Promise<OpponentInfo> {
+    const user: User = await this.findUserByUID(userId);
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatar_url: user.avatar_url,
     };
   }
 

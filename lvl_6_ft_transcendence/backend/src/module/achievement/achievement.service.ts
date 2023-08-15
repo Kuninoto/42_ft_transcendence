@@ -42,7 +42,7 @@ export class AchievementService {
     if (
       !(await this.userAlreadyHaveThisAchievement(
         userId,
-        Achievements.DECLINED_TOMORROW_BUDDIES,
+        Achievements.UNEXPECTED_VICTORY,
       ))
     ) {
       await this.grantAchievement(userId, Achievements.UNEXPECTED_VICTORY);
@@ -76,16 +76,12 @@ export class AchievementService {
     userId: number,
     nrLosses: number,
   ): Promise<void> {
-    if (
-      await this.userAlreadyHaveThisAchievement(
+    if (nrLosses === 1 &&
+      !(await this.userAlreadyHaveThisAchievement(
         userId,
         Achievements.FIRST_SETBACK,
-      )
+      ))
     ) {
-      return;
-    }
-
-    if (nrLosses === 1) {
       await this.grantAchievement(userId, Achievements.FIRST_SETBACK);
     }
   }
