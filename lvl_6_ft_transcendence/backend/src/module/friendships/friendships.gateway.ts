@@ -40,7 +40,7 @@ export class FriendshipsGateway implements OnGatewayInit {
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendDirectMessageDTO
+    @MessageBody() messageBody: SendDirectMessageDTO,
   ): Promise<void> {
     if (!this.isValidSendDirectMessageDTO(messageBody)) {
       this.logger.warn(
@@ -55,12 +55,16 @@ export class FriendshipsGateway implements OnGatewayInit {
       this.connectionService.findSocketIdByUID(messageBody.receiverUID);
 
     // Save DM on database
-    await this.messageService.createDirectMessage(client.data.userId, messageBody.receiverUID, messageBody.content);
-    
+    await this.messageService.createDirectMessage(
+      client.data.userId,
+      messageBody.receiverUID,
+      messageBody.content,
+    );
+
     const directMessageReceived: DirectMessageReceivedDTO = {
       senderUID: client.data.userId,
       content: messageBody.content,
-    }
+    };
 
     // Don't send message if user is offline
     if (receiverSocketId) {

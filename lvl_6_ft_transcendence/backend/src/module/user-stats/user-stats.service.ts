@@ -56,7 +56,10 @@ export class UserStatsService {
     const userStatsInterfaces: UserStatsInterface = {
       wins: userStats.wins,
       losses: userStats.losses,
-      win_rate: userStats.win_rate == null ? 0 : parseFloat(userStats.win_rate.toPrecision(3)),
+      win_rate:
+        userStats.win_rate == null
+          ? 0
+          : parseFloat(userStats.win_rate.toPrecision(3)),
       matches_played: userStats.matches_played,
     };
 
@@ -82,9 +85,12 @@ export class UserStatsService {
       matches_played: () => 'matches_played + 1',
     });
 
-    const winnerWins: number = Number((await this.findUserStatsByUID(winnerUID)).wins);
-    const loserLosses: number = Number((await this.findUserStatsByUID(loserUID))
-      .losses);
+    const winnerWins: number = Number(
+      (await this.findUserStatsByUID(winnerUID)).wins,
+    );
+    const loserLosses: number = Number(
+      (await this.findUserStatsByUID(loserUID)).losses,
+    );
 
     await this.achievementService.grantWinsAchievementsIfEligible(
       winnerUID,

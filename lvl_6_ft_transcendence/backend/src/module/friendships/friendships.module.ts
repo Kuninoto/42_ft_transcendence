@@ -11,7 +11,7 @@ import { FriendshipsService } from './friendships.service';
   imports: [
     TypeOrmModule.forFeature([User, Friendship, BlockedUser]),
     forwardRef(() => AchievementModule),
-    forwardRef(() => ConnectionModule)
+    forwardRef(() => ConnectionModule),
   ],
   controllers: [FriendshipsController],
   providers: [FriendshipsService],

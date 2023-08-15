@@ -290,11 +290,14 @@ export class FriendshipsService {
       // ACCEPTED
       friendship.status = newFriendshipStatus;
       await this.friendshipRepository.save(friendship);
-    
+
       const senderUID: number = friendship.sender.id;
       const receiverUID: number = friendship.receiver.id;
 
-      this.connectionGateway.makeFriendsJoinEachOthersRoom(senderUID, receiverUID);
+      this.connectionGateway.makeFriendsJoinEachOthersRoom(
+        senderUID,
+        receiverUID,
+      );
 
       const senderNrFriends: number = (
         await this.findFriendsByUID(friendship.sender.id)

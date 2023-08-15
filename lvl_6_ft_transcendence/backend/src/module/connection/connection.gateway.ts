@@ -85,7 +85,8 @@ export class ConnectionGateway
   }
 
   async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
-    const friends: FriendInterface[] = await this.friendshipsService.findFriendsByUID(userId);
+    const friends: FriendInterface[] =
+      await this.friendshipsService.findFriendsByUID(userId);
 
     friends.forEach((friend) => {
       client.join(`friend-${friend.uid}`);
@@ -93,8 +94,10 @@ export class ConnectionGateway
   }
 
   makeFriendsJoinEachOthersRoom(user1UID: number, user2UID: number): void {
-    const user1SocketId: string | undefined = this.connectionService.findSocketIdByUID(user1UID);
-    const user2SocketId: string | undefined = this.connectionService.findSocketIdByUID(user2UID);
+    const user1SocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(user1UID);
+    const user2SocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(user2UID);
 
     // If both users are online
     if (user1SocketId && user2SocketId) {

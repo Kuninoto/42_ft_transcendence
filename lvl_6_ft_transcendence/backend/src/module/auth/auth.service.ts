@@ -67,10 +67,7 @@ export class AuthService {
     return await toDataURL(otpAuthURL);
   }
 
-  public is2faCodeValid(
-    otp: string,
-    secret_2fa: string,
-  ): boolean {
+  public is2faCodeValid(otp: string, secret_2fa: string): boolean {
     return authenticator.check(otp, secret_2fa);
   }
 }

@@ -20,7 +20,7 @@ export class Message {
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   content: string;
 
