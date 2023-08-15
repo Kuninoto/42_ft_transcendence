@@ -53,9 +53,9 @@ export class GameService {
     );
   }
 
-  public queueToLadder(player: Player): void {
+  public async queueToLadder(player: Player): Promise<void> {
     this.gameQueue.enqueue(player);
-    this.connectionGateway.changeUserStatus(player.userId, UserStatus.IN_QUEUE);
+    await this.connectionGateway.updateUserStatus(player.userId, UserStatus.IN_QUEUE);
 
     // If there's no more players on the queue, assign the left side and keep him waiting
     if (this.gameQueue.size() === 1) {
@@ -132,7 +132,7 @@ export class GameService {
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
-  public playerReady(gameRoomId: string, clientId: string) {
+  public async playerReady(gameRoomId: string, clientId: string) {
     let gameRoom: GameRoom | undefined =
       this.GameRoomMap.findGameRoomById(gameRoomId);
     if (!gameRoom) {
@@ -157,6 +157,9 @@ export class GameService {
     gameRoom = this.GameRoomMap.findGameRoomById(gameRoomId);
 
     if (gameRoom.leftPlayer.isReady && gameRoom.rightPlayer.isReady) {
+      await this.connectionGateway.updateUserStatus(gameRoom.rightPlayer.userId, UserStatus.IN_GAME);
+      await this.connectionGateway.updateUserStatus(gameRoom.leftPlayer.userId, UserStatus.IN_GAME);
+
       setTimeout(() => {
         this.gameEngine.startGame(gameRoomId);
       }, GAME_START_TIMEOUT);
@@ -207,6 +210,9 @@ export class GameService {
     this.GameRoomMap.deleteGameRoomByRoomId(roomId);
 
     await this.saveGameResult(gameType, winner, loser);
+
+    await this.connectionGateway.updateUserStatus(winner.userId, UserStatus.ONLINE);
+    await this.connectionGateway.updateUserStatus(loser.userId, UserStatus.ONLINE);
 
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,

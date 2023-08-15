@@ -74,6 +74,7 @@ export class GameEngineService {
         this.endGame(gameRoom);
         return;
       }
+
       sleep(RESET_GAME_DELAY);
     }
   }

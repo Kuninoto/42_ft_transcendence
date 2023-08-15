@@ -14,7 +14,7 @@ import { ConnectionService } from '../connection/connection.service';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
-import { SendGameInviteDTO } from './dto/game-invite.dto';
+import { SendGameInviteDTO } from './dto/send-game-invite.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
 import { InvitedToGameDTO } from './dto/invited-to-game.dto';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
@@ -22,8 +22,6 @@ import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { RespondToGameInviteDTO } from './dto/respond-to-game-invite.dto';
 import { GameService } from './game.service';
-import { OpponentFoundDTO } from './dto/opponent-found.dto';
-import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 import { OpponentInfo } from 'src/common/types/opponent-info.interface';
 
 @WebSocketGateway({
@@ -58,13 +56,13 @@ export class GameGateway implements OnGatewayInit {
     }
 
     const newPlayer: Player = new Player(client, client.data.userId);
-    this.gameService.queueToLadder(newPlayer);
+    await this.gameService.queueToLadder(newPlayer);
   }
 
   @SubscribeMessage('leaveQueueOrGame')
   async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
     this.logger.log('Player UID= ' + client.data.userId + ' disconnected');
-    this.gameService.disconnectPlayer(client.data.userId);
+    await this.gameService.disconnectPlayer(client.data.userId);
   }
 
   @SubscribeMessage('sendGameInvite')

@@ -13,7 +13,6 @@ import {
 import { Message } from './message.entity';
 
 export enum ChatRoomType {
-  DIRECT = 'direct',
   PUBLIC = 'public',
   PROTECTED = 'protected',
   PRIVATE = 'private',

@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatRoomMessageI } from 'src/common/types/chat-room-message.interface';
-import { DirectMessageI } from 'src/common/types/direct-message.interface';
-import { ChatRoom, DirectMessage, User } from 'src/typeorm';
+import { ChatRoom, DirectMessage } from 'src/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from '../../entity/message.entity';
 
@@ -18,10 +17,10 @@ export class MessageService {
   async newChatRoomMessage(
     authorUID: number,
     toChatRoom: ChatRoom,
-    text: string,
+    content: string,
   ): Promise<ChatRoomMessageI> {
     const newMessage: Message = this.messageRepository.create({
-      text: text,
+      content: content,
       room: { id: toChatRoom.id },
       user: { id: authorUID },
     });
@@ -41,25 +40,21 @@ export class MessageService {
         name: message.user.name,
         avatar_url: message.user.avatar_url,
       },
-      text: message.text,
+      content: message.content,
     };
   }
 
-  async newDirectMessage(
+  async createDirectMessage(
     senderUID: number,
     receiverUID: number,
-    text: string,
-  ): Promise<DirectMessageI> {
+    content: string,
+  ): Promise<DirectMessage> {
     const newMessage: DirectMessage = this.directMessageRepository.create({
       sender: { id: senderUID },
       receiver: { id: receiverUID },
-      text: text,
+      content: content,
     });
-    await this.directMessageRepository.save(newMessage);
 
-    return {
-      senderUID: senderUID,
-      text: text,
-    };
+    return await this.directMessageRepository.save(newMessage);
   }
 }

@@ -9,7 +9,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { ChatRoomMessageI } from 'src/common/types/chat-room-message.interface';
-import { DirectMessageI } from 'src/common/types/direct-message.interface';
 import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
@@ -20,7 +19,6 @@ import { CreateRoomDTO } from './dto/create-room.dto';
 import { InviteToRoomDTO } from './dto/invite-to-room.dto';
 import { JoinRoomDTO } from './dto/join-room.dto';
 import { NewChatRoomMessageDTO } from './dto/new-chatroom-message.dto';
-import { OnDirectMessageDTO } from './dto/on-direct-message.dto';
 import { MessageService } from './message.service';
 import { RoomService } from './room.service';
 
@@ -174,50 +172,11 @@ export class ChatGateway implements OnGatewayInit {
 
       // Retrieve the socketId of the user
       const userSocketId: string =
-        await this.connectionService.findSocketIdByUID(uid);
+        this.connectionService.findSocketIdByUID(uid);
       if (userSocketId && !blockRelationship) {
         socket.to(userSocketId).emit('newChatRoomMessage', message);
       }
     });
-  }
-
-  @SubscribeMessage('newDirectMessage')
-  async onNewDirectMessage(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() messageBody: OnDirectMessageDTO,
-  ): Promise<void> {
-    if (!this.isValidOnDirectMessageDTO(messageBody)) {
-      this.logger.warn(
-        'Client with socket id=' +
-          socket.id +
-          ' tried to send a wrong OnDirectMessageDTO',
-      );
-      return;
-    }
-
-    if (socket.data.userId == messageBody.receiverUID) {
-      // self message
-      return;
-    }
-
-    const receiverSocketId: string | null =
-      this.connectionService.findSocketIdByUID(messageBody.receiverUID);
-
-    if (!receiverSocketId) {
-      // TODO
-      // user is offline or doesn't exist
-      return;
-    }
-
-    const newDirectMessage: DirectMessageI =
-      await this.messageService.newDirectMessage(
-        socket.data.userId,
-        messageBody.receiverUID,
-        messageBody.text,
-      );
-    this.connectionGateway.server
-      .to(receiverSocketId)
-      .emit('newDirectMessage', newDirectMessage);
   }
 
   /*
@@ -253,16 +212,6 @@ export class ChatGateway implements OnGatewayInit {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.roomName === 'string' &&
-      typeof messageBody.text === 'string'
-    );
-  }
-
-  private isValidOnDirectMessageDTO(
-    messageBody: any,
-  ): messageBody is OnDirectMessageDTO {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.receiverUID === 'number' &&
       typeof messageBody.text === 'string'
     );
   }
