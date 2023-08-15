@@ -56,7 +56,7 @@ export class UserStatsService {
     const userStatsInterfaces: UserStatsInterface = {
       wins: userStats.wins,
       losses: userStats.losses,
-      win_rate: userStats.win_rate == null ? 0 : userStats.win_rate,
+      win_rate: userStats.win_rate == null ? 0 : parseFloat(userStats.win_rate.toPrecision(3)),
       matches_played: userStats.matches_played,
     };
 
@@ -71,7 +71,7 @@ export class UserStatsService {
     await this.userStatsRepository.update(winnerUID, {
       wins: () => 'wins + 1',
       win_rate: () =>
-        'CAST(wins AS double precision) / (matches_played + 1) * 100.0',
+        'CAST(wins + 1 AS double precision) / (matches_played + 1) * 100.0',
       matches_played: () => 'matches_played + 1',
     });
 
