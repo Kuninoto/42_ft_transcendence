@@ -10,6 +10,7 @@ import { User } from 'src/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtAuthStrategy } from '../auth/strategy/jwt-auth.strategy';
 import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
+import { FriendshipsModule } from '../friendships/friendships.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
     forwardRef(() => UsersModule),
     GameModule,
     ChatModule,
+    FriendshipsModule,
   ],
   providers: [
     JwtAuthStrategy,

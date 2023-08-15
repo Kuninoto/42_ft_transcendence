@@ -16,6 +16,8 @@ import { RoomService } from '../chat/room.service';
 import { GameService } from '../game/game.service';
 import { NewUserStatusDTO } from './dto/new-user-status.dto';
 import { ConnectionService } from './connection.service';
+import { FriendshipsService } from '../friendships/friendships.service';
+import { FriendInterface } from 'src/common/types/friend-interface.interface';
 import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
 
 @WebSocketGateway({
@@ -31,6 +33,7 @@ export class ConnectionGateway
   constructor(
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
+    private readonly friendshipsService: FriendshipsService,
     private readonly gameService: GameService,
     private readonly roomService: RoomService,
     private readonly connectionService: ConnectionService,
@@ -48,7 +51,7 @@ export class ConnectionGateway
         await this.connectionService.authenticateClientAndRetrieveUser(client);
       client.data.userId = user.id;
 
-      await this.changeUserStatus(user.id, UserStatus.ONLINE);
+      await this.updateUserStatus(user.id, UserStatus.ONLINE);
       this.connectionService.updateSocketIdByUID(user.id, client.id);
 
       this.roomService.joinUserRooms(client);
@@ -64,21 +67,40 @@ export class ConnectionGateway
     if (!client.data.userId) return;
 
     await this.gameService.disconnectPlayer(client.data.userId);
-    await this.changeUserStatus(client.data.userId, UserStatus.OFFLINE);
+    await this.updateUserStatus(client.data.userId, UserStatus.OFFLINE);
 
     this.logger.log('User with id=' + client.data.userId + ' has disconnected');
     this.connectionService.deleteSocketIdByUID(client.data.userId);
   }
 
-  async changeUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
+  async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
     await this.usersService.updateUserStatusByUID(userId, newStatus);
 
-    // Broadcast new user status to all users connected to the socket
+    // Broadcast new user status to all users in the friend room
     const newUserStatus: NewUserStatusDTO = {
       uid: userId,
       newStatus: newStatus,
     };
-    this.server.emit('newUserStatus', newUserStatus);
+    this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
+  }
+
+  async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
+    const friends: FriendInterface[] = await this.friendshipsService.findFriendsByUID(userId);
+
+    friends.forEach((friend) => {
+      client.join(`friend-${friend.uid}`);
+    });
+  }
+
+  makeFriendsJoinEachOthersRoom(user1UID: number, user2UID: number): void {
+    const user1SocketId: string | undefined = this.connectionService.findSocketIdByUID(user1UID);
+    const user2SocketId: string | undefined = this.connectionService.findSocketIdByUID(user2UID);
+
+    // If both users are online
+    if (user1SocketId && user2SocketId) {
+      this.server.in(user1SocketId).socketsJoin(`friend-${user2UID}`);
+      this.server.in(user2SocketId).socketsJoin(`friend-${user1UID}`);
+    }
   }
 
   async achievementUnlocked(
@@ -88,7 +110,7 @@ export class ConnectionGateway
     const socketId: string = this.connectionService.findSocketIdByUID(userId);
 
     const achievementUnlocked: AchievementUnlockedDTO = {
-      achievement,
+      achievement: achievement,
     };
     this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
   }

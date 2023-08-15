@@ -18,6 +18,7 @@ import { FriendRequestInterface } from '../../common/types/friend-request.interf
 import { FriendshipStatus } from '../../common/types/friendship-status.enum';
 import { SuccessResponse } from '../../common/types/success-response.interface';
 import { AchievementService } from '../achievement/achievement.service';
+import { ConnectionGateway } from '../connection/connection.gateway';
 
 @Injectable()
 export class FriendshipsService {
@@ -30,6 +31,8 @@ export class FriendshipsService {
     private readonly friendshipRepository: Repository<Friendship>,
     @InjectRepository(BlockedUser)
     private readonly blockedUserRepository: Repository<BlockedUser>,
+    @Inject(forwardRef(() => ConnectionGateway))
+    private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(FriendshipsService.name);
@@ -287,9 +290,11 @@ export class FriendshipsService {
       // ACCEPTED
       friendship.status = newFriendshipStatus;
       await this.friendshipRepository.save(friendship);
-
+    
       const senderUID: number = friendship.sender.id;
       const receiverUID: number = friendship.receiver.id;
+
+      this.connectionGateway.makeFriendsJoinEachOthersRoom(senderUID, receiverUID);
 
       const senderNrFriends: number = (
         await this.findFriendsByUID(friendship.sender.id)

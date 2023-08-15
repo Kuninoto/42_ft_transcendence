@@ -398,7 +398,7 @@ export class UsersService {
         where: { id: uid },
         relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
       })
-    )?.chat_rooms;
+    ).chat_rooms;
 
     if (!rooms) {
       return null;

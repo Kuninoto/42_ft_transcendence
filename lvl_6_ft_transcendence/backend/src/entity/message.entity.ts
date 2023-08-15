@@ -18,8 +18,11 @@ export class Message {
   id: number;
 
   @ApiProperty()
-  @Column({ nullable: false })
-  text: string;
+  @Column({
+    type: 'varchar',
+    nullable: false
+  })
+  content: string;
 
   @ApiProperty()
   @JoinColumn()
