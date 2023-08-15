@@ -19,7 +19,7 @@ export class DirectMessage {
   @ApiProperty()
   @Column({
     type: 'varchar',
-    nullable: false
+    nullable: false,
   })
   content: string;
 

@@ -176,8 +176,7 @@ export class AuthController {
     @Req() req: { user: User },
     @Res() res: any,
   ) {
-    const info2fa: OtpInfoDTO =
-      await this.authService.generate2faSecret();
+    const info2fa: OtpInfoDTO = await this.authService.generate2faSecret();
 
     await this.usersService.update2faSecretByUID(req.user.id, info2fa.secret);
 
@@ -210,8 +209,11 @@ export class AuthController {
       },
     },
   })
-  @ApiUnauthorizedResponse({ description: 'If the user which id is provided in the JWT or if the OTP is invalid' })
-  @ApiBadRequestResponse({ description: 'If request\'s body is malformed' })
+  @ApiUnauthorizedResponse({
+    description:
+      'If the user which id is provided in the JWT or if the OTP is invalid',
+  })
+  @ApiBadRequestResponse({ description: "If request's body is malformed" })
   @UseGuards(AuthGuard('2fa'))
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')

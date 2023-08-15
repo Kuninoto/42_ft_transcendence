@@ -76,7 +76,8 @@ export class AchievementService {
     userId: number,
     nrLosses: number,
   ): Promise<void> {
-    if (nrLosses === 1 &&
+    if (
+      nrLosses === 1 &&
       !(await this.userAlreadyHaveThisAchievement(
         userId,
         Achievements.FIRST_SETBACK,

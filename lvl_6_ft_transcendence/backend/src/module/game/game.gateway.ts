@@ -95,7 +95,7 @@ export class GameGateway implements OnGatewayInit {
       senderUID: client.data.userId,
       recipientUID: messageBody.recipientUID,
     });
-    
+
     const recipientSocketId: string = this.connectionService.findSocketIdByUID(
       messageBody.recipientUID,
     );
@@ -137,7 +137,10 @@ export class GameGateway implements OnGatewayInit {
     if (messageBody.accepted === true) {
       // refer to:
       // https://stackoverflow.com/questions/49612658/socket-io-acknowledgement-in-nest-js
-      return await this.gameService.gameInviteAccepted(messageBody.inviteId, client);
+      return await this.gameService.gameInviteAccepted(
+        messageBody.inviteId,
+        client,
+      );
     } else {
       this.gameService.gameInviteDeclined(messageBody.inviteId);
       return null;
