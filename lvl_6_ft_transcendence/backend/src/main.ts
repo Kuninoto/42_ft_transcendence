@@ -7,17 +7,20 @@ import * as passport from 'passport';
 import { AppModule } from './app.module';
 import { AppCorsOption } from './common/options/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
-import { SpelunkerModule } from 'nestjs-spelunker';
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
 function checkRequiredEnvVariables(): void {
+  const RED: string = '\x1b[31m';
+  const RESET: string = '\x1b[0m';
+
   const requiredEnvVariables = [
     'POSTGRES_HOST',
     'POSTGRES_USER',
     'POSTGRES_PASSWORD',
     'POSTGRES_DB',
     'FRONTEND_URL',
+    'BACKEND_URL',
     'INTRA_CLIENT_UID',
     'INTRA_CLIENT_SECRET',
     'INTRA_REDIRECT_URI',
@@ -27,13 +30,15 @@ function checkRequiredEnvVariables(): void {
     'EXPRESS_SESSION_SECRET',
   ];
 
-  const missingVariables = requiredEnvVariables.filter(
+  const missingVariables: string[] = requiredEnvVariables.filter(
     (variable) => !process.env[variable],
   );
 
   if (missingVariables.length > 0) {
     console.error(
-      `Missing environment variables: ${missingVariables.join(', ')}`,
+      `${RED}Missing environment variables: "${missingVariables.join(
+        '", "',
+      )}"\nAdd them to your .env file and restart the app${RESET}`,
     );
     process.exit(1);
   }
