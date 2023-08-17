@@ -38,7 +38,7 @@ export class UsersController {
       'Finds users by username proximity and returns a UserProfile[] with up to 5 elements, if no <username> is provided returns an empty array\nIgnores blocked users and friends',
   })
   @Get('/search')
-  public async getUsersByUsernameProximity(
+  public async findUsersByUsernameProximity(
     @Req() req: { user: User },
     @Query('username') query: string,
   ): Promise<UserSearchInfo[]> {
@@ -63,7 +63,7 @@ export class UsersController {
   })
   @ApiNotFoundResponse({ description: "If user with id=userId doesn't exist " })
   @Get('/:userId')
-  public async getUserProfileByUID(
+  public async findUserProfileByUID(
     @Req() req: { user: User },
     @Param('userId', NonNegativeIntPipe) userID: number,
   ): Promise<UserProfile | ErrorResponse> {

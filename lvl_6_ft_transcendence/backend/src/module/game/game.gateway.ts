@@ -8,21 +8,21 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { OpponentInfo } from 'src/common/types/opponent-info.interface';
 import { PlayerSide } from 'src/common/types/player-side.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
 import { Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
-import { SendGameInviteDTO } from './dto/send-game-invite.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
 import { InvitedToGameDTO } from './dto/invited-to-game.dto';
 import { PaddleMoveDTO } from './dto/paddle-move.dto';
 import { PlayerReadyDTO } from './dto/player-ready.dto';
 import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { RespondToGameInviteDTO } from './dto/respond-to-game-invite.dto';
+import { SendGameInviteDTO } from './dto/send-game-invite.dto';
 import { GameService } from './game.service';
-import { OpponentInfo } from 'src/common/types/opponent-info.interface';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -83,6 +83,11 @@ export class GameGateway implements OnGatewayInit {
       this.gameService.isPlayerInQueueOrGame(client.data.userId) ||
       this.gameService.isPlayerInQueueOrGame(messageBody.recipientUID)
     ) {
+      this.logger.warn(
+        'User id=' +
+          client.data.userId +
+          ' tried to send a game invite while in game or to a recipient in game',
+      );
       return;
     }
 

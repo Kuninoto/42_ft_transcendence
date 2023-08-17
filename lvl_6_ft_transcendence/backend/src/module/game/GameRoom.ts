@@ -11,7 +11,7 @@ export const CANVAS_MID_WIDTH: number = 400;
 
 export interface GameRoom {
   roomId: string;
-  gameLoopIntervalId?: NodeJS.Timer;
+  gameLoopIntervalId?: NodeJS.Timeout;
   gameType: GameType;
   ball: Ball;
   leftPlayer: Player;
