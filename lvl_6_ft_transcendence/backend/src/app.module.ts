@@ -58,5 +58,7 @@ import entities from './typeorm/index';
     UserStatsModule,
     UsersModule,
   ],
+  providers: [],
+  controllers: [],
 })
 export class AppModule {}
