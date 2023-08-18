@@ -42,8 +42,6 @@ export class FriendshipsGateway implements OnGatewayInit {
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: SendDirectMessageDTO,
   ): Promise<void> {
-    console.log('here');
-
     if (!this.isValidSendDirectMessageDTO(messageBody)) {
       this.logger.warn(
         'Client with uid=' +
@@ -54,7 +52,7 @@ export class FriendshipsGateway implements OnGatewayInit {
     }
 
     const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(messageBody.receiverUID);
+      this.connectionService.findSocketIdByUID(messageBody.receiverUID.toString());
 
     // Save DM on database
     await this.messageService.createDirectMessage(
@@ -85,7 +83,7 @@ export class FriendshipsGateway implements OnGatewayInit {
   ): messageBody is SendDirectMessageDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.receiverUID === 'number' &&
+      typeof messageBody.receiverUID === 'string' &&
       typeof messageBody.content === 'string'
     );
   }
