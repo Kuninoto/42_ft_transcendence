@@ -4,8 +4,9 @@ import { GameEndDTO } from '@/common/types/game-end.dto'
 import { GameRoomDTO } from '@/common/types/game-room-info'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
 import { PlayerScoredDTO } from '@/common/types/player-scored.dto'
-import { useRouter } from 'next/navigation'
+import { hasValues } from '@/common/utils/hasValues'
 import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
@@ -16,19 +17,18 @@ import {
 
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
-import { hasValues } from '@/common/utils/hasValues'
 
 type GameContextType = {
 	ballPosition: Ball
 	cancel: () => void
-	queue: () => void
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
+	gameEndInfo: GameEndDTO
 	leftPlayerScore: number
 	opponentFound: OponentFoundDTO
 	opponentPosition: number
+	queue: () => void
 	rightPlayerScore: number
-	gameEndInfo: GameEndDTO
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType)
@@ -45,7 +45,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
-	const [ gameEndInfo, setGameEndInfo ] = useState<GameEndDTO>({} as GameEndDTO) 
+	const [gameEndInfo, setGameEndInfo] = useState<GameEndDTO>({} as GameEndDTO)
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -59,24 +59,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
-
-		if (pathname === "/matchmaking" && !hasValues(opponentFound))
-			router.push("/dashboard")
+		if (pathname === '/matchmaking' && !hasValues(opponentFound))
+			router.push('/dashboard')
 		else {
-			socket?.on('opponentFound', function(data: OponentFoundDTO) {
+			socket?.on('opponentFound', function (data: OponentFoundDTO) {
 				setOpponentFound(data)
 				router.push('/matchmaking')
 			})
 
-			socket?.on('connect_error', err => console.log(err))
-			socket?.on('connect_failed', err => console.log(err))
-			socket?.on('disconnect', err => console.log(err))
+			socket?.on('connect_error', (err) => console.log(err))
+			socket?.on('connect_failed', (err) => console.log(err))
+			socket?.on('disconnect', (err) => console.log(err))
 		}
 	}, [])
 
 	useEffect(() => {
-
-		socket?.on('gameRoomInfo', function(data: GameRoomDTO) {
+		socket?.on('gameRoomInfo', function (data: GameRoomDTO) {
 			if (opponentFound.side === PlayerSide.LEFT) {
 				setOpponentPosition(data.rightPlayer.paddleY)
 			} else {
@@ -86,19 +84,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			setBallPosition(data.ball)
 		})
 
-		socket?.on('gameEnd', function(data: GameEndDTO) {
+		socket?.on('gameEnd', function (data: GameEndDTO) {
 			setGameEndInfo(data)
 			if (data.winner.userId === user.id) console.log('winner')
 			else console.log('loser')
 			console.log(data)
 		})
 
-		socket?.on('playerScored', function(data: PlayerScoredDTO) {
+		socket?.on('playerScored', function (data: PlayerScoredDTO) {
 			setLeftPlayerScore(data.leftPlayerScore)
 			setRightPlayerScore(data.rightPlayerScore)
 		})
 	}, [opponentFound])
-
 
 	function emitPaddleMovement(newY: number) {
 		if (!socket) return
@@ -109,7 +106,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}
 
 	function emitOnReady() {
-
 		if (!socket) return
 
 		socket.emit('playerReady', {
@@ -120,14 +116,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const value: GameContextType = {
 		ballPosition,
 		cancel,
-		queue,
 		emitOnReady,
 		emitPaddleMovement,
+		gameEndInfo,
 		leftPlayerScore,
 		opponentFound,
 		opponentPosition,
+		queue,
 		rightPlayerScore,
-		gameEndInfo,
 	}
 
 	return <GameContext.Provider value={value}>{children}</GameContext.Provider>

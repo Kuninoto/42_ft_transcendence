@@ -11,6 +11,7 @@ import {
 	useEffect,
 	useState,
 } from 'react'
+
 import { useSocket } from './SocketContext'
 
 export const removeParams: ImageLoader = ({ src }: { src: string }) => {
@@ -19,10 +20,10 @@ export const removeParams: ImageLoader = ({ src }: { src: string }) => {
 
 export interface AuthContextExports {
 	login: (code: string) => Promise<boolean>
-	login2fa: (otp : string) => void
+	login2fa: (otp: string) => Promise<void>
 	logout: () => void
-	user: UserProfile | {}
 	refreshUser: () => void
+	user: {} | UserProfile
 }
 
 const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
@@ -31,9 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const [user, setUser] = useState<{} | UserProfile>({})
-	const [get2fa, setGet2fa] = useState(false)
 
-	const [tempToken, setTempToken] = useState("")
+	const [tempToken, setTempToken] = useState('')
 
 	const { connect } = useSocket()
 
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		const token = localStorage.getItem('pong.token')
 
 		if (token) {
-			if ( pathname === "/") router.push('/dashboard')
+			if (pathname === '/') router.push('/dashboard')
 
 			api
 				.get<UserProfile>('/me')
@@ -50,14 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					else logout()
 				})
 				.catch(() => logout())
-		} 
-		else if (pathname !== '/' && pathname !== '/auth') {
+		} else if (pathname !== '/' && pathname !== '/auth') {
 			router.push('/')
 		}
 	}, [])
 
 	async function refreshUser() {
-		const user = await api.get("/me")
+		const user = await api.get('/me')
 		setUser(user.data)
 	}
 
@@ -66,40 +65,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		localStorage.removeItem('pong.token')
 	}
 
-	async function login2fa( otp: string ) {
-		console.log(tempToken)
-		const data = await api.post('/auth/2fa/authenticate', {
-			headers: {
-				Authorization: `Bearer ${tempToken}`,
-			},
-			data: {
-				otp
-			}
-		})
-		.then(result => result.data)
-		.catch((e) => { 
-			console.log(e)
-			throw "Network error" })
+	async function login2fa(otp: string) {
+		const data = await api
+			.post(
+				'/auth/2fa/authenticate',
+				{
+					otp,
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${tempToken}`,
+					},
+				}
+			)
+			.then((result) => result.data)
+			.catch((e) => {
+				throw e.response.data.message
+			})
 
-		localStorage.setItem('pong.token', data.accessToken)
-		const login = await api.get(`/me`, {
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
-			},
-		})
-			.then(result => result.data)
-			.catch((e) => { throw(e.response.data.message)})
+		localStorage.setItem('pong.token', data.access_token)
+		const login = await api
+			.get(`/me`, {
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+				},
+			})
+			.then((result) => result.data)
+			.catch((e) => {
+				throw e.response.data.message
+			})
 
 		connect()
 		setUser(login)
 	}
 
 	async function login(code: string): Promise<boolean> {
-
 		const data = await axios
 			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
-			.then(result => result.data)
-			.catch(() => { throw "Network error" })
+			.then((result) => result.data)
+			.catch(() => {
+				throw 'Network error'
+			})
 
 		if (data.has2fa) {
 			setTempToken(data.accessToken)
@@ -107,13 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 
 		localStorage.setItem('pong.token', data.accessToken)
-		const login = await api.get(`/me`, {
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
-			},
-		})
-			.then(result => result.data)
-			.catch((e) => { throw(e.response.data.message)})
+		const login = await api
+			.get(`/me`, {
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+				},
+			})
+			.then((result) => result.data)
+			.catch((e) => {
+				throw e.response.data.message
+			})
 
 		connect()
 		setUser(login)
@@ -125,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		login2fa,
 		logout,
 		refreshUser,
-		user
+		user,
 	}
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

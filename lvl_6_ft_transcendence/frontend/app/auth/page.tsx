@@ -17,9 +17,10 @@ export default function Auth() {
 
 	const send2fa = async () => {
 		try {
+			setGet2fa(false)
 			await login2fa(otp)
 			router.push('/dashboard')
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 			router.push('/')
 		}
@@ -32,10 +33,10 @@ export default function Auth() {
 				if (!code) throw 'No code provided'
 				if (await login(code)) {
 					router.push('/dashboard')
-				}else {
+				} else {
 					setGet2fa(true)
 				}
-			} catch (error) {
+			} catch (error: any) {
 				toast.error(error)
 				router.push('/')
 			}
@@ -46,32 +47,34 @@ export default function Auth() {
 
 	return (
 		<div className="flex h-full w-full place-content-center items-center">
-
-			{ get2fa 
-				?  <div className="flex h-full flex-col items-center space-y-4">
+			{get2fa ? (
+				<div className="flex h-full flex-col place-content-center items-center space-y-8 text-center">
+					<h1 className="text-3xl">
+						Two factor <br />
+						authentication
+					</h1>
 
 					<OtpInput
 						containerStyle="w-full place-content-center flex text-xl space-x-1"
-						inputStyle="border bg-transparent !w-8 aspect-square rounded"
+						inputStyle="border bg-transparent !w-12 aspect-square rounded"
 						isInputNum
 						numInputs={6}
-						onChange={(newOtp) => setOtp(newOtp)}
+						onChange={(newOtp: string) => setOtp(newOtp)}
 						value={otp}
 					/>
 
 					<button
-						className="w-full rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+						className="m-auto rounded border border-white px-24 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 						onClick={send2fa}
 					>
-						Enable
+						Login
 					</button>
 				</div>
-				:
+			) : (
 				<h1 className="text-5xl after:inline-block after:w-0 after:animate-ellipsis after:overflow-hidden after:align-bottom after:content-['\2026']">
 					Loading
 				</h1>
-			}
-
+			)}
 		</div>
 	)
 }

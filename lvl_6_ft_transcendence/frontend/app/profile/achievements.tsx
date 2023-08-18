@@ -17,8 +17,8 @@ export default function Achievements({
 					<div className="relative aspect-square w-24 overflow-hidden rounded">
 						<Image
 							src={
-								`/achievements/${AchievementsList[achievement?.achievement]?.image}` ||
-								'/placeholder.gif'
+								`/achievements/${AchievementsList[achievement?.achievement]
+									?.image}` || '/placeholder.gif'
 							}
 							alt={`${achievement?.achievement} achievement image`}
 							fill
