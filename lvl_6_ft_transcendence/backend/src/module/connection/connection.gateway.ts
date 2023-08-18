@@ -52,7 +52,7 @@ export class ConnectionGateway
       client.data.userId = user.id;
 
       await this.updateUserStatus(user.id, UserStatus.ONLINE);
-      this.connectionService.updateSocketIdByUID(user.id, client.id);
+      this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
       this.roomService.joinUserRooms(client);
 
@@ -95,9 +95,9 @@ export class ConnectionGateway
 
   makeFriendsJoinEachOthersRoom(user1UID: number, user2UID: number): void {
     const user1SocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(user1UID);
+      this.connectionService.findSocketIdByUID(user1UID.toString());
     const user2SocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(user2UID);
+      this.connectionService.findSocketIdByUID(user2UID.toString());
 
     // If both users are online
     if (user1SocketId && user2SocketId) {
@@ -110,7 +110,9 @@ export class ConnectionGateway
     userId: number,
     achievement: Achievements,
   ): Promise<void> {
-    const socketId: string = this.connectionService.findSocketIdByUID(userId);
+    const socketId: string = this.connectionService.findSocketIdByUID(
+      userId.toString(),
+    );
 
     const achievementUnlocked: AchievementUnlockedDTO = {
       achievement: achievement,

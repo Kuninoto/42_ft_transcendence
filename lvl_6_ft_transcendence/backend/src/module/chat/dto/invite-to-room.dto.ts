@@ -1,4 +1,4 @@
 export interface InviteToRoomDTO {
-  readonly invitedUID: number;
+  readonly invitedUID: string;
   readonly roomName: string;
 }

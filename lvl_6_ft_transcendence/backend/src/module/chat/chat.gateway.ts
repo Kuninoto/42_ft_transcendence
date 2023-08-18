@@ -114,7 +114,7 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     const invited: User | null = await this.usersService.findUserByUID(
-      messageBody.invitedUID,
+      parseInt(messageBody.invitedUID),
     );
     if (!invited) {
       // TODO
@@ -123,7 +123,7 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     const invitedSocketId: string = this.connectionService.findSocketIdByUID(
-      invited.id,
+      invited.id.toString(),
     );
     this.connectionGateway.server.to(invitedSocketId).emit('roomInvite', {
       inviterId: socket.data.user.id,
@@ -172,7 +172,7 @@ export class ChatGateway implements OnGatewayInit {
 
       // Retrieve the socketId of the user
       const userSocketId: string =
-        this.connectionService.findSocketIdByUID(uid);
+        this.connectionService.findSocketIdByUID(uid.toString());
       if (userSocketId && !blockRelationship) {
         socket.to(userSocketId).emit('newChatRoomMessage', message);
       }
