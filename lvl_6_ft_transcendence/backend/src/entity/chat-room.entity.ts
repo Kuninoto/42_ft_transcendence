@@ -52,9 +52,19 @@ export class ChatRoom {
   users: User[];
 
   @ApiProperty()
-  @OneToMany(() => User, (users: User) => users.id)
-  @JoinColumn()
+  @ManyToMany(() => User, (users: User) => users.chat_admin)
+  @JoinTable()
   admins: User[];
+
+  @ApiProperty()
+  @ManyToMany(() => User, (users: User) => users.banned_rooms)
+  @JoinTable()
+  bans: User[];
+
+  @ApiProperty()
+  @ManyToMany(() => User, (users: User) => users.chat_admin)
+  @JoinTable()
+  muted: User[];
 
   @ApiProperty()
   @OneToMany(() => Message, (messages: Message) => messages.room)

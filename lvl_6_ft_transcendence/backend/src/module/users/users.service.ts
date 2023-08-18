@@ -392,6 +392,9 @@ export class UsersService {
       return null;
     }
 
+	// TODO delete debug
+	Logger.debug('rooms: ' + JSON.stringify(rooms, null, 2))
+	
     const roomInterfaces: ChatRoomI[] = rooms.map((room: ChatRoom) => ({
       id: room.id,
       name: room.name,
