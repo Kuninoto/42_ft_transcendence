@@ -55,7 +55,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}
 
 	function queue() {
-		socket?.emit('queueToLadder', {})
+		if (!socket) return
+
+		socket.emit('queueToLadder', {})
 	}
 
 	useEffect(() => {
@@ -86,9 +88,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 		socket?.on('gameEnd', function (data: GameEndDTO) {
 			setGameEndInfo(data)
-			if (data.winner.userId === user.id) console.log('winner')
-			else console.log('loser')
-			console.log(data)
 		})
 
 		socket?.on('playerScored', function (data: PlayerScoredDTO) {
@@ -99,6 +98,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	function emitPaddleMovement(newY: number) {
 		if (!socket) return
+
 		socket.emit('paddleMove', {
 			gameRoomId: opponentFound.roomId,
 			newY: newY,

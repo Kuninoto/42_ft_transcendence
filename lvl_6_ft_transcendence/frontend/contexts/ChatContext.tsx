@@ -41,13 +41,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 	}, [])
 
 	function sendMessage(message: string) {
+		if (!socket) return
+
 		const messageDto: SendDirectMessageDTO = {
 			content: message,
 			receiverUID: currentOpenChatInfo.uid,
 		}
-
 		console.log(messageDto)
-
 		socket.emit('sendDirectMessage', messageDto)
 	}
 
