@@ -69,9 +69,9 @@ export default function FriendsList(): JSX.Element {
 							<Image
 								alt={'avatar'}
 								fill
+								layout="fill"
 								loader={removeParams}
 								objectFit="cover"
-								layout="fill"
 								sizes="100vw"
 								src={user.avatar_url || '/placeholder.gif'}
 							/>
@@ -102,8 +102,7 @@ export default function FriendsList(): JSX.Element {
 							>
 								Friends
 								<div className="flex">
-									<RxTriangleUp
-										className={`transition-all duration-200 group-hover:text-[#F32E7C]
+									<RxTriangleUp className={`transition-all duration-200 group-hover:text-[#F32E7C]
 									${openFriendsAccordean && '-rotate-180'}`}
 										size={24}
 									/>
@@ -119,9 +118,9 @@ export default function FriendsList(): JSX.Element {
 									className="roundend group relative flex items-center rounded border border-white py-2"
 									key={friend.uid}
 								>
-									<Link
+									<button
 										className="flex w-full place-content-between items-center px-4"
-										href={'/'}
+										onClick={() => open(friend)}
 									>
 										<div className="flex items-center space-x-4">
 											<div className="relative aspect-square w-8 overflow-hidden rounded">
@@ -139,7 +138,7 @@ export default function FriendsList(): JSX.Element {
 										<div className="visible group-hover:invisible">
 											{friend.status}
 										</div>
-									</Link>
+									</button>
 									<div className="invisible absolute right-4 my-auto flex group-hover:visible">
 										<Link
 											className="hover:text-[#F32E7C]"

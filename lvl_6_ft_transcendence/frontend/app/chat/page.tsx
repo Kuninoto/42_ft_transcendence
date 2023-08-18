@@ -11,13 +11,13 @@ export default function Chat() {
 	const [isOpen, setIsOpen] = useState(false)
 	const [message, setMessage] = useState('')
 
-	const { close, isOpen: exists } = useChat()
+	const { close, currentOpenChatInfo, isOpen: exists, sendMessage } = useChat()
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value
 
 		if (value.includes('\n')) {
-			alert(message)
+			sendMessage(message)
 			setMessage('')
 		} else {
 			setMessage(event.target.value)
@@ -33,12 +33,13 @@ export default function Chat() {
 		>
 			<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
 				<button className="w-full" onClick={() => setIsOpen(!isOpen)}>
-					<p className="text-2xl">name</p>
+					{currentOpenChatInfo.name}
 				</button>
 				<button onClick={close}>
 					<GrFormClose size={32} />
 				</button>
 			</div>
+
 			<div className="flex h-full w-full">
 				<div className="h-full w-4/12 border-r border-white">
 					<button className="w-full border-b border-white p-2 text-start text-gray-300 hover:text-white">
@@ -66,24 +67,19 @@ export default function Chat() {
 								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
 							</div>
 						</div>
-						<div>
-							<Link className="px-2 text-sm" href={'#'}>
-								Name
-							</Link>
-							<div className="w-min max-w-[60%] break-words rounded border border-white p-2">
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							</div>
+						<div className="w-min max-w-[60%] break-words rounded border border-white p-2">
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
+							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
 						</div>
 					</div>
 					<textarea

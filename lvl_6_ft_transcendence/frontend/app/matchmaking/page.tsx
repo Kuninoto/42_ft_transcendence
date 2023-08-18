@@ -42,16 +42,18 @@ function HorizontalCard({ player, score, side }: card) {
 }
 
 function FinalModal() {
-	const { gameEndInfo  } = useGame()
+	const { gameEndInfo } = useGame()
 	const { user } = useAuth()
 
 	if (!hasValues(gameEndInfo)) return
 
 	return (
-		<div className="w-full h-full flex bg-black/50 space-y-12 flex-col absolute place-content-center items-center">
-			<h1 className="text-8xl">{gameEndInfo?.winner?.userId == user?.id ? 'You win!' : 'You lose!'}</h1>
+		<div className="absolute flex h-full w-full flex-col place-content-center items-center space-y-12 bg-black/50">
+			<h1 className="text-8xl">
+				{gameEndInfo?.winner?.userId == user?.id ? 'You win!' : 'You lose!'}
+			</h1>
 			<Link
-				className="rounded border border-white py-3 px-16 text-center text-white mix-blend-lighten hover:bg-white hover:text-black"
+				className="rounded border border-white px-16 py-3 text-center text-white mix-blend-lighten hover:bg-white hover:text-black"
 				href="/dashboard"
 			>
 				Home
@@ -77,7 +79,6 @@ export default function Game() {
 		}
 	}, [])
 
-	 
 	return (
 		<div className="flex h-full flex-col">
 			<FinalModal />
