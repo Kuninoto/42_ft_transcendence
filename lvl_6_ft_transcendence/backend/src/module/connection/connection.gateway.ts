@@ -45,7 +45,9 @@ export class ConnectionGateway
   async handleConnection(client: Socket): Promise<void> {
     try {
       const user: User =
-        await this.connectionService.authenticateClientAndRetrieveUser(client);
+		  await this.usersService.findUserByUID(Number(client.handshake.headers.authorization));
+        // await this.connectionService.authenticateClientAndRetrieveUser(client);
+
       client.data.userId = user.id;
 
       await this.changeUserStatus(user.id, UserStatus.ONLINE);
