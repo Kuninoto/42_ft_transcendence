@@ -23,6 +23,7 @@ import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { RespondToGameInviteDTO } from './dto/respond-to-game-invite.dto';
 import { SendGameInviteDTO } from './dto/send-game-invite.dto';
 import { GameService } from './game.service';
+import { OpponentFoundDTO } from './dto/opponent-found.dto';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -81,7 +82,7 @@ export class GameGateway implements OnGatewayInit {
 
     if (
       this.gameService.isPlayerInQueueOrGame(client.data.userId) ||
-      this.gameService.isPlayerInQueueOrGame(messageBody.recipientUID)
+      this.gameService.isPlayerInQueueOrGame(parseInt(messageBody.recipientUID))
     ) {
       this.logger.warn(
         'User id=' +
@@ -94,15 +95,13 @@ export class GameGateway implements OnGatewayInit {
     const newPlayer: Player = new Player(client, client.data.userId);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
-    const roomId: string = crypto.randomUUID();
     const inviteId: number = this.gameService.createGameInvite({
-      roomId: roomId,
-      senderUID: client.data.userId,
+      sender: newPlayer,
       recipientUID: messageBody.recipientUID,
     });
 
     const recipientSocketId: string = this.connectionService.findSocketIdByUID(
-      messageBody.recipientUID,
+      messageBody.recipientUID.toString(),
     );
 
     const invitedToGame: InvitedToGameDTO = {
@@ -113,14 +112,10 @@ export class GameGateway implements OnGatewayInit {
     this.connectionGateway.server
       .to(recipientSocketId)
       .emit('invitedToGame', invitedToGame);
-
-    // Join inviter to room.
-    // Inviter will keep waiting in the game screen for the recipient
-    client.join(roomId);
   }
 
   /**
-   * Listen for 'respondToGameInvite' messages
+   * Listen to 'respondToGameInvite' messages
    *
    * @param client client's socket
    * @param messageBody body of the received message
@@ -129,31 +124,28 @@ export class GameGateway implements OnGatewayInit {
   async respondToGameInvite(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: RespondToGameInviteDTO,
-  ): Promise<OpponentInfo | null> {
+  ): Promise<void> {
     if (!this.isValidRespondToGameInviteMessage(messageBody)) {
       this.logger.warn(
         'User id=' +
           client.data.userId +
           ' tried to send a wrong RespondToGameInviteDTO',
       );
-      return null;
+      return;
     }
 
     if (messageBody.accepted === true) {
-      // refer to:
-      // https://stackoverflow.com/questions/49612658/socket-io-acknowledgement-in-nest-js
-      return await this.gameService.gameInviteAccepted(
+      await this.gameService.gameInviteAccepted(
         messageBody.inviteId,
         client,
       );
     } else {
       this.gameService.gameInviteDeclined(messageBody.inviteId);
-      return null;
     }
   }
 
   /**
-   * Listen for 'playerReady' messages
+   * Listen to 'playerReady' messages
    *
    * @param client client's socket
    * @param messageBody body of the received message
@@ -176,7 +168,7 @@ export class GameGateway implements OnGatewayInit {
   }
 
   /*
-   * Listen for 'paddleMove' messages
+   * Listen to 'paddleMove' messages
    */
   @SubscribeMessage('paddleMove')
   paddleMove(
@@ -248,7 +240,7 @@ export class GameGateway implements OnGatewayInit {
   ): messageBody is SendGameInviteDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.recipientUID === 'number'
+      typeof messageBody.recipientUID === 'string'
     );
   }
 

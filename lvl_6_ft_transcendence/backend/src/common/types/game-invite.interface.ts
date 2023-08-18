@@ -1,5 +1,7 @@
+import { Player } from 'src/module/game/Player';
+
 export interface GameInvite {
   roomId: string;
-  senderUID: number;
+  sender: Player;
   recipientUID: number;
 }

@@ -1,8 +1,10 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Socket } from 'socket.io';
+import { GameInvite } from 'src/common/types/game-invite.interface';
 import { GameType } from 'src/common/types/game-type.enum';
+import { OpponentInfo } from 'src/common/types/opponent-info.interface';
 import { PlayerSide } from 'src/common/types/player-side.enum';
-import { UserSearchInfo } from 'src/common/types/user-search-info.interface';
 import { UserStatus } from 'src/common/types/user-status.enum';
 import { GameResult } from 'src/entity/game-result.entity';
 import { User } from 'src/typeorm/index';
@@ -11,18 +13,16 @@ import { ConnectionGateway } from '../connection/connection.gateway';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { UsersService } from '../users/users.service';
 import { Ball } from './Ball';
+import { GameInviteMap } from './GameInviteMap';
 import { GameQueue } from './GameQueue';
 import { GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
+import { CreateGameInviteDTO } from './dto/create-game-invite.dto';
+import { OpponentFoundDTO } from './dto/opponent-found.dto';
 import { GameEngineService } from './game-engine.service';
 import { GameGateway } from './game.gateway';
-import { OpponentFoundDTO } from './dto/opponent-found.dto';
-import { GameInviteMap } from './GameInviteMap';
-import { Socket } from 'socket.io';
-import { CreateGameInviteDTO } from './dto/create-game-invite.dto';
-import { GameInvite } from 'src/common/types/game-invite.interface';
-import { OpponentInfo } from 'src/common/types/opponent-info.interface';
+import { InviteDeclinedDTO } from './dto/invite-declined.dto';
 
 const GAME_START_TIMEOUT: number = 1000 * 3;
 
@@ -69,7 +69,7 @@ export class GameService {
       const playerOne: Player = this.gameQueue.dequeue();
       const playerTwo: Player = this.gameQueue.dequeue();
 
-      this.joinPlayersToRoom(playerOne, playerTwo);
+      this.joinPlayersToRoom(playerOne, playerTwo, GameType.LADDER);
     }
   }
 
@@ -77,7 +77,7 @@ export class GameService {
     return this.gameInviteMap.createGameInvite(createGameInviteDto);
   }
 
-  public findGameInviteByInviteId(inviteId: number): GameInvite | undefined {
+  public findGameInviteByInviteId(inviteId: string): GameInvite | undefined {
     return this.gameInviteMap.findInviteById(inviteId);
   }
 
@@ -85,8 +85,8 @@ export class GameService {
    * Disconnects a player from the game mechanism.
    *
    * If he was on the queue, leaves;
-   * If he was an on an on-going game, the remaining player wins.
-   * If he wasn't in neither of the above, does nothing.
+   * If he was an on an on-going game, the remaining player wins;
+   * If he wasn't in neither of the above, does nothing;
    * @param playerUserId userId of the disconnecting player
    */
   public async disconnectPlayer(playerUserId: number): Promise<void> {
@@ -113,32 +113,32 @@ export class GameService {
   }
 
   public async gameInviteAccepted(
-    inviteId: number,
+    inviteId: string,
     recipient: Socket,
-  ): Promise<OpponentInfo> {
+  ): Promise<void> {
     const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
 
-    const recipientInfo: OpponentInfo =
-      await this.usersService.findOpponentInfoByUID(gameInvite.senderUID);
-    this.connectionGateway.server
-      .to(gameInvite.roomId)
-      .emit('inviteAccepted', recipientInfo);
+    const recipientPlayer: Player = new Player(
+      recipient,
+      recipient.data.userId,
+    );
+    recipientPlayer.setPlayerSide(PlayerSide.RIGHT);
 
-    recipient.join(gameInvite.roomId);
-
-    const senderInfo: OpponentInfo =
-      await this.usersService.findOpponentInfoByUID(gameInvite.senderUID);
+    this.joinPlayersToRoom(
+      gameInvite.sender,
+      recipientPlayer,
+      GameType.ONEVSONE,
+    );
 
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
-    // refer to:
-    // https://stackoverflow.com/questions/49612658/socket-io-acknowledgement-in-nest-js
-    return senderInfo;
   }
 
-  public gameInviteDeclined(inviteId: number) {
-    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
+  public gameInviteDeclined(inviteId: string) {
+    const inviteDeclined: InviteDeclinedDTO = {
+      inviteId: inviteId,
+    };
 
-    this.connectionGateway.server.to(gameInvite.roomId).emit('inviteDeclined');
+    this.connectionGateway.server.emit('inviteDeclined', inviteDeclined);
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
@@ -246,6 +246,7 @@ export class GameService {
   public async joinPlayersToRoom(
     playerOne: Player,
     playerTwo: Player,
+    gameType: GameType,
   ): Promise<void> {
     const roomId: string = crypto.randomUUID();
 
@@ -262,7 +263,7 @@ export class GameService {
 
     this.GameRoomMap.createNewGameRoom({
       roomId: roomId,
-      gameType: GameType.LADDER,
+      gameType: gameType,
       ball: new Ball(),
       leftPlayer: leftPlayer,
       rightPlayer: rightPlayer,
