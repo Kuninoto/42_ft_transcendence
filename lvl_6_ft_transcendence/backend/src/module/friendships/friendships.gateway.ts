@@ -42,6 +42,8 @@ export class FriendshipsGateway implements OnGatewayInit {
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: SendDirectMessageDTO,
   ): Promise<void> {
+    console.log('here');
+
     if (!this.isValidSendDirectMessageDTO(messageBody)) {
       this.logger.warn(
         'Client with uid=' +
