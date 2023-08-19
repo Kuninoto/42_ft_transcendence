@@ -52,6 +52,11 @@ export class FriendshipsGateway implements OnGatewayInit {
       return;
     }
 
+    if (client.data.userId == messageBody.receiverUID) {
+      // self message
+      return;
+    }
+
     const areTheyFriends: boolean = await this.friendshipService.areTheyFriends(
       client.data.userId,
       messageBody.receiverUID,
