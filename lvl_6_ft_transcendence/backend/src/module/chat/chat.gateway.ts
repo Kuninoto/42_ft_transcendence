@@ -56,6 +56,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (await this.roomService.findRoomByName(messageBody.name)) {
       // Room name is already taken
+      this.logger.log(`There's already a room named ${messageBody.name}`);
       return;
     }
 
@@ -70,9 +71,7 @@ export class ChatGateway implements OnGatewayInit {
   ) {
     if (!this.isValidJoinRoomDTO(messageBody)) {
       this.logger.warn(
-        'Client with client id=' +
-          client.id +
-          ' tried to send a wrong JoinRoomDTO',
+        `User with uid= ${client.data.userId} tried to send a wrong JoinRoomDTO`,
       );
       return;
     }
@@ -82,9 +81,7 @@ export class ChatGateway implements OnGatewayInit {
     if (
       (await this.roomService.findRoomByName(messageBody.roomName)) === null
     ) {
-      this.logger.log(
-        'A room with "' + messageBody.roomName + '" name doesn\'t exist',
-      );
+      this.logger.log(`There's no room named ${messageBody.roomName}`);
       return;
     }
 
@@ -101,14 +98,12 @@ export class ChatGateway implements OnGatewayInit {
 
   @SubscribeMessage('inviteToRoom')
   async onInviteToRoom(
-    @ConnectedSocket() socket: Socket,
+    @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: InviteToRoomDTO,
   ): Promise<void> {
     if (!this.isValidInviteToRoomDTO(messageBody)) {
       this.logger.warn(
-        'Client with socket id=' +
-          socket.id +
-          ' tried to send a wrong InviteToRoomDTO',
+        `User with uid= ${client.id} tried to send a wrong InviteToRoomDTO`,
       );
       return;
     }
@@ -119,6 +114,10 @@ export class ChatGateway implements OnGatewayInit {
     if (!invited) {
       // TODO
       // user doesn't exist
+
+      this.logger.warn(
+        `User with uid= ${client.id} tried to invite a non-existing user`,
+      );
       return;
     }
 
@@ -126,21 +125,19 @@ export class ChatGateway implements OnGatewayInit {
       invited.id.toString(),
     );
     this.connectionGateway.server.to(invitedSocketId).emit('roomInvite', {
-      inviterId: socket.data.user.id,
+      inviterId: client.data.user.id,
       roomName: messageBody.roomName,
     });
   }
 
   @SubscribeMessage('newChatRoomMessage')
   async onNewChatRoomMessage(
-    @ConnectedSocket() socket: Socket,
+    @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: NewChatRoomMessageDTO,
   ): Promise<void> {
     if (!this.isValidNewChatRoomMessageDTO(messageBody)) {
       this.logger.warn(
-        'Client with socket id=' +
-          socket.id +
-          ' tried to send a wrong NewChatRoomMessageDTO',
+        `User with uid= ${client.data.userId} tried to send a wrong NewChatRoomMessageDTO`,
       );
       return;
     }
@@ -150,13 +147,17 @@ export class ChatGateway implements OnGatewayInit {
     );
 
     if (!room) {
-      // TODO implement error response
-      throw new Error('Room not found');
+      // TODO
+      // Implement error response
+      this.logger.warn(
+        `User with uid= ${client.data.userId} tried to send a message to a non-existing room`,
+      );
+      return;
     }
 
     const message: ChatRoomMessageI =
       await this.messageService.newChatRoomMessage(
-        socket.data.userId,
+        client.data.userId,
         room,
         messageBody.text,
       );
@@ -166,25 +167,25 @@ export class ChatGateway implements OnGatewayInit {
     usersInRoom.forEach(async (uid) => {
       const blockRelationship: boolean =
         await this.friendshipService.isThereABlockRelationship(
-          socket.data.userId,
+          client.data.userId,
           uid,
         );
 
-      // Retrieve the socketId of the user
+      // Retrieve the clientId of the user
       const userSocketId: string = this.connectionService.findSocketIdByUID(
         uid.toString(),
       );
       if (userSocketId && !blockRelationship) {
-        socket.to(userSocketId).emit('newChatRoomMessage', message);
+        client.to(userSocketId).emit('newChatRoomMessage', message);
       }
     });
   }
 
   /*
     TODO
-    Assign Admins (perhaps via controller instead of socket messages)
+    Assign Admins (perhaps via controller instead of client messages)
 
-    Admin functionalities (socket messages)
+    Admin functionalities (client messages)
 
     Game Invite (I take this one)
  */

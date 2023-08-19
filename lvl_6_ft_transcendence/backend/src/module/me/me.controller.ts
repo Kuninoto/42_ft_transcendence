@@ -56,7 +56,7 @@ export class MeController {
   @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
   @Get()
   public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
-    this.logger.log('"' + req.user.name + '" requested his info');
+    this.logger.log(`"${req.user.name}" requested his info`);
 
     // Destructure user's info so that we can filter info that doesn't belong to MeUserInfo
     const {
@@ -91,7 +91,7 @@ export class MeController {
   @ApiOkResponse({ description: "Finds and returns the 'me' user's friends" })
   @Get('friends')
   public async getMyFriends(@Req() req: { user: User }): Promise<Friend[]> {
-    this.logger.log('"' + req.user.name + '" requested his friends info');
+    this.logger.log(`"${req.user.name}" requested his friends info`);
 
     const friendList: Friend[] = await this.friendshipsService.findFriendsByUID(
       req.user.id,
@@ -113,7 +113,7 @@ export class MeController {
     @Req() req: { user: User },
   ): Promise<FriendRequestInterface[]> {
     this.logger.log(
-      '"' + req.user.name + '" requested his friend-requests info',
+      `"${req.user.name}" requested his received friend-requests`,
     );
 
     return await this.friendshipsService.getMyFriendRequests(req.user);
@@ -129,8 +129,7 @@ export class MeController {
   public async getMyBlockedUsers(
     @Req() req: { user: User },
   ): Promise<BlockedUserInterface[]> {
-    this.logger.log('"' + req.user.name + '" requested his blocklist');
-
+    this.logger.log(`"${req.user.name}" requested his blocklist`);
     return await this.friendshipsService.getMyBlocklist(req.user.id);
   }
 
@@ -161,12 +160,10 @@ export class MeController {
     @Req() req: { user: User },
     @Body() body: UsernameUpdationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    this.logger.log('Updating "' + req.user.name + '"\'s username');
+    this.logger.log(`Updating ${req.user.name}'s username`);
 
     if (!body.newUsername) {
-      this.logger.warn(
-        'User which id=' + req.user.id + ' failed to update his username',
-      );
+      this.logger.warn(`"${req.user.name}" failed to update his username`);
       throw new BadRequestException(
         "Expected 'newUsername' as a field of the body's JSON",
       );
@@ -202,7 +199,7 @@ export class MeController {
     @Req() req: { user: User },
     @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
   ): Promise<SuccessResponse | ErrorResponse> {
-    this.logger.log('"' + req.user.name + '" is updating his game theme');
+    this.logger.log(`${req.user.name} is updating his game theme`);
 
     return await this.usersService.updateGameThemeByUID(
       req.user.id,
@@ -244,11 +241,11 @@ export class MeController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!file) {
-      this.logger.warn('"' + req.user.name + '" failed to upload his avatar');
+      this.logger.warn(`"${req.user.name}" failed to upload his avatar`);
       throw new BadRequestException('Invalid file');
     }
 
-    this.logger.log('Updating "' + req.user.name + '"\'s avatar');
+    this.logger.log(`Updating ${req.user.name}\'s avatar`);
 
     return await this.usersService.updateUserAvatarByUID(
       req.user.id,
@@ -267,7 +264,7 @@ export class MeController {
   public async deleteMyAccount(
     @Req() req: { user: User },
   ): Promise<SuccessResponse> {
-    this.logger.log('Deleting "' + req.user.name + '"\'s account');
+    this.logger.log(`Deleting ${req.user.name}'s account`);
 
     return await this.usersService.deleteUserByUID(req.user.id);
   }

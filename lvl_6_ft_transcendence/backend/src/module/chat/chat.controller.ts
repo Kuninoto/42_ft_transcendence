@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { ChatRoomSearchInfo } from 'types';
@@ -9,8 +9,6 @@ import { RoomService } from './room.service';
 @Controller('chat')
 export class ChatController {
   constructor(private readonly roomService: RoomService) {}
-
-  private readonly logger: Logger = new Logger(ChatController.name);
 
   /**
    * GET /api/chat/rooms/search?room_name=

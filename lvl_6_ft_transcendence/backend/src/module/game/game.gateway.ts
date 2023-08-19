@@ -49,7 +49,9 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('queueToLadder')
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
-    this.logger.log('Player UID= ' + client.data.userId + ' connected');
+    this.logger.log(
+      `User with uid= ${client.data.userId} joined the ladder queue`,
+    );
     if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) {
       return;
     }
@@ -60,7 +62,9 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('leaveQueueOrGame')
   async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
-    this.logger.log('Player UID= ' + client.data.userId + ' disconnected');
+    this.logger.log(
+      `User with uid= ${client.data.userId} left the queue or a game`,
+    );
     await this.gameService.disconnectPlayer(client.data.userId);
   }
 
@@ -71,9 +75,7 @@ export class GameGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidSendGameInviteMessage(messageBody)) {
       this.logger.warn(
-        'User id=' +
-          client.data.userId +
-          ' tried to send a wrong SendGameInviteDTO',
+        `User with uid= ${client.data.userId} tried to send a wrong SendGameInviteDTO`,
       );
       return;
     }
@@ -83,9 +85,7 @@ export class GameGateway implements OnGatewayInit {
       this.gameService.isPlayerInQueueOrGame(parseInt(messageBody.recipientUID))
     ) {
       this.logger.warn(
-        'User id=' +
-          client.data.userId +
-          ' tried to send a game invite while in game or to a recipient in game',
+        `User with uid= ${client.data.userId} tried to send a game invite while in game or to a recipient in game`,
       );
       return;
     }
@@ -125,9 +125,7 @@ export class GameGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidRespondToGameInviteMessage(messageBody)) {
       this.logger.warn(
-        'User id=' +
-          client.data.userId +
-          ' tried to send a wrong RespondToGameInviteDTO',
+        `User with uid= ${client.data.userId} tried to send a wrong RespondToGameInviteDTO`,
       );
       return;
     }
@@ -152,9 +150,7 @@ export class GameGateway implements OnGatewayInit {
   ): void {
     if (!this.isValidPlayerReadyMessage(messageBody)) {
       this.logger.warn(
-        'User id=' +
-          client.data.userId +
-          ' tried to send a wrong PlayerReadyDTO',
+        `User with uid= ${client.data.userId} tried to send a wrong PlayerReadyDTO`,
       );
       return;
     }
@@ -172,9 +168,7 @@ export class GameGateway implements OnGatewayInit {
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.warn(
-        'User id=' +
-          client.data.userId +
-          ' tried to send a wrong PaddleMoveDTO',
+        `User with uid= ${client.data.userId} tried to send a wrong PaddleMoveDTO`,
       );
       return;
     }
