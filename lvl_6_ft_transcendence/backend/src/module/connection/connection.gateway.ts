@@ -47,8 +47,12 @@ export class ConnectionGateway
 
   async handleConnection(client: Socket): Promise<void> {
     try {
-      const user: User =
-        await this.connectionService.authenticateClientAndRetrieveUser(client);
+      // TODO change this to the jwt auth (commented)
+      const user: User = await this.usersService.findUserByUID(
+        parseInt(client.handshake.headers.authorization),
+      );
+      // await this.connectionService.authenticateClientAndRetrieveUser(client);
+
       client.data.userId = user.id;
 
       await this.updateUserStatus(user.id, UserStatus.ONLINE);
@@ -98,16 +102,18 @@ export class ConnectionGateway
     });
   }
 
-  makeFriendsJoinEachOthersRoom(user1UID: number, user2UID: number): void {
-    const user1SocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(user1UID.toString());
-    const user2SocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(user2UID.toString());
+  makeFriendsJoinEachOthersRoom(senderUID: number, receiverUID: number): void {
+    const senderSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(senderUID.toString());
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
 
     // If both users are online
-    if (user1SocketId && user2SocketId) {
-      this.server.in(user1SocketId).socketsJoin(`friend-${user2UID}`);
-      this.server.in(user2SocketId).socketsJoin(`friend-${user1UID}`);
+    if (senderSocketId && receiverSocketId) {
+      // this.server.to(receiverSocketId).emit('friendRequestAccepted');
+
+      this.server.in(senderSocketId).socketsJoin(`friend-${receiverUID}`);
+      this.server.in(receiverSocketId).socketsJoin(`friend-${senderUID}`);
     }
   }
 

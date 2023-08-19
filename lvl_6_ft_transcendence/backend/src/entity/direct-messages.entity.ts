@@ -16,6 +16,14 @@ export class DirectMessage {
   })
   id: number;
 
+  // Id sent by the frontend
+  @ApiProperty()
+  @Column({
+    type: 'varchar',
+    nullable: false,
+  })
+  unique_id: string;
+
   @ApiProperty()
   @Column({
     type: 'varchar',

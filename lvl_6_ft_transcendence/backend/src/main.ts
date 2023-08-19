@@ -11,78 +11,84 @@ import { Passport42ExceptionFilter } from './module/auth/filter/passport42-excep
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
 function checkRequiredEnvVariables(): void {
-	const requiredEnvVariables = [
-		'POSTGRES_HOST',
-		'POSTGRES_USER',
-		'POSTGRES_PASSWORD',
-		'POSTGRES_DB',
-		'FRONTEND_URL',
-		'INTRA_CLIENT_UID',
-		'INTRA_CLIENT_SECRET',
-		'INTRA_REDIRECT_URI',
-		'GOOGLE_AUTH_APP_NAME',
-		'JWT_SECRET',
-		'JWT_EXPIRES_IN',
-		'EXPRESS_SESSION_SECRET',
-	];
+  const RED: string = '\x1b[31m';
+  const RESET: string = '\x1b[0m';
 
-	const missingVariables = requiredEnvVariables.filter(
-		(variable) => !process.env[variable],
-	);
+  const requiredEnvVariables = [
+    'POSTGRES_HOST',
+    'POSTGRES_USER',
+    'POSTGRES_PASSWORD',
+    'POSTGRES_DB',
+    'FRONTEND_URL',
+    'BACKEND_URL',
+    'INTRA_CLIENT_UID',
+    'INTRA_CLIENT_SECRET',
+    'INTRA_REDIRECT_URI',
+    'GOOGLE_AUTH_APP_NAME',
+    'JWT_SECRET',
+    'JWT_EXPIRES_IN',
+    'EXPRESS_SESSION_SECRET',
+  ];
 
-	if (missingVariables.length > 0) {
-		console.error(
-			`Missing environment variables: ${missingVariables.join(', ')}`,
-		);
-		process.exit(1);
-	}
+  const missingVariables: string[] = requiredEnvVariables.filter(
+    (variable) => !process.env[variable],
+  );
+
+  if (missingVariables.length > 0) {
+    console.error(
+      `${RED}Missing environment variables: "${missingVariables.join(
+        '", "',
+      )}"\nAdd them to your .env file and restart the app${RESET}`,
+    );
+    process.exit(1);
+  }
 }
 
 async function bootstrap() {
-	const logger: Logger = new Logger('NestApplication');
+  const logger: Logger = new Logger('NestApplication');
 
-	checkRequiredEnvVariables();
+  checkRequiredEnvVariables();
 
-	const app: NestExpressApplication =
-		await NestFactory.create<NestExpressApplication>(AppModule, {
-			logger: ['verbose'],
-		});
+  const app: NestExpressApplication =
+    await NestFactory.create<NestExpressApplication>(AppModule, {
+      logger: ['verbose'],
+    });
 
-	const swaggerConfig = new DocumentBuilder()
-		.setTitle('Transcendence API')
-		.setDescription('API for the transcendence project')
-		.setVersion('1.0')
-		.addTag('Transcendence')
-		//  .addBearerAuth()
-		.build();
-	const document = SwaggerModule.createDocument(app, swaggerConfig);
-	SwaggerModule.setup('help', app, document);
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Transcendence API')
+    .setDescription('API for the transcendence project')
+    .setVersion('1.0')
+    .addTag('Transcendence')
+    //  .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('help', app, document);
 
-	app.enableCors(AppCorsOption);
+  app.enableCors(AppCorsOption);
 
-	const oneDay: number = 86400000;
-	app.use(
-		session({
-			cookie: {
-				maxAge: oneDay,
-				// We'll be using HTTP
-				secure: false,
-				httpOnly: true,
-			},
-			secret: process.env.EXPRESS_SESSION_SECRET,
-			resave: false,
-			saveUninitialized: false,
-		}),
-	);
+  const oneDay: number = 86400000;
+  app.use(
+    session({
+      cookie: {
+        maxAge: oneDay,
+        // We'll be using HTTP
+        secure: false,
+        httpOnly: true,
+      },
+      secret: process.env.EXPRESS_SESSION_SECRET,
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
 
-	app.use(passport.initialize());
-	app.use(passport.session());
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-	app.useGlobalPipes(new ValidationPipe());
-	app.useGlobalFilters(new Passport42ExceptionFilter());
-	app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalFilters(new Passport42ExceptionFilter());
+  app.setGlobalPrefix('api');
 
-	await app.listen(3000, () => logger.log('Listening on port 3000'));
+  await app.listen(3000, () => logger.log('Listening on port 3000'));
 }
 
 bootstrap();
