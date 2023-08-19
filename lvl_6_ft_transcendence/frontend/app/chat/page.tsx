@@ -3,7 +3,6 @@
 import { removeParams } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
-import Link from 'next/link'
 import { ChangeEventHandler, useState } from 'react'
 import { GrFormClose } from 'react-icons/gr'
 
@@ -11,7 +10,13 @@ export default function Chat() {
 	const [isOpen, setIsOpen] = useState(false)
 	const [message, setMessage] = useState('')
 
-	const { close, currentOpenChatInfo, isOpen: exists, sendMessage } = useChat()
+	const {
+		close,
+		currentOpenChat,
+		isOpen: exists,
+		openChats,
+		sendMessage,
+	} = useChat()
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value
@@ -33,12 +38,13 @@ export default function Chat() {
 		>
 			<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
 				<button className="w-full" onClick={() => setIsOpen(!isOpen)}>
-					{currentOpenChatInfo.name}
+					{currentOpenChat.friend?.name}
 				</button>
 				<button onClick={close}>
 					<GrFormClose size={32} />
 				</button>
 			</div>
+			{console.log(openChats)}
 
 			<div className="flex h-full w-full">
 				<div className="h-full w-4/12 border-r border-white">
@@ -60,31 +66,33 @@ export default function Chat() {
 						<span>ma aca ca</span>
 					</div>
 				</div>
-				<div className="relative flex h-full w-8/12 flex-col place-content-between">
-					<div className="relative h-[17rem] space-y-4 overflow-auto p-2 text-sm">
-						<div className="flex w-full place-content-end ">
-							<div className="w-min max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
-								abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							</div>
-						</div>
-						<div className="w-min max-w-[60%] break-words rounded border border-white p-2">
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-							abcdefsjkrgnrjkwgnekrgnwejkrgnwkjergnwkj
-						</div>
+				<div className="relative flex  h-full w-8/12 flex-col place-content-between">
+					<div className="relative flex h-[17.5rem] flex-col space-y-4 overflow-auto p-2 text-sm">
+						{currentOpenChat?.messages.map((message) => {
+							if (message.sendByMe) {
+								return (
+									<div
+										className="w-min max-w-[60%] break-words rounded border border-white p-2"
+										key={message.content}
+									>
+										{message.content}
+									</div>
+								)
+							}
+							return (
+								<div
+									className="flex w-full place-content-end "
+									key={message.content}
+								>
+									<div className="w-min max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
+										{message.content}
+									</div>
+								</div>
+							)
+						})}
 					</div>
 					<textarea
-						className={`mx-2 mb-2 
-				resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none transition-all duration-500`}
+						className={`mx-2 mb-2 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none transition-all duration-500`}
 						cols={2}
 						onChange={handleChange}
 						placeholder="Write something beutiful"

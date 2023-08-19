@@ -12,7 +12,7 @@ import { useEffect } from 'react'
 import Pong from './pong'
 
 type card = {
-	player: UserSearchInfo
+	player: { avatar_url: string; id: number; name: string } | UserSearchInfo
 	score: number
 	side: PlayerSide
 }

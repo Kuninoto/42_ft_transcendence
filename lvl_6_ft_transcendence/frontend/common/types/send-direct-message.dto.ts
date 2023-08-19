@@ -1,4 +1,4 @@
 export interface SendDirectMessageDTO {
-	receiverUID: number;
-	content: string;
+	content: string
+	receiverUID: number
 }
