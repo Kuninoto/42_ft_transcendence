@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
+import { UserStatsForLeaderboard } from 'types';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UserStatsService } from '../user-stats/user-stats.service';
 
 @ApiTags('game')

@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
 import { UsersService } from 'src/module/users/users.service';
-import { User } from 'src/typeorm/index';
+import { User } from 'src/typeorm';
 
 // Because we'll specify which info
 // we want from the whole 'me' endpoint
 // of 42's API we need this interface,
 // instead of the Profile object from passport-42, to
-// represent the info what we'll in fact receive
+// represent the info that we'll in fact receive
+// (as asked in lines 29 && 30)
 interface User42Info {
   username: string;
   avatar: string;

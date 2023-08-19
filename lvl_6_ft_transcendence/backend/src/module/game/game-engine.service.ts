@@ -1,5 +1,5 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { PlayerSide } from 'src/common/types/player-side.enum';
+import { PlayerSide } from 'types';
 import { BALL_RADIUS, Ball } from './Ball';
 import {
   CANVAS_HEIGHT,

@@ -1,4 +1,4 @@
-import { UserStatus } from 'src/common/types/user-status.enum';
+import { UserStatus } from 'types';
 
 export interface NewUserStatusDTO {
   uid: number;

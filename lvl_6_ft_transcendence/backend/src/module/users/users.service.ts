@@ -9,10 +9,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ChatRoomI } from 'src/common/types/chat-room.interface';
-import { FriendInterface } from 'src/common/types/friend-interface.interface';
-import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
-import { OpponentInfo } from 'src/common/types/opponent-info.interface';
 import {
   BlockedUser,
   ChatRoom,
@@ -21,16 +17,21 @@ import {
   User,
 } from 'src/typeorm/index';
 import { Repository } from 'typeorm';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import { FriendshipStatus } from '../../common/types/friendship-status.enum';
-import { GameThemes } from '../../common/types/game-themes.enum';
-import { SuccessResponse } from '../../common/types/success-response.interface';
-import { UserProfile } from '../../common/types/user-profile.interface';
-import { UserSearchInfo } from '../../common/types/user-search-info.interface';
-import { UserStatus } from '../../common/types/user-status.enum';
+import {
+  ChatRoomI,
+  ErrorResponse,
+  Friend,
+  FriendshipStatus,
+  GameResultInterface,
+  GameThemes,
+  OpponentInfo,
+  SuccessResponse,
+  UserProfile,
+  UserSearchInfo,
+  UserStatus,
+} from 'types';
 import { AchievementService } from '../achievement/achievement.service';
 import { FriendshipsService } from '../friendships/friendships.service';
-import { OpponentFoundDTO } from '../game/dto/opponent-found.dto';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 
@@ -158,8 +159,9 @@ export class UsersService {
       userId,
     );
 
-    const friends: FriendInterface[] =
-      await this.friendshipsService.findFriendsByUID(user.id);
+    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
+      user.id,
+    );
 
     return {
       id: user.id,

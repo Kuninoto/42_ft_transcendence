@@ -1,14 +1,15 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
-import { GameInvite } from 'src/common/types/game-invite.interface';
-import { GameType } from 'src/common/types/game-type.enum';
-import { OpponentInfo } from 'src/common/types/opponent-info.interface';
-import { PlayerSide } from 'src/common/types/player-side.enum';
-import { UserStatus } from 'src/common/types/user-status.enum';
-import { GameResult } from 'src/entity/game-result.entity';
-import { User } from 'src/typeorm/index';
+import { GameResult, User } from 'src/typeorm';
 import { Repository } from 'typeorm';
+import {
+  GameInvite,
+  GameType,
+  OpponentInfo,
+  PlayerSide,
+  UserStatus,
+} from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { UsersService } from '../users/users.service';
@@ -19,10 +20,10 @@ import { GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
 import { CreateGameInviteDTO } from './dto/create-game-invite.dto';
+import { InviteDeclinedDTO } from './dto/invite-declined.dto';
 import { OpponentFoundDTO } from './dto/opponent-found.dto';
 import { GameEngineService } from './game-engine.service';
 import { GameGateway } from './game.gateway';
-import { InviteDeclinedDTO } from './dto/invite-declined.dto';
 
 const GAME_START_TIMEOUT: number = 1000 * 3;
 

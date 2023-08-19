@@ -8,8 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
-import { OpponentInfo } from 'src/common/types/opponent-info.interface';
-import { PlayerSide } from 'src/common/types/player-side.enum';
+import { PlayerSide } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
@@ -23,7 +22,6 @@ import { PlayerScoredDTO } from './dto/player-scored.dto';
 import { RespondToGameInviteDTO } from './dto/respond-to-game-invite.dto';
 import { SendGameInviteDTO } from './dto/send-game-invite.dto';
 import { GameService } from './game.service';
-import { OpponentFoundDTO } from './dto/opponent-found.dto';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -135,10 +133,7 @@ export class GameGateway implements OnGatewayInit {
     }
 
     if (messageBody.accepted === true) {
-      await this.gameService.gameInviteAccepted(
-        messageBody.inviteId,
-        client,
-      );
+      await this.gameService.gameInviteAccepted(messageBody.inviteId, client);
     } else {
       this.gameService.gameInviteDeclined(messageBody.inviteId);
     }

@@ -8,11 +8,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
-import { ChatRoomMessageI } from 'src/common/types/chat-room-message.interface';
 import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { ChatRoom } from 'src/typeorm';
+import { ChatRoomMessageI } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
@@ -171,8 +171,9 @@ export class ChatGateway implements OnGatewayInit {
         );
 
       // Retrieve the socketId of the user
-      const userSocketId: string =
-        this.connectionService.findSocketIdByUID(uid.toString());
+      const userSocketId: string = this.connectionService.findSocketIdByUID(
+        uid.toString(),
+      );
       if (userSocketId && !blockRelationship) {
         socket.to(userSocketId).emit('newChatRoomMessage', message);
       }

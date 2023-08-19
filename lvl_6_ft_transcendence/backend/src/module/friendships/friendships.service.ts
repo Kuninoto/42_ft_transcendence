@@ -11,14 +11,17 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { BlockedUser, Friendship, User } from 'src/typeorm/index';
 import { Repository } from 'typeorm';
-import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import { FriendInterface } from '../../common/types/friend-interface.interface';
-import { FriendRequestInterface } from '../../common/types/friend-request.interface';
-import { FriendshipStatus } from '../../common/types/friendship-status.enum';
-import { SuccessResponse } from '../../common/types/success-response.interface';
+import {
+  BlockedUserInterface,
+  ErrorResponse,
+  Friend,
+  FriendRequestInterface,
+  FriendshipStatus,
+  SuccessResponse,
+} from 'types';
 import { AchievementService } from '../achievement/achievement.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
+import { ConnectionService } from '../connection/connection.service';
 
 @Injectable()
 export class FriendshipsService {
@@ -74,7 +77,7 @@ export class FriendshipsService {
     return myFriendRequestsInterfaces;
   }
 
-  public async findFriendsByUID(userId: number): Promise<FriendInterface[]> {
+  public async findFriendsByUID(userId: number): Promise<Friend[]> {
     const myFriendships: Friendship[] = await this.friendshipRepository.find({
       where: [
         { receiver: { id: userId }, status: FriendshipStatus.ACCEPTED },
@@ -86,7 +89,7 @@ export class FriendshipsService {
       },
     });
 
-    const myFriendsInterfaces: FriendInterface[] = myFriendships.map(
+    const myFriendsInterfaces: Friend[] = myFriendships.map(
       (friendship: Friendship) => {
         let friend: User;
         if (userId === friendship.sender.id) {
@@ -236,6 +239,8 @@ export class FriendshipsService {
       sender: sender,
       receiver: receiver,
     });
+
+    this.connectionGateway.newFriendRequest(receiver.id);
     return { message: 'Friend request successfully sent' };
   }
 

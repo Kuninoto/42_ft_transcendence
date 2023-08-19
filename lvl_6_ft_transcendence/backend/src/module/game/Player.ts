@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { PlayerSide } from 'src/common/types/player-side.enum';
+import { PlayerSide } from 'types';
 import { CANVAS_MID_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 
 export const PADDLE_HEIGHT: number = 80;

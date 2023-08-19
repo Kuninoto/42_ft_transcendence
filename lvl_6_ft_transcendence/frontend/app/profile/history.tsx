@@ -1,5 +1,5 @@
 import { UserProfile as IUserProfile } from '@/common/type/backend/user-profile.interface'
-import { GameResultInterface } from '@/common/types/backend/game-result-interface.interface'
+import { GameResult } from '@/common/types/backend/game-result-interface.interface'
 import { hasValues } from '@/common/utils/hasValues'
 import Link from 'next/link'
 
@@ -7,7 +7,7 @@ export default function History({
 	history,
 	userProfile,
 }: {
-	history: GameResultInterface[]
+	history: GameResult[]
 	userProfile: IUserProfile
 }) {
 	return (

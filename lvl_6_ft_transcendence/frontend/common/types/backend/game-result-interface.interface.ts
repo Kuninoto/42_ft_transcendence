@@ -1,4 +1,4 @@
-export interface GameResultInterface {
+export interface GameResult {
   winner: {
     userId: number;
     name: string;

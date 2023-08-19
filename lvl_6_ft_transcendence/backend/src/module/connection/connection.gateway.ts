@@ -8,17 +8,15 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
-import { UserStatus } from 'src/common/types/user-status.enum';
-import { Achievements } from 'src/entity/achievement.entity';
-import { User } from 'src/entity/user.entity';
 import { UsersService } from 'src/module/users/users.service';
+import { User } from 'src/typeorm';
+import { Achievements, Friend, UserStatus } from 'types';
 import { RoomService } from '../chat/room.service';
-import { GameService } from '../game/game.service';
-import { NewUserStatusDTO } from './dto/new-user-status.dto';
-import { ConnectionService } from './connection.service';
 import { FriendshipsService } from '../friendships/friendships.service';
-import { FriendInterface } from 'src/common/types/friend-interface.interface';
+import { GameService } from '../game/game.service';
+import { ConnectionService } from './connection.service';
 import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
+import { NewUserStatusDTO } from './dto/new-user-status.dto';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -76,7 +74,7 @@ export class ConnectionGateway
   async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
     await this.usersService.updateUserStatusByUID(userId, newStatus);
 
-    // Broadcast new user status to all users in the friend room
+    // Broadcast new user status to all users in the friend room (his friends)
     const newUserStatus: NewUserStatusDTO = {
       uid: userId,
       newStatus: newStatus,
@@ -85,8 +83,9 @@ export class ConnectionGateway
   }
 
   async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
-    const friends: FriendInterface[] =
-      await this.friendshipsService.findFriendsByUID(userId);
+    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
+      userId,
+    );
 
     friends.forEach((friend) => {
       client.join(`friend-${friend.uid}`);
@@ -118,5 +117,15 @@ export class ConnectionGateway
       achievement: achievement,
     };
     this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
+  }
+
+  newFriendRequest(receiverUID: number) {
+    const receiverSocketId: string | undefined = this.connectionService.findSocketIdByUID(
+      receiverUID.toString(),
+    );
+
+    if (receiverSocketId) {
+      this.server.to(receiverSocketId).emit('newFriendRequest');
+    }
   }
 }
