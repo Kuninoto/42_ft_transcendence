@@ -82,6 +82,7 @@ export class MessageService {
     // Send every missed DM
     missedDMs.forEach((dm: DirectMessage) => {
       const directMessageReceived: DirectMessageReceivedDTO = {
+        uniqueId: dm.unique_id,
         senderUID: dm.sender.id,
         content: dm.content,
       };

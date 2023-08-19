@@ -412,7 +412,7 @@ export class FriendshipsService {
     sender: User,
     receiver: User,
   ): Promise<void> {
-    const areTheyFriends: boolean = await this.areTheyFriendsAlready(
+    const areTheyFriends: boolean = await this.areTheyFriends(
       sender.id,
       receiver.id,
     );
@@ -479,7 +479,7 @@ export class FriendshipsService {
     return friendRequest ? true : false;
   }
 
-  private async areTheyFriendsAlready(
+  public async areTheyFriends(
     senderUID: number,
     receiverUID: number,
   ): Promise<boolean> {
