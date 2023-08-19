@@ -13,6 +13,7 @@ import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
 import { SendDirectMessageDTO } from './dto/send-direct-message.dto';
+import { FriendshipsService } from './friendships.service';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -25,6 +26,7 @@ export class FriendshipsGateway implements OnGatewayInit {
     @Inject(forwardRef(() => ConnectionService))
     private readonly connectionService: ConnectionService,
     private readonly messageService: MessageService,
+    private readonly friendshipService: FriendshipsService,
   ) {}
 
   private readonly logger: Logger = new Logger(FriendshipsGateway.name);
@@ -37,6 +39,7 @@ export class FriendshipsGateway implements OnGatewayInit {
    *          MESSAGES          *
    ******************************/
 
+  // Only be able to send DMs to friends
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
     @ConnectedSocket() client: Socket,
@@ -44,8 +47,18 @@ export class FriendshipsGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidSendDirectMessageDTO(messageBody)) {
       this.logger.warn(
-        `Client with uid= ${client.data.userId} tried to send a wrong SendDirectMessageDTO`,
+        `User with uid= ${client.data.userId} tried to send a wrong SendDirectMessageDTO`,
       );
+      return;
+    }
+
+    const areTheyFriends: boolean = await this.friendshipService.areTheyFriends(
+      client.data.userId,
+      messageBody.receiverUID,
+    );
+
+    if (!areTheyFriends) {
+      // Only able to send messages to friends
       return;
     }
 
@@ -55,6 +68,7 @@ export class FriendshipsGateway implements OnGatewayInit {
       );
 
     const directMessageReceived: DirectMessageReceivedDTO = {
+      uniqueId: messageBody.uniqueId,
       senderUID: client.data.userId,
       content: messageBody.content,
     };
@@ -74,16 +88,13 @@ export class FriendshipsGateway implements OnGatewayInit {
     }
   }
 
-  /******************************
-   *           EVENTS           *
-   ******************************/
-
   private isValidSendDirectMessageDTO(
     messageBody: any,
   ): messageBody is SendDirectMessageDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.receiverUID === 'string' &&
+      typeof messageBody.uniqueId === 'string' &&
+      typeof messageBody.receiverUID === 'number' &&
       typeof messageBody.content === 'string'
     );
   }

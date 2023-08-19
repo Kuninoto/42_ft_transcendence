@@ -1,3 +1,3 @@
 export interface JoinRoomDTO {
-  readonly roomName: string;
+  readonly name: string;
 }
