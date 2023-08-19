@@ -8,11 +8,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { MessageService } from '../chat/message.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
+import { ConnectionService } from '../connection/connection.service';
 import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
 import { SendDirectMessageDTO } from './dto/send-direct-message.dto';
-import { ConnectionService } from '../connection/connection.service';
-import { MessageService } from '../chat/message.service';
 
 @WebSocketGateway({
   namespace: 'connection',
@@ -52,22 +52,24 @@ export class FriendshipsGateway implements OnGatewayInit {
     }
 
     const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(messageBody.receiverUID.toString());
-
-    // Save DM on database
-    await this.messageService.createDirectMessage(
-      client.data.userId,
-      messageBody.receiverUID,
-      messageBody.content,
-    );
+      this.connectionService.findSocketIdByUID(
+        messageBody.receiverUID.toString(),
+      );
 
     const directMessageReceived: DirectMessageReceivedDTO = {
       senderUID: client.data.userId,
       content: messageBody.content,
     };
 
-    // Don't send message if user is offline
-    if (receiverSocketId) {
+    if (!receiverSocketId) {
+      // If user is offline save DM on database
+      // to later send when he comes back online
+      await this.messageService.createDirectMessage(
+        client.data.userId,
+        messageBody.receiverUID,
+        messageBody.content,
+      );
+    } else {
       this.connectionGateway.server
         .to(receiverSocketId)
         .emit('directMessageReceived', directMessageReceived);
