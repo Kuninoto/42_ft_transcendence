@@ -53,7 +53,7 @@ services:
     env_file:
       - ./backend/.env
     volumes:
-      - ./backend/src:/app/src
+      - ./backend:/app
     restart: always
 
 networks:

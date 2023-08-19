@@ -1,5 +1,6 @@
+import { Player } from '../Player';
+
 export interface CreateGameInviteDTO {
-  roomId: string;
-  senderUID: number;
-  recipientUID: number;
+  sender: Player;
+  recipientUID: string;
 }

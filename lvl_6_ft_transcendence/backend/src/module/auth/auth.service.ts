@@ -2,9 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
-import { AccessTokenInterface } from 'src/common/types/access-token-interface.interface';
-import { User } from 'src/typeorm/index';
-import { LoginDTO } from './dto/login.dto';
+import { User } from 'src/typeorm';
+import { AccessTokenResponse, LoginResponse } from 'types';
 import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 
@@ -15,13 +14,13 @@ export class AuthService {
   private readonly logger: Logger = new Logger(AuthService.name);
 
   // Return the signed JWT as access_token
-  public login(user: User): LoginDTO {
+  public login(user: User): LoginResponse {
     const payload: TokenPayload = {
       id: user.id,
       has_2fa: user.has_2fa,
     };
 
-    this.logger.log('"' + user.name + '" logged in with 42 auth!');
+    this.logger.log(`"${user.name}" logged in with 42 auth!`);
     return {
       accessToken: this.jwtService.sign(payload),
       has2fa: user.has_2fa,
@@ -29,16 +28,14 @@ export class AuthService {
   }
 
   // Return the signed JWT as access_token
-  public authenticate2fa(user: User): AccessTokenInterface {
+  public authenticate2fa(user: User): AccessTokenResponse {
     const payload: TokenPayload = {
       id: user.id,
       has_2fa: true,
       is_2fa_authed: true,
     };
 
-    this.logger.log(
-      'User "' + user.name + '" authenticated with Google\'s 2FA!',
-    );
+    this.logger.log(`"${user.name}" authenticated with Google Authenticator!`);
     return {
       access_token: this.jwtService.sign(payload),
     };

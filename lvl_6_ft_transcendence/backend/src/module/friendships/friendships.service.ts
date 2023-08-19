@@ -11,12 +11,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { BlockedUser, Friendship, User } from 'src/typeorm/index';
 import { Repository } from 'typeorm';
-import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import { FriendInterface } from '../../common/types/friend-interface.interface';
-import { FriendRequestInterface } from '../../common/types/friend-request.interface';
-import { FriendshipStatus } from '../../common/types/friendship-status.enum';
-import { SuccessResponse } from '../../common/types/success-response.interface';
+import {
+  BlockedUserInterface,
+  ErrorResponse,
+  Friend,
+  FriendRequestInterface,
+  FriendshipStatus,
+  SuccessResponse,
+} from 'types';
 import { AchievementService } from '../achievement/achievement.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
 
@@ -74,7 +76,7 @@ export class FriendshipsService {
     return myFriendRequestsInterfaces;
   }
 
-  public async findFriendsByUID(userId: number): Promise<FriendInterface[]> {
+  public async findFriendsByUID(userId: number): Promise<Friend[]> {
     const myFriendships: Friendship[] = await this.friendshipRepository.find({
       where: [
         { receiver: { id: userId }, status: FriendshipStatus.ACCEPTED },
@@ -86,7 +88,7 @@ export class FriendshipsService {
       },
     });
 
-    const myFriendsInterfaces: FriendInterface[] = myFriendships.map(
+    const myFriendsInterfaces: Friend[] = myFriendships.map(
       (friendship: Friendship) => {
         let friend: User;
         if (userId === friendship.sender.id) {
@@ -143,99 +145,23 @@ export class FriendshipsService {
     sender: User,
     receiverUID: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (receiverUID == sender.id) {
-      this.logger.warn(
-        '"' + sender.name + '" tried to add himself as a friend',
-      );
-      throw new BadRequestException('You cannot add yourself as a friend');
-    }
-
     const receiver: User | null = await this.usersRepository.findOneBy({
       id: receiverUID,
     });
-    if (!receiver) {
-      this.logger.warn(
-        '"' +
-          sender.name +
-          '" tried to friend request a user that doesn\'t exist',
-      );
-      throw new BadRequestException(
-        'User with id=' + receiverUID + " doesn't exist",
-      );
-    }
 
-    const isSenderBlocked: boolean = await this.isSenderBlocked(
-      sender.id,
-      receiver.id,
-    );
-    if (isSenderBlocked) {
-      this.logger.warn(
-        '"' +
-          sender.name +
-          '" tried to friend request "' +
-          receiver.name +
-          "but it's blocked by him",
-      );
-      throw new ForbiddenException(
-        'You are blocked by the recipient of this friend request',
-      );
-    }
+    // Throws if the friend request matches wrong conditions
+    await this.ensureValidFriendRequest(sender, receiver, receiverUID);
 
-    const isReceiverBlocked: boolean = await this.isReceiverBlocked(
-      sender.id,
-      receiver.id,
-    );
-    if (isReceiverBlocked) {
-      this.logger.warn(
-        '"' +
-          sender.name +
-          '" tried to friend request "' +
-          receiver.name +
-          'but he has blocked him',
-      );
-      throw new ForbiddenException(
-        "You've blocked the user that you're trying to send a friend request to",
-      );
-    }
-
-    const hasBeenSentAlready: boolean =
-      await this.hasFriendRequestBeenSentAlready(sender.id, receiver.id);
-    if (hasBeenSentAlready) {
-      this.logger.warn(
-        '"' +
-          sender.name +
-          '" tried to friend request "' +
-          receiver.name +
-          "but there's already a friend request between them",
-      );
-      throw new ConflictException(
-        'A friend request has already been sent (to) or received (on) your account',
-      );
-    }
-
-    const areTheyFriends: boolean = await this.areTheyFriendsAlready(
-      sender,
-      receiver,
-    );
-    if (areTheyFriends) {
-      this.logger.warn(
-        '"' +
-          sender.name +
-          '" tried to friend request "' +
-          receiver.name +
-          "but they're friends already",
-      );
-      throw new ConflictException("You're friends already");
-    }
-
-    Logger.log(
-      '"' + sender.name + '" sent a friend request to "' + receiver.name + '"',
+    this.logger.log(
+      `"${sender.name}" sent a friend request to "${receiver.name}"`,
     );
 
     await this.friendshipRepository.save({
       sender: sender,
       receiver: receiver,
     });
+
+    this.connectionGateway.friendRequestReceived(receiver.id);
     return { message: 'Friend request successfully sent' };
   }
 
@@ -254,9 +180,7 @@ export class FriendshipsService {
 
     if (!friendship) {
       this.logger.warn(
-        '"' +
-          user.name +
-          '" tried to update the status of a non-existing friendship',
+        `"${user.name}" tried to update the status of a non-existing friendship`,
       );
       throw new NotFoundException('Friendship not found');
     }
@@ -268,91 +192,46 @@ export class FriendshipsService {
         newFriendshipStatus == FriendshipStatus.DECLINED)
     ) {
       this.logger.warn(
-        '"' + user.name + '" tried to answer a friend request that he has sent',
+        `"${user.name}" tried to answer a friend request that he has sent`,
       );
       throw new BadRequestException(
         'You cannot answer a friend request that you have sent',
       );
     }
 
-    if (
-      newFriendshipStatus == FriendshipStatus.DECLINED ||
-      newFriendshipStatus == FriendshipStatus.UNFRIEND
-    ) {
-      if (newFriendshipStatus == FriendshipStatus.DECLINED) {
-        await this.achievementsService.grantDeclinedTomorrowBuddies(
-          friendship.sender.id,
-        );
-      } else await this.achievementsService.grantBreakingThePaddleBond(user.id);
+    switch (newFriendshipStatus) {
+      case FriendshipStatus.ACCEPTED:
+        await this.acceptFriendRequest(friendship);
+        break;
 
-      await this.friendshipRepository.delete(friendship);
-    } else {
-      // ACCEPTED
-      friendship.status = newFriendshipStatus;
-      await this.friendshipRepository.save(friendship);
+      case FriendshipStatus.DECLINED:
+        await this.declineFriendRequest(friendship);
 
-      const senderUID: number = friendship.sender.id;
-      const receiverUID: number = friendship.receiver.id;
-
-      this.connectionGateway.makeFriendsJoinEachOthersRoom(
-        senderUID,
-        receiverUID,
-      );
-
-      const senderNrFriends: number = (
-        await this.findFriendsByUID(friendship.sender.id)
-      ).length;
-      const receiverNrFriends: number = (
-        await this.findFriendsByUID(friendship.receiver.id)
-      ).length;
-
-      await this.achievementsService.grantFriendsAchievementsIfEligible(
-        senderUID,
-        senderNrFriends,
-      );
-
-      await this.achievementsService.grantFriendsAchievementsIfEligible(
-        receiverUID,
-        receiverNrFriends,
-      );
+      case FriendshipStatus.UNFRIEND:
+        await this.unfriendOrDeleteFriendRequest(user.id, friendship);
     }
 
-    Logger.log(
-      user.name +
-        ' ' +
-        newFriendshipStatus +
-        ' the friendship with ' +
-        friendship.sender.name,
+    this.logger.log(
+      `"${user.name}" ${newFriendshipStatus} the friendship with ${friendship.sender.name}`,
     );
-    return { message: 'Successfully updated friendship status' };
+    return {
+      message: `Successfully ${newFriendshipStatus} friendship`,
+    };
   }
 
   public async blockUserByUID(
     sender: User,
-    userToBlockId: number,
+    userToBlockUID: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (sender.id === userToBlockId) {
-      this.logger.warn('"' + sender.name + '" tried to block himself');
-      throw new ConflictException('You cannot block yourself');
-    }
-
     const userToBlock: User | null = await this.usersRepository.findOneBy({
-      id: userToBlockId,
+      id: userToBlockUID,
     });
 
-    if (!userToBlock) {
-      this.logger.warn(
-        '"' + sender.name + '" tried to block a non-existing user',
-      );
-      throw new NotFoundException(
-        'User with id=' + userToBlockId + " doesn't exist",
-      );
-    }
-
+    await this.ensureValidBlock(sender, userToBlock, userToBlockUID);
     await this.blockAndDeleteFriendship(sender, userToBlock);
 
-    Logger.log('"' + sender.name + '" blocked "' + userToBlock.name + '"');
-    return { message: 'Successfully blocked ' + userToBlock.name };
+    this.logger.log(`"${sender.name}" blocked ${userToBlock.name}"`);
+    return { message: `Successfully blocked "${userToBlock.name}"` };
   }
 
   public async unblockUserByUID(
@@ -360,7 +239,7 @@ export class FriendshipsService {
     userToUnblockId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (sender.id == userToUnblockId) {
-      this.logger.warn('"' + sender.name + '" tried to unblock himself');
+      this.logger.warn(`"${sender.name}" tried to unblock himself`);
       throw new ConflictException('You cannot unblock yourself');
     }
 
@@ -369,11 +248,9 @@ export class FriendshipsService {
     });
 
     if (!userToUnblock) {
-      this.logger.warn(
-        '"' + sender.name + '" tried to unblock a non-existing user',
-      );
+      this.logger.warn(`"${sender.name}" tried to unblock a non-existing user`);
       throw new NotFoundException(
-        'User with id=' + userToUnblockId + " doesn't exist",
+        `User with id= ${userToUnblockId} doesn't exist`,
       );
     }
 
@@ -382,8 +259,8 @@ export class FriendshipsService {
       blocked_user: userToUnblock,
     });
 
-    Logger.log('"' + sender.name + '" unblocked "' + userToUnblock.name + '"');
-    return { message: 'Successfully unblocked ' + userToUnblock.name };
+    this.logger.log(`"${sender.name}" unblocked "${userToUnblock.name}"`);
+    return { message: `Successfully unblocked ${userToUnblock.name}` };
   }
 
   public async findFriendshipBetween2Users(
@@ -400,6 +277,148 @@ export class FriendshipsService {
         receiver: true,
       },
     });
+  }
+
+  private async acceptFriendRequest(friendship: Friendship) {
+    friendship.status = FriendshipStatus.ACCEPTED;
+    await this.friendshipRepository.save(friendship);
+
+    const senderUID: number = friendship.sender.id;
+    const receiverUID: number = friendship.receiver.id;
+
+    this.connectionGateway.makeFriendsJoinEachOthersRoom(
+      senderUID,
+      receiverUID,
+    );
+
+    const senderNrFriends: number = (
+      await this.findFriendsByUID(friendship.sender.id)
+    ).length;
+    const receiverNrFriends: number = (
+      await this.findFriendsByUID(friendship.receiver.id)
+    ).length;
+
+    await this.achievementsService.grantFriendsAchievementsIfEligible(
+      senderUID,
+      senderNrFriends,
+    );
+
+    await this.achievementsService.grantFriendsAchievementsIfEligible(
+      receiverUID,
+      receiverNrFriends,
+    );
+  }
+
+  private async declineFriendRequest(friendship: Friendship) {
+    await this.achievementsService.grantDeclinedTomorrowBuddies(
+      friendship.sender.id,
+    );
+    await this.friendshipRepository.delete(friendship);
+  }
+
+  private async unfriendOrDeleteFriendRequest(
+    userId: number,
+    friendship: Friendship,
+  ) {
+    await this.achievementsService.grantBreakingThePaddleBond(userId);
+    await this.friendshipRepository.delete(friendship);
+  }
+
+  private async ensureValidBlock(
+    sender: User,
+    userToBlock: User,
+    userToBlockUID: number,
+  ): Promise<void> {
+    if (!userToBlock) {
+      this.logger.warn(`"${sender.name}" tried to block a non-existing user`);
+      throw new NotFoundException(
+        `User with id= ${userToBlockUID} doesn't exist`,
+      );
+    }
+
+    if (sender.id == userToBlockUID) {
+      this.logger.warn(`"${sender.name}" tried to block himself`);
+      throw new ConflictException('You cannot block yourself');
+    }
+
+    const isAlreadyBlocked: boolean = await this.isReceiverBlocked(
+      sender.id,
+      userToBlockUID,
+    );
+    if (isAlreadyBlocked) {
+      this.logger.warn(
+        `"${sender.name}" tried to block a already-blocked user`,
+      );
+      throw new ConflictException(userToBlock.name + ' is already blocked');
+    }
+  }
+
+  private async ensureValidFriendRequest(
+    sender: User,
+    receiver: User,
+    receiverUID: number,
+  ): Promise<void> {
+    if (!receiver) {
+      this.logger.warn(
+        `"${sender.name}" tried to friend request a user that doesn't exist`,
+      );
+      throw new BadRequestException(
+        `User with id= ${receiverUID} doesn't exist`,
+      );
+    }
+    if (receiverUID == sender.id) {
+      this.logger.warn(`"${sender.name}" tried to add himself as a friend`);
+      throw new BadRequestException('You cannot add yourself as a friend');
+    }
+    await this.ensureNotBlocked(sender, receiver, 'sender');
+    await this.ensureNotBlocked(receiver, sender, 'receiver');
+    await this.ensureNoExistingFriendRequest(sender, receiver);
+    await this.ensureNotAlreadyFriends(sender, receiver);
+  }
+
+  private async ensureNotBlocked(
+    user: User,
+    target: User,
+    userType: 'sender' | 'receiver',
+  ): Promise<void> {
+    const isBlocked: boolean =
+      userType === 'sender'
+        ? await this.isSenderBlocked(user.id, target.id)
+        : await this.isReceiverBlocked(user.id, target.id);
+
+    if (isBlocked) {
+      const message: string =
+        userType === 'sender'
+          ? 'You are blocked by the recipient of this friend request'
+          : "You've blocked the user that you're trying to send a friend request to";
+      throw new ForbiddenException(message);
+    }
+  }
+
+  private async ensureNoExistingFriendRequest(
+    sender: User,
+    receiver: User,
+  ): Promise<void> {
+    const hasBeenSentAlready: boolean =
+      await this.hasFriendRequestBeenSentAlready(sender.id, receiver.id);
+    if (hasBeenSentAlready) {
+      throw new ConflictException(
+        'A friend request has already been sent or received on your account',
+      );
+    }
+  }
+
+  private async ensureNotAlreadyFriends(
+    sender: User,
+    receiver: User,
+  ): Promise<void> {
+    const areTheyFriends: boolean = await this.areTheyFriendsAlready(
+      sender.id,
+      receiver.id,
+    );
+    if (areTheyFriends) {
+      throw new ConflictException("You're friends already");
+    }
   }
 
   /* Searches for an entry on the blocked_user table
@@ -461,28 +480,58 @@ export class FriendshipsService {
   }
 
   private async areTheyFriendsAlready(
-    sender: User,
-    receiver: User,
+    senderUID: number,
+    receiverUID: number,
   ): Promise<boolean> {
     // Check if a friendship exists between the two users
-    const friendship: Friendship = await this.friendshipRepository.findOneBy([
-      { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver
-      { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED }, // receiver -> sender
-    ]);
+    const friendship: Friendship | null =
+      await this.friendshipRepository.findOneBy([
+        // sender -> receiver
+        {
+          sender: { id: senderUID },
+          receiver: { id: receiverUID },
+          status: FriendshipStatus.ACCEPTED,
+        },
+        // receiver -> sender
+        {
+          sender: { id: receiverUID },
+          receiver: { id: senderUID },
+          status: FriendshipStatus.ACCEPTED,
+        },
+      ]);
 
     return friendship ? true : false;
   }
 
   private async findFriendshipBySenderAndReceiver(
-    sender: User,
-    receiver: User,
+    senderUID: number,
+    receiverUID: number,
   ): Promise<Friendship | null> {
     return await this.friendshipRepository.findOneBy([
-      { sender: sender, receiver: receiver, status: FriendshipStatus.ACCEPTED }, // sender -> receiver && ACCEPTED
-      { sender: receiver, receiver: sender, status: FriendshipStatus.ACCEPTED }, // receiver -> sender && ACCEPTED
-
-      { sender: sender, receiver: receiver, status: FriendshipStatus.PENDING }, // sender -> receiver && PENDING
-      { sender: receiver, receiver: sender, status: FriendshipStatus.PENDING }, // receiver -> sender && PENDING
+      // sender -> receiver && ACCEPTED
+      {
+        sender: { id: senderUID },
+        receiver: { id: receiverUID },
+        status: FriendshipStatus.ACCEPTED,
+      },
+      // receiver -> sender && ACCEPTED
+      {
+        sender: { id: receiverUID },
+        receiver: { id: senderUID },
+        status: FriendshipStatus.ACCEPTED,
+      },
+      // sender -> receiver && PENDING
+      {
+        sender: { id: senderUID },
+        receiver: { id: receiverUID },
+        status: FriendshipStatus.PENDING,
+      },
+      // receiver -> sender && PENDING
+      {
+        sender: { id: receiverUID },
+        receiver: { id: senderUID },
+        status: FriendshipStatus.PENDING,
+      },
     ]);
   }
 
@@ -490,23 +539,10 @@ export class FriendshipsService {
     userWhoIsBlocking: User,
     userToBlock: User,
   ): Promise<void> {
-    const isAlreadyBlocked: boolean = await this.isReceiverBlocked(
-      userWhoIsBlocking.id,
-      userToBlock.id,
-    );
-    if (isAlreadyBlocked) {
-      this.logger.warn(
-        '"' +
-          userWhoIsBlocking.name +
-          '" tried to block a already-blocked user',
-      );
-      throw new ConflictException(userToBlock.name + ' is already blocked');
-    }
-
     const friendshipToBreak: Friendship =
       await this.findFriendshipBySenderAndReceiver(
-        userWhoIsBlocking,
-        userToBlock,
+        userWhoIsBlocking.id,
+        userToBlock.id,
       );
     if (friendshipToBreak) {
       await this.friendshipRepository.delete(friendshipToBreak);

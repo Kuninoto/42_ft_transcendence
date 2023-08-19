@@ -8,11 +8,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { MessageService } from '../chat/message.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
+import { ConnectionService } from '../connection/connection.service';
 import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
 import { SendDirectMessageDTO } from './dto/send-direct-message.dto';
-import { ConnectionService } from '../connection/connection.service';
-import { MessageService } from '../chat/message.service';
 
 @WebSocketGateway({
 	namespace: 'connection',
@@ -44,30 +44,39 @@ export class FriendshipsGateway implements OnGatewayInit {
 	): Promise<void> {
 		if (!this.isValidSendDirectMessageDTO(messageBody)) {
 			this.logger.warn(
-				'Client with uid=' +
-				client.data.userId +
-				' tried to send a wrong SendDirectMessageDTO',
+				`Client with uid= ${client.data.userId} tried to send a wrong SendDirectMessageDTO`,
 			);
 			return;
 		}
 
 		const receiverSocketId: string | undefined =
-			this.connectionService.findSocketIdByUID(messageBody.receiverUID);
-
-		// Save DM on database
-		await this.messageService.createDirectMessage(
-			client.data.userId,
-			messageBody.receiverUID,
-			messageBody.content,
-		);
+			this.connectionService.findSocketIdByUID(
+				messageBody.receiverUID.toString(),
+			);
 
 		const directMessageReceived: DirectMessageReceivedDTO = {
-			senderUID: client.data.userId,
-			content: messageBody.content,
-		};
+			senderUID: client.data.userID,
+			content: messageBody.content
+		}
 
-		// Don't send message if user is offline
-		if (receiverSocketId) {
+		if (!receiverSocketId) {
+
+			// Don't send message if user is offline
+			if (receiverSocketId) {
+				this.connectionGateway.server
+					.to(receiverSocketId)
+					.emit('directMessageReceived', directMessageReceived);
+			}
+
+
+			// If user is offline save DM on database
+			// to later send when he comes back online
+			await this.messageService.createDirectMessage(
+				client.data.userId,
+				messageBody.receiverUID,
+				messageBody.content,
+			);
+		} else {
 			this.connectionGateway.server
 				.to(receiverSocketId)
 				.emit('directMessageReceived', directMessageReceived);
@@ -83,7 +92,7 @@ export class FriendshipsGateway implements OnGatewayInit {
 	): messageBody is SendDirectMessageDTO {
 		return (
 			typeof messageBody === 'object' &&
-			typeof messageBody.receiverUID === 'number' &&
+			typeof messageBody.receiverUID === 'string' &&
 			typeof messageBody.content === 'string'
 		);
 	}

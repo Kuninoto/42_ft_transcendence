@@ -1,4 +1,4 @@
-import { FriendInterface } from '@/common/types/friend-interface.interface'
+import { Friend } from '@/common/types/friend-interface.interface'
 import { hasValues } from '@/common/utils/hasValues'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -6,7 +6,7 @@ import Link from 'next/link'
 export default function Friends({
 	friends,
 }: {
-	friends: FriendInterface[] | undefined
+	friends: Friend[] | undefined
 }) {
 	return (
 		<div className="h-full w-full space-y-4">

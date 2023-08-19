@@ -1,10 +1,11 @@
 import {
-  PipeTransform,
-  Injectable,
   BadRequestException,
+  Injectable,
   Logger,
+  PipeTransform,
 } from '@nestjs/common';
-import { FriendshipStatus } from 'src/common/types/friendship-status.enum';
+import { FriendshipStatus } from 'types';
+import { FriendshipStatusUpdationRequest } from 'types/friendship/friendship-status-updation-request';
 
 @Injectable()
 export class FriendshipStatusUpdateValidationPipe
@@ -12,9 +13,9 @@ export class FriendshipStatusUpdateValidationPipe
 {
   private readonly logger: Logger = new Logger();
 
-  readonly allowedResponses = ['declined', 'accepted', 'unfriend'];
+  readonly allowedResponses = ['accepted', 'declined', 'unfriend'];
 
-  transform(value: { newStatus: FriendshipStatus }): FriendshipStatus {
+  transform(value: FriendshipStatusUpdationRequest): FriendshipStatus {
     const response = value.newStatus;
 
     if (!response || !this.allowedResponses.includes(response)) {

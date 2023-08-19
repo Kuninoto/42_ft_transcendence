@@ -1,10 +1,10 @@
 import {
-  PipeTransform,
-  Injectable,
   BadRequestException,
+  Injectable,
   Logger,
+  PipeTransform,
 } from '@nestjs/common';
-import { GameThemes } from 'src/common/types/game-themes.enum';
+import { GameThemes, GameThemeUpdationRequest } from 'types';
 
 @Injectable()
 export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
@@ -20,7 +20,7 @@ export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
     'mikao',
   ];
 
-  transform(value: { newGameTheme: GameThemes }): GameThemes {
+  transform(value: GameThemeUpdationRequest): GameThemes {
     const response = value.newGameTheme;
 
     if (!response || !this.themes.includes(response)) {

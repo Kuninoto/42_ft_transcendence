@@ -1,10 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from 'src/typeorm';
-import { Socket } from 'socket.io';
-import { TokenPayload } from '../auth/strategy/jwt-auth.strategy';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Socket } from 'socket.io';
+import { User } from 'src/typeorm';
+import { Repository } from 'typeorm';
+import { TokenPayload } from '../auth/strategy/jwt-auth.strategy';
 import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
 
 @Injectable()
@@ -15,8 +15,6 @@ export class ConnectionService {
     private readonly jwtService: JwtService,
     private userIdToSocketId: UserIdToSocketIdMap,
   ) {}
-
-  private readonly logger: Logger = new Logger(ConnectionService.name);
 
   public async authenticateClientAndRetrieveUser(
     client: Socket,
@@ -37,19 +35,19 @@ export class ConnectionService {
       throw new Error('Unauthorized client, unknown');
     }
 
-    this.updateSocketIdByUID(user.id, client.id);
+    this.updateSocketIdByUID(user.id.toString(), client.id);
     return user;
   }
 
-  public findSocketIdByUID(userId: number): string | undefined {
+  public findSocketIdByUID(userId: string): string | undefined {
     return this.userIdToSocketId.findSocketIdByUID(userId);
   }
 
-  public updateSocketIdByUID(userId: number, socketId: string): void {
+  public updateSocketIdByUID(userId: string, socketId: string): void {
     this.userIdToSocketId.updateSocketIdByUID(userId, socketId);
   }
 
-  public deleteSocketIdByUID(userId: number): void {
+  public deleteSocketIdByUID(userId: string): void {
     this.userIdToSocketId.deleteSocketIdByUID(userId);
   }
 

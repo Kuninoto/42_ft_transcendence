@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
 import { UsersService } from 'src/module/users/users.service';
-import { User } from 'src/typeorm/index';
+import { User } from 'src/typeorm';
 
 // Because we'll specify which info
 // we want from the whole 'me' endpoint
 // of 42's API we need this interface,
 // instead of the Profile object from passport-42, to
-// represent the info what we'll in fact receive
+// represent the info that we'll in fact receive
+// (as asked in lines 29 && 30)
 interface User42Info {
 	username: string;
 	avatar: string;
@@ -33,6 +34,8 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
 		});
 	}
 
+	private readonly logger: Logger = new Logger(FortyTwoAuthStrategy.name);
+
 	async validate(
 		accessToken: string,
 		refreshToken: string,
@@ -46,7 +49,7 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
 			return user;
 		}
 
-		Logger.log('"' + profile.username + '" logging in for the 1st time!');
+		this.logger.log(`"${profile.username}" logging in for the 1st time!`);
 
 		return await this.usersService.createUser({
 			name: profile.username,

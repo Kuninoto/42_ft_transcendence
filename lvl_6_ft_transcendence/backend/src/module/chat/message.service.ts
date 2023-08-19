@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChatRoomMessageI } from 'src/common/types/chat-room-message.interface';
 import { ChatRoom, DirectMessage } from 'src/typeorm';
 import { Repository } from 'typeorm';
+import { ChatRoomMessageI } from 'types';
 import { Message } from '../../entity/message.entity';
+import { ConnectionGateway } from '../connection/connection.gateway';
+import { DirectMessageReceivedDTO } from '../friendships/dto/direct-message-received.dto';
 
 @Injectable()
 export class MessageService {
@@ -12,6 +14,8 @@ export class MessageService {
     private readonly messageRepository: Repository<Message>,
     @InjectRepository(DirectMessage)
     private readonly directMessageRepository: Repository<DirectMessage>,
+    @Inject(forwardRef(() => ConnectionGateway))
+    private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   async newChatRoomMessage(
@@ -56,5 +60,40 @@ export class MessageService {
     });
 
     return await this.directMessageRepository.save(newMessage);
+  }
+
+  async sendMissedDirectMessages(
+    receiverSocketId: string,
+    receiverUID: number,
+  ): Promise<void> {
+    // We only keep the unsent direct messages on the db
+    // thus all the messages on the db are unsent
+    const missedDMs: DirectMessage[] = await this.directMessageRepository.find({
+      where: {
+        receiver: {
+          id: receiverUID,
+        },
+      },
+      relations: {
+        sender: true,
+      },
+    });
+
+    // Send every missed DM
+    missedDMs.forEach((dm: DirectMessage) => {
+      const directMessageReceived: DirectMessageReceivedDTO = {
+        senderUID: dm.sender.id,
+        content: dm.content,
+      };
+
+      this.connectionGateway.server
+        .to(receiverSocketId)
+        .emit('directMessageReceived', directMessageReceived);
+    });
+
+    // After sending all missed direct messages we can delete them from db
+    await this.directMessageRepository.delete({
+      receiver: { id: receiverUID },
+    });
   }
 }

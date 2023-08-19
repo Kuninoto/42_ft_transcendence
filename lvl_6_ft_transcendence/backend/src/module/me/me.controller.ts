@@ -20,15 +20,17 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { GameResultInterface } from 'src/common/types/game-result-interface.interface';
 import { User } from 'src/typeorm/index';
-import { BlockedUserInterface } from '../../common/types/blocked-user-interface.interface';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import { FriendInterface } from '../../common/types/friend-interface.interface';
-import { FriendRequestInterface } from '../../common/types/friend-request.interface';
-import { GameThemes } from '../../common/types/game-themes.enum';
-import { meUserInfo } from '../../common/types/me-user-info.interface';
-import { SuccessResponse } from '../../common/types/success-response.interface';
+import {
+  BlockedUserInterface,
+  ErrorResponse,
+  Friend,
+  FriendRequestInterface,
+  GameThemes,
+  MeUserInfo,
+  SuccessResponse,
+  UsernameUpdationRequest,
+} from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
@@ -53,10 +55,10 @@ export class MeController {
    */
   @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
   @Get()
-  public async getMyInfo(@Req() req: { user: User }): Promise<meUserInfo> {
-    this.logger.log('"' + req.user.name + '" requested his info');
+  public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
+    this.logger.log(`"${req.user.name}" requested his info`);
 
-    // Destructure user's info so that we can filter info that doesn't belong to meUserInfo
+    // Destructure user's info so that we can filter info that doesn't belong to MeUserInfo
     const {
       id,
       name,
@@ -68,7 +70,7 @@ export class MeController {
       created_at,
     } = req.user;
 
-    const meInfo: meUserInfo = {
+    const meInfo: MeUserInfo = {
       id,
       name,
       intra_name,
@@ -88,13 +90,12 @@ export class MeController {
    */
   @ApiOkResponse({ description: "Finds and returns the 'me' user's friends" })
   @Get('friends')
-  public async getMyFriends(
-    @Req() req: { user: User },
-  ): Promise<FriendInterface[]> {
-    this.logger.log('"' + req.user.name + '" requested his friends info');
+  public async getMyFriends(@Req() req: { user: User }): Promise<Friend[]> {
+    this.logger.log(`"${req.user.name}" requested his friends info`);
 
-    const friendList: FriendInterface[] =
-      await this.friendshipsService.findFriendsByUID(req.user.id);
+    const friendList: Friend[] = await this.friendshipsService.findFriendsByUID(
+      req.user.id,
+    );
 
     return friendList;
   }
@@ -112,7 +113,7 @@ export class MeController {
     @Req() req: { user: User },
   ): Promise<FriendRequestInterface[]> {
     this.logger.log(
-      '"' + req.user.name + '" requested his friend-requests info',
+      `"${req.user.name}" requested his received friend-requests`,
     );
 
     return await this.friendshipsService.getMyFriendRequests(req.user);
@@ -128,8 +129,7 @@ export class MeController {
   public async getMyBlockedUsers(
     @Req() req: { user: User },
   ): Promise<BlockedUserInterface[]> {
-    this.logger.log('"' + req.user.name + '" requested his blocklist');
-
+    this.logger.log(`"${req.user.name}" requested his blocklist`);
     return await this.friendshipsService.getMyBlocklist(req.user.id);
   }
 
@@ -139,15 +139,9 @@ export class MeController {
    * This is the route to visit to update 'me'
    * user's username.
    *
-   * Expects the new username as the "newUsername" field of a JSON on the body
-   *
-   * {
-   *  "newUsername":"<new_username>"
-   * }
    */
   @ApiOkResponse({
-    description:
-      "Updates 'me' user's username\nExpects the new username as the \"newUsername\" field of a JSON on the body",
+    description: "Updates 'me' user's username",
   })
   @ApiBadRequestResponse({
     description:
@@ -164,14 +158,12 @@ export class MeController {
   @Patch('username')
   public async updateMyUsername(
     @Req() req: { user: User },
-    @Body() body: { newUsername: string },
+    @Body() body: UsernameUpdationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    this.logger.log('Updating "' + req.user.name + '"\'s username');
+    this.logger.log(`Updating ${req.user.name}'s username`);
 
     if (!body.newUsername) {
-      this.logger.warn(
-        'User which id=' + req.user.id + ' failed to update his username',
-      );
+      this.logger.warn(`"${req.user.name}" failed to update his username`);
       throw new BadRequestException(
         "Expected 'newUsername' as a field of the body's JSON",
       );
@@ -188,16 +180,9 @@ export class MeController {
    *
    * This is the route to visit to update 'me'
    * user's game theme.
-   *
-   * Expects the new username as the "newGameTheme" field of a JSON on the body
-   *
-   * {
-   *  "newGameTheme":"<new_game_theme>"
-   * }
    */
   @ApiOkResponse({
-    description:
-      "Updates 'me' user's game theme\nExpects the new game theme as the \"newGameTheme\" field of a JSON on the body",
+    description: "Updates 'me' user's game theme",
   })
   @ApiBadRequestResponse({
     description: "If the theme doesn't exist",
@@ -214,7 +199,7 @@ export class MeController {
     @Req() req: { user: User },
     @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
   ): Promise<SuccessResponse | ErrorResponse> {
-    this.logger.log('Updating "' + req.user.name + '"\'s game theme');
+    this.logger.log(`${req.user.name} is updating his game theme`);
 
     return await this.usersService.updateGameThemeByUID(
       req.user.id,
@@ -256,11 +241,11 @@ export class MeController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!file) {
-      this.logger.warn('"' + req.user.name + '" failed to upload his avatar');
+      this.logger.warn(`"${req.user.name}" failed to upload his avatar`);
       throw new BadRequestException('Invalid file');
     }
 
-    this.logger.log('Updating "' + req.user.name + '"\'s avatar');
+    this.logger.log(`Updating ${req.user.name}\'s avatar`);
 
     return await this.usersService.updateUserAvatarByUID(
       req.user.id,
@@ -279,7 +264,7 @@ export class MeController {
   public async deleteMyAccount(
     @Req() req: { user: User },
   ): Promise<SuccessResponse> {
-    this.logger.log('Deleting "' + req.user.name + '"\'s account');
+    this.logger.log(`Deleting ${req.user.name}'s account`);
 
     return await this.usersService.deleteUserByUID(req.user.id);
   }

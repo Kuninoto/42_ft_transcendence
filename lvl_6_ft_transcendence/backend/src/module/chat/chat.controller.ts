@@ -1,18 +1,14 @@
-import { Controller, Get, Logger, Query, Req, UseGuards } from '@nestjs/common';
-import { ChatRoomI } from 'src/common/types/chat-room.interface';
-import { User } from 'src/typeorm';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
+import { ChatRoomSearchInfo } from 'types';
 import { RoomService } from './room.service';
-import { ChatRoomSearchInfo } from 'src/common/types/chat-room-search-info.interface';
 
 @ApiTags('chat')
 @UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {
   constructor(private readonly roomService: RoomService) {}
-
-  private readonly logger: Logger = new Logger(ChatController.name);
 
   /**
    * GET /api/chat/rooms/search?room_name=

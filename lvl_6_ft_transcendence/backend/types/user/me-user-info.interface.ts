@@ -1,4 +1,4 @@
-export interface meUserInfo {
+export interface MeUserInfo {
   id: number;
   name: string;
   avatar_url: string;

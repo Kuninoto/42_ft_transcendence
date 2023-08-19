@@ -1,4 +1,4 @@
-import { FriendshipStatus } from './friendship-status.enum';
+import { FriendshipStatus } from '../friendship/friendship-status.enum';
 
 export interface UserSearchInfo {
   id: number;

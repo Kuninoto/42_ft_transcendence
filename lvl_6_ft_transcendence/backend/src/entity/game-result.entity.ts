@@ -1,12 +1,12 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
-  PrimaryGeneratedColumn,
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
-import { GameType } from 'src/common/types/game-type.enum';
+import { GameType } from 'types';
 import { User } from './user.entity';
 
 @Entity('game_result')

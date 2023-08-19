@@ -1,11 +1,10 @@
 import { Socket } from 'socket.io';
-import { PlayerSide } from 'src/common/types/player-side.enum';
+import { PlayerSide } from 'types';
 import { CANVAS_MID_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 
 export const PADDLE_HEIGHT: number = 80;
 export const PADDLE_WIDTH: number = 10;
-export const PADDLE_WALL_OFFSET: number = 16;
-export const PADDLE_VELOCITY: number = 6;
+const PADDLE_WALL_OFFSET: number = 16;
 
 export const MAX_SCORE: number = 11;
 
