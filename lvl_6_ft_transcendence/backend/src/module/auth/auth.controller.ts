@@ -13,25 +13,27 @@ import {
 	UnauthorizedException,
 	UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import {
 	ApiBadRequestResponse,
-	ApiOkResponse,
 	ApiBody,
+	ApiOkResponse,
 	ApiTags,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { AccessTokenInterface } from 'src/common/types/access-token-interface.interface';
 import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm/index';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import { SuccessResponse } from '../../common/types/success-response.interface';
+import {
+	AccessTokenResponse,
+	ErrorResponse,
+	LoginResponse,
+	OtpVerificationRequest,
+	SuccessResponse,
+} from 'types';
 import { AuthService } from './auth.service';
-import { LoginDTO } from './dto/login.dto';
-import { OtpDTO } from './dto/otp.dto';
 import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
-import { AuthGuard } from '@nestjs/passport';
 
 /**
  * Guards act as Middleware of validation
@@ -64,7 +66,9 @@ export class AuthController {
 	@ApiOkResponse({ description: 'The access token of the logged in user' })
 	@UseGuards(FortyTwoAuthGuard)
 	@Get('login/callback')
-	public async loginCallback(@Req() req: { user: User }): Promise<LoginDTO> {
+	public async loginCallback(
+		@Req() req: { user: User },
+	): Promise<LoginResponse> {
 		return this.authService.login(req.user);
 	}
 
@@ -77,11 +81,9 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@Get('logout')
 	public async logout(@Req() req: any): Promise<SuccessResponse> {
-		this.logger.log('User "' + req.user.name + '" logged out');
-
 		req.logOut(() => { });
 
-		return { message: 'Successfully logged out!' };
+		return { message: 'Successfully logged out' };
 	}
 
 	/**
@@ -89,9 +91,10 @@ export class AuthController {
 	 *
 	 * Install Google Authenticator
 	 * Open the app and scan the QRCode product of POST /api/auth/2fa/generate
-	 * POST /api/auth/2fa/enable WITH the one-time code to update the user's info on db
+	 * POST /api/auth/2fa/enable WITH the one-time password to update the
+	 * user's info on db
 	 *
-	 * Side note for life quality: twoFactorAuthCode must be all glued together
+	 * Side note for life quality: otp must be all glued together
 	 * even if the code on the app looks like: 123 456 it should be passed as 123456
 	 */
 
@@ -117,8 +120,8 @@ export class AuthController {
 	@Patch('2fa/enable')
 	public async enable2fa(
 		@Req() req: { user: User },
-		@Body() body: OtpDTO,
-	): Promise<AccessTokenInterface | ErrorResponse> {
+		@Body() body: OtpVerificationRequest,
+	): Promise<AccessTokenResponse | ErrorResponse> {
 		const is2faCodeValid = this.authService.is2faCodeValid(
 			body.otp,
 			req.user.secret_2fa,
@@ -128,14 +131,14 @@ export class AuthController {
 			throw new BadRequestException('Wrong authentication code');
 		}
 
-		this.logger.log('Enabling 2FA for "' + req.user.name + '"');
+		this.logger.log(`Enabling 2FA for "${req.user.name}"`);
 		await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
 
-		const jwt: AccessTokenInterface = this.authService.authenticate2fa(
+		const accessToken: AccessTokenResponse = this.authService.authenticate2fa(
 			req.user,
 		);
 
-		return jwt;
+		return accessToken;
 	}
 
 	/**
@@ -149,7 +152,7 @@ export class AuthController {
 	public async disable2fa(
 		@Req() req: { user: User },
 	): Promise<SuccessResponse> {
-		this.logger.log('Disabling 2FA for "' + req.user.name + '"');
+		this.logger.log(`Disabling 2FA for "${req.user.name}"`);
 
 		return await this.usersService.disable2fa(req.user.id);
 	}
@@ -175,7 +178,7 @@ export class AuthController {
 	public async generate2faQRCodeAndSecret(
 		@Req() req: { user: User },
 		@Res() res: any,
-	) {
+	): Promise<string> {
 		const info2fa: OtpInfoDTO = await this.authService.generate2faSecret();
 
 		await this.usersService.update2faSecretByUID(req.user.id, info2fa.secret);
@@ -219,16 +222,18 @@ export class AuthController {
 	@Post('2fa/authenticate')
 	public auth2fa(
 		@Req() req: { user: User },
-		@Body() body: OtpDTO,
-	): AccessTokenInterface | ErrorResponse {
+		@Body() body: OtpVerificationRequest,
+	): AccessTokenResponse | ErrorResponse {
 		const isCodeValid: boolean = this.authService.is2faCodeValid(
 			body.otp,
 			req.user.secret_2fa,
 		);
 
 		if (!isCodeValid) {
-			this.logger.warn('A request was made with an invalid auth code (2FA)');
-			throw new UnauthorizedException('Invalid authentication code');
+			this.logger.warn(
+				'A request was made with an invalid otp (2FA auth code)',
+			);
+			throw new UnauthorizedException('Invalid OTP');
 		}
 
 		return this.authService.authenticate2fa(req.user);

@@ -1,8 +1,8 @@
-import { AchievementInterface } from './achievement-interface.interface';
-import { FriendInterface } from './friend-interface.interface';
-import { FriendshipStatus } from './friendship-status.enum';
-import { GameResultInterface } from './game-result-interface.interface';
-import { UserStatsInterface } from './user-stats-interface.interface';
+import { GameResultInterface } from 'types/game';
+import { AchievementInterface } from '../achievement/achievement-interface.interface';
+import { Friend } from '../friendship/friend.interface';
+import { FriendshipStatus } from '../friendship/friendship-status.enum';
+import { UserStatsInterface } from '../user-stats/user-stats-interface.interface';
 
 export interface UserProfile {
   id: number;
@@ -11,7 +11,7 @@ export interface UserProfile {
   intra_name: string;
   intra_profile_url: string;
   created_at: Date;
-  friends: FriendInterface[];
+  friends: Friend[];
   friendship_id: number | null;
   friendship_status: FriendshipStatus | null;
   friend_request_sent_by_me: boolean | null;

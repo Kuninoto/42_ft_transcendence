@@ -1,9 +1,9 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
 import { UsersService } from 'src/module/users/users.service';
-import { User } from 'src/typeorm/index';
+import { User } from 'src/typeorm';
+import { ErrorResponse } from 'types';
 import { TokenPayload } from './jwt-auth.strategy';
 
 @Injectable()

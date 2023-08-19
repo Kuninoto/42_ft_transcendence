@@ -10,13 +10,8 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ChatRoomType } from 'types';
 import { Message } from './message.entity';
-
-export enum ChatRoomType {
-  PUBLIC = 'public',
-  PROTECTED = 'protected',
-  PRIVATE = 'private',
-}
 
 @Entity()
 export class ChatRoom {

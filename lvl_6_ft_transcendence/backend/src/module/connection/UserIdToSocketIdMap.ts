@@ -1,15 +1,18 @@
 export class UserIdToSocketIdMap {
-  private userIdToSocketIdMap: Map<number, string> = new Map<number, string>();
+  /* As JS is a fuckfest maps with numbers as keys don't work
+  because under the hood the keys are always strings,
+  due to that, I'm forced to use the string type for Ids, which are numbers :) */
+  private userIdToSocketIdMap: Map<string, string> = new Map<string, string>();
 
-  public findSocketIdByUID(userId: number): string | undefined {
+  public findSocketIdByUID(userId: string): string | undefined {
     return this.userIdToSocketIdMap.get(userId);
   }
 
-  public updateSocketIdByUID(userId: number, socketId: string): void {
+  public updateSocketIdByUID(userId: string, socketId: string): void {
     this.userIdToSocketIdMap.set(userId, socketId);
   }
 
-  public deleteSocketIdByUID(userId: number): void {
+  public deleteSocketIdByUID(userId: string): void {
     this.userIdToSocketIdMap.delete(userId);
   }
 }

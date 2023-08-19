@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserStatus } from 'src/common/types/user-status.enum';
 import {
   Column,
   Entity,
@@ -9,6 +8,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { UserStatus } from 'types';
 import { ChatRoom } from '../typeorm/index';
 import { Achievement } from './achievement.entity';
 import { BlockedUser } from './blocked-user.entity';

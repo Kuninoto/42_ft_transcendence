@@ -1,14 +1,17 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AchievementInterface } from 'src/common/types/achievement-interface.interface';
-import {
-  Achievement,
-  AchievementDescriptions,
-  Achievements,
-} from 'src/entity/achievement.entity';
+import { Achievement } from 'src/entity/achievement.entity';
 import { Repository } from 'typeorm';
+import {
+  AchievementDescriptions,
+  AchievementInterface,
+  Achievements,
+} from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 
+// Because the first achievement (PONG_FIGHT_MAESTRO OR NEW_PONGFIGHTER)
+// is assigned right away upon user creation we must delay the socket event
+// so that the user have the time to connect to the socket and receive it
 const FIRST_ACHIEVEMENT_TIMEOUT: number = 10;
 
 @Injectable()
@@ -186,8 +189,6 @@ export class AchievementService {
       this.connectionGateway.achievementUnlocked(userId, achievement);
     }
 
-    this.logger.log(
-      'User with id=' + userId + ' just received ' + achievement + '!',
-    );
+    this.logger.log(`User with id= ${userId} just received ${achievement}!`);
   }
 }

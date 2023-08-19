@@ -1,4 +1,4 @@
-export interface FriendInterface {
+export interface Friend {
 	avatar_url: string
 	friendship_id: number
 	name: string

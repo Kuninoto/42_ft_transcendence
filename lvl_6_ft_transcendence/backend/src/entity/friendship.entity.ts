@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  PrimaryGeneratedColumn,
   Column,
   Entity,
-  ManyToOne,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
+import { FriendshipStatus } from '../../types/friendship/friendship-status.enum';
 import { User } from './user.entity';
-import { FriendshipStatus } from '../common/types/friendship-status.enum';
 
 @Entity('friendship')
 export class Friendship {

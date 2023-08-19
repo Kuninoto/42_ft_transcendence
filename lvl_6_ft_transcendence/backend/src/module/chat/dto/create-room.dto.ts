@@ -1,4 +1,4 @@
-import { ChatRoomType } from 'src/entity/chat-room.entity';
+import { ChatRoomType } from 'types';
 
 export interface CreateRoomDTO {
   readonly name: string;
