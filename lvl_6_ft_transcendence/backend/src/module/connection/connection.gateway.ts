@@ -11,6 +11,7 @@ import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
 import { Achievements, Friend, UserStatus } from 'types';
+import { MessageService } from '../chat/message.service';
 import { RoomService } from '../chat/room.service';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { GameService } from '../game/game.service';
@@ -34,6 +35,7 @@ export class ConnectionGateway
     private readonly friendshipsService: FriendshipsService,
     private readonly gameService: GameService,
     private readonly roomService: RoomService,
+    private readonly messageService: MessageService,
     private readonly connectionService: ConnectionService,
   ) {}
 
@@ -50,9 +52,13 @@ export class ConnectionGateway
       client.data.userId = user.id;
 
       await this.updateUserStatus(user.id, UserStatus.ONLINE);
+
+      // Associate the new socket id to the user's UID
       this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
       this.roomService.joinUserRooms(client);
+
+      this.messageService.sendMissedDirectMessages(client.id, user.id);
 
       this.logger.log('"' + user.name + '" connected!');
     } catch (error) {
@@ -120,9 +126,8 @@ export class ConnectionGateway
   }
 
   newFriendRequest(receiverUID: number) {
-    const receiverSocketId: string | undefined = this.connectionService.findSocketIdByUID(
-      receiverUID.toString(),
-    );
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
 
     if (receiverSocketId) {
       this.server.to(receiverSocketId).emit('newFriendRequest');
