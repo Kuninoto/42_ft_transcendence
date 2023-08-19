@@ -17,7 +17,6 @@ import {
 	useState,
 } from 'react'
 
-import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
 
 type GameContextType = {
@@ -36,8 +35,6 @@ type GameContextType = {
 const GameContext = createContext<GameContextType>({} as GameContextType)
 
 export function GameProvider({ children }: { children: ReactNode }) {
-	const { user } = useAuth()
-
 	const [opponentFound, setOpponentFound] = useState<OponentFoundDTO>(
 		{} as OponentFoundDTO
 	)
@@ -76,6 +73,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			socket?.on('disconnect', (err) => console.log(err))
 		}
 	}, [])
+
+	useEffect(() => {
+		if (
+			pathname === '/matchmaking/finding-opponent' &&
+			hasValues(opponentFound)
+		) {
+			history.go(1)
+			socket?.emit('leaveQueueOrGame')
+		}
+	}, [pathname])
 
 	useEffect(() => {
 		socket?.on('gameRoomInfo', function (data: GameRoomDTO) {

@@ -5,10 +5,11 @@ import { ChatProvider } from '@/contexts/ChatContext'
 import { SocketProvider } from '@/contexts/SocketContext'
 import { Press_Start_2P } from 'next/font/google'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
-import { ToastContainer } from 'react-toastify'
+import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import Chat from './chat/page'
@@ -18,6 +19,10 @@ const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
 function FixedPanel({ handle }: { handle: any }) {
 	const path = usePathname()
+
+	useEffect(() => {
+		toast('🎉 New achievement unlocked!')
+	})
 
 	const { logout } = useAuth()
 
@@ -60,19 +65,22 @@ export default function RootLayout({
 									{children}
 									<Chat />
 								</div>
-
 								<FixedPanel handle={handle} />
 								<ToastContainer
+									progressClassName={
+										'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'
+									}
 									autoClose={5000}
 									closeOnClick
 									draggable
-									hideProgressBar={false}
+									icon={false}
+									limit={2}
 									newestOnTop
-									pauseOnFocusLoss={false}
+									pauseOnFocusLoss
 									pauseOnHover={false}
-									position="top-right"
-									rtl={false}
+									position="top-center"
 									theme="dark"
+									toastClassName={`font-xs whitespace-nowrap w-full bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% ${pressStart.className}`}
 								/>
 							</FullScreen>
 						</body>
