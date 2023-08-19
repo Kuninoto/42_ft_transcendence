@@ -1,7 +1,7 @@
 export interface FriendInterface {
-  friendship_id: number;
-  uid: number;
-  name: string;
-  avatar_url: string;
-  status: string;
+	avatar_url: string
+	friendship_id: number
+	name: string
+	status: string
+	uid: number
 }

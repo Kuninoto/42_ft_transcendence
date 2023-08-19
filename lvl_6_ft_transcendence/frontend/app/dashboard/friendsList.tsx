@@ -1,17 +1,14 @@
 'use client'
 
-import { api } from '@/api/api'
-import { Friend } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
-import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'
 import GroupsModal from './groupsModal'
@@ -24,40 +21,18 @@ enum openModalType {
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
+	const { friends } = useChat()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
-	const [friends, setFriends] = useState<Friend[]>([])
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
 
-	const { open } = useChat()
-
-	function addFriend(user: Friend) {
-		setFriends([...friends, user])
-	}
-
-	useEffect(() => {
-		try {
-			api
-				.get('/me/friends')
-				.then((result) => {
-					setFriends(result.data)
-				})
-				.catch((e) => {
-					throw 'Network error'
-				})
-		} catch (error) {
-			toast.error(error)
-		}
-	}, [])
+	const { open, sendGameInvite } = useChat()
 
 	return (
 		<div className="flex h-full w-full">
 			{openModal === openModalType.FRIENDS ? (
-				<FriendsModal
-					addFriend={addFriend}
-					closeModal={() => setOpenModal(openModalType.NULL)}
-				/>
+				<FriendsModal closeModal={() => setOpenModal(openModalType.NULL)} />
 			) : openModal === openModalType.GROUPS ? (
 				<GroupsModal closeModal={() => setOpenModal(openModalType.NULL)} />
 			) : null}
@@ -102,7 +77,8 @@ export default function FriendsList(): JSX.Element {
 							>
 								Friends
 								<div className="flex">
-									<RxTriangleUp className={`transition-all duration-200 group-hover:text-[#F32E7C]
+									<RxTriangleUp
+										className={`transition-all duration-200 group-hover:text-[#F32E7C]
 									${openFriendsAccordean && '-rotate-180'}`}
 										size={24}
 									/>
@@ -146,7 +122,10 @@ export default function FriendsList(): JSX.Element {
 										>
 											<BiUser size={24} />
 										</Link>
-										<button className="hover:text-[#F32E7C]">
+										<button
+											className="hover:text-[#F32E7C]"
+											onClick={() => sendGameInvite(friend.uid)}
+										>
 											<LuSwords size={24} />
 										</button>
 									</div>

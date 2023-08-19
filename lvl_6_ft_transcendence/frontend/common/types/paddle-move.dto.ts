@@ -1,4 +1,4 @@
 export interface PaddleMoveDTO {
-  gameRoomId: string;
-  newY: number;
+	gameRoomId: string
+	newY: number
 }
