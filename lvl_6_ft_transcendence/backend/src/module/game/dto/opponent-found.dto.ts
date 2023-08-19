@@ -1,5 +1,4 @@
-import { OpponentInfo } from 'src/common/types/opponent-info.interface';
-import { PlayerSide } from 'src/common/types/player-side.enum';
+import { OpponentInfo, PlayerSide } from 'types';
 
 export interface OpponentFoundDTO {
   roomId: string;

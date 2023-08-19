@@ -1,7 +1,13 @@
-import { ExceptionFilter, Catch, ArgumentsHost, Logger } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { TokenError } from 'passport-oauth2';
-import { ErrorResponse } from 'src/common/types/error-response.interface';
+import { ErrorResponse } from 'types';
 
 @Catch(TokenError)
 export class Passport42ExceptionFilter implements ExceptionFilter {
@@ -12,7 +18,7 @@ export class Passport42ExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
 
     const errorResponse: ErrorResponse = {
-      statusCode: 400,
+      statusCode: HttpStatus.BAD_REQUEST,
       message:
         'The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.',
     };

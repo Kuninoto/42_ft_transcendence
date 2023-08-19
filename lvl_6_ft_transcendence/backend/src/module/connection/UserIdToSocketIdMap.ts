@@ -1,6 +1,7 @@
 export class UserIdToSocketIdMap {
-  // As JS is a fuckfest maps with numbers as keys don't work
-  // because under the hood the keys are always strings :)
+  /* As JS is a fuckfest maps with numbers as keys don't work
+  because under the hood the keys are always strings,
+  due to that, I'm forced to use the string type for Ids, which are numbers :) */
   private userIdToSocketIdMap: Map<string, string> = new Map<string, string>();
 
   public findSocketIdByUID(userId: string): string | undefined {

@@ -1,9 +1,8 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserStatsForLeaderboard } from 'src/common/types/user-stats-for-leaderboard.interface';
-import { UserStatsInterface } from 'src/common/types/user-stats-interface.interface';
 import { User, UserStats } from 'src/typeorm';
 import { Repository } from 'typeorm';
+import { UserStatsForLeaderboard, UserStatsInterface } from 'types';
 import { AchievementService } from '../achievement/achievement.service';
 
 @Injectable()

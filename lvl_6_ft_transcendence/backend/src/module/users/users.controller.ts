@@ -11,11 +11,9 @@ import {
 import { ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
-import { User } from 'src/typeorm/index';
-import { ErrorResponse } from '../../common/types/error-response.interface';
+import { User } from 'src/typeorm';
+import { ErrorResponse, UserProfile, UserSearchInfo } from 'types';
 import { UsersService } from './users.service';
-import { UserProfile } from '../../common/types/user-profile.interface';
-import { UserSearchInfo } from '../../common/types/user-search-info.interface';
 
 @ApiTags('users')
 @UseGuards(JwtAuthGuard)

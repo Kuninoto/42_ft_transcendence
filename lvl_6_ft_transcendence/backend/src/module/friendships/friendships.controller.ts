@@ -20,10 +20,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { User } from 'src/typeorm/index';
-import { ErrorResponse } from '../../common/types/error-response.interface';
-import { FriendshipStatus } from '../../common/types/friendship-status.enum';
-import { SuccessResponse } from '../../common/types/success-response.interface';
+import { User } from 'src/typeorm';
+import { ErrorResponse, FriendshipStatus, SuccessResponse } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from './friendships.service';
 import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
@@ -85,7 +83,7 @@ export class FriendshipsController {
    */
   @ApiOkResponse({
     description:
-      "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body. Possible values: 'declined' | 'accepted' | 'canceled' | 'unfriend' ",
+      "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body. Possible values: 'declined' | 'accepted' | 'unfriend' ",
   })
   @ApiNotFoundResponse({
     description: "If a friendship which id=friendshipId doesn't exist",

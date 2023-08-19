@@ -1,13 +1,11 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
-import { ChatRoomI } from 'src/common/types/chat-room.interface';
-import { User } from 'src/entity/user.entity';
+import { ChatRoom, User } from 'src/typeorm';
 import { Repository } from 'typeorm';
-import { ChatRoom, ChatRoomType } from '../../entity/chat-room.entity';
-import { CreateRoomDTO } from './dto/create-room.dto';
+import { ChatRoomI, ChatRoomSearchInfo, ChatRoomType } from 'types';
 import { UsersService } from '../users/users.service';
-import { ChatRoomSearchInfo } from 'src/common/types/chat-room-search-info.interface';
+import { CreateRoomDTO } from './dto/create-room.dto';
 
 @Injectable()
 export class RoomService {
