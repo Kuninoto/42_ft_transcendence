@@ -154,7 +154,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 			content: message,
 			receiverUID: currentOpenChat.friend?.uid,
 		}
-
 		socket.emit('sendDirectMessage', sendMessageDTO)
 
 		const newMessage: MessageDTO = {

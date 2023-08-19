@@ -67,6 +67,22 @@ export default function Game() {
 	const { leftPlayerScore, opponentFound, rightPlayerScore } = useGame()
 
 	useEffect(() => {
+		const handleNavigation = () => {
+			// This function will be called when the user navigates.
+			console.log('User navigated back. Calling your function.')
+			// Call your function logic here
+		}
+
+		// Listen for the 'popstate' event which is triggered when the user goes back
+		window.addEventListener('popstate', handleNavigation)
+
+		// Clean up the event listener when the component is unmounted
+		return () => {
+			window.removeEventListener('popstate', handleNavigation)
+		}
+	}, [])
+
+	useEffect(() => {
 		const handleBeforeUnload = (event) => {
 			event.preventDefault()
 			event.returnValue = 'monkey'
