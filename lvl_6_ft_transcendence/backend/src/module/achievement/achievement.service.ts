@@ -189,8 +189,6 @@ export class AchievementService {
       this.connectionGateway.achievementUnlocked(userId, achievement);
     }
 
-    this.logger.log(
-      'User with id=' + userId + ' just received ' + achievement + '!',
-    );
+    this.logger.log(`User with id= ${userId} just received ${achievement}!`);
   }
 }

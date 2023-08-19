@@ -70,7 +70,7 @@ export class UsersController {
 
     if (!userProfile) {
       this.logger.warn(
-        '"' + req.user.name + '" request the profile of a non-existing user',
+        `"${req.user.name}" request the profile of a non-existing user`,
       );
       throw new NotFoundException('User with id= ' + userID + "doesn't exist");
     }

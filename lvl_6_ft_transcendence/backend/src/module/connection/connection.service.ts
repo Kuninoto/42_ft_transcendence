@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
@@ -15,8 +15,6 @@ export class ConnectionService {
     private readonly jwtService: JwtService,
     private userIdToSocketId: UserIdToSocketIdMap,
   ) {}
-
-  private readonly logger: Logger = new Logger(ConnectionService.name);
 
   public async authenticateClientAndRetrieveUser(
     client: Socket,

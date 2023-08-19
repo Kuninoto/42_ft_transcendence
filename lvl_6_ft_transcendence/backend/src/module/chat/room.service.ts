@@ -52,7 +52,7 @@ export class RoomService {
 
     // Join each room
     for (const roomName of roomNames) {
-      this.logger.debug('Joining Room "' + roomName + '"');
+      this.logger.debug(`Joining room "${roomName}"`);
       await client.join(roomName);
     }
   }

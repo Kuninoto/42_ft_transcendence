@@ -60,9 +60,9 @@ export class ConnectionGateway
 
       this.messageService.sendMissedDirectMessages(client.id, user.id);
 
-      this.logger.log('"' + user.name + '" connected!');
-    } catch (error) {
-      this.logger.warn(error + '. Disconnecting...');
+      this.logger.log(`${user.name} connected!`);
+    } catch (error: any) {
+      this.logger.warn(`${error.message}. Disconnecting...`);
       client.disconnect();
     }
   }
@@ -73,7 +73,7 @@ export class ConnectionGateway
     await this.gameService.disconnectPlayer(client.data.userId);
     await this.updateUserStatus(client.data.userId, UserStatus.OFFLINE);
 
-    this.logger.log('User with id=' + client.data.userId + ' has disconnected');
+    this.logger.log(`User with uid= ${client.data.userId} has disconnected`);
     this.connectionService.deleteSocketIdByUID(client.data.userId);
   }
 
@@ -125,12 +125,12 @@ export class ConnectionGateway
     this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
   }
 
-  newFriendRequest(receiverUID: number) {
+  friendRequestReceived(receiverUID: number) {
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID.toString());
 
     if (receiverSocketId) {
-      this.server.to(receiverSocketId).emit('newFriendRequest');
+      this.server.to(receiverSocketId).emit('friendRequestReceived');
     }
   }
 }

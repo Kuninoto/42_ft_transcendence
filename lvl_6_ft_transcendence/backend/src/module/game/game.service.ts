@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
 import { GameResult, User } from 'src/typeorm';
@@ -44,8 +44,6 @@ export class GameService {
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
   ) {}
-
-  private readonly logger: Logger = new Logger(GameService.name);
 
   public isPlayerInQueueOrGame(playerUID: number): boolean {
     return (

@@ -34,6 +34,8 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  private readonly logger: Logger = new Logger(FortyTwoAuthStrategy.name);
+
   async validate(
     accessToken: string,
     refreshToken: string,
@@ -47,7 +49,7 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
       return user;
     }
 
-    Logger.log('"' + profile.username + '" logging in for the 1st time!');
+    this.logger.log(`"${profile.username}" logging in for the 1st time!`);
 
     return await this.usersService.createUser({
       name: profile.username,

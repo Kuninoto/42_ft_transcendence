@@ -258,12 +258,10 @@ export class UsersService {
     // Check name length boundaries (4-10)
     if (newName.length < 4 || newName.length > 10) {
       this.logger.warn(
-        'User which id=' +
-          userId +
-          ' failed to update his username due to length boundaries',
+        `User with uid= ${userId} failed to update his username due to length boundaries`,
       );
       throw new BadRequestException(
-        'Usernames length must at least 4 and up to 10 characters long',
+        "Usernames' length must at least 4 and up to 10 characters long",
       );
     }
 
@@ -271,9 +269,7 @@ export class UsersService {
     // a-z, A-Z, 0-9, _ and -
     if (!newName.match('^[a-zA-Z0-9_-]+$')) {
       this.logger.warn(
-        'User which id=' +
-          userId +
-          ' failed to update his username due to using forbidden chars',
+        `User with uid= ${userId} failed to update his username due to using forbidden chars`,
       );
       throw new BadRequestException(
         'Usernames must only use a-z, A-Z, 0-9, _ and -',

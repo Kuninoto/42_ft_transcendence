@@ -81,11 +81,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('logout')
   public async logout(@Req() req: any): Promise<SuccessResponse> {
-    this.logger.log('User "' + req.user.name + '" logged out');
-
     req.logOut(() => {});
 
-    return { message: 'Successfully logged out!' };
+    return { message: 'Successfully logged out' };
   }
 
   /**
@@ -133,7 +131,7 @@ export class AuthController {
       throw new BadRequestException('Wrong authentication code');
     }
 
-    this.logger.log('Enabling 2FA for "' + req.user.name + '"');
+    this.logger.log(`Enabling 2FA for "${req.user.name}"`);
     await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
 
     const accessToken: AccessTokenResponse = this.authService.authenticate2fa(
@@ -154,7 +152,7 @@ export class AuthController {
   public async disable2fa(
     @Req() req: { user: User },
   ): Promise<SuccessResponse> {
-    this.logger.log('Disabling 2FA for "' + req.user.name + '"');
+    this.logger.log(`Disabling 2FA for "${req.user.name}"`);
 
     return await this.usersService.disable2fa(req.user.id);
   }
