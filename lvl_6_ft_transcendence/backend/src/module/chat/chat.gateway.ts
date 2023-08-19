@@ -12,12 +12,16 @@ import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { ChatRoom } from 'src/typeorm';
-import { ChatRoomMessageI } from 'types';
+import { ChatRoomMessageI, MuteDuration } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
+import { AddAdminDTO } from './dto/add-admin.dto';
+import { BanFromRoomDTO } from './dto/ban-from-room.dto';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { InviteToRoomDTO } from './dto/invite-to-room.dto';
 import { JoinRoomDTO } from './dto/join-room.dto';
+import { KickFromRoomDTO } from './dto/kick-from-room.dto';
+import { MuteUserDTO } from './dto/mute-user.dto';
 import { NewChatRoomMessageDTO } from './dto/new-chatroom-message.dto';
 import { MessageService } from './message.service';
 import { RoomService } from './room.service';
@@ -56,11 +60,13 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (await this.roomService.findRoomByName(messageBody.name)) {
       // Room name is already taken
-      this.logger.log(`There's already a room named ${messageBody.name}`);
       return;
     }
 
-    this.roomService.createRoom(messageBody, client.data.user);
+    this.roomService.createRoom(
+      messageBody,
+      await this.usersService.findUserByUID(client.data.userId),
+    );
     client.join(messageBody.name);
   }
 
@@ -76,24 +82,205 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    // TODO verify if user is already in room
+    const room: ChatRoom = await this.roomService.findRoomByName(
+      messageBody.name,
+    );
+    if (!room) {
+      this.logger.log(`A room named "${messageBody.name}" doesn't exist`);
+      return;
+    }
 
-    if (
-      (await this.roomService.findRoomByName(messageBody.roomName)) === null
-    ) {
-      this.logger.log(`There's no room named ${messageBody.roomName}`);
+    if (await this.roomService.isUserBannedFromRoom(room, client.data.userId)) {
+      this.logger.log(
+        `User with uid= ${client.data.userId} is banned from ${messageBody.name}`,
+      );
       return;
     }
 
     const user: User = await this.usersService.findUserByUID(
       client.data.userId,
     );
+
     const username: string | undefined = user.name;
 
-    this.roomService.joinRoom(messageBody.roomName, user);
-    client.join(messageBody.roomName);
+    this.roomService.joinRoom(room, user);
+    client.join(messageBody.name);
+    client.to(messageBody.name).emit('joinedRoom', { username });
+  }
 
-    client.to(messageBody.roomName).emit('joinedRoom', { username });
+  @SubscribeMessage('addAdmin')
+  public async onAddAdmin(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: AddAdminDTO,
+  ) {
+    // TODO
+    // Only owners can assign admins
+
+    if (!this.isValidAddAdminDTO(messageBody)) {
+      this.logger.warn(
+        `User with uid= ${client.data.userId} tried to send a wrong AddAdminDTO`,
+      );
+      return;
+    }
+
+    const room: ChatRoom = await this.roomService.findRoomById(
+      messageBody.roomId,
+    );
+    this.logger.debug('room: ' + JSON.stringify(room, null, 2));
+    if (!room) {
+      this.logger.warn(
+        '"' + messageBody.roomId + '" there\'s no room with that ID',
+      );
+      return;
+    }
+
+    if (
+      !(await this.roomService.checkIfUserIsAdmin(room, client.data.userId))
+    ) {
+      this.logger.warn(
+        `User with uid= ${messageBody.userId} is not an admin on room: "${room.name}"`,
+      );
+      return;
+    }
+
+    this.roomService.addUserAsAdmin(room, messageBody.userId);
+  }
+
+  @SubscribeMessage('kickFromRoom')
+  async onKickFromRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: KickFromRoomDTO,
+  ): Promise<void> {
+    if (!this.isValidKickFromRoomDTO(messageBody)) {
+      this.logger.warn(
+        `User with uid= ${client.data.userId} tried to send a wrong KickFromRoomDTO`,
+      );
+      return;
+    }
+
+    const room: ChatRoom | null = await this.roomService.findRoomById(
+      messageBody.roomId,
+    );
+    if (!room) {
+      this.logger.warn("Room doesn't exist");
+      return;
+    }
+
+    if (
+      !(await this.roomService.checkIfUserIsAdmin(room, client.data.userId))
+    ) {
+      this.logger.warn(
+        `User with uid= ${client.data.userId} is not an admin on room: ${room.name}`,
+      );
+      return;
+    }
+
+    this.roomService.leaveRoom(room, messageBody.userId);
+    client.leave(room.name);
+
+    this.logger.debug(
+      `User with uid= ${messageBody.userId} kicked from room "${room.name}"`,
+    );
+  }
+
+  @SubscribeMessage('banFromRoom')
+  async onBanFromRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: BanFromRoomDTO,
+  ): Promise<void> {
+    if (!this.isValidBanFromRoomDTO(messageBody)) {
+      this.logger.warn(
+        `User with uid= ${client.data.userId} tried to send a wrong BanFromRoomDTO`,
+      );
+      return;
+    }
+    const room: ChatRoom | null = await this.roomService.findRoomById(
+      messageBody.roomId,
+    );
+    if (!room) {
+      this.logger.warn("Room doesn't exist");
+      return;
+    }
+
+    if (
+      !(await this.roomService.checkIfUserIsAdmin(room, client.data.userId))
+    ) {
+      this.logger.warn(
+        'User with the id: ' +
+          client.data.userId +
+          'is not an admin on room: ' +
+          room.name,
+      );
+      return;
+    }
+
+    this.roomService.leaveRoom(room, messageBody.userId);
+    this.roomService.banRoom(room, messageBody.userId);
+    client.leave(room.name);
+    this.logger.debug(
+      'User with id: ' + messageBody.userId + ' banned from ' + room.name,
+    );
+  }
+
+  @SubscribeMessage('muteUser')
+  async onMuteUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: MuteUserDTO,
+  ): Promise<void> {
+    if (!this.isValidMuteUserDTO(messageBody)) {
+      this.logger.warn(
+        `User with uid= ${client.data.userId} tried to send a wrong MuteUserDTO`,
+      );
+      return;
+    }
+
+    const room: ChatRoom | null = await this.roomService.findRoomById(
+      parseInt(messageBody.roomId),
+    );
+
+    if (!room) {
+      this.logger.warn("Room doesn't exist");
+      return;
+    }
+
+    if (
+      !(await this.roomService.checkIfUserIsAdmin(room, client.data.userId))
+    ) {
+      this.logger.warn(
+        `User with uid= ${client.data.userId} is not an admin on room: "${room.name}"`,
+      );
+      return;
+    }
+
+    const user = await this.usersService.findUserByUID(
+      parseInt(messageBody.userId),
+    );
+    if (!user) {
+      this.logger.debug(
+        'User with id: ' + messageBody.userId + "doesn't exist",
+      );
+      return;
+    }
+
+    // Calculate the time duration in ms
+    let muteDuration = 0;
+    switch (messageBody.duration) {
+      case MuteDuration.THIRTEEN_SEGS:
+        muteDuration = 30 * 1000;
+        break;
+      case MuteDuration.FIVE_MINS:
+        muteDuration = 5 * 60 * 1000;
+        break;
+      case MuteDuration.TEN_MIN:
+        muteDuration = 10 * 60 * 10000;
+        break;
+      case MuteDuration.ONE_HOUR:
+        muteDuration = 60 * 60 * 1000;
+        break;
+    }
+
+    this.roomService.muteUser(parseInt(messageBody.userId), muteDuration, room);
+    this.logger.log(`${user.name} was muted on room "${room.name}"`);
   }
 
   @SubscribeMessage('inviteToRoom')
@@ -103,7 +290,9 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidInviteToRoomDTO(messageBody)) {
       this.logger.warn(
-        `User with uid= ${client.id} tried to send a wrong InviteToRoomDTO`,
+        'Client with client id=' +
+          client.id +
+          ' tried to send a wrong InviteToRoomDTO',
       );
       return;
     }
@@ -114,10 +303,6 @@ export class ChatGateway implements OnGatewayInit {
     if (!invited) {
       // TODO
       // user doesn't exist
-
-      this.logger.warn(
-        `User with uid= ${client.id} tried to invite a non-existing user`,
-      );
       return;
     }
 
@@ -145,12 +330,18 @@ export class ChatGateway implements OnGatewayInit {
     const room: ChatRoom | null = await this.roomService.findRoomByName(
       messageBody.roomName,
     );
-
     if (!room) {
-      // TODO
-      // Implement error response
-      this.logger.warn(
-        `User with uid= ${client.data.userId} tried to send a message to a non-existing room`,
+      // TODO implement error response
+      throw new Error('Room not found');
+    }
+
+    const isUserMuted: boolean = await this.roomService.checkIfUserIsMuted(
+      client.data.userId,
+      room.id,
+    );
+    if (isUserMuted) {
+      this.logger.log(
+        `User with uid= ${client.data.userId} is muted. Message not sent`,
       );
       return;
     }
@@ -163,7 +354,6 @@ export class ChatGateway implements OnGatewayInit {
       );
 
     const usersInRoom: number[] = room.users.map((user) => user.id);
-
     usersInRoom.forEach(async (uid) => {
       const blockRelationship: boolean =
         await this.friendshipService.isThereABlockRelationship(
@@ -182,18 +372,33 @@ export class ChatGateway implements OnGatewayInit {
   }
 
   /*
-    TODO
-    Assign Admins (perhaps via controller instead of client messages)
-
-    Admin functionalities (client messages)
-
-    Game Invite (I take this one)
+		TODO Unban, Unmute, removeFromAdmin
+		TODO Passwords
  */
 
   private isValidJoinRoomDTO(messageBody: any): messageBody is JoinRoomDTO {
     return (
+      typeof messageBody === 'object' && typeof messageBody.name === 'string'
+    );
+  }
+
+  private isValidKickFromRoomDTO(
+    messageBody: any,
+  ): messageBody is KickFromRoomDTO {
+    return (
       typeof messageBody === 'object' &&
-      typeof messageBody.roomName === 'string'
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number'
+    );
+  }
+
+  private isValidBanFromRoomDTO(
+    messageBody: any,
+  ): messageBody is BanFromRoomDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number'
     );
   }
 
@@ -215,6 +420,23 @@ export class ChatGateway implements OnGatewayInit {
       typeof messageBody === 'object' &&
       typeof messageBody.roomName === 'string' &&
       typeof messageBody.text === 'string'
+    );
+  }
+
+  private isValidMuteUserDTO(messageBody: any): messageBody is MuteUserDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number' &&
+      typeof messageBody.duration === 'string'
+    );
+  }
+
+  private isValidAddAdminDTO(messageBody: any): messageBody is AddAdminDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number'
     );
   }
 }

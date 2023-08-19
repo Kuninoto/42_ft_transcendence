@@ -17,7 +17,8 @@
     "noUnusedLocals": true,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "pretty": true,
   },
   "exclude": ["node_modules", "test", "src/test", "dist", "**/*spec.ts"]
 }

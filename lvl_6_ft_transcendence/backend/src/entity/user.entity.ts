@@ -110,6 +110,14 @@ export class User {
   chat_rooms: ChatRoom[];
 
   @ApiProperty()
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.admins)
+  chat_admin: ChatRoom[];
+
+  @ApiProperty()
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.bans)
+  banned_rooms: ChatRoom[];
+
+  @ApiProperty()
   @Column({
     type: 'timestamp',
     default: new Date(),
