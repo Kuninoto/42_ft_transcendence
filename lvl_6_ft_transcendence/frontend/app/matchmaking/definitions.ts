@@ -25,7 +25,7 @@ export class Paddle {
 		this.#emitPaddleMovement = emitPaddleMovement
 		this.#position = {
 			x: offset,
-			y: CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2,
+			y: CANVAS_HEIGHT / 2,
 		}
 	}
 
@@ -39,29 +39,6 @@ export class Paddle {
 
 	blockMove() {
 		this.#moveDirection = Direction.STOP
-	}
-
-	isBallColliding(
-		side: PlayerSide,
-		ballSpeed: number,
-		ballX: number,
-		ballY: number
-	): boolean {
-		if (side === PlayerSide.LEFT && ballSpeed < 0) {
-			return (
-				ballX + ballSpeed <= this.#position.x + PADDLE_WIDTH &&
-				ballY <= this.#position.y + PADDLE_HEIGHT &&
-				ballY >= this.#position.y
-			)
-		}
-		if (side === PlayerSide.RIGHT && ballSpeed > 0) {
-			return (
-				ballX + ballSpeed >= this.#position.x &&
-				ballY <= this.#position.y + PADDLE_HEIGHT &&
-				ballY >= this.#position.y
-			)
-		}
-		return false
 	}
 
 	move() {
@@ -79,22 +56,17 @@ export class Paddle {
 	}
 
 	moveDown() {
-		if (this.#position.y + PADDLE_HEIGHT > CANVAS_HEIGHT) return
-		this.#position.y += PADDLE_SPEED
+		if (this.#position.y + PADDLE_HEIGHT / 2 > CANVAS_HEIGHT) return
 
+		this.#position.y += PADDLE_SPEED
 		this.#emitPaddleMovement(this.#position.y)
 	}
 
 	moveUp() {
-		console.log(this.#position)
-		if (this.#position.y < 0) return
+		if (this.#position.y - PADDLE_HEIGHT / 2 < 0) return
+
 		this.#position.y += -PADDLE_SPEED
 		this.#emitPaddleMovement(this.#position.y)
-	}
-
-	reset() {
-		this.#position.y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
-		this.#moveDirection = Direction.STOP
 	}
 
 	get x(): number {
