@@ -5,18 +5,23 @@ module.exports = {
 		'./components/**/*.{js,ts,jsx,tsx,mdx}',
 		'./app/**/*.{js,ts,jsx,tsx,mdx}',
 	],
+	plugins: [require('tailwind-scrollbar')({ nocompatible: true })],
 	theme: {
 		extend: {
 			animation: {
-				ellipsis: 'ellipsis steps(4, end) 900ms infinite'
+				ellipsis: 'ellipsis steps(4, end) 900ms infinite',
+			},
+			colors: {
+				'primary-fushia': '#FB37FF',
+				'primary-shoque': '#F32E7C',
 			},
 			keyframes: {
 				ellipsis: {
 					to: {
-						width: "64px"
-					}
-				}
+						width: '64px',
+					},
+				},
 			},
 		},
-	}
+	},
 }
