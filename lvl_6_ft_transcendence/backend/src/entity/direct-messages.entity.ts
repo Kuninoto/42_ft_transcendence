@@ -11,30 +11,17 @@ import { User } from './index';
 @Entity('direct_message')
 export class DirectMessage {
   @ApiProperty()
-  @PrimaryGeneratedColumn({
-    type: 'bigint',
-  })
-  id: number;
-
-  // Id sent by the frontend
-  @ApiProperty()
   @Column({
-    type: 'varchar',
     nullable: false,
-  })
-  unique_id: string;
-
-  @ApiProperty()
-  @Column({
     type: 'varchar',
-    nullable: false,
   })
   content: string;
 
   @ApiProperty()
-  @JoinColumn()
-  @ManyToOne(() => User, (user: User) => user.id)
-  sender: User;
+  @PrimaryGeneratedColumn({
+    type: 'bigint',
+  })
+  id: number;
 
   @ApiProperty()
   @JoinColumn()
@@ -42,6 +29,19 @@ export class DirectMessage {
   receiver: User;
 
   @ApiProperty()
-  @Column({ type: 'timestamp', default: new Date() })
+  @JoinColumn()
+  @ManyToOne(() => User, (user: User) => user.id)
+  sender: User;
+
+  @ApiProperty()
+  @Column({ default: new Date(), type: 'timestamp' })
   sent_at: Date;
+
+  // Id sent by the frontend
+  @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+  })
+  unique_id: string;
 }

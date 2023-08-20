@@ -1,21 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
   Inject,
   Injectable,
   Logger,
-  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  BlockedUser,
-  ChatRoom,
-  Friendship,
-  GameResult,
-  User,
-} from 'src/entity/index';
 import { Repository } from 'typeorm';
 import {
   ChatRoomI,
@@ -31,6 +24,14 @@ import {
   UserSearchInfo,
   UserStatus,
 } from 'types';
+
+import {
+  BlockedUser,
+  ChatRoom,
+  Friendship,
+  GameResult,
+  User,
+} from '../../entity/index';
 import { AchievementService } from '../achievement/achievement.service';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
@@ -38,6 +39,8 @@ import { CreateUserDTO } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
+  private readonly logger: Logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -49,7 +52,26 @@ export class UsersService {
     private readonly achievementService: AchievementService,
   ) {}
 
-  private readonly logger: Logger = new Logger(UsersService.name);
+  private async doesNameConflictWithAnyIntraName(
+    newName: string,
+    userId: number,
+  ): Promise<boolean> {
+    const user: null | User = await this.usersRepository.findOneBy({
+      intra_name: newName,
+    });
+
+    // If a user with intra_name = newName exists
+    // and it isn't the requesting user it's because
+    // newName would conflict with someone else's intra_name
+    return user && user.id != userId;
+  }
+
+  private async isNameAlreadyTaken(newName: string): Promise<boolean> {
+    const user: null | User = await this.usersRepository.findOneBy({
+      name: newName,
+    });
+    return user ? true : false;
+  }
 
   public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
     const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
@@ -66,6 +88,94 @@ export class UsersService {
     return newUser;
   }
 
+  public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
+    await this.usersRepository.delete(userId);
+    return { message: 'Successfully deleted user' };
+  }
+
+  public async disable2fa(userId: number): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, {
+      has_2fa: false,
+      last_updated_at: new Date(),
+      secret_2fa: null,
+    });
+    return { message: 'Successfully disabled two factor authentication' };
+  }
+
+  public async enable2fa(
+    userId: number,
+    secret_2fa: string,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, {
+      has_2fa: true,
+      last_updated_at: new Date(),
+      secret_2fa: secret_2fa,
+    });
+    return { message: 'Successfully enabled two factor authentication' };
+  }
+
+  public async findBlockedUsersByUID(userId: number): Promise<BlockedUser[]> {
+    const user: User = await this.usersRepository.findOne({
+      relations: ['blocked_users', 'blocked_users.blocked_user'],
+      where: { id: userId },
+    });
+    return user.blocked_users;
+  }
+
+  public async findChatRoomsWhereUserIs(
+    uid: number,
+  ): Promise<ChatRoomI[] | null> {
+    const rooms: ChatRoom[] | undefined = (
+      await this.usersRepository.findOne({
+        relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
+        where: { id: uid },
+      })
+    ).chat_rooms;
+
+    if (!rooms) {
+      return null;
+    }
+
+    const roomInterfaces: ChatRoomI[] = rooms.map((room: ChatRoom) => ({
+      id: room.id,
+      name: room.name,
+      ownerName: room.owner.name,
+      users: room.users,
+    }));
+
+    return roomInterfaces;
+  }
+
+  public async findMatchHistoryByUID(
+    userId: number,
+  ): Promise<GameResultInterface[]> {
+    // Find game results where winner or loser id = userId
+    const gameResults: GameResult[] = await this.gameResultRepository.find({
+      relations: { loser: true, winner: true },
+      where: [{ winner: { id: userId } }, { loser: { id: userId } }],
+    });
+
+    const matchHistory: GameResultInterface[] = gameResults.map(
+      (gameResult) => {
+        return {
+          loser: {
+            avatar_url: gameResult.loser.avatar_url,
+            name: gameResult.loser.name,
+            score: gameResult.loser_score,
+            userId: gameResult.loser.id,
+          },
+          winner: {
+            avatar_url: gameResult.winner.avatar_url,
+            name: gameResult.winner.name,
+            score: gameResult.winner_score,
+            userId: gameResult.winner.id,
+          },
+        };
+      },
+    );
+    return matchHistory;
+  }
+
   public async findMyInfo(meUID: number): Promise<MeUserInfo> {
     // Fetch user's table info of me user and get his ladder level
     // Populate the resulting object with both all those properties
@@ -75,8 +185,94 @@ export class UsersService {
     };
   }
 
-  public async findUserByName(name: string): Promise<User | null> {
+  public async findOpponentInfoByUID(userId: number): Promise<OpponentInfo> {
+    const user: User = await this.findUserByUID(userId);
+
+    return {
+      avatar_url: user.avatar_url,
+      id: user.id,
+      name: user.name,
+    };
+  }
+
+  public async findUserByIntraName(intraName: string): Promise<null | User> {
+    return await this.usersRepository.findOneBy({ intra_name: intraName });
+  }
+
+  public async findUserByName(name: string): Promise<null | User> {
     return await this.usersRepository.findOneBy({ name: name });
+  }
+
+  public async findUserByUID(userId: number): Promise<null | User> {
+    return await this.usersRepository.findOneBy({ id: userId });
+  }
+
+  public async findUserProfileByUID(
+    meUser: User,
+    userId: number,
+  ): Promise<null | UserProfile> {
+    const user: null | User = await this.usersRepository.findOneBy({
+      id: userId,
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const friendship: Friendship | null =
+      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
+    const isBlocked = await this.friendshipsService.isThereABlockRelationship(
+      meUser.id,
+      userId,
+    );
+
+    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
+      user.id,
+    );
+
+    return {
+      achievements: await this.achievementService.findAchievementsByUID(userId),
+      avatar_url: user.avatar_url,
+      created_at: user.created_at,
+      friend_request_sent_by_me: friendship
+        ? friendship.sender.id === meUser.id
+        : null,
+      friends: friends,
+      friendship_id: friendship ? friendship.id : null,
+      friendship_status: friendship ? friendship.status : null,
+      id: user.id,
+      intra_name: user.intra_name,
+      intra_profile_url: user.intra_profile_url,
+      is_blocked: isBlocked,
+      ladder_level: await this.userStatsService.findLadderLevelByUID(userId),
+      match_history: await this.findMatchHistoryByUID(userId),
+      name: user.name,
+      stats: await this.userStatsService.findUserStatsByUID(userId),
+    };
+  }
+
+  /**********************************
+   *               2FA               *
+   **********************************/
+
+  public async findUserSearchInfoByUID(
+    meUID: number,
+    userId: number,
+  ): Promise<null | UserSearchInfo> {
+    const meUser: User = await this.findUserByUID(meUID);
+    const user: User = await this.findUserByUID(userId);
+    const friendship: Friendship | null =
+      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
+
+    return {
+      avatar_url: user.avatar_url,
+      friend_request_sent_by_me: friendship
+        ? friendship.sender === meUser
+        : null,
+      friendship_status: friendship ? friendship.status : null,
+      id: user.id,
+      name: user.name,
+    };
   }
 
   public async findUsersSearchInfoByUsernameProximity(
@@ -109,7 +305,7 @@ export class UsersService {
           .from(Friendship, 'friendship')
           .where(
             '(friendship.sender = :meUserId OR friendship.receiver = :meUserId) AND friendship.status = :acceptedStatus',
-            { meUserId, acceptedStatus: FriendshipStatus.ACCEPTED },
+            { acceptedStatus: FriendshipStatus.ACCEPTED, meUserId },
           )
           .getQuery();
         return `NOT EXISTS ${subqueryFriend}`;
@@ -126,15 +322,15 @@ export class UsersService {
           );
 
         return {
-          id: user.id,
-          name: user.name,
           avatar_url: user.avatar_url,
-          friendship_status: friendship ? friendship.status : null,
           friend_request_sent_by_me: friendship
             ? friendship.sender.id === meUser.id
               ? true
               : false
             : null,
+          friendship_status: friendship ? friendship.status : null,
+          id: user.id,
+          name: user.name,
         };
       }),
     );
@@ -142,130 +338,57 @@ export class UsersService {
     return usersSearchInfo;
   }
 
-  public async findUserByIntraName(intraName: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ intra_name: intraName });
-  }
-
-  public async findUserByUID(userId: number): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ id: userId });
-  }
-
-  public async findUserProfileByUID(
-    meUser: User,
+  public async update2faSecretByUID(
     userId: number,
-  ): Promise<UserProfile | null> {
-    const user: User | null = await this.usersRepository.findOneBy({
-      id: userId,
+    newSecret: string,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, {
+      last_updated_at: new Date(),
+      secret_2fa: newSecret,
     });
+    return { message: 'Successfully updated 2fa secret' };
+  }
 
-    if (!user) {
-      return null;
-    }
+  public async updateGameThemeByUID(
+    userId: number,
+    newGameTheme: GameThemes,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, {
+      game_theme: newGameTheme,
+      last_updated_at: new Date(),
+    });
+    return { message: 'Successfully updated game theme' };
+  }
 
-    const friendship: Friendship | null =
-      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
-    const isBlocked = await this.friendshipsService.isThereABlockRelationship(
-      meUser.id,
-      userId,
+  public async updateUserAvatarByUID(
+    userId: number,
+    newAvatarURL: string,
+  ): Promise<SuccessResponse> {
+    const currentAvatarURL: string = (await this.findUserByUID(userId))
+      .avatar_url;
+    const currentAvatarName: string = currentAvatarURL.slice(
+      currentAvatarURL.lastIndexOf('/'),
+    );
+    const absoluteAvatarPath: string = path.join(
+      __dirname,
+      '../../../public',
+      currentAvatarName,
     );
 
-    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
-      user.id,
-    );
+    // Delete the previous avatar from the file system
+    fs.unlink(absoluteAvatarPath, () => {});
 
-    return {
-      id: user.id,
-      name: user.name,
-      intra_name: user.intra_name,
-      avatar_url: user.avatar_url,
-      intra_profile_url: user.intra_profile_url,
-      created_at: user.created_at,
-      friendship_id: friendship ? friendship.id : null,
-      friendship_status: friendship ? friendship.status : null,
-      friend_request_sent_by_me: friendship
-        ? friendship.sender.id === meUser.id
-        : null,
-      friends: friends,
-      is_blocked: isBlocked,
-      ladder_level: await this.userStatsService.findLadderLevelByUID(userId),
-      match_history: await this.findMatchHistoryByUID(userId),
-      stats: await this.userStatsService.findUserStatsByUID(userId),
-      achievements: await this.achievementService.findAchievementsByUID(userId),
-    };
-  }
-
-  public async findUserSearchInfoByUID(
-    meUID: number,
-    userId: number,
-  ): Promise<UserSearchInfo | null> {
-    const meUser: User = await this.findUserByUID(meUID);
-    const user: User = await this.findUserByUID(userId);
-    const friendship: Friendship | null =
-      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
-
-    return {
-      id: user.id,
-      name: user.name,
-      avatar_url: user.avatar_url,
-      friendship_status: friendship ? friendship.status : null,
-      friend_request_sent_by_me: friendship
-        ? friendship.sender === meUser
-        : null,
-    };
-  }
-
-  public async findOpponentInfoByUID(userId: number): Promise<OpponentInfo> {
-    const user: User = await this.findUserByUID(userId);
-
-    return {
-      id: user.id,
-      name: user.name,
-      avatar_url: user.avatar_url,
-    };
-  }
-
-  public async findBlockedUsersByUID(userId: number): Promise<BlockedUser[]> {
-    const user: User = await this.usersRepository.findOne({
-      where: { id: userId },
-      relations: ['blocked_users', 'blocked_users.blocked_user'],
+    await this.usersRepository.update(userId, {
+      avatar_url: newAvatarURL,
+      last_updated_at: new Date(),
     });
-    return user.blocked_users;
-  }
-
-  public async findMatchHistoryByUID(
-    userId: number,
-  ): Promise<GameResultInterface[]> {
-    // Find game results where winner or loser id = userId
-    const gameResults: GameResult[] = await this.gameResultRepository.find({
-      where: [{ winner: { id: userId } }, { loser: { id: userId } }],
-      relations: { winner: true, loser: true },
-    });
-
-    const matchHistory: GameResultInterface[] = gameResults.map(
-      (gameResult) => {
-        return {
-          winner: {
-            userId: gameResult.winner.id,
-            name: gameResult.winner.name,
-            avatar_url: gameResult.winner.avatar_url,
-            score: gameResult.winner_score,
-          },
-          loser: {
-            userId: gameResult.loser.id,
-            name: gameResult.loser.name,
-            avatar_url: gameResult.loser.avatar_url,
-            score: gameResult.loser_score,
-          },
-        };
-      },
-    );
-    return matchHistory;
+    return { message: 'Successfully updated user avatar' };
   }
 
   public async updateUsernameByUID(
     userId: number,
     newName: string,
-  ): Promise<SuccessResponse | ErrorResponse> {
+  ): Promise<ErrorResponse | SuccessResponse> {
     // Check name length boundaries (4-10)
     if (newName.length < 4 || newName.length > 10) {
       this.logger.warn(
@@ -304,36 +427,10 @@ export class UsersService {
     }
 
     await this.usersRepository.update(userId, {
-      name: newName,
       last_updated_at: new Date(),
+      name: newName,
     });
     return { message: 'Successfully updated username' };
-  }
-
-  public async updateUserAvatarByUID(
-    userId: number,
-    newAvatarURL: string,
-  ): Promise<SuccessResponse> {
-    const currentAvatarURL = (
-      await this.usersRepository.findOneBy({ id: userId })
-    ).avatar_url;
-    const currentAvatarName = currentAvatarURL.slice(
-      currentAvatarURL.lastIndexOf('/'),
-    );
-    const absoluteAvatarPath = path.join(
-      __dirname,
-      '../../../public',
-      currentAvatarName,
-    );
-
-    // Delete the previous avatar from the file system
-    fs.unlink(absoluteAvatarPath, () => {});
-
-    await this.usersRepository.update(userId, {
-      avatar_url: newAvatarURL,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully updated user avatar' };
   }
 
   public async updateUserStatusByUID(
@@ -341,106 +438,9 @@ export class UsersService {
     newStatus: UserStatus,
   ): Promise<SuccessResponse> {
     await this.usersRepository.update(userId, {
-      status: newStatus,
       last_updated_at: new Date(),
+      status: newStatus,
     });
     return { message: 'Successfully updated user status' };
-  }
-
-  public async updateGameThemeByUID(
-    userId: number,
-    newGameTheme: GameThemes,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userId, {
-      game_theme: newGameTheme,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully updated game theme' };
-  }
-
-  /**********************************
-   *               2FA               *
-   **********************************/
-
-  public async update2faSecretByUID(
-    userId: number,
-    newSecret: string,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userId, {
-      secret_2fa: newSecret,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully updated 2fa secret' };
-  }
-
-  public async enable2fa(
-    userId: number,
-    secret_2fa: string,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userId, {
-      has_2fa: true,
-      secret_2fa: secret_2fa,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully enabled two factor authentication' };
-  }
-
-  public async disable2fa(userId: number): Promise<SuccessResponse> {
-    await this.usersRepository.update(userId, {
-      has_2fa: false,
-      secret_2fa: null,
-      last_updated_at: new Date(),
-    });
-    return { message: 'Successfully disabled two factor authentication' };
-  }
-
-  public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
-    await this.usersRepository.delete(userId);
-    return { message: 'Successfully deleted user' };
-  }
-
-  public async findChatRoomsWhereUserIs(
-    uid: number,
-  ): Promise<ChatRoomI[] | null> {
-    const rooms: ChatRoom[] | undefined = (
-      await this.usersRepository.findOne({
-        where: { id: uid },
-        relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
-      })
-    ).chat_rooms;
-
-    if (!rooms) {
-      return null;
-    }
-
-    const roomInterfaces: ChatRoomI[] = rooms.map((room: ChatRoom) => ({
-      id: room.id,
-      name: room.name,
-      ownerName: room.owner.name,
-      users: room.users,
-    }));
-
-    return roomInterfaces;
-  }
-
-  private async isNameAlreadyTaken(newName: string): Promise<boolean> {
-    const user: User | null = await this.usersRepository.findOneBy({
-      name: newName,
-    });
-    return user ? true : false;
-  }
-
-  private async doesNameConflictWithAnyIntraName(
-    newName: string,
-    userId: number,
-  ): Promise<boolean> {
-    const user: User | null = await this.usersRepository.findOneBy({
-      intra_name: newName,
-    });
-
-    // If a user with intra_name = newName exists
-    // and it isn't the requesting user it's because
-    // newName would conflict with someone else's intra_name
-    return user && user.id != userId;
   }
 }

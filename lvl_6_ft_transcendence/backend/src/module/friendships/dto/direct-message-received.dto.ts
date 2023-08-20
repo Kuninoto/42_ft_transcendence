@@ -1,5 +1,5 @@
 export interface DirectMessageReceivedDTO {
-  uniqueId: string;
-  senderUID: number;
   content: string;
+  senderUID: number;
+  uniqueId: string;
 }

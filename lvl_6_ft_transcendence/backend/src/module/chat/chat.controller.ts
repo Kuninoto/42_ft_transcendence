@@ -7,6 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { ChatRoomSearchInfo } from 'types';
+
 import { RoomService } from './room.service';
 
 @ApiTags('chat')
@@ -28,9 +29,9 @@ export class ChatController {
       'This is the route to visit to search for ChatRoomSearchInfo, by room-name proximity.\nReturns the rooms that match that "piece" of name, If no <name> is provided returns all rooms',
   })
   @ApiQuery({
-    type: 'string',
-    name: 'room-name',
     description: 'A piece of the room name(s) to match',
+    name: 'room-name',
+    type: 'string',
   })
   @Get('/rooms/search')
   public async getUsersByUsernameProximity(

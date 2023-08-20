@@ -18,9 +18,9 @@ export class Passport42ExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
 
     const errorResponse: ErrorResponse = {
-      statusCode: HttpStatus.BAD_REQUEST,
       message:
         'The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.',
+      statusCode: HttpStatus.BAD_REQUEST,
     };
 
     this.logger.warn('There was a misconfiguration on the 42 OAuth2 process');

@@ -4,7 +4,7 @@ import { extname } from 'path';
 const MAX_IMG_SIZE = 4 * 1024 * 1024;
 
 export const multerConfig = {
-  fileFilter: function (req: any, file: any, cb: Function) {
+  fileFilter: function (req: any, file: any, cb: any) {
     if (
       !file.mimetype.includes('image/png') &&
       !file.mimetype.includes('image/jpg') &&
@@ -14,6 +14,8 @@ export const multerConfig = {
     }
     cb(null, true);
   },
+
+  limits: { fileSize: MAX_IMG_SIZE },
 
   storage: diskStorage({
     destination: 'public',
@@ -25,6 +27,4 @@ export const multerConfig = {
       callback(null, `${randomName}${extname(file.originalname)}`);
     },
   }),
-
-  limits: { fileSize: MAX_IMG_SIZE },
 };

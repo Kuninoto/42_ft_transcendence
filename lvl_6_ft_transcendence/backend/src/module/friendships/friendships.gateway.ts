@@ -1,4 +1,4 @@
-import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+
 import { MessageService } from '../chat/message.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
@@ -16,10 +17,12 @@ import { SendDirectMessageDTO } from './dto/send-direct-message.dto';
 import { FriendshipsService } from './friendships.service';
 
 @WebSocketGateway({
-  namespace: 'connection',
   cors: GatewayCorsOption,
+  namespace: 'connection',
 })
 export class FriendshipsGateway implements OnGatewayInit {
+  private readonly logger: Logger = new Logger(FriendshipsGateway.name);
+
   constructor(
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
@@ -29,15 +32,13 @@ export class FriendshipsGateway implements OnGatewayInit {
     private readonly friendshipService: FriendshipsService,
   ) {}
 
-  private readonly logger: Logger = new Logger(FriendshipsGateway.name);
+  /******************************
+   *          MESSAGES          *
+   ******************************/
 
   afterInit(server: Server) {
     this.logger.log('Friendships-Gateway Initialized');
   }
-
-  /******************************
-   *          MESSAGES          *
-   ******************************/
 
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
@@ -72,9 +73,9 @@ export class FriendshipsGateway implements OnGatewayInit {
       );
 
     const directMessageReceived: DirectMessageReceivedDTO = {
-      uniqueId: messageBody.uniqueId,
-      senderUID: client.data.userId,
       content: messageBody.content,
+      senderUID: client.data.userId,
+      uniqueId: messageBody.uniqueId,
     };
 
     if (!receiverSocketId) {

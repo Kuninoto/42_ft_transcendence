@@ -20,68 +20,19 @@ import {
 @Entity('user')
 export class User {
   @ApiProperty()
-  @PrimaryGeneratedColumn({
-    type: 'bigint',
-  })
-  id: number;
+  @OneToMany(() => Achievement, (achievement: Achievement) => achievement.user)
+  achievements: Achievement[];
 
   @ApiProperty()
   @Column({
-    type: 'varchar',
-    length: 10,
-    unique: true,
     nullable: false,
-  })
-  name: string;
-
-  @ApiProperty()
-  @Column({
     type: 'varchar',
-    unique: true,
-    nullable: false,
-  })
-  intra_name: string;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    default: UserStatus.ONLINE,
-    nullable: false,
-  })
-  status: string;
-
-  @ApiProperty()
-  @Column({ default: false })
-  has_2fa: boolean;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: true,
-  })
-  secret_2fa: string;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: false,
   })
   avatar_url: string;
 
   @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: false,
-  })
-  intra_profile_url: string;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    default: 'default',
-    nullable: false,
-  })
-  game_theme: string;
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.bans)
+  banned_rooms: ChatRoom[];
 
   @ApiProperty()
   @OneToMany(
@@ -92,44 +43,93 @@ export class User {
   blocked_users: BlockedUser[];
 
   @ApiProperty()
-  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user)
-  user_stats: UserStats;
-
-  @ApiProperty()
-  @OneToMany(() => Achievement, (achievement: Achievement) => achievement.user)
-  achievements: Achievement[];
-
-  @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner)
-  game_results_as_winner: GameResult[];
-
-  @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser)
-  game_results_as_loser: GameResult[];
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.admins)
+  chat_admin: ChatRoom[];
 
   @ApiProperty()
   @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users)
   chat_rooms: ChatRoom[];
 
   @ApiProperty()
-  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.admins)
-  chat_admin: ChatRoom[];
-
-  @ApiProperty()
-  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.bans)
-  banned_rooms: ChatRoom[];
-
-  @ApiProperty()
   @Column({
-    type: 'timestamp',
     default: new Date(),
+    type: 'timestamp',
   })
   created_at: Date;
 
   @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser)
+  game_results_as_loser: GameResult[];
+
+  @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner)
+  game_results_as_winner: GameResult[];
+
+  @ApiProperty()
   @Column({
-    type: 'timestamp',
+    default: 'default',
+    nullable: false,
+    type: 'varchar',
+  })
+  game_theme: string;
+
+  @ApiProperty()
+  @Column({ default: false })
+  has_2fa: boolean;
+
+  @ApiProperty()
+  @PrimaryGeneratedColumn({
+    type: 'bigint',
+  })
+  id: number;
+
+  @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+    unique: true,
+  })
+  intra_name: string;
+
+  @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+  })
+  intra_profile_url: string;
+
+  @ApiProperty()
+  @Column({
     default: new Date(),
+    type: 'timestamp',
   })
   last_updated_at: Date;
+
+  @ApiProperty()
+  @Column({
+    length: 10,
+    nullable: false,
+    type: 'varchar',
+    unique: true,
+  })
+  name: string;
+
+  @ApiProperty()
+  @Column({
+    nullable: true,
+    type: 'varchar',
+  })
+  secret_2fa: string;
+
+  @ApiProperty()
+  @Column({
+    default: UserStatus.ONLINE,
+    nullable: false,
+    type: 'varchar',
+  })
+  status: string;
+
+  @ApiProperty()
+  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user)
+  user_stats: UserStats;
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Achievement } from 'src/entity/achievement.entity';
 import { Repository } from 'typeorm';
@@ -12,10 +12,12 @@ import { ConnectionGateway } from '../connection/connection.gateway';
 // Because the first achievement (PONG_FIGHT_MAESTRO OR NEW_PONGFIGHTER)
 // is assigned right away upon user creation we must delay the socket event
 // so that the user have the time to connect to the socket and receive it
-const FIRST_ACHIEVEMENT_TIMEOUT: number = 10;
+const FIRST_ACHIEVEMENT_TIMEOUT = 10;
 
 @Injectable()
 export class AchievementService {
+  private readonly logger: Logger = new Logger(AchievementService.name);
+
   constructor(
     @InjectRepository(Achievement)
     private readonly achievementRepository: Repository<Achievement>,
@@ -23,7 +25,23 @@ export class AchievementService {
     private readonly connectionGateway: ConnectionGateway,
   ) {}
 
-  private readonly logger: Logger = new Logger(AchievementService.name);
+  public async findAchievementsByUID(
+    userId: number,
+  ): Promise<AchievementInterface[]> {
+    const userAchievements: Achievement[] =
+      await this.achievementRepository.findBy({ user: { id: userId } });
+
+    const achievementsInterface: AchievementInterface[] = userAchievements.map(
+      (achievement: Achievement) => {
+        return {
+          achievement: achievement.achievement,
+          description: AchievementDescriptions[achievement.achievement],
+        };
+      },
+    );
+
+    return achievementsInterface;
+  }
 
   public async grantPongFightMaestro(userId: number): Promise<void> {
     await this.grantAchievement(
@@ -139,24 +157,6 @@ export class AchievementService {
         Achievements.BREAKING_THE_PADDLE_BOND,
       );
     }
-  }
-
-  public async findAchievementsByUID(
-    userId: number,
-  ): Promise<AchievementInterface[]> {
-    const userAchievements: Achievement[] =
-      await this.achievementRepository.findBy({ user: { id: userId } });
-
-    const achievementsInterface: AchievementInterface[] = userAchievements.map(
-      (achievement: Achievement) => {
-        return {
-          achievement: achievement.achievement,
-          description: AchievementDescriptions[achievement.achievement],
-        };
-      },
-    );
-
-    return achievementsInterface;
   }
 
   private async userAlreadyHaveThisAchievement(

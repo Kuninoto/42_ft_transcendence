@@ -4,22 +4,23 @@ import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
 import { User } from 'src/entity';
 import { AccessTokenResponse, LoginResponse, SuccessResponse } from 'types';
+
 import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
-
   private readonly logger: Logger = new Logger(AuthService.name);
 
   public tokenWhitelist: Map<string, string> = new Map<string, string>();
 
+  constructor(private readonly jwtService: JwtService) {}
+
   // Return the signed JWT as access_token
   public login(user: User): LoginResponse {
     const payload: TokenPayload = {
-      id: user.id,
       has_2fa: user.has_2fa,
+      id: user.id,
     };
 
     const accessToken: string = this.jwtService.sign(payload);
@@ -34,18 +35,11 @@ export class AuthService {
     };
   }
 
-  public logout(userId: number): SuccessResponse {
-    this.tokenWhitelist.delete(userId.toString());
-    return {
-      message: 'Successfully logged out',
-    };
-  }
-
   // Return the signed JWT as access_token
   public authenticate2fa(user: User): AccessTokenResponse {
     const payload: TokenPayload = {
-      id: user.id,
       has_2fa: true,
+      id: user.id,
       is_2fa_authed: true,
     };
 
@@ -60,10 +54,6 @@ export class AuthService {
     };
   }
 
-  /****************************
-   *            2FA            *
-   *****************************/
-
   public async generate2faSecret(): Promise<OtpInfoDTO> {
     const secret: string = authenticator.generateSecret();
 
@@ -74,8 +64,8 @@ export class AuthService {
     );
 
     return {
-      secret,
       otpAuthURL,
+      secret,
     };
   }
 
@@ -85,5 +75,12 @@ export class AuthService {
 
   public is2faCodeValid(otp: string, secret_2fa: string): boolean {
     return authenticator.check(otp, secret_2fa);
+  }
+
+  public logout(userId: number): SuccessResponse {
+    this.tokenWhitelist.delete(userId.toString());
+    return {
+      message: 'Successfully logged out',
+    };
   }
 }
