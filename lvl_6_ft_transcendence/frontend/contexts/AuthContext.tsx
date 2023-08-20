@@ -1,5 +1,5 @@
 import { api } from '@/api/api'
-import { UserProfile } from '@/common/type/backend/user-profile.interface'
+import { UserProfile } from '@/common/types/backend'
 import { hasValues } from '@/common/utils/hasValues'
 import axios from 'axios'
 import { ImageLoader } from 'next/image'
