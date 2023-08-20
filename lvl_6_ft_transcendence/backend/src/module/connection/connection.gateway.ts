@@ -1,4 +1,4 @@
-import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -11,7 +11,7 @@ import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { Achievements, Friend, UserStatus } from 'types';
-import { AuthService } from '../auth/auth.service';
+
 import { MessageService } from '../chat/message.service';
 import { RoomService } from '../chat/room.service';
 import { FriendshipsService } from '../friendships/friendships.service';
@@ -21,12 +21,14 @@ import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
 import { NewUserStatusDTO } from './dto/new-user-status.dto';
 
 @WebSocketGateway({
-  namespace: 'connection',
   cors: GatewayCorsOption,
+  namespace: 'connection',
 })
 export class ConnectionGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  private readonly logger: Logger = new Logger(ConnectionGateway.name);
+
   @WebSocketServer()
   public server: Server;
 
@@ -38,10 +40,7 @@ export class ConnectionGateway
     private readonly roomService: RoomService,
     private readonly messageService: MessageService,
     private readonly connectionService: ConnectionService,
-    private readonly authService: AuthService,
   ) {}
-
-  private readonly logger: Logger = new Logger(ConnectionGateway.name);
 
   afterInit(server: Server) {
     this.logger.log('Connection-Gateway Initialized');
@@ -50,7 +49,7 @@ export class ConnectionGateway
   async handleConnection(client: Socket): Promise<void> {
     try {
       // Throws if there's any misconfig with the access token
-      // (bad signature or user doesn't exist)
+      // (bad signature, user doesn't exist or isn't part of the whitelist)
       const user: User =
         await this.connectionService.authenticateClientAndRetrieveUser(client);
 
@@ -58,14 +57,13 @@ export class ConnectionGateway
 
       await this.updateUserStatus(user.id, UserStatus.ONLINE);
 
-      // Associate the new socket id to the user's UID
       this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
       this.roomService.joinUserRooms(client);
 
       this.messageService.sendMissedDirectMessages(client.id, user.id);
 
-      this.logger.log(`${user.name} is online!`);
+      this.logger.log(`${user.name} is online`);
     } catch (error: any) {
       this.logger.warn(`${error.message}. Disconnecting...`);
       client.disconnect();
@@ -79,58 +77,8 @@ export class ConnectionGateway
     await this.updateUserStatus(client.data.userId, UserStatus.OFFLINE);
 
     this.connectionService.deleteSocketIdByUID(client.data.userId);
-    this.authService.logout(client.data.userId);
 
     this.logger.log(`UID= ${client.data.userId} is now offline`);
-  }
-
-  async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
-    await this.usersService.updateUserStatusByUID(userId, newStatus);
-
-    // Broadcast new user status to all users in the friend room (his friends)
-    const newUserStatus: NewUserStatusDTO = {
-      uid: userId,
-      newStatus: newStatus,
-    };
-    this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
-  }
-
-  async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
-    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
-      userId,
-    );
-
-    friends.forEach((friend) => {
-      client.join(`friend-${friend.uid}`);
-    });
-  }
-
-  makeFriendsJoinEachOthersRoom(senderUID: number, receiverUID: number): void {
-    const senderSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(senderUID.toString());
-    const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(receiverUID.toString());
-
-    // If both users are online
-    if (senderSocketId && receiverSocketId) {
-      this.server.to(receiverSocketId).emit('friendRequestAccepted');
-
-      this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
-      this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
-    }
-  }
-
-  leaveFriendRooms(senderUID: number, receiverUID: number): void {
-    const senderSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(senderUID.toString());
-    const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(receiverUID.toString());
-
-    if (senderSocketId)
-      this.server.to(senderSocketId).socketsLeave(`friend-${receiverUID}`);
-
-    if (receiverSocketId)
-      this.server.to(receiverSocketId).socketsLeave(`friend-${senderUID}`);
   }
 
   async achievementUnlocked(
@@ -154,5 +102,54 @@ export class ConnectionGateway
     if (receiverSocketId) {
       this.server.to(receiverSocketId).emit('friendRequestReceived');
     }
+  }
+
+  async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
+    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
+      userId,
+    );
+
+    friends.forEach((friend) => {
+      client.join(`friend-${friend.uid}`);
+    });
+  }
+
+  leaveFriendRooms(senderUID: number, receiverUID: number): void {
+    const senderSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(senderUID.toString());
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
+
+    if (senderSocketId)
+      this.server.to(senderSocketId).socketsLeave(`friend-${receiverUID}`);
+
+    if (receiverSocketId)
+      this.server.to(receiverSocketId).socketsLeave(`friend-${senderUID}`);
+  }
+
+  makeFriendsJoinEachOthersRoom(senderUID: number, receiverUID: number): void {
+    const senderSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(senderUID.toString());
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
+
+    // If both users are online
+    if (senderSocketId && receiverSocketId) {
+      this.server.to(receiverSocketId).emit('friendRequestAccepted');
+
+      this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
+      this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
+    }
+  }
+
+  async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
+    await this.usersService.updateUserStatusByUID(userId, newStatus);
+
+    // Broadcast new user status to all users in the friend room (his friends)
+    const newUserStatus: NewUserStatusDTO = {
+      newStatus: newStatus,
+      uid: userId,
+    };
+    this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
   }
 }

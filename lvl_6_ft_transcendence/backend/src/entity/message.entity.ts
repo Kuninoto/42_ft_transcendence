@@ -11,17 +11,17 @@ import { ChatRoom, User } from './index';
 @Entity('message')
 export class Message {
   @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+  })
+  content: string;
+
+  @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
   })
   id: number;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: false,
-  })
-  content: string;
 
   @ApiProperty()
   @JoinColumn()
@@ -29,11 +29,11 @@ export class Message {
   room: ChatRoom;
 
   @ApiProperty()
+  @Column({ default: new Date(), type: 'timestamp' })
+  sent_at: Date;
+
+  @ApiProperty()
   @JoinColumn()
   @ManyToOne(() => User, (user: User) => user.id)
   user: User;
-
-  @ApiProperty()
-  @Column({ type: 'timestamp', default: new Date() })
-  sent_at: Date;
 }

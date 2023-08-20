@@ -12,17 +12,17 @@ import { User } from './index';
 @Entity('achievement')
 export class Achievement {
   @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+  })
+  achievement: Achievements;
+
+  @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
   })
   id: number;
-
-  @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: false,
-  })
-  achievement: Achievements;
 
   @ManyToOne(() => User)
   @JoinColumn()

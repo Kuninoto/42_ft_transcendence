@@ -1,9 +1,10 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
 import { ChatRoom, User } from 'src/entity';
 import { Repository } from 'typeorm';
 import { ChatRoomI, ChatRoomSearchInfo, ChatRoomType } from 'types';
+
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
@@ -11,6 +12,9 @@ import { CreateRoomDTO } from './dto/create-room.dto';
 
 @Injectable()
 export class RoomService {
+  private readonly logger: Logger = new Logger(RoomService.name);
+
+  private mutedUsers: { roomId: number; userId: number }[] = [];
   constructor(
     @InjectRepository(ChatRoom)
     private readonly chatRoomRepository: Repository<ChatRoom>,
@@ -21,9 +25,6 @@ export class RoomService {
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
   ) {}
-
-  private readonly logger: Logger = new Logger(RoomService.name);
-  private mutedUsers: { userId: number; roomId: number }[] = [];
 
   public async createRoom(
     createRoomDto: CreateRoomDTO,
@@ -42,41 +43,6 @@ export class RoomService {
       `New chatroom "${newRoom.name}" created by ${newRoom.owner}`,
     );
     return this.chatRoomRepository.save(newRoom);
-  }
-
-  public async updateRoomPassword(
-    senderId: number,
-    newPassword: string,
-    room: ChatRoom,
-  ): Promise<void> {
-    // If sender is not the owner of the room
-    // he can't change its password
-    if (room.owner.id != senderId) {
-      return;
-    }
-
-    // If the room was public now it is protected
-    if (room.type !== ChatRoomType.PROTECTED) {
-      room.type = ChatRoomType.PROTECTED;
-    }
-
-    room.password = newPassword;
-
-    await this.chatRoomRepository.save(room);
-  }
-
-  public async removeRoomPassword(
-    senderId: number,
-    room: ChatRoom,
-  ): Promise<void> {
-    if (room.owner.id != senderId) return;
-
-    if (room.type != ChatRoomType.PROTECTED) return;
-
-    room.type = ChatRoomType.PUBLIC;
-    room.password = null;
-
-    await this.chatRoomRepository.save(room);
   }
 
   public async joinRoom(
@@ -120,56 +86,47 @@ export class RoomService {
       .emit('userJoinedRoom', { username: username });
   }
 
-  public async leaveRoom(
-    room: ChatRoom,
-    userLeavingId: number,
-    emitUserHasLeftTheRoom: boolean,
-  ): Promise<void> {
-    room.users = room.users.filter((user) => user.id !== userLeavingId);
-    await this.chatRoomRepository.save(room);
+  public async joinUserRooms(client: Socket) {
+    const roomsToJoin: ChatRoomI[] | null =
+      await this.usersService.findChatRoomsWhereUserIs(client.data.userId);
 
-    const socketIdOfLeavingUser: string =
-      this.connectionService.findSocketIdByUID(userLeavingId.toString());
+    if (!roomsToJoin) {
+      this.logger.debug('No rooms to join');
+      return;
+    }
 
-    // Kick userLeaving from server
-    this.connectionGateway.server
-      .to(socketIdOfLeavingUser)
-      .socketsLeave(room.name);
+    const roomNames: string[] = roomsToJoin.map((room) => room.name);
 
-    /* In case this function is being used by kickFromRoom or banFromRoom
-    (they will have their own events) */
-    if (!emitUserHasLeftTheRoom) return;
-
-    this.connectionGateway.server
-      .to(room.name)
-      .emit('userHasLeftTheRoom', { userId: userLeavingId });
+    // Join each room
+    for (const roomName of roomNames) {
+      // TODO delete debug
+      this.logger.debug('Joining Room "' + roomName + '"');
+      await client.join(roomName);
+    }
   }
 
-  public async kickFromRoom(
-    room: ChatRoom,
-    userToBanId: number,
-  ): Promise<void> {
-    if (!(await this.isUserAnAdmin(room, userToBanId))) {
+  public async assignAdminRole(room: ChatRoom, userId: number) {
+    if (!(await this.isUserAnAdmin(room, userId))) return;
+
+    const user: User = await this.usersService.findUserByUID(userId);
+
+    room.admins.push(user);
+    this.chatRoomRepository.save(room);
+    this.logger.debug(`"${user.name}" is now an admin in ${room.name}`);
+  }
+
+  public async removeAdminRole(room: ChatRoom, userIdToRemoveRole: number) {
+    if (!(await this.isUserAnAdmin(room, userIdToRemoveRole))) {
       this.logger.warn(
-        `UID= ${userToBanId} tried to kick someone but he's not an admin on room: "${room.name}"`,
-      );
-      return;
-    }
-    if (userToBanId === room.owner.id) {
-      // Some admin tried to kick the chatroom owner
-      this.logger.warn(
-        `UID= ${userToBanId} tried to kick the chatroom owner on room: "${room.name}"`,
+        `"${room.owner.name}" (owner) tried to remove admin role from user with uid= ${userIdToRemoveRole} but he's not an admin on room: "${room.name}"`,
       );
       return;
     }
 
-    this.connectionGateway.server
-      .to(room.name)
-      .emit('userWasKickedFromRoom', { userId: userToBanId });
-    await this.leaveRoom(room, userToBanId, false);
-
-    this.logger.debug(
-      `UID= ${userToBanId} was kicked from room "${room.name}"`,
+    room.admins = room.admins.filter((user) => user.id !== userIdToRemoveRole);
+    this.chatRoomRepository.save(room);
+    this.logger.log(
+      `UID= ${userIdToRemoveRole} is no longer an admin in room "${room.name}"`,
     );
   }
 
@@ -235,6 +192,104 @@ export class RoomService {
     );
   }
 
+  public async kickFromRoom(
+    room: ChatRoom,
+    userToBanId: number,
+  ): Promise<void> {
+    if (!(await this.isUserAnAdmin(room, userToBanId))) {
+      this.logger.warn(
+        `UID= ${userToBanId} tried to kick someone but he's not an admin on room: "${room.name}"`,
+      );
+      return;
+    }
+    if (userToBanId === room.owner.id) {
+      // Some admin tried to kick the chatroom owner
+      this.logger.warn(
+        `UID= ${userToBanId} tried to kick the chatroom owner on room: "${room.name}"`,
+      );
+      return;
+    }
+
+    this.connectionGateway.server
+      .to(room.name)
+      .emit('userWasKickedFromRoom', { userId: userToBanId });
+    await this.leaveRoom(room, userToBanId, false);
+
+    this.logger.debug(
+      `UID= ${userToBanId} was kicked from room "${room.name}"`,
+    );
+  }
+
+  public async findRoomById(roomId: number): Promise<ChatRoom | null> {
+    return await this.chatRoomRepository.findOne({
+      relations: {
+        admins: true,
+        bans: true,
+        owner: true,
+        users: true,
+      },
+      where: { id: roomId },
+    });
+  }
+
+  public async findRoomByName(name: string): Promise<ChatRoom | null> {
+    return await this.chatRoomRepository.findOne({
+      relations: {
+        admins: true,
+        bans: true,
+        owner: true,
+        users: true,
+      },
+      where: { name: name },
+    });
+  }
+
+  public async findRoomsByRoomNameProximity(
+    chatRoomNameQuery: string,
+  ): Promise<ChatRoomSearchInfo[]> {
+    const chatRooms: ChatRoom[] = await this.chatRoomRepository
+      .createQueryBuilder('chat_room')
+      .leftJoin('chat_room.owner', 'owner')
+      .where('chat_room.name LIKE :roomNameProximity', {
+        roomNameProximity: chatRoomNameQuery + '%',
+      })
+      .andWhere('chat_room.type NOT private')
+      .getMany();
+
+    const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
+      (room: ChatRoom) => ({
+        name: room.name,
+        protected: room.type === ChatRoomType.PROTECTED ? true : false,
+      }),
+    );
+    return chatRoomSearchInfos;
+  }
+
+  public async leaveRoom(
+    room: ChatRoom,
+    userLeavingId: number,
+    emitUserHasLeftTheRoom: boolean,
+  ): Promise<void> {
+    room.users = room.users.filter((user) => user.id !== userLeavingId);
+    await this.chatRoomRepository.save(room);
+
+    const socketIdOfLeavingUser: string =
+      this.connectionService.findSocketIdByUID(userLeavingId.toString());
+
+    // Kick userLeaving from server
+    this.connectionGateway.server
+      .to(socketIdOfLeavingUser)
+      .socketsLeave(room.name);
+
+    /* In case this function is being used by kickFromRoom or banFromRoom
+    (they will have their own events) */
+    if (!emitUserHasLeftTheRoom) return;
+
+    this.connectionGateway.server
+      .to(room.name)
+      .emit('userHasLeftTheRoom', { userId: userLeavingId });
+  }
+
   public async muteUser(
     senderId: number,
     userToMuteId: number,
@@ -251,8 +306,8 @@ export class RoomService {
     }
 
     this.mutedUsers.push({
-      userId: userToMuteId,
       roomId: room.id,
+      userId: userToMuteId,
     });
 
     this.logger.debug(
@@ -289,106 +344,44 @@ export class RoomService {
     }
   }
 
-  public async joinUserRooms(client: Socket) {
-    const roomsToJoin: ChatRoomI[] | null =
-      await this.usersService.findChatRoomsWhereUserIs(client.data.userId);
-
-    if (!roomsToJoin) {
-      this.logger.debug('No rooms to join');
+  public async updateRoomPassword(
+    senderId: number,
+    newPassword: string,
+    room: ChatRoom,
+  ): Promise<void> {
+    // If sender is not the owner of the room
+    // he can't change its password
+    if (room.owner.id != senderId) {
       return;
     }
 
-    const roomNames: string[] = roomsToJoin.map((room) => room.name);
-
-    // Join each room
-    for (const roomName of roomNames) {
-      // TODO delete debug
-      this.logger.debug('Joining Room "' + roomName + '"');
-      await client.join(roomName);
-    }
-  }
-
-  public async assignAdminRole(room: ChatRoom, userId: number) {
-    if (!(await this.isUserAnAdmin(room, userId))) return;
-
-    const user: User = await this.usersService.findUserByUID(userId);
-
-    room.admins.push(user);
-    this.chatRoomRepository.save(room);
-    this.logger.debug(`"${user.name}" is now an admin in ${room.name}`);
-  }
-
-  public async removeAdminRole(room: ChatRoom, userIdToRemoveRole: number) {
-    if (!(await this.isUserAnAdmin(room, userIdToRemoveRole))) {
-      this.logger.warn(
-        `"${room.owner.name}" (owner) tried to remove admin role from user with uid= ${userIdToRemoveRole} but he's not an admin on room: "${room.name}"`,
-      );
-      return;
+    // If the room was public now it is protected
+    if (room.type !== ChatRoomType.PROTECTED) {
+      room.type = ChatRoomType.PROTECTED;
     }
 
-    room.admins = room.admins.filter((user) => user.id !== userIdToRemoveRole);
-    this.chatRoomRepository.save(room);
-    this.logger.log(
-      `UID= ${userIdToRemoveRole} is no longer an admin in room "${room.name}"`,
-    );
+    room.password = newPassword;
+
+    await this.chatRoomRepository.save(room);
   }
 
-  //////////////////
-  // ? Finders ? //
-  /////////////////
+  public async removeRoomPassword(
+    senderId: number,
+    room: ChatRoom,
+  ): Promise<void> {
+    if (room.owner.id != senderId) return;
 
-  public async findRoomById(roomId: number): Promise<ChatRoom | null> {
-    return await this.chatRoomRepository.findOne({
-      where: { id: roomId },
-      relations: {
-        users: true,
-        owner: true,
-        admins: true,
-        bans: true,
-      },
-    });
+    if (room.type != ChatRoomType.PROTECTED) return;
+
+    room.type = ChatRoomType.PUBLIC;
+    room.password = null;
+
+    await this.chatRoomRepository.save(room);
   }
 
-  public async findRoomByName(name: string): Promise<ChatRoom | null> {
-    return await this.chatRoomRepository.findOne({
-      where: { name: name },
-      relations: {
-        users: true,
-        owner: true,
-        admins: true,
-        bans: true,
-      },
-    });
-  }
-
-  public async findRoomsByRoomNameProximity(
-    chatRoomNameQuery: string,
-  ): Promise<ChatRoomSearchInfo[]> {
-    const chatRooms: ChatRoom[] = await this.chatRoomRepository
-      .createQueryBuilder('chat_room')
-      .leftJoin('chat_room.owner', 'owner')
-      .where('chat_room.name LIKE :roomNameProximity', {
-        roomNameProximity: chatRoomNameQuery + '%',
-      })
-      .andWhere('chat_room.type NOT private')
-      .getMany();
-
-    const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
-      (room: ChatRoom) => ({
-        name: room.name,
-        protected: room.type === ChatRoomType.PROTECTED ? true : false,
-      }),
-    );
-    return chatRoomSearchInfos;
-  }
-
-  //////////////////
-  //  ? Utils ?  //
-  /////////////////
-
-  public async isUserInRoom(room: ChatRoom, userId: number): Promise<boolean> {
-    return room.users.find((user: User) => {
-      user.id == userId;
+  public async isUserAnAdmin(room: ChatRoom, userId: number): Promise<boolean> {
+    return room.admins.find((admin: User) => {
+      admin.id == userId;
     })
       ? true
       : false;
@@ -405,18 +398,18 @@ export class RoomService {
       : false;
   }
 
-  public async isUserAnAdmin(room: ChatRoom, userId: number): Promise<boolean> {
-    return room.admins.find((admin: User) => {
-      admin.id == userId;
+  public async isUserInRoom(room: ChatRoom, userId: number): Promise<boolean> {
+    return room.users.find((user: User) => {
+      user.id == userId;
     })
       ? true
       : false;
   }
 
   public async isUserMuted(userId: number, roomId: number): Promise<boolean> {
-    return this.mutedUsers.findIndex(
-      (entry) => entry.userId === userId && entry.roomId === roomId,
-    ) !== -1
+    return this.mutedUsers.findIndex((entry) => {
+      return entry.userId === userId && entry.roomId === roomId;
+    }) !== -1
       ? true
       : false;
   }
@@ -425,7 +418,7 @@ export class RoomService {
       Length boundaries (4-10)
       Composed only by a-z, A-Z, 0-9 and  _
   */
-  public validRoomName(name: string): boolean {
+  public isValidRoomName(name: string): boolean {
     return (
       name.length < 4 || name.length > 10 || !name.match('^[a-zA-Z0-9_]+$')
     );

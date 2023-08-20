@@ -4,6 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as session from 'express-session';
 import * as passport from 'passport';
+
 import { AppModule } from './app.module';
 import { AppCorsOption } from './common/options/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
@@ -11,8 +12,8 @@ import { Passport42ExceptionFilter } from './module/auth/filter/passport42-excep
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
 function checkRequiredEnvVariables(): void {
-  const RED: string = '\x1b[31m';
-  const RESET: string = '\x1b[0m';
+  const RED = '\x1b[31m';
+  const RESET = '\x1b[0m';
 
   const requiredEnvVariables = [
     'POSTGRES_HOST',
@@ -70,14 +71,14 @@ async function bootstrap() {
   app.use(
     session({
       cookie: {
+        httpOnly: true,
         maxAge: oneDay,
         // We'll be using HTTP
         secure: false,
-        httpOnly: true,
       },
-      secret: process.env.EXPRESS_SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
+      secret: process.env.EXPRESS_SESSION_SECRET,
     }),
   );
 

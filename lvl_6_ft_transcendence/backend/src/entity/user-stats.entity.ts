@@ -17,32 +17,32 @@ export class UserStats {
   id: number;
 
   @ApiProperty()
+  @Column({
+    default: 0,
+    type: 'bigint',
+  })
+  losses: number;
+
+  @ApiProperty()
+  @Column({
+    default: 0,
+    type: 'bigint',
+  })
+  matches_played: number;
+
+  @ApiProperty()
   @OneToOne(() => User, (user) => user.user_stats, { cascade: true })
   @JoinColumn()
   user: User;
 
   @ApiProperty()
-  @Column({
-    type: 'bigint',
-    default: 0,
-  })
-  wins: number;
-
-  @ApiProperty()
-  @Column({
-    type: 'bigint',
-    default: 0,
-  })
-  losses: number;
-
-  @ApiProperty()
-  @Column({ type: 'double precision', default: null, nullable: true })
+  @Column({ default: null, nullable: true, type: 'double precision' })
   win_rate: number;
 
   @ApiProperty()
   @Column({
-    type: 'bigint',
     default: 0,
+    type: 'bigint',
   })
-  matches_played: number;
+  wins: number;
 }

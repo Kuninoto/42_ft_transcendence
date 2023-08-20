@@ -1,4 +1,4 @@
 export interface OtpInfoDTO {
-  secret: string;
   otpAuthURL: string;
+  secret: string;
 }

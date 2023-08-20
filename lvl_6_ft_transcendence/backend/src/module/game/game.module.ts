@@ -1,20 +1,23 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GameResult } from 'src/entity/index';
+
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConnectionModule } from '../connection/connection.module';
 import { UserStatsModule } from '../user-stats/user-stats.module';
 import { UsersModule } from '../users/users.module';
-import { GameInviteMap } from './GameInviteMap';
-import { GameQueue } from './GameQueue';
-import { GameRoomMap } from './GameRoomMap';
 import { GameEngineService } from './game-engine.service';
 import { GameController } from './game.controller';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
+import { GameInviteMap } from './GameInviteMap';
+import { GameQueue } from './GameQueue';
+import { GameRoomMap } from './GameRoomMap';
 
 @Module({
+  controllers: [GameController],
+  exports: [GameService],
   imports: [
     TypeOrmModule.forFeature([GameResult]),
     forwardRef(() => AuthModule),
@@ -23,7 +26,6 @@ import { GameService } from './game.service';
     UserStatsModule,
     forwardRef(() => ChatModule),
   ],
-  controllers: [GameController],
   providers: [
     GameGateway,
     GameQueue,
@@ -32,6 +34,5 @@ import { GameService } from './game.service';
     GameService,
     GameEngineService,
   ],
-  exports: [GameService],
 })
 export class GameModule {}

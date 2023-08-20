@@ -32,6 +32,7 @@ import {
   SuccessResponse,
   UsernameUpdationRequest,
 } from 'types';
+
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
@@ -43,42 +44,43 @@ import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validati
 @UseGuards(JwtAuthGuard)
 @Controller('me')
 export class MeController {
+  private readonly logger: Logger = new Logger(MeController.name);
+
   constructor(
     private readonly friendshipsService: FriendshipsService,
     private readonly usersService: UsersService,
   ) {}
 
-  private readonly logger: Logger = new Logger(MeController.name);
-
   /**
-   * GET /api/me
+   * DELETE /api/me
    *
-   * Finds and returns the 'me' user's info
+   * This is the route to visit to delete 'me' user's
+   * account from the database
    */
-  @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
-  @Get()
-  public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
-    this.logger.log(`"${req.user.name}" requested his info`);
-    return this.usersService.findMyInfo(req.user.id);
+  @ApiOkResponse({ description: "Deletes 'me' user's account" })
+  @Delete()
+  public async deleteMyAccount(
+    @Req() req: { user: User },
+  ): Promise<SuccessResponse> {
+    this.logger.log(`Deleting ${req.user.name}'s account`);
+
+    return await this.usersService.deleteUserByUID(req.user.id);
   }
 
   /**
-   * GET /api/me/friends
+   * GET /api/me/blocklist
    *
-   * Finds and returns the 'me' user's friends
+   * Finds and returns the 'me' user's blocklist
    */
   @ApiOkResponse({
-    description: "Finds and returns the 'me' user's friends",
+    description: "Finds and returns the 'me' user's blocklist",
   })
-  @Get('friends')
-  public async getMyFriends(@Req() req: { user: User }): Promise<Friend[]> {
-    this.logger.log(`"${req.user.name}" requested his friends info`);
-
-    const friendList: Friend[] = await this.friendshipsService.findFriendsByUID(
-      req.user.id,
-    );
-
-    return friendList;
+  @Get('blocklist')
+  public async getMyBlockedUsers(
+    @Req() req: { user: User },
+  ): Promise<BlockedUserInterface[]> {
+    this.logger.log(`"${req.user.name}" requested his blocklist`);
+    return await this.friendshipsService.getMyBlocklist(req.user.id);
   }
 
   /**
@@ -101,19 +103,112 @@ export class MeController {
   }
 
   /**
-   * GET /api/me/blocklist
+   * GET /api/me/friends
    *
-   * Finds and returns the 'me' user's blocklist
+   * Finds and returns the 'me' user's friends
    */
   @ApiOkResponse({
-    description: "Finds and returns the 'me' user's blocklist",
+    description: "Finds and returns the 'me' user's friends",
   })
-  @Get('blocklist')
-  public async getMyBlockedUsers(
+  @Get('friends')
+  public async getMyFriends(@Req() req: { user: User }): Promise<Friend[]> {
+    this.logger.log(`"${req.user.name}" requested his friends info`);
+
+    const friendList: Friend[] = await this.friendshipsService.findFriendsByUID(
+      req.user.id,
+    );
+
+    return friendList;
+  }
+
+  /**
+   * GET /api/me
+   *
+   * Finds and returns the 'me' user's info
+   */
+  @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
+  @Get()
+  public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
+    this.logger.log(`"${req.user.name}" requested his info`);
+    return this.usersService.findMyInfo(req.user.id);
+  }
+
+  /**
+   * PATCH /api/me/avatar
+   *
+   * This is the route to visit to update the user's
+   * avatar.
+   * Stores the uploaded file (the new avatar) at
+   * /src/public/ and updates the avatar_url
+   * on the user's table to the url that later allows requesting
+   * e.g http://localhost:3000/api/users/avatars/<hashed_filename>.png
+   *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
+   */
+  @UseInterceptors(FileInterceptor('avatar', multerConfig))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      properties: { avatar: { format: 'binary', type: 'string' } },
+      required: ['avatar'],
+      type: 'object',
+    },
+  })
+  @ApiBadRequestResponse({
+    description:
+      'If the uploaded image is not a png, jpg or jpeg or if its size exceeds the max size',
+  })
+  @ApiOkResponse({
+    description:
+      "Stores the uploaded new avatar and updates the avatar_url on the user's table",
+  })
+  @Patch('avatar')
+  public async updateMyAvatar(
     @Req() req: { user: User },
-  ): Promise<BlockedUserInterface[]> {
-    this.logger.log(`"${req.user.name}" requested his blocklist`);
-    return await this.friendshipsService.getMyBlocklist(req.user.id);
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<ErrorResponse | SuccessResponse> {
+    if (!file) {
+      this.logger.warn(`"${req.user.name}" failed to upload his avatar`);
+      throw new BadRequestException('Invalid file');
+    }
+
+    this.logger.log(`Updating ${req.user.name}\'s avatar`);
+
+    return await this.usersService.updateUserAvatarByUID(
+      req.user.id,
+      process.env.BACKEND_URL + '/api/users/avatars/' + file.filename,
+    );
+  }
+
+  /**
+   * PATCH /api/me/game-theme
+   *
+   * This is the route to visit to update 'me'
+   * user's game theme.
+   */
+  @ApiOkResponse({
+    description: "Updates 'me' user's game theme",
+  })
+  @ApiBadRequestResponse({
+    description: "If the theme doesn't exist",
+  })
+  @ApiBody({
+    schema: {
+      properties: { newGameTheme: { type: 'string' } },
+      required: ['newGameTheme'],
+      type: 'object',
+    },
+  })
+  @Patch('game-theme')
+  public async updateMyGameTheme(
+    @Req() req: { user: User },
+    @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
+  ): Promise<ErrorResponse | SuccessResponse> {
+    this.logger.log(`${req.user.name} is updating his game theme`);
+
+    return await this.usersService.updateGameThemeByUID(
+      req.user.id,
+      newGameTheme,
+    );
   }
 
   /**
@@ -135,16 +230,16 @@ export class MeController {
   })
   @ApiBody({
     schema: {
-      type: 'object',
-      required: ['newUsername'],
       properties: { newUsername: { type: 'string' } },
+      required: ['newUsername'],
+      type: 'object',
     },
   })
   @Patch('username')
   public async updateMyUsername(
     @Req() req: { user: User },
     @Body() body: UsernameUpdationRequest,
-  ): Promise<SuccessResponse | ErrorResponse> {
+  ): Promise<ErrorResponse | SuccessResponse> {
     this.logger.log(`Updating ${req.user.name}'s username`);
 
     if (!body.newUsername) {
@@ -158,99 +253,5 @@ export class MeController {
       req.user.id,
       body.newUsername,
     );
-  }
-
-  /**
-   * PATCH /api/me/game-theme
-   *
-   * This is the route to visit to update 'me'
-   * user's game theme.
-   */
-  @ApiOkResponse({
-    description: "Updates 'me' user's game theme",
-  })
-  @ApiBadRequestResponse({
-    description: "If the theme doesn't exist",
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['newGameTheme'],
-      properties: { newGameTheme: { type: 'string' } },
-    },
-  })
-  @Patch('game-theme')
-  public async updateMyGameTheme(
-    @Req() req: { user: User },
-    @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
-  ): Promise<SuccessResponse | ErrorResponse> {
-    this.logger.log(`${req.user.name} is updating his game theme`);
-
-    return await this.usersService.updateGameThemeByUID(
-      req.user.id,
-      newGameTheme,
-    );
-  }
-
-  /**
-   * PATCH /api/me/avatar
-   *
-   * This is the route to visit to update the user's
-   * avatar.
-   * Stores the uploaded file (the new avatar) at
-   * /src/public/ and updates the avatar_url
-   * on the user's table to the url that later allows requesting
-   * e.g http://localhost:3000/api/users/avatars/<hashed_filename>.png
-   *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
-   */
-  @UseInterceptors(FileInterceptor('avatar', multerConfig))
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['avatar'],
-      properties: { avatar: { type: 'string', format: 'binary' } },
-    },
-  })
-  @ApiBadRequestResponse({
-    description:
-      'If the uploaded image is not a png, jpg or jpeg or if its size exceeds the max size',
-  })
-  @ApiOkResponse({
-    description:
-      "Stores the uploaded new avatar and updates the avatar_url on the user's table",
-  })
-  @Patch('avatar')
-  public async updateMyAvatar(
-    @Req() req: { user: User },
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<SuccessResponse | ErrorResponse> {
-    if (!file) {
-      this.logger.warn(`"${req.user.name}" failed to upload his avatar`);
-      throw new BadRequestException('Invalid file');
-    }
-
-    this.logger.log(`Updating ${req.user.name}\'s avatar`);
-
-    return await this.usersService.updateUserAvatarByUID(
-      req.user.id,
-      process.env.BACKEND_URL + '/api/users/avatars/' + file.filename,
-    );
-  }
-
-  /**
-   * DELETE /api/me
-   *
-   * This is the route to visit to delete 'me' user's
-   * account from the database
-   */
-  @ApiOkResponse({ description: "Deletes 'me' user's account" })
-  @Delete()
-  public async deleteMyAccount(
-    @Req() req: { user: User },
-  ): Promise<SuccessResponse> {
-    this.logger.log(`Deleting ${req.user.name}'s account`);
-
-    return await this.usersService.deleteUserByUID(req.user.id);
   }
 }
