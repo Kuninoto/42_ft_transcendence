@@ -1,5 +1,4 @@
 import { Ball } from '@/app/matchmaking/definitions'
-import { PlayerSide } from '@/common/types/backend/player-side.enum'
 import { GameEndDTO } from '@/common/types/game-end.dto'
 import { GameRoomDTO } from '@/common/types/game-room-info'
 import { OponentFoundDTO } from '@/common/types/oponent-found'

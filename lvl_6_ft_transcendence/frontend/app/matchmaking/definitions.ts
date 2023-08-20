@@ -1,4 +1,3 @@
-
 export const PADDLE_HEIGHT = 80
 export const PADDLE_WALL_OFFSET = 16
 export const PADDLE_WIDTH = 10
@@ -55,7 +54,8 @@ export class Paddle {
 	}
 
 	moveDown() {
-		if (this.#position.y + PADDLE_HEIGHT / 2 + PADDLE_SPEED > CANVAS_HEIGHT) return
+		if (this.#position.y + PADDLE_HEIGHT / 2 + PADDLE_SPEED > CANVAS_HEIGHT)
+			return
 
 		this.#position.y += PADDLE_SPEED
 		this.#emitPaddleMovement(this.#position.y)

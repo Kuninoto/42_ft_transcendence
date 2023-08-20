@@ -36,4 +36,3 @@ export const AchievementsList: IAchievements = {
 		image: 'unexpected_victory.jpg',
 	},
 }
-

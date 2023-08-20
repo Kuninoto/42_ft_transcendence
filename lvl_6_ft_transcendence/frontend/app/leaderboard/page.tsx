@@ -1,7 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { UserStatsForLeaderboard } from '@/common/types/backend/user-stats-for-leaderboard.interface'
+import { UserStatsForLeaderboard } from '@/common/types/backend'
 import { hasValues } from '@/common/utils/hasValues'
 import { removeParams } from '@/contexts/AuthContext'
 import Image from 'next/image'
@@ -29,9 +29,9 @@ function Podium({
 			>
 				<Image
 					alt="second place picture"
+					className="object-cover"
 					fill
 					loader={removeParams}
-					objectFit="cover"
 					sizes="100vw"
 					src={user?.avatar_url || '/placeholder.gif'}
 				/>
