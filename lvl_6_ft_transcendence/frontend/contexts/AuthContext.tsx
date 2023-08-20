@@ -19,7 +19,7 @@ export const removeParams: ImageLoader = ({ src }: { src: string }) => {
 }
 
 export interface AuthContextExports {
-	isAuth: bool
+	isAuth: boolean
 	login: (code: string) => Promise<boolean>
 	login2fa: (otp: string) => Promise<void>
 	logout: () => void
