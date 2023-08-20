@@ -112,9 +112,22 @@ export class ConnectionGateway
     if (senderSocketId && receiverSocketId) {
       // this.server.to(receiverSocketId).emit('friendRequestAccepted');
 
-      this.server.in(senderSocketId).socketsJoin(`friend-${receiverUID}`);
-      this.server.in(receiverSocketId).socketsJoin(`friend-${senderUID}`);
+      this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
+      this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
     }
+  }
+
+  leaveFriendRooms(senderUID: number, receiverUID: number): void {
+    const senderSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(senderUID.toString());
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
+
+    if (senderSocketId)
+      this.server.to(senderSocketId).socketsLeave(`friend-${receiverUID}`);
+
+    if (receiverSocketId)
+      this.server.to(receiverSocketId).socketsLeave(`friend-${senderUID}`);
   }
 
   async achievementUnlocked(
