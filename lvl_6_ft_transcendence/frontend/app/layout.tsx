@@ -4,11 +4,13 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { ChatProvider } from '@/contexts/ChatContext'
 import { SocketProvider } from '@/contexts/SocketContext'
 import { Press_Start_2P } from 'next/font/google'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
-import { ToastContainer } from 'react-toastify'
+import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import Chat from './chat/page'
@@ -60,22 +62,24 @@ export default function RootLayout({
 									<Chat />
 								</div>
 								<FixedPanel handle={handle} />
-								<ToastContainer
-									progressClassName={
-										'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'
-									}
-									autoClose={5000}
-									closeOnClick
-									draggable
-									icon={false}
-									limit={2}
-									newestOnTop
-									pauseOnFocusLoss
-									pauseOnHover={false}
-									position="top-center"
-									theme="dark"
-									toastClassName={`font-xs whitespace-nowrap w-full bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% ${pressStart.className}`}
-								/>
+								<Link href={'/profile'}>
+									<ToastContainer
+										progressClassName={
+											'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'
+										}
+										autoClose={5000}
+										closeOnClick
+										draggable
+										icon={false}
+										limit={2}
+										newestOnTop
+										pauseOnFocusLoss
+										pauseOnHover={false}
+										position="top-center"
+										theme="dark"
+										toastClassName={`font-xs whitespace-nowrap w-max bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% ${pressStart.className}`}
+									/>
+								</Link>
 							</FullScreen>
 						</body>
 					</html>
