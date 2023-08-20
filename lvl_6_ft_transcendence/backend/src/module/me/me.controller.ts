@@ -57,30 +57,7 @@ export class MeController {
   @Get()
   public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
     this.logger.log(`"${req.user.name}" requested his info`);
-
-    // Destructure user's info so that we can filter info that doesn't belong to MeUserInfo
-    const {
-      id,
-      name,
-      intra_name,
-      avatar_url,
-      intra_profile_url,
-      has_2fa,
-      game_theme,
-      created_at,
-    } = req.user;
-
-    const meInfo: MeUserInfo = {
-      id,
-      name,
-      intra_name,
-      avatar_url,
-      intra_profile_url,
-      has_2fa,
-      game_theme,
-      created_at,
-    };
-    return meInfo;
+    return this.usersService.findMyInfo(req.user.id);
   }
 
   /**

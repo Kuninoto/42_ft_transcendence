@@ -47,6 +47,14 @@ export class UserStatsService {
     }));
   }
 
+  public async findLadderLevelByUID(userId: number): Promise<number> {
+    return (await this.getLeaderboard()).findIndex(
+      (leaderBoardRow: UserStatsForLeaderboard) => {
+        leaderBoardRow.uid === userId;
+      },
+    );
+  }
+
   public async findUserStatsByUID(userId: number): Promise<UserStatsInterface> {
     const userStats: UserStats = await this.userStatsRepository.findOneBy({
       user: { id: userId },
