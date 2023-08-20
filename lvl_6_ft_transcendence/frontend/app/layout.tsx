@@ -5,11 +5,10 @@ import { ChatProvider } from '@/contexts/ChatContext'
 import { SocketProvider } from '@/contexts/SocketContext'
 import { Press_Start_2P } from 'next/font/google'
 import { usePathname } from 'next/navigation'
-import { useEffect } from 'react'
 import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
-import { toast, ToastContainer } from 'react-toastify'
+import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import Chat from './chat/page'
@@ -19,11 +18,6 @@ const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
 function FixedPanel({ handle }: { handle: any }) {
 	const path = usePathname()
-
-	useEffect(() => {
-		toast('🎉 New achievement unlocked!')
-	})
-
 	const { logout } = useAuth()
 
 	return (
