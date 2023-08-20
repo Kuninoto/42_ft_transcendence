@@ -1,8 +1,11 @@
 'use client'
 
 import { api } from '@/api/api'
-import { Friend, SearchUserInfo } from '@/common/types'
-import { FriendshipStatus } from '@/common/types/backend/friendship-status.enum'
+import {
+	FriendRequest,
+	FriendshipStatus,
+	UserSearchInfo,
+} from '@/common/types/backend'
 import { removeParams } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
@@ -19,10 +22,10 @@ export default function FriendsModal({
 	const { addFriend } = useChat()
 
 	const [search, setSearch] = useState('')
-	const [requests, setRequests] = useState<Friend[]>([])
+	const [requests, setRequests] = useState<FriendRequest[]>([])
 	const [requestsLoading, setRequestsLoading] = useState(true)
 	const [searchLoading, setSearchLoading] = useState(true)
-	const [searchUsers, setSearchUsers] = useState<SearchUserInfo[]>([])
+	const [searchUsers, setSearchUsers] = useState<UserSearchInfo[]>([])
 
 	function cancel(
 		e: React.MouseEvent<HTMLButtonElement, MouseEvent>,

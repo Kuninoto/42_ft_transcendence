@@ -19,9 +19,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 		})
 
 		socket.on('achievementUnlocked', () => {
-			toast('🎉 New achievement unlocked!', {
-				icon: false,
-			})
+			toast('🎉 New achievement unlocked!')
 		})
 	}
 

@@ -1,8 +1,10 @@
 'use client'
 
 import { api } from '@/api/api'
-import { UserProfile as IUserProfile } from '@/common/type/backend/user-profile.interface'
-import { FriendshipStatus } from '@/common/types/backend/friendship-status.enum'
+import {
+	FriendshipStatus,
+	UserProfile as IUserProfile,
+} from '@/common/types/backend'
 import { hasValues } from '@/common/utils/hasValues'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import moment from 'moment'
@@ -239,6 +241,7 @@ export default function Profile() {
 	useEffect(() => {
 		if (id) {
 			try {
+				setModal(modalPage.HISTORY)
 				api
 					.get(`/users/${id}`)
 					.then((result) => {
@@ -270,14 +273,11 @@ export default function Profile() {
 					<div className="relative aspect-square w-80 overflow-hidden rounded-xl">
 						<Image
 							alt={'player profile picutre'}
-							className="h-max w-max"
-							height={0}
-							layout="fill"
+							className="h-max w-max object-cover"
+							fill
 							loader={removeParams}
-							objectFit="cover"
 							src={userProfile?.avatar_url || '/placeholder.gif'}
 							unoptimized
-							width={0}
 						/>
 					</div>
 
@@ -286,6 +286,7 @@ export default function Profile() {
 						<a
 							className="text-md mb-4 text-gray-400 hover:underline"
 							href={userProfile?.intra_profile_url}
+							target="_blank"
 						>
 							{userProfile?.intra_name || 'Loading...'}
 						</a>
@@ -305,12 +306,13 @@ export default function Profile() {
 						<div> Win Rate {userProfile?.stats?.win_rate || '0'}% </div>
 					</div>
 					<div className="text-gray-400">
-						{' '}
 						since{' '}
-						{moment(
-							userProfile?.created_at,
-							moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
-						).format('DD/MM/YY')}{' '}
+						{hasValues(userProfile)
+							? moment(
+									userProfile?.created_at,
+									moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
+							  ).format('DD/MM/YY')
+							: 'XX/XX/XX'}
 					</div>
 				</div>
 
