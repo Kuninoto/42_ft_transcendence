@@ -48,8 +48,8 @@ function FinalModal() {
 
 	return (
 		<div className="absolute flex h-full w-full flex-col place-content-center items-center space-y-12 bg-black/50">
-			<h1 className="text-8xl">
-				{gameEndInfo?.winner?.userId == user?.id ? 'You win!' : 'You lose!'}
+			<h1 className="text-6xl">
+				{gameEndInfo?.winner?.userId == user?.id ? 'You win!' : 'Game over!'}
 			</h1>
 			<Link
 				className="rounded border border-white px-16 py-3 text-center text-white mix-blend-lighten hover:bg-white hover:text-black"
