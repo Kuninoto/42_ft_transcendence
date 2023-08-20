@@ -8,10 +8,10 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { ChatRoom } from 'src/entity';
 import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
-import { ChatRoom } from 'src/typeorm';
 import { ChatRoomMessageI, MuteDuration } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';

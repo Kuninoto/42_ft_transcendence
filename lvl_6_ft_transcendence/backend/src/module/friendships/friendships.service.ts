@@ -9,7 +9,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BlockedUser, Friendship, User } from 'src/typeorm/index';
+import { BlockedUser, Friendship, User } from 'src/entity/index';
 import { Repository } from 'typeorm';
 import {
   BlockedUserInterface,

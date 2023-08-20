@@ -1,10 +1,11 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UserStatsForLeaderboard } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UserStatsService } from '../user-stats/user-stats.service';
 
 @ApiTags('game')
+@ApiBearerAuth('Jwt')
 @UseGuards(JwtAuthGuard)
 @Controller('game')
 export class GameController {

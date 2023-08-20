@@ -1,6 +1,6 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserStats } from 'src/typeorm';
+import { User, UserStats } from 'src/entity';
 import { Repository } from 'typeorm';
 import { UserStatsForLeaderboard, UserStatsInterface } from 'types';
 import { AchievementService } from '../achievement/achievement.service';
@@ -50,7 +50,7 @@ export class UserStatsService {
   public async findLadderLevelByUID(userId: number): Promise<number> {
     return (await this.getLeaderboard()).findIndex(
       (leaderBoardRow: UserStatsForLeaderboard) => {
-        leaderBoardRow.uid === userId;
+        leaderBoardRow.uid == userId;
       },
     );
   }

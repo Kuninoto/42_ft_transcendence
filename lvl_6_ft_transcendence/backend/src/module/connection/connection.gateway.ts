@@ -8,8 +8,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
-import { User } from 'src/typeorm';
 import { Achievements, Friend, UserStatus } from 'types';
 import { AuthService } from '../auth/auth.service';
 import { MessageService } from '../chat/message.service';

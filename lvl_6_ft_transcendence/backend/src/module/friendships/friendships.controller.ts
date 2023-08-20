@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
   ApiForbiddenResponse,
@@ -20,13 +21,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity';
 import { ErrorResponse, FriendshipStatus, SuccessResponse } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from './friendships.service';
 import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
 
 @ApiTags('friendships')
+@ApiBearerAuth('Jwt')
 @UseGuards(JwtAuthGuard)
 @Controller('friendships')
 export class FriendshipsController {

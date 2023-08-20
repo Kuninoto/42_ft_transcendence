@@ -1,6 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatRoom, DirectMessage, Message } from 'src/typeorm';
+import { ChatRoom, DirectMessage, Message } from 'src/entity';
 import { ConnectionModule } from '../connection/connection.module';
 import { FriendshipsModule } from '../friendships/friendships.module';
 import { GameModule } from '../game/game.module';
