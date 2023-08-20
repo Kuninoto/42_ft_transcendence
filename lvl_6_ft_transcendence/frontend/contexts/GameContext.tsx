@@ -51,6 +51,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	function cancel() {
 		router?.push('/dashboard')
+
+		if (!socket) return
+		socket?.emit('leaveQueueOrGame')
 	}
 
 	function queue() {
