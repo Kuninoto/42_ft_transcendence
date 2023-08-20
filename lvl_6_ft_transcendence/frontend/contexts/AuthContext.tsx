@@ -12,13 +12,14 @@ import {
 	useState,
 } from 'react'
 
-import { useSocket } from './SocketContext'
+import { socket, useSocket } from './SocketContext'
 
 export const removeParams: ImageLoader = ({ src }: { src: string }) => {
 	return src.replace(/&?w=\d+&?/, '').replace(/&?p=\d+&?/, '')
 }
 
 export interface AuthContextExports {
+	isAuth: bool
 	login: (code: string) => Promise<boolean>
 	login2fa: (otp: string) => Promise<void>
 	logout: () => void
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<{} | UserProfile>({})
 
 	const [tempToken, setTempToken] = useState('')
+	const isAuth = hasValues(user)
 
 	const { connect } = useSocket()
 
@@ -62,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	function logout() {
 		router.push('/')
+		socket.disconnect()
 		localStorage.removeItem('pong.token')
 	}
 
@@ -130,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	const value: AuthContextExports = {
+		isAuth,
 		login,
 		login2fa,
 		logout,
