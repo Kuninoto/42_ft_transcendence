@@ -22,10 +22,17 @@ export class UserStatsService {
   }
 
   public async findLadderLevelByUID(userId: number): Promise<number> {
-    return (await this.getLeaderboard()).findIndex(
-      (leaderBoardRow: UserStatsForLeaderboard) => {
-        return leaderBoardRow.uid == userId;
-      },
+    /* +1 due to the manner that the frontend is rendering the leaderboard
+     the user at
+     index 0 = first place
+     index 1 = second place
+     etc... */
+    return (
+      (await this.getLeaderboard()).findIndex(
+        (leaderBoardRow: UserStatsForLeaderboard) => {
+          return leaderBoardRow.uid == userId;
+        },
+      ) + 1
     );
   }
 
