@@ -239,6 +239,7 @@ export default function Profile() {
 	useEffect(() => {
 		if (id) {
 			try {
+				setModal(modalPage.HISTORY)
 				api
 					.get(`/users/${id}`)
 					.then((result) => {
