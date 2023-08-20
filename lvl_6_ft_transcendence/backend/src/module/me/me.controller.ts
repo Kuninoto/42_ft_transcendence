@@ -52,54 +52,15 @@ export class MeController {
   ) {}
 
   /**
-   * DELETE /api/me
+   * GET /api/me
    *
-   * This is the route to visit to delete 'me' user's
-   * account from the database
+   * Finds and returns the 'me' user's info
    */
-  @ApiOkResponse({ description: "Deletes 'me' user's account" })
-  @Delete()
-  public async deleteMyAccount(
-    @Req() req: { user: User },
-  ): Promise<SuccessResponse> {
-    this.logger.log(`Deleting ${req.user.name}'s account`);
-
-    return await this.usersService.deleteUserByUID(req.user.id);
-  }
-
-  /**
-   * GET /api/me/blocklist
-   *
-   * Finds and returns the 'me' user's blocklist
-   */
-  @ApiOkResponse({
-    description: "Finds and returns the 'me' user's blocklist",
-  })
-  @Get('blocklist')
-  public async getMyBlockedUsers(
-    @Req() req: { user: User },
-  ): Promise<BlockedUserInterface[]> {
-    this.logger.log(`"${req.user.name}" requested his blocklist`);
-    return await this.friendshipsService.getMyBlocklist(req.user.id);
-  }
-
-  /**
-   * GET /api/me/friend-request
-   *
-   * Finds and returns the 'me' user's friend-requests
-   */
-  @ApiOkResponse({
-    description: "Finds and returns the 'me' user's friend-requests",
-  })
-  @Get('friend-request')
-  public async getMyFriendRequests(
-    @Req() req: { user: User },
-  ): Promise<FriendRequest[]> {
-    this.logger.log(
-      `"${req.user.name}" requested his received friend-requests`,
-    );
-
-    return await this.friendshipsService.getMyFriendRequests(req.user);
+  @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
+  @Get()
+  public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
+    this.logger.log(`"${req.user.name}" requested his info`);
+    return this.usersService.findMyInfo(req.user.id);
   }
 
   /**
@@ -122,15 +83,82 @@ export class MeController {
   }
 
   /**
-   * GET /api/me
+   * GET /api/me/friend-request
    *
-   * Finds and returns the 'me' user's info
+   * Finds and returns the 'me' user's friend-requests
    */
-  @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
-  @Get()
-  public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
-    this.logger.log(`"${req.user.name}" requested his info`);
-    return this.usersService.findMyInfo(req.user.id);
+  @ApiOkResponse({
+    description: "Finds and returns the 'me' user's friend-requests",
+  })
+  @Get('friend-request')
+  public async getMyFriendRequests(
+    @Req() req: { user: User },
+  ): Promise<FriendRequest[]> {
+    this.logger.log(
+      `"${req.user.name}" requested his received friend-requests`,
+    );
+
+    return await this.friendshipsService.getMyFriendRequests(req.user);
+  }
+
+  /**
+   * GET /api/me/blocklist
+   *
+   * Finds and returns the 'me' user's blocklist
+   */
+  @ApiOkResponse({
+    description: "Finds and returns the 'me' user's blocklist",
+  })
+  @Get('blocklist')
+  public async getMyBlockedUsers(
+    @Req() req: { user: User },
+  ): Promise<BlockedUserInterface[]> {
+    this.logger.log(`"${req.user.name}" requested his blocklist`);
+    return await this.friendshipsService.getMyBlocklist(req.user.id);
+  }
+
+  /**
+   * PATCH /api/me/username
+   *
+   * This is the route to visit to update 'me'
+   * user's username.
+   *
+   */
+  @ApiOkResponse({
+    description: "Updates 'me' user's username",
+  })
+  @ApiBadRequestResponse({
+    description:
+      'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
+  })
+  @ApiConflictResponse({
+    description: 'If the new username is already taken',
+  })
+  @ApiBody({
+    schema: {
+      properties: { newUsername: { type: 'string' } },
+      required: ['newUsername'],
+      type: 'object',
+    },
+  })
+  @Patch('username')
+  public async updateMyUsername(
+    @Req() req: { user: User },
+    @Body() body: UsernameUpdationRequest,
+  ): Promise<ErrorResponse | SuccessResponse> {
+    this.logger.log(`Updating ${req.user.name}'s username`);
+
+    if (!body.newUsername) {
+      this.logger.warn(`"${req.user.name}" failed to update his username`);
+      throw new BadRequestException(
+        "Expected 'newUsername' as a field of the body's JSON",
+      );
+    }
+
+    return await this.usersService.updateUsernameByUID(
+      req.user.id,
+      body.newUsername,
+    );
   }
 
   /**
@@ -212,46 +240,18 @@ export class MeController {
   }
 
   /**
-   * PATCH /api/me/username
+   * DELETE /api/me
    *
-   * This is the route to visit to update 'me'
-   * user's username.
-   *
+   * This is the route to visit to delete 'me' user's
+   * account from the database
    */
-  @ApiOkResponse({
-    description: "Updates 'me' user's username",
-  })
-  @ApiBadRequestResponse({
-    description:
-      'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
-  })
-  @ApiConflictResponse({
-    description: 'If the new username is already taken',
-  })
-  @ApiBody({
-    schema: {
-      properties: { newUsername: { type: 'string' } },
-      required: ['newUsername'],
-      type: 'object',
-    },
-  })
-  @Patch('username')
-  public async updateMyUsername(
+  @ApiOkResponse({ description: "Deletes 'me' user's account" })
+  @Delete()
+  public async deleteMyAccount(
     @Req() req: { user: User },
-    @Body() body: UsernameUpdationRequest,
-  ): Promise<ErrorResponse | SuccessResponse> {
-    this.logger.log(`Updating ${req.user.name}'s username`);
+  ): Promise<SuccessResponse> {
+    this.logger.log(`Deleting ${req.user.name}'s account`);
 
-    if (!body.newUsername) {
-      this.logger.warn(`"${req.user.name}" failed to update his username`);
-      throw new BadRequestException(
-        "Expected 'newUsername' as a field of the body's JSON",
-      );
-    }
-
-    return await this.usersService.updateUsernameByUID(
-      req.user.id,
-      body.newUsername,
-    );
+    return await this.usersService.deleteUserByUID(req.user.id);
   }
 }
