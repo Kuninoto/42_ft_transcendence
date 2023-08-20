@@ -4,18 +4,20 @@ import { api } from '@/api/api'
 import { Friend, SearchUserInfo } from '@/common/types'
 import { FriendshipStatus } from '@/common/types/backend/friendship-status.enum'
 import { removeParams } from '@/contexts/AuthContext'
+import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { MdOutlineBlock, MdOutlineClear, MdOutlineDone } from 'react-icons/md'
+import { toast } from 'react-toastify'
 
 export default function FriendsModal({
-	addFriend,
 	closeModal,
 }: {
-	addFriend: (user: Friend) => void
 	closeModal: () => void
 }) {
+	const { addFriend } = useChat()
+
 	const [search, setSearch] = useState('')
 	const [requests, setRequests] = useState<Friend[]>([])
 	const [requestsLoading, setRequestsLoading] = useState(true)

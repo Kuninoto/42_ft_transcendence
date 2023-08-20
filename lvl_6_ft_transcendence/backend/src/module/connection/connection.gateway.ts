@@ -11,6 +11,7 @@ import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { UsersService } from 'src/module/users/users.service';
 import { User } from 'src/typeorm';
 import { Achievements, Friend, UserStatus } from 'types';
+import { AuthService } from '../auth/auth.service';
 import { MessageService } from '../chat/message.service';
 import { RoomService } from '../chat/room.service';
 import { FriendshipsService } from '../friendships/friendships.service';
@@ -37,6 +38,7 @@ export class ConnectionGateway
     private readonly roomService: RoomService,
     private readonly messageService: MessageService,
     private readonly connectionService: ConnectionService,
+    private readonly authService: AuthService,
   ) {}
 
   private readonly logger: Logger = new Logger(ConnectionGateway.name);
@@ -76,8 +78,10 @@ export class ConnectionGateway
     await this.gameService.disconnectPlayer(client.data.userId);
     await this.updateUserStatus(client.data.userId, UserStatus.OFFLINE);
 
-    this.logger.log(`User with uid= ${client.data.userId} has disconnected`);
     this.connectionService.deleteSocketIdByUID(client.data.userId);
+    this.authService.logout(client.data.userId);
+  
+    this.logger.log(`User with uid= ${client.data.userId} has disconnected and logged out`);
   }
 
   async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {

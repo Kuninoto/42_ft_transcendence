@@ -15,7 +15,7 @@ import {
   BlockedUserInterface,
   ErrorResponse,
   Friend,
-  FriendRequestInterface,
+  FriendRequest,
   FriendshipStatus,
   SuccessResponse,
 } from 'types';
@@ -39,9 +39,7 @@ export class FriendshipsService {
 
   private readonly logger: Logger = new Logger(FriendshipsService.name);
 
-  public async getMyFriendRequests(
-    meUser: User,
-  ): Promise<FriendRequestInterface[]> {
+  public async getMyFriendRequests(meUser: User): Promise<FriendRequest[]> {
     const [myFriendRequestsAsReceiver, myFriendRequestsAsSender] =
       await Promise.all([
         this.friendshipRepository.find({
@@ -54,7 +52,7 @@ export class FriendshipsService {
         }),
       ]);
 
-    const myFriendRequestsInterfaces: FriendRequestInterface[] = [
+    const myFriendRequestsInterfaces: FriendRequest[] = [
       ...myFriendRequestsAsReceiver.map((friendrequest: Friendship) => ({
         friendship_id: friendrequest.id,
         uid: friendrequest.sender.id,

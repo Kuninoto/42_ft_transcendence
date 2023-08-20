@@ -1,28 +1,205 @@
-import { createContext, ReactNode, useContext, useState } from 'react'
+import { api } from '@/api/api'
+import { Friend } from '@/common/types/backend/friend-interface.interface'
+import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
+import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
+import { OponentFoundDTO } from '@/common/types/oponent-found'
+import { RespondToGameInviteDTO } from '@/common/types/respond-to-game-invite.dto'
+import { SendDirectMessageDTO } from '@/common/types/send-direct-message.dto'
+import { SendGameInviteDTO } from '@/common/types/send-game-invite.dto'
+import {
+	createContext,
+	ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from 'react'
+import { toast } from 'react-toastify'
+
+import { socket } from './SocketContext'
 
 type ChatContextType = {
+	addFriend: (friend: Friend) => void
 	close: () => void
+	currentOpenChat: IChat
+	focusChat: (id: number) => void
+	friends: Friend[]
 	isOpen: boolean
-	open: () => void
+	open: (friend: Friend) => void
+	openChats: IChat[]
+	respondGameInvite: (accepted: boolean) => void
+	sendGameInvite: (id: number) => void
+	sendMessage: (message: string) => void
+}
+
+export interface MessageDTO {
+	content: string
+	sendByMe: boolean
+	uniqueID: string
+}
+
+interface IChat {
+	friend: Friend
+	messages: MessageDTO[]
 }
 
 const ChatContext = createContext<ChatContextType>({} as ChatContextType)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
-	const [isOpen, setIsOpen] = useState(false)
+	const [friends, setFriends] = useState<Friend[]>([])
 
-	function open() {
-		setIsOpen(true)
+	const [openChats, setOpenChats] = useState<IChat[]>([])
+	const currentOpenChat = openChats[openChats.length - 1]
+
+	function open(friend: Friend) {
+		const newChat: IChat = {
+			friend,
+			messages: [],
+		}
+		setOpenChats([newChat, ...openChats])
+	}
+
+	function focusChat(id: number) {
+		setOpenChats((prevChat) => {
+			const index = prevChat?.findIndex((chat) => chat.friend.uid === id)
+			prevChat.push(prevChat[index])
+			prevChat.splice(index, 1)
+			return prevChat
+		})
 	}
 
 	function close() {
-		setIsOpen(false)
+		setOpenChats([])
+	}
+
+	function addFriend(friend: Friend) {
+		setFriends([...friends, friend])
+	}
+
+	function sendGameInvite(id: number) {
+		if (!socket) return
+
+		const gameInviteDTO: SendGameInviteDTO = {
+			recipientUID: id,
+		}
+		socket.emit('sendGameInvite', gameInviteDTO)
+	}
+
+	function respondGameInvite(accepted: boolean) {
+		if (!socket) return
+
+		// parameter in user
+		const response: RespondToGameInviteDTO = {
+			accepted,
+			inviteId: 2,
+		}
+		socket.emit(
+			'respondToGameInvite',
+			response,
+			(response: OponentFoundDTO) => {
+				console.log(response)
+			}
+		)
+	}
+
+	useEffect(() => {
+		try {
+			api
+				.get('/me/friends')
+				.then((result) => {
+					setFriends(result.data)
+				})
+				.catch((e) => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}, [])
+
+	useEffect(() => {
+		socket?.on(
+			'directMessageReceived',
+			function (data: DirectMessageReceivedDTO) {
+				setOpenChats((prevChat) => {
+					const newChat = [...prevChat]
+					const index = prevChat?.findIndex(
+						(chat) => chat.friend.uid === data.senderUID
+					)
+
+					if (index === -1) {
+						newChat.push({
+							friend: friends.filter(
+								(friend) => friend.uid === data.senderUID
+							)[0],
+							messages: [
+								{
+									content: data.content,
+									sendByMe: false,
+									uniqueID: data.uniqueId,
+								},
+							],
+						})
+					} else {
+						const newMessage: MessageDTO = {
+							content: data.content,
+							sendByMe: false,
+							uniqueID: data.uniqueId,
+						}
+
+						newChat[index]?.messages.unshift(newMessage)
+						newChat.push(newChat[index])
+						newChat.splice(index, 1)
+					}
+					return newChat
+				})
+			}
+		)
+
+		socket?.on('invitedToGame', function (data: InvitedToGameDTO) {
+			console.log(data)
+		})
+	}, [socket])
+
+	function sendMessage(message: string) {
+		if (!socket) return
+
+		const sendMessageDTO: SendDirectMessageDTO = {
+			content: message,
+			receiverUID: parseInt(currentOpenChat.friend?.uid),
+			uniqueId: crypto.randomUUID(),
+		}
+		socket.emit('sendDirectMessage', sendMessageDTO)
+
+		const newMessage: MessageDTO = {
+			content: message,
+			sendByMe: true,
+			uniqueID: sendMessageDTO.uniqueId,
+		}
+
+		setOpenChats((prevChat) => {
+			const index = prevChat?.findIndex(
+				(chat) => chat.friend.uid === currentOpenChat.friend?.uid
+			)
+
+			prevChat[index]?.messages.unshift(newMessage)
+			prevChat.push(prevChat[index])
+			prevChat.splice(index, 1)
+			return prevChat
+		})
 	}
 
 	const value: ChatContextType = {
+		addFriend,
 		close,
-		isOpen,
+		currentOpenChat,
+		focusChat,
+		friends,
+		isOpen: openChats.length !== 0,
 		open,
+		openChats,
+		respondGameInvite,
+		sendGameInvite,
+		sendMessage,
 	}
 
 	return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
