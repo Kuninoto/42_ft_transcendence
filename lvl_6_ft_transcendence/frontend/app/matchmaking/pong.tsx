@@ -89,15 +89,15 @@ export default function Pong() {
 			paddleImage.onload = () => {
 				context.drawImage(
 					paddleImageRef.current,
-					playerPaddleRef.current.x,
-					playerPaddleRef.current.y,
+					playerPaddleRef.current.x - PADDLE_WIDTH / 2,
+					playerPaddleRef.current.y - PADDLE_HEIGHT / 2,
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				)
 				context.drawImage(
 					paddleImageRef.current,
-					opponentPaddleRef.current.x,
-					opponentPaddleRef.current.y,
+					opponentPaddleRef.current.x - PADDLE_WIDTH / 2,
+					opponentPaddleRef.current.y - PADDLE_HEIGHT / 2,
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				)
@@ -120,15 +120,15 @@ export default function Pong() {
 					context.fillStyle = '#FFF'
 					context.drawImage(
 						paddleImageRef.current,
-						playerPaddleRef.current.x,
-						playerPaddleRef.current.y,
+						playerPaddleRef.current.x - PADDLE_WIDTH / 2,
+						playerPaddleRef.current.y - PADDLE_HEIGHT / 2,
 						PADDLE_WIDTH,
 						PADDLE_HEIGHT
 					)
 					context.drawImage(
 						paddleImageRef.current,
-						opponentPaddleRef.current.x,
-						opponentPaddleRef.current.y,
+						opponentPaddleRef.current.x - PADDLE_WIDTH / 2,
+						opponentPaddleRef.current.y - PADDLE_HEIGHT / 2,
 						PADDLE_WIDTH,
 						PADDLE_HEIGHT
 					)
@@ -142,10 +142,8 @@ export default function Pong() {
 			const update = () => {
 				if (isMovingDown) {
 					playerPaddleRef.current.moveDown()
-					console.log('down')
 				} else if (isMovingUp) {
 					playerPaddleRef.current.moveUp()
-					console.log('up')
 				}
 				opponentPaddleRef.current.move()
 
