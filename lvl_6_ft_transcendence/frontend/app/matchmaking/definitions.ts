@@ -10,10 +10,15 @@ export const BALL_SIZE = 4
 export const CANVAS_HEIGHT = 400
 export const CANVAS_WIDTH = 800
 
+enum Direction {
+	STOP,
+	UP,
+	DOWN,
+}
+
 export class Paddle {
 	#emitPaddleMovement: (newY: number) => void
-	#fixedSpeed: number = 0
-
+	#moveDirection: Direction = Direction.STOP
 	#position: { x: number; y: number }
 
 	constructor(emitPaddleMovement: (newY: number) => void, offset: number) {
@@ -26,14 +31,14 @@ export class Paddle {
 
 	allowMove(moveDown: boolean) {
 		if (moveDown) {
-			this.#fixedSpeed = PADDLE_SPEED
+			this.#moveDirection = Direction.DOWN
 		} else {
-			this.#fixedSpeed = -PADDLE_SPEED
+			this.#moveDirection = Direction.UP
 		}
 	}
 
 	blockMove() {
-		this.#fixedSpeed = 0
+		this.#moveDirection = Direction.STOP
 	}
 
 	isBallColliding(
@@ -60,22 +65,36 @@ export class Paddle {
 	}
 
 	move() {
-		if (this.#fixedSpeed === 0) return
+		if (this.#moveDirection === Direction.STOP) return
 
-		const nextPosition = this.#position.y + this.#fixedSpeed
-		if (nextPosition < 0) {
-			this.#position.y = 0
-		} else if (nextPosition + PADDLE_HEIGHT > CANVAS_HEIGHT) {
-			this.#position.y = CANVAS_HEIGHT - PADDLE_HEIGHT
-		} else {
-			this.#position.y += this.#fixedSpeed
+		if (this.#moveDirection === Direction.UP && this.#position.y > 0) {
+			this.#position.y -= PADDLE_SPEED
+		} else if (
+			this.#moveDirection === Direction.DOWN &&
+			this.#position.y + PADDLE_HEIGHT < CANVAS_HEIGHT
+		) {
+			this.#position.y += PADDLE_SPEED
 		}
+		this.#emitPaddleMovement(this.#position.y)
+	}
+
+	moveDown() {
+		if (this.#position.y + PADDLE_HEIGHT > CANVAS_HEIGHT) return
+		this.#position.y += PADDLE_SPEED
+
+		this.#emitPaddleMovement(this.#position.y)
+	}
+
+	moveUp() {
+		console.log(this.#position)
+		if (this.#position.y < 0) return
+		this.#position.y += -PADDLE_SPEED
 		this.#emitPaddleMovement(this.#position.y)
 	}
 
 	reset() {
 		this.#position.y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2
-		this.#fixedSpeed = 0
+		this.#moveDirection = Direction.STOP
 	}
 
 	get x(): number {
