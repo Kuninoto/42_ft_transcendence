@@ -16,6 +16,7 @@ export interface UserProfile {
   friendship_status: FriendshipStatus | null;
   friend_request_sent_by_me: boolean | null;
   is_blocked: boolean;
+  ladder_level: number;
   match_history: GameResultInterface[];
   stats: UserStatsInterface;
   achievements: AchievementInterface[];
