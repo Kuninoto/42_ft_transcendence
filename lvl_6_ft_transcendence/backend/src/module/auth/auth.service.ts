@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
 import { User } from 'src/typeorm';
-import { AccessTokenResponse, LoginResponse } from 'types';
+import { AccessTokenResponse, LoginResponse, SuccessResponse } from 'types';
 import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 
@@ -13,6 +13,8 @@ export class AuthService {
 
   private readonly logger: Logger = new Logger(AuthService.name);
 
+  public tokenWhitelist: Map<string, string> = new Map<string, string>();
+
   // Return the signed JWT as access_token
   public login(user: User): LoginResponse {
     const payload: TokenPayload = {
@@ -20,10 +22,22 @@ export class AuthService {
       has_2fa: user.has_2fa,
     };
 
+    const accessToken: string = this.jwtService.sign(payload);
+
+    // Set the new accessToken as the new valid token for user with uid= user.id
+    this.tokenWhitelist.set(user.id.toString(), accessToken);
+
     this.logger.log(`"${user.name}" logged in with 42 auth!`);
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: accessToken,
       has2fa: user.has_2fa,
+    };
+  }
+
+  public logout(userId: number): SuccessResponse {
+    this.tokenWhitelist.delete(userId.toString());
+    return {
+      message: 'Successfully logged out',
     };
   }
 
@@ -35,9 +49,14 @@ export class AuthService {
       is_2fa_authed: true,
     };
 
+    const accessToken: string = this.jwtService.sign(payload);
+
+    // Set the new accessToken as the new valid token for user with uid= user.id
+    this.tokenWhitelist.set(user.id.toString(), accessToken);
+
     this.logger.log(`"${user.name}" authenticated with Google Authenticator!`);
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
     };
   }
 

@@ -1,17 +1,14 @@
 'use client'
 
-import { api } from '@/api/api'
-import { Friend } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
-import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'
 import GroupsModal from './groupsModal'
@@ -24,40 +21,18 @@ enum openModalType {
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
+	const { friends } = useChat()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
-	const [friends, setFriends] = useState<Friend[]>([])
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
 
-	const { open } = useChat()
-
-	function addFriend(user: Friend) {
-		setFriends([...friends, user])
-	}
-
-	useEffect(() => {
-		try {
-			api
-				.get('/me/friends')
-				.then((result) => {
-					setFriends(result.data)
-				})
-				.catch((e) => {
-					throw 'Network error'
-				})
-		} catch (error) {
-			toast.error(error)
-		}
-	}, [])
+	const { open, sendGameInvite } = useChat()
 
 	return (
 		<div className="flex h-full w-full">
 			{openModal === openModalType.FRIENDS ? (
-				<FriendsModal
-					addFriend={addFriend}
-					closeModal={() => setOpenModal(openModalType.NULL)}
-				/>
+				<FriendsModal closeModal={() => setOpenModal(openModalType.NULL)} />
 			) : openModal === openModalType.GROUPS ? (
 				<GroupsModal closeModal={() => setOpenModal(openModalType.NULL)} />
 			) : null}
@@ -69,9 +44,9 @@ export default function FriendsList(): JSX.Element {
 							<Image
 								alt={'avatar'}
 								fill
+								layout="fill"
 								loader={removeParams}
 								objectFit="cover"
-								layout="fill"
 								sizes="100vw"
 								src={user.avatar_url || '/placeholder.gif'}
 							/>
@@ -119,9 +94,9 @@ export default function FriendsList(): JSX.Element {
 									className="roundend group relative flex items-center rounded border border-white py-2"
 									key={friend.uid}
 								>
-									<Link
+									<button
 										className="flex w-full place-content-between items-center px-4"
-										href={'/'}
+										onClick={() => open(friend)}
 									>
 										<div className="flex items-center space-x-4">
 											<div className="relative aspect-square w-8 overflow-hidden rounded">
@@ -139,7 +114,7 @@ export default function FriendsList(): JSX.Element {
 										<div className="visible group-hover:invisible">
 											{friend.status}
 										</div>
-									</Link>
+									</button>
 									<div className="invisible absolute right-4 my-auto flex group-hover:visible">
 										<Link
 											className="hover:text-[#F32E7C]"
@@ -147,7 +122,10 @@ export default function FriendsList(): JSX.Element {
 										>
 											<BiUser size={24} />
 										</Link>
-										<button className="hover:text-[#F32E7C]">
+										<button
+											className="hover:text-[#F32E7C]"
+											onClick={() => sendGameInvite(friend.uid)}
+										>
 											<LuSwords size={24} />
 										</button>
 									</div>

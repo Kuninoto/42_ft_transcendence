@@ -73,20 +73,6 @@ export class AuthController {
   }
 
   /**
-   * GET /api/auth/logout
-   *
-   * Logs out the user
-   */
-  @ApiOkResponse({ description: 'Logs out the user' })
-  @UseGuards(JwtAuthGuard)
-  @Get('logout')
-  public async logout(@Req() req: any): Promise<SuccessResponse> {
-    req.logOut(() => {});
-
-    return { message: 'Successfully logged out' };
-  }
-
-  /**
    * 2fa FLOW
    *
    * Install Google Authenticator

@@ -11,6 +11,7 @@ import { UsersModule } from '../users/users.module';
 import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
 import { ConnectionGateway } from './connection.gateway';
 import { ConnectionService } from './connection.service';
+import { AuthService } from '../auth/auth.service';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ConnectionService } from './connection.service';
     UserIdToSocketIdMap,
     ConnectionService,
     ConnectionGateway,
+    AuthService,
   ],
   exports: [ConnectionGateway, ConnectionService],
 })

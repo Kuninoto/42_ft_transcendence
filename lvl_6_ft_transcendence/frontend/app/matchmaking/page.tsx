@@ -12,7 +12,7 @@ import { useEffect } from 'react'
 import Pong from './pong'
 
 type card = {
-	player: UserSearchInfo
+	player: { avatar_url: string; id: number; name: string } | UserSearchInfo
 	score: number
 	side: PlayerSide
 }
@@ -42,16 +42,18 @@ function HorizontalCard({ player, score, side }: card) {
 }
 
 function FinalModal() {
-	const { gameEndInfo  } = useGame()
+	const { gameEndInfo } = useGame()
 	const { user } = useAuth()
 
 	if (!hasValues(gameEndInfo)) return
 
 	return (
-		<div className="w-full h-full flex bg-black/50 space-y-12 flex-col absolute place-content-center items-center">
-			<h1 className="text-8xl">{gameEndInfo?.winner?.userId == user?.id ? 'You win!' : 'You lose!'}</h1>
+		<div className="absolute flex h-full w-full flex-col place-content-center items-center space-y-12 bg-black/50">
+			<h1 className="text-8xl">
+				{gameEndInfo?.winner?.userId == user?.id ? 'You win!' : 'You lose!'}
+			</h1>
 			<Link
-				className="rounded border border-white py-3 px-16 text-center text-white mix-blend-lighten hover:bg-white hover:text-black"
+				className="rounded border border-white px-16 py-3 text-center text-white mix-blend-lighten hover:bg-white hover:text-black"
 				href="/dashboard"
 			>
 				Home
@@ -63,6 +65,22 @@ function FinalModal() {
 export default function Game() {
 	const { user } = useAuth()
 	const { leftPlayerScore, opponentFound, rightPlayerScore } = useGame()
+
+	useEffect(() => {
+		const handleNavigation = () => {
+			// This function will be called when the user navigates.
+			console.log('User navigated back. Calling your function.')
+			// Call your function logic here
+		}
+
+		// Listen for the 'popstate' event which is triggered when the user goes back
+		window.addEventListener('popstate', handleNavigation)
+
+		// Clean up the event listener when the component is unmounted
+		return () => {
+			window.removeEventListener('popstate', handleNavigation)
+		}
+	}, [])
 
 	useEffect(() => {
 		const handleBeforeUnload = (event) => {
@@ -77,7 +95,6 @@ export default function Game() {
 		}
 	}, [])
 
-	 
 	return (
 		<div className="flex h-full flex-col">
 			<FinalModal />

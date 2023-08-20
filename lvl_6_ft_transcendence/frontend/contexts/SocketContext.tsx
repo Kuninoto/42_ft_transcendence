@@ -1,50 +1,43 @@
+import { createContext, ReactNode, useContext, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import io from 'socket.io-client'
-import { useEffect, ReactNode, createContext, useContext } from 'react'
-import { usePathname } from 'next/navigation'
-import { AchievementUnlockedDTO } from '@/common/types/achievement-unlocked.dto'
-
-import { toast } from 'react-toastify';
 
 export let socket: any
 
 type SocketContextType = {
-    connect: () => void
+	connect: () => void
 }
 
 const SocketContext = createContext<SocketContextType>({} as SocketContextType)
 
 export function SocketProvider({ children }: { children: ReactNode }) {
+	const connect = () => {
+		socket = io('http://localhost:3000/connection', {
+			extraHeaders: {
+				Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+			},
+		})
 
-	const pathname = usePathname()
-
-    const connect = () => {
-        socket = io('http://localhost:3000/connection', {
-            extraHeaders: {
-                Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
-            },
-        })
-
-
-        socket.on("achievementUnlocked", () => {
-            toast.warning("🎉 New achievement unlocked!", {
-                position: "bottom-right",
-                icon: false
-            })
-        })
-    }
+		socket.on('achievementUnlocked', () => {
+			toast('🎉 New achievement unlocked!', {
+				icon: false,
+			})
+		})
+	}
 
 	useEffect(() => {
 		if (localStorage.getItem('pong.token')) {
-            connect()
-		} 
+			connect()
+		}
 	}, [])
 
 	const value: SocketContextType = {
-        connect
+		connect,
 	}
 
-	return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
-   
+	return (
+		<SocketContext.Provider value={value}>{children}</SocketContext.Provider>
+	)
 }
 
 export function useSocket() {

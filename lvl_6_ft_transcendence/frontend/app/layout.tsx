@@ -18,7 +18,6 @@ const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
 function FixedPanel({ handle }: { handle: any }) {
 	const path = usePathname()
-
 	const { logout } = useAuth()
 
 	return (
@@ -60,19 +59,22 @@ export default function RootLayout({
 									{children}
 									<Chat />
 								</div>
-
 								<FixedPanel handle={handle} />
 								<ToastContainer
+									progressClassName={
+										'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'
+									}
 									autoClose={5000}
 									closeOnClick
 									draggable
-									hideProgressBar={false}
+									icon={false}
+									limit={2}
 									newestOnTop
-									pauseOnFocusLoss={false}
+									pauseOnFocusLoss
 									pauseOnHover={false}
-									position="top-right"
-									rtl={false}
+									position="top-center"
 									theme="dark"
+									toastClassName={`font-xs whitespace-nowrap w-full bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% ${pressStart.className}`}
 								/>
 							</FullScreen>
 						</body>

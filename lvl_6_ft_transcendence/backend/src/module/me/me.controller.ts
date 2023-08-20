@@ -25,7 +25,7 @@ import {
   BlockedUserInterface,
   ErrorResponse,
   Friend,
-  FriendRequestInterface,
+  FriendRequest,
   GameThemes,
   MeUserInfo,
   SuccessResponse,
@@ -88,7 +88,9 @@ export class MeController {
    *
    * Finds and returns the 'me' user's friends
    */
-  @ApiOkResponse({ description: "Finds and returns the 'me' user's friends" })
+  @ApiOkResponse({
+    description: "Finds and returns the 'me' user's friends",
+  })
   @Get('friends')
   public async getMyFriends(@Req() req: { user: User }): Promise<Friend[]> {
     this.logger.log(`"${req.user.name}" requested his friends info`);
@@ -111,7 +113,7 @@ export class MeController {
   @Get('friend-request')
   public async getMyFriendRequests(
     @Req() req: { user: User },
-  ): Promise<FriendRequestInterface[]> {
+  ): Promise<FriendRequest[]> {
     this.logger.log(
       `"${req.user.name}" requested his received friend-requests`,
     );
@@ -124,7 +126,9 @@ export class MeController {
    *
    * Finds and returns the 'me' user's blocklist
    */
-  @ApiOkResponse({ description: "Finds and returns the 'me' user's blocklist" })
+  @ApiOkResponse({
+    description: "Finds and returns the 'me' user's blocklist",
+  })
   @Get('blocklist')
   public async getMyBlockedUsers(
     @Req() req: { user: User },
@@ -147,7 +151,9 @@ export class MeController {
     description:
       'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
   })
-  @ApiConflictResponse({ description: 'If the new username is already taken' })
+  @ApiConflictResponse({
+    description: 'If the new username is already taken',
+  })
   @ApiBody({
     schema: {
       type: 'object',

@@ -12,32 +12,34 @@ export default function History({
 }) {
 	return (
 		<div className="w-full space-y-4">
-			{!hasValues(history) 
-			? <div className="w-full text-center py-8 text-2xl"> Start playing</div>	
-			: history?.map((match, index) => {
-				const opponent =
-					match.winner.userId === userProfile?.id ? match.loser : match.winner
+			{!hasValues(history) ? (
+				<div className="w-full py-8 text-center text-2xl"> Start playing</div>
+			) : (
+				history?.map((match, index) => {
+					const opponent =
+						match.winner.userId === userProfile?.id ? match.loser : match.winner
 
-				return (
-					<div
-						className="flex w-full place-content-around border border-white py-3 text-xl"
-						key={index}
-					>
-						{console.log(match)}
-						<p>
-							{match.winner.userId === userProfile?.id ? 'Victory' : 'Defeat'}
-						</p>
-						<p>12 04</p>
-						<p>4:20</p>
-						<Link
-							className="hover:underline"
-							href={`/profile?id=${opponent.userId}`}
+					return (
+						<div
+							className="flex w-full place-content-around border border-white py-3 text-xl"
+							key={index}
 						>
-							{opponent.name}
-						</Link>
-					</div>
-				)
-			})}
+							{console.log(match)}
+							<p>
+								{match.winner.userId === userProfile?.id ? 'Victory' : 'Defeat'}
+							</p>
+							<p>12 04</p>
+							<p>4:20</p>
+							<Link
+								className="hover:underline"
+								href={`/profile?id=${opponent.userId}`}
+							>
+								{opponent.name}
+							</Link>
+						</div>
+					)
+				})
+			)}
 		</div>
 	)
 }

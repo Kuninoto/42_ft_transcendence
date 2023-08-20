@@ -3,9 +3,12 @@ import { PlayerSide } from '@/common/types/backend/player-side.enum'
 import { GameEndDTO } from '@/common/types/game-end.dto'
 import { GameRoomDTO } from '@/common/types/game-room-info'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
+import { PaddleMoveDTO } from '@/common/types/paddle-move.dto'
+import { PlayerReadyDTO } from '@/common/types/player-ready.dto'
 import { PlayerScoredDTO } from '@/common/types/player-scored.dto'
-import { useRouter } from 'next/navigation'
+import { hasValues } from '@/common/utils/hasValues'
 import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
@@ -14,28 +17,24 @@ import {
 	useState,
 } from 'react'
 
-import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
-import { hasValues } from '@/common/utils/hasValues'
 
 type GameContextType = {
 	ballPosition: Ball
 	cancel: () => void
-	queue: () => void
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
+	gameEndInfo: GameEndDTO
 	leftPlayerScore: number
 	opponentFound: OponentFoundDTO
 	opponentPosition: number
+	queue: () => void
 	rightPlayerScore: number
-	gameEndInfo: GameEndDTO
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType)
 
 export function GameProvider({ children }: { children: ReactNode }) {
-	const { user } = useAuth()
-
 	const [opponentFound, setOpponentFound] = useState<OponentFoundDTO>(
 		{} as OponentFoundDTO
 	)
@@ -45,38 +44,51 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
-	const [ gameEndInfo, setGameEndInfo ] = useState<GameEndDTO>({} as GameEndDTO) 
+	const [gameEndInfo, setGameEndInfo] = useState<GameEndDTO>({} as GameEndDTO)
 
 	const router = useRouter()
 	const pathname = usePathname()
 
 	function cancel() {
 		router?.push('/dashboard')
+
+		if (!socket) return
+		socket?.emit('leaveQueueOrGame')
 	}
 
 	function queue() {
-		socket?.emit('queueToLadder', {})
+		if (!socket) return
+
+		socket.emit('queueToLadder', {})
 	}
 
 	useEffect(() => {
-
-		if (pathname === "/matchmaking" && !hasValues(opponentFound))
-			router.push("/dashboard")
+		if (pathname === '/matchmaking' && !hasValues(opponentFound))
+			router.push('/dashboard')
 		else {
-			socket?.on('opponentFound', function(data: OponentFoundDTO) {
+			socket?.on('opponentFound', function (data: OponentFoundDTO) {
 				setOpponentFound(data)
 				router.push('/matchmaking')
 			})
 
-			socket?.on('connect_error', err => console.log(err))
-			socket?.on('connect_failed', err => console.log(err))
-			socket?.on('disconnect', err => console.log(err))
+			socket?.on('connect_error', (err) => console.log(err))
+			socket?.on('connect_failed', (err) => console.log(err))
+			socket?.on('disconnect', (err) => console.log(err))
 		}
 	}, [])
 
 	useEffect(() => {
+		if (
+			pathname === '/matchmaking/finding-opponent' &&
+			hasValues(opponentFound)
+		) {
+			history.go(1)
+			socket?.emit('leaveQueueOrGame')
+		}
+	}, [pathname])
 
-		socket?.on('gameRoomInfo', function(data: GameRoomDTO) {
+	useEffect(() => {
+		socket?.on('gameRoomInfo', function (data: GameRoomDTO) {
 			if (opponentFound.side === PlayerSide.LEFT) {
 				setOpponentPosition(data.rightPlayer.paddleY)
 			} else {
@@ -86,48 +98,48 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			setBallPosition(data.ball)
 		})
 
-		socket?.on('gameEnd', function(data: GameEndDTO) {
+		socket?.on('gameEnd', function (data: GameEndDTO) {
 			setGameEndInfo(data)
-			if (data.winner.userId === user.id) console.log('winner')
-			else console.log('loser')
-			console.log(data)
 		})
 
-		socket?.on('playerScored', function(data: PlayerScoredDTO) {
+		socket?.on('playerScored', function (data: PlayerScoredDTO) {
 			setLeftPlayerScore(data.leftPlayerScore)
 			setRightPlayerScore(data.rightPlayerScore)
 		})
 	}, [opponentFound])
 
-
 	function emitPaddleMovement(newY: number) {
 		if (!socket) return
-		socket.emit('paddleMove', {
+
+		const paddleMoveDTO: PaddleMoveDTO = {
 			gameRoomId: opponentFound.roomId,
 			newY: newY,
-		})
+		}
+
+		socket.emit('paddleMove', paddleMoveDTO)
 	}
 
 	function emitOnReady() {
-
 		if (!socket) return
 
-		socket.emit('playerReady', {
+		const playerReadyDTO: PlayerReadyDTO = {
 			gameRoomId: opponentFound.roomId,
-		})
+		}
+
+		socket.emit('playerReady', playerReadyDTO)
 	}
 
 	const value: GameContextType = {
 		ballPosition,
 		cancel,
-		queue,
 		emitOnReady,
 		emitPaddleMovement,
+		gameEndInfo,
 		leftPlayerScore,
 		opponentFound,
 		opponentPosition,
+		queue,
 		rightPlayerScore,
-		gameEndInfo,
 	}
 
 	return <GameContext.Provider value={value}>{children}</GameContext.Provider>
