@@ -13,4 +13,3 @@ export interface GameRoomDTO {
 	leftPlayer: Player
 	rightPlayer: Player
 }
-
