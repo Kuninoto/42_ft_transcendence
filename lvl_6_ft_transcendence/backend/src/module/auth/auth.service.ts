@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity';
 import { AccessTokenResponse, LoginResponse, SuccessResponse } from 'types';
 import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';

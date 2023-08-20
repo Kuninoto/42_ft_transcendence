@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
+import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
-import { User } from 'src/typeorm';
 
 // Because we'll specify which info
 // we want from the whole 'me' endpoint

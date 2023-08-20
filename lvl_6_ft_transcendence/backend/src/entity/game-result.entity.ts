@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from './index';
 import {
   Column,
   Entity,
@@ -7,7 +8,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { GameType } from 'types';
-import { User } from './user.entity';
 
 @Entity('game_result')
 export class GameResult {

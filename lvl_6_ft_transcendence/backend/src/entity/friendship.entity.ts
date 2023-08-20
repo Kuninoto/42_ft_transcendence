@@ -6,8 +6,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { FriendshipStatus } from '../../types/friendship/friendship-status.enum';
-import { User } from './user.entity';
+import { FriendshipStatus } from 'types';
+import { User } from './index';
 
 @Entity('friendship')
 export class Friendship {

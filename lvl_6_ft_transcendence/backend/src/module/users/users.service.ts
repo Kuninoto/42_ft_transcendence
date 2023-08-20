@@ -15,7 +15,7 @@ import {
   Friendship,
   GameResult,
   User,
-} from 'src/typeorm/index';
+} from 'src/entity/index';
 import { Repository } from 'typeorm';
 import {
   ChatRoomI,

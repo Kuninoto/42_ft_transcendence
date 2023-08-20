@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { join } from 'path';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { UsersModule } from 'src/module/users/users.module';
+import entities from './entity/index';
 import { AchievementModule } from './module/achievement/achievement.module';
 import { ChatModule } from './module/chat/chat.module';
 import { ConnectionModule } from './module/connection/connection.module';
@@ -13,7 +14,6 @@ import { FriendshipsModule } from './module/friendships/friendships.module';
 import { GameModule } from './module/game/game.module';
 import { MeModule } from './module/me/me.module';
 import { UserStatsModule } from './module/user-stats/user-stats.module';
-import entities from './typeorm/index';
 
 @Module({
   imports: [
