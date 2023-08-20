@@ -47,11 +47,10 @@ export class ConnectionGateway
 
   async handleConnection(client: Socket): Promise<void> {
     try {
-      // TODO change this to the jwt auth (commented)
-      const user: User = await this.usersService.findUserByUID(
-        parseInt(client.handshake.headers.authorization),
-      );
-      // await this.connectionService.authenticateClientAndRetrieveUser(client);
+      // Throws if there's any misconfig with the access token
+      // (bad signature or user doesn't exist)
+      const user: User =
+        await this.connectionService.authenticateClientAndRetrieveUser(client);
 
       client.data.userId = user.id;
 

@@ -49,11 +49,14 @@ export class RoomService {
     newPassword: string,
     room: ChatRoom,
   ): Promise<void> {
+    // If sender is not the owner of the room
+    // he can't change its password
     if (room.owner.id != senderId) {
       return;
     }
 
-    if (room.type != ChatRoomType.PROTECTED) {
+    // If the room was public now it is protected
+    if (room.type !== ChatRoomType.PROTECTED) {
       room.type = ChatRoomType.PROTECTED;
     }
 
@@ -66,9 +69,7 @@ export class RoomService {
     senderId: number,
     room: ChatRoom,
   ): Promise<void> {
-    if (room.owner.id != senderId) {
-      return;
-    }
+    if (room.owner.id != senderId) return;
 
     if (room.type != ChatRoomType.PROTECTED) return;
 
@@ -99,7 +100,7 @@ export class RoomService {
     }
 
     if (room.type === ChatRoomType.PROTECTED) {
-      if (password != room.password) {
+      if (password !== room.password) {
         return;
       }
     }
@@ -129,10 +130,10 @@ export class RoomService {
     room.users = room.users.filter((user) => user.id !== userLeavingId);
     await this.chatRoomRepository.save(room);
 
-    // Kick userLeaving from server
     const socketIdOfLeavingUser: string =
       this.connectionService.findSocketIdByUID(userLeavingId.toString());
 
+    // Kick userLeaving from server
     this.connectionGateway.server
       .to(socketIdOfLeavingUser)
       .socketsLeave(room.name);
