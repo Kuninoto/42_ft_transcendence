@@ -286,6 +286,7 @@ export default function Profile() {
 						<a
 							className="text-md mb-4 text-gray-400 hover:underline"
 							href={userProfile?.intra_profile_url}
+							target="_blank"
 						>
 							{userProfile?.intra_name || 'Loading...'}
 						</a>
