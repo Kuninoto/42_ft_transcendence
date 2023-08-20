@@ -3,18 +3,19 @@ import { PADDLE_HEIGHT } from './Player';
 
 export const BALL_RADIUS: number = 4;
 
+const MAX_BOUNCE_SPEED: number = 11.5;
+
 // 45 degrees
-const MAX_BOUNCE_ANGLE: number = 45;
-const MAX_BOUNCE_SPEED: number = 12;
+const ANGLE: number = Math.PI / 4;
 
-const BALL_SPEED: number = 1.5;
-
-const randomBallSpeed = () => {
-  return Math.round(Math.random()) % 2 === 0 ? -BALL_SPEED : BALL_SPEED;
-};
+const BALL_SPEED: number = 2.5;
 
 const randomBallStartingHeight = () => {
   return Math.round(Math.random() * CANVAS_HEIGHT);
+};
+
+const randomBallAngle = () => {
+  return Math.random() * ANGLE; // range 0.0-45.0
 };
 
 export class Ball {
@@ -22,9 +23,12 @@ export class Ball {
   constructor() {
     this.x = CANVAS_WIDTH / 2;
     this.y = randomBallStartingHeight();
+
+    const angle: number = randomBallAngle();
+
     this.speed = {
-      x: randomBallSpeed(),
-      y: randomBallSpeed(),
+      x: BALL_SPEED * Math.cos(angle),
+      y: BALL_SPEED * Math.sin(angle),
     };
   }
 
@@ -48,7 +52,7 @@ export class Ball {
   // Refer to: https://gamedev.stackexchange.com/questions/4253/in-pong-how-do-you-calculate-the-balls-direction-when-it-bounces-off-the-paddl
   bounceOnCollidePoint(collidePoint: number) {
     const normalizedCollidePoint: number = collidePoint / PADDLE_HEIGHT;
-    const bounceAngle: number = normalizedCollidePoint * MAX_BOUNCE_ANGLE;
+    const bounceAngle: number = normalizedCollidePoint * ANGLE;
     const bounceSpeed: number = normalizedCollidePoint * MAX_BOUNCE_SPEED;
 
     //this.speed.x = bounceSpeed * Math.cos(bounceAngle);
@@ -59,9 +63,12 @@ export class Ball {
   reset() {
     this.x = CANVAS_WIDTH / 2;
     this.y = randomBallStartingHeight();
+
+    const angle: number = randomBallAngle();
+
     this.speed = {
-      x: randomBallSpeed(),
-      y: randomBallSpeed(),
+      x: BALL_SPEED * Math.cos(angle),
+      y: BALL_SPEED * Math.sin(angle),
     };
   }
 }
