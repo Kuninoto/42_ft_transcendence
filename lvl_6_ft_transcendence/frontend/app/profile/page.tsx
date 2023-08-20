@@ -271,14 +271,11 @@ export default function Profile() {
 					<div className="relative aspect-square w-80 overflow-hidden rounded-xl">
 						<Image
 							alt={'player profile picutre'}
-							className="h-max w-max"
-							height={0}
-							layout="fill"
+							className="h-max w-max object-cover"
+							fill
 							loader={removeParams}
-							objectFit="cover"
 							src={userProfile?.avatar_url || '/placeholder.gif'}
 							unoptimized
-							width={0}
 						/>
 					</div>
 

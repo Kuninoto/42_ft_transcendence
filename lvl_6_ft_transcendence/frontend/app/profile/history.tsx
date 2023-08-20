@@ -13,7 +13,7 @@ export default function History({
 	return (
 		<div className="w-full space-y-4">
 			{!hasValues(history) ? (
-				<div className="w-full py-8 text-center text-2xl"> Start playing</div>
+				<div className="w-full py-8 text-center text-2xl">Go play outside</div>
 			) : (
 				history?.map((match, index) => {
 					const opponent =
@@ -24,7 +24,6 @@ export default function History({
 							className="flex w-full place-content-around border border-white py-3 text-xl"
 							key={index}
 						>
-							{console.log(match)}
 							<p>
 								{match.winner.userId === userProfile?.id ? 'Victory' : 'Defeat'}
 							</p>
