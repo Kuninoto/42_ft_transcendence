@@ -1,7 +1,7 @@
 import { MuteDuration } from 'types';
 
 export interface MuteUserDTO {
-  readonly userId: string;
-  readonly roomId: string;
+  readonly userId: number;
+  readonly roomId: number;
   readonly duration: MuteDuration;
 }

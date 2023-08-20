@@ -321,6 +321,10 @@ export class FriendshipsService {
     friendship: Friendship,
   ) {
     await this.achievementsService.grantBreakingThePaddleBond(userId);
+    this.connectionGateway.leaveFriendRooms(
+      friendship.sender.id,
+      friendship.receiver.id,
+    );
     await this.friendshipRepository.delete(friendship);
   }
 

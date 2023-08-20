@@ -39,7 +39,6 @@ export class FriendshipsGateway implements OnGatewayInit {
    *          MESSAGES          *
    ******************************/
 
-  // Only be able to send DMs to friends
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
     @ConnectedSocket() client: Socket,
