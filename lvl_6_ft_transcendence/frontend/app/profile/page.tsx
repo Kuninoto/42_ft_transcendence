@@ -305,12 +305,13 @@ export default function Profile() {
 						<div> Win Rate {userProfile?.stats?.win_rate || '0'}% </div>
 					</div>
 					<div className="text-gray-400">
-						{' '}
 						since{' '}
-						{moment(
-							userProfile?.created_at,
-							moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
-						).format('DD/MM/YY')}{' '}
+						{hasValues(userProfile)
+							? moment(
+									userProfile?.created_at,
+									moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
+							  ).format('DD/MM/YY')
+							: 'XX/XX/XX'}
 					</div>
 				</div>
 
