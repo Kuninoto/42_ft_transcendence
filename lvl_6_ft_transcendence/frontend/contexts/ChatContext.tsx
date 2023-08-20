@@ -15,11 +15,13 @@ import {
 } from 'react'
 import { toast } from 'react-toastify'
 
+import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
 
 type ChatContextType = {
 	addFriend: (friend: Friend) => void
-	close: () => void
+	close: (id: number) => void
+	closeAll: () => void
 	currentOpenChat: IChat
 	focusChat: (id: number) => void
 	friends: Friend[]
@@ -40,34 +42,55 @@ export interface MessageDTO {
 interface IChat {
 	friend: Friend
 	messages: MessageDTO[]
+	unread: boolean
 }
 
 const ChatContext = createContext<ChatContextType>({} as ChatContextType)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
-	const [friends, setFriends] = useState<Friend[]>([])
+	const { isAuth } = useAuth()
+	const [friends, setFriends] = useState<[] | Friend[]>([])
 
-	const [openChats, setOpenChats] = useState<IChat[]>([])
-	const currentOpenChat = openChats[openChats.length - 1]
+	const [openChats, setOpenChats] = useState<[] | IChat[]>([])
+	const [currentOpenChat, setCurrentOpenChat] = useState<IChat>({} as IChat)
 
 	function open(friend: Friend) {
+		const index = openChats?.findIndex((chat) => chat.friend.uid === friend.uid)
+
+		if (index !== -1) {
+			focusChat(friend.uid)
+			return
+		}
+
 		const newChat: IChat = {
 			friend,
 			messages: [],
+			unread: false,
 		}
 		setOpenChats([newChat, ...openChats])
+		setCurrentOpenChat(newChat)
 	}
 
 	function focusChat(id: number) {
-		setOpenChats((prevChat) => {
-			const index = prevChat?.findIndex((chat) => chat.friend.uid === id)
-			prevChat.push(prevChat[index])
-			prevChat.splice(index, 1)
-			return prevChat
+		setOpenChats((prevChat) =>
+			prevChat.map((chat) =>
+				chat.friend.uid === id ? { ...chat, unread: false } : chat
+			)
+		)
+		setCurrentOpenChat(openChats.find((chat) => chat.friend.uid === id))
+	}
+
+	function close(id: number) {
+		setOpenChats((prevChats) => {
+			if (prevChats.length > 1 && currentOpenChat.friend.uid === id) {
+				setCurrentOpenChat(prevChats[1])
+			}
+
+			return prevChats.filter((chat) => chat.friend.uid !== id)
 		})
 	}
 
-	function close() {
+	function closeAll() {
 		setOpenChats([])
 	}
 
@@ -103,18 +126,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		try {
-			api
-				.get('/me/friends')
-				.then((result) => {
-					setFriends(result.data)
-				})
-				.catch((e) => {
-					throw 'Network error'
-				})
+			if (isAuth) {
+				api
+					.get('/me/friends')
+					.then((result) => {
+						setFriends(result.data)
+					})
+					.catch((e) => {
+						throw 'Network error'
+					})
+			}
 		} catch (error: any) {
 			toast.error(error)
 		}
-	}, [])
+	}, [isAuth])
 
 	useEffect(() => {
 		socket?.on(
@@ -122,15 +147,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 			function (data: DirectMessageReceivedDTO) {
 				setOpenChats((prevChat) => {
 					const newChat = [...prevChat]
-					const index = prevChat?.findIndex(
+					const index = newChat?.findIndex(
 						(chat) => chat.friend.uid === data.senderUID
 					)
 
 					if (index === -1) {
 						newChat.push({
-							friend: friends.filter(
-								(friend) => friend.uid === data.senderUID
-							)[0],
+							friend: friends.find((friend) => friend.uid === data.senderUID),
 							messages: [
 								{
 									content: data.content,
@@ -138,7 +161,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 									uniqueID: data.uniqueId,
 								},
 							],
+							unread: true,
 						})
+
+						if (newChat.length === 1) {
+							setCurrentOpenChat(newChat[0])
+						}
 					} else {
 						const newMessage: MessageDTO = {
 							content: data.content,
@@ -146,9 +174,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 							uniqueID: data.uniqueId,
 						}
 
+						newChat[index].unread = true
 						newChat[index]?.messages.unshift(newMessage)
-						newChat.push(newChat[index])
-						newChat.splice(index, 1)
 					}
 					return newChat
 				})
@@ -158,7 +185,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 		socket?.on('invitedToGame', function (data: InvitedToGameDTO) {
 			console.log(data)
 		})
-	}, [socket])
+	}, [friends])
 
 	function sendMessage(message: string) {
 		if (!socket) return
@@ -182,8 +209,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 			)
 
 			prevChat[index]?.messages.unshift(newMessage)
-			prevChat.push(prevChat[index])
-			prevChat.splice(index, 1)
 			return prevChat
 		})
 	}
@@ -191,6 +216,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 	const value: ChatContextType = {
 		addFriend,
 		close,
+		closeAll,
 		currentOpenChat,
 		focusChat,
 		friends,

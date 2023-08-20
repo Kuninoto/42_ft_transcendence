@@ -40,13 +40,12 @@ export default function FriendsList(): JSX.Element {
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
 					<div className="flex w-full rounded-t-md px-4 py-2">
-						<div className="relative aspect-square w-16 overflow-hidden rounded-xl">
+						<div className="relative aspect-square w-16 overflow-hidden rounded">
 							<Image
 								alt={'avatar'}
+								className="object-cover"
 								fill
-								layout="fill"
 								loader={removeParams}
-								objectFit="cover"
 								sizes="100vw"
 								src={user.avatar_url || '/placeholder.gif'}
 							/>
@@ -67,7 +66,7 @@ export default function FriendsList(): JSX.Element {
 								}}
 							>
 								<AiOutlineUserAdd
-									className="text-white hover:text-[#F32E7C]"
+									className="text-white hover:text-primary-fushia"
 									size={24}
 								/>
 							</button>
@@ -78,7 +77,7 @@ export default function FriendsList(): JSX.Element {
 								Friends
 								<div className="flex">
 									<RxTriangleUp
-										className={`transition-all duration-200 group-hover:text-[#F32E7C]
+										className={`transition-all duration-200 group-hover:text-primary-fushia
 									${openFriendsAccordean && '-rotate-180'}`}
 										size={24}
 									/>
@@ -99,14 +98,14 @@ export default function FriendsList(): JSX.Element {
 										onClick={() => open(friend)}
 									>
 										<div className="flex items-center space-x-4">
-											<div className="relative aspect-square w-8 overflow-hidden rounded">
+											<div className="relative aspect-square w-8 overflow-hidden rounded-sm">
 												<Image
 													alt={'avatar'}
+													className="object-cover"
 													fill
-													height={0}
+													loader={removeParams}
 													sizes="100vw"
 													src={friend.avatar_url || '/placeholder.gif'}
-													width={0}
 												/>
 											</div>
 											<div> {friend.name} </div>

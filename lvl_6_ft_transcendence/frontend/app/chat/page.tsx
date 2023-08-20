@@ -4,7 +4,7 @@ import { removeParams } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import { ChangeEventHandler, useState } from 'react'
-import { GrFormClose } from 'react-icons/gr'
+import { IoIosClose } from 'react-icons/io'
 
 export default function Chat() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -12,6 +12,7 @@ export default function Chat() {
 
 	const {
 		close,
+		closeAll,
 		currentOpenChat,
 		focusChat,
 		isOpen: exists,
@@ -35,49 +36,69 @@ export default function Chat() {
 	return (
 		<div
 			className={`${isOpen ? 'bottom-0' : '-bottom-[22rem]'} 
-			absolute right-28 flex h-96 w-[36rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% transition-all`}
+			absolute right-28 flex h-96 w-[38rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% transition-all`}
 		>
 			<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
 				<button className="w-full" onClick={() => setIsOpen(!isOpen)}>
-					{currentOpenChat.friend?.name}
+					{currentOpenChat?.friend.name}
 				</button>
-				<button onClick={close}>
-					<GrFormClose size={32} />
+				<button onClick={closeAll}>
+					<IoIosClose size={32} />
 				</button>
 			</div>
 
-			<div className="flex h-full w-full">
-				<div className="h-full w-4/12 border-r border-white">
-					{openChats.map((chat) => {
+			<div className="flex h-full w-full overflow-hidden">
+				<div className="h-full w-4/12 overflow-y-auto border-r border-white scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+					{openChats?.map((chat) => {
 						return (
-							<button
-								className="flex w-full flex-col space-y-2 border-b border-white px-4 py-2 opacity-60 hover:opacity-100"
-								key={chat.friend.uid}
-								onClick={() => focusChat(chat.friend.uid)}
+							<div
+								className={`group relative w-full items-center border-b border-white ${
+									chat.friend?.uid !== currentOpenChat?.friend.uid &&
+									'opacity-60'
+								}  hover:opacity-100`}
+								key={chat.friend?.uid}
 							>
-								<div className="flex w-full items-center space-x-2">
-									<div className="relative aspect-square w-8 overflow-hidden rounded">
+								<button
+									className={`flex h-12 w-full items-center space-x-2 px-2 group-hover:w-5/6 ${
+										chat.unread && 'w-5/6'
+									}`}
+									onClick={() => focusChat(chat.friend?.uid)}
+								>
+									<div className="relative h-8 w-8 overflow-hidden rounded-sm">
 										<Image
 											alt={'player in chat profile picture'}
+											className="h-fit w-fit object-cover "
 											fill
 											loader={removeParams}
 											sizes="100vw"
-											src={chat.friend.avatar_url || '/placeholder.gif'}
+											src={chat.friend?.avatar_url || '/placeholder.gif'}
 										/>
 									</div>
-									<div className="text-md w-3/4 overflow-hidden">
-										<h2>{chat.friend.name || 'NOT FOUND'}</h2>
+									<div className="text-md flex h-full w-3/4 items-center overflow-hidden whitespace-nowrap break-normal">
+										{chat.friend?.name || 'NOT FOUND'}
 									</div>
+								</button>
+
+								<div className="absolute right-3 top-0 hidden h-full items-center group-hover:flex">
+									<button onClick={() => close(chat.friend?.uid)}>
+										<IoIosClose className="h-6 w-6 rounded-full text-white hover:bg-[#FB37FF]" />
+									</button>
 								</div>
-								<div className="w-full overflow-hidden truncate text-ellipsis text-start text-xs">
-									{chat.messages.at(0)?.content}
-								</div>
-							</button>
+
+								{chat.unread && (
+									<div className="absolute right-4 top-0 flex h-full items-center group-hover:hidden">
+										<span className="relative my-auto flex h-3 w-3">
+											<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-shoque opacity-75"></span>
+											<span className="relative inline-flex h-3 w-3 rounded-full bg-primary-fushia"></span>
+										</span>
+									</div>
+								)}
+							</div>
 						)
 					})}
 				</div>
 				<div className="flex h-full w-8/12 flex-col place-content-between">
-					<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm">
+					<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 						{currentOpenChat?.messages.map((message) => {
 							if (!message.sendByMe) {
 								return (

@@ -89,15 +89,15 @@ export default function Pong() {
 			paddleImage.onload = () => {
 				context.drawImage(
 					paddleImageRef.current,
-					playerPaddleRef.current.x,
-					playerPaddleRef.current.y,
+					playerPaddleRef.current.x - PADDLE_WIDTH / 2,
+					playerPaddleRef.current.y - PADDLE_HEIGHT / 2,
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				)
 				context.drawImage(
 					paddleImageRef.current,
-					opponentPaddleRef.current.x,
-					opponentPaddleRef.current.y,
+					opponentPaddleRef.current.x - PADDLE_WIDTH / 2,
+					opponentPaddleRef.current.y - PADDLE_HEIGHT / 2,
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				)
@@ -120,15 +120,15 @@ export default function Pong() {
 					context.fillStyle = '#FFF'
 					context.drawImage(
 						paddleImageRef.current,
-						playerPaddleRef.current.x,
-						playerPaddleRef.current.y,
+						playerPaddleRef.current.x - PADDLE_WIDTH / 2,
+						playerPaddleRef.current.y - PADDLE_HEIGHT / 2,
 						PADDLE_WIDTH,
 						PADDLE_HEIGHT
 					)
 					context.drawImage(
 						paddleImageRef.current,
-						opponentPaddleRef.current.x,
-						opponentPaddleRef.current.y,
+						opponentPaddleRef.current.x - PADDLE_WIDTH / 2,
+						opponentPaddleRef.current.y - PADDLE_HEIGHT / 2,
 						PADDLE_WIDTH,
 						PADDLE_HEIGHT
 					)
@@ -140,21 +140,39 @@ export default function Pong() {
 			}
 
 			const update = () => {
-				playerPaddleRef.current.move()
+				if (isMovingDown) {
+					playerPaddleRef.current.moveDown()
+				} else if (isMovingUp) {
+					playerPaddleRef.current.moveUp()
+				}
 				opponentPaddleRef.current.move()
 
 				draw()
 				requestAnimationFrame(update)
 			}
 
+			let isMovingDown = false
+			let isMovingUp = false
+
 			const handleKeyDown = ({ key }: KeyboardEvent) => {
 				if (key === 's' || key === 'w' || key === KEYDOWN || key === KEYUP) {
-					playerPaddleRef.current.allowMove(key === 's' || key === KEYDOWN)
+					if (key === 's' || key === KEYDOWN) {
+						isMovingDown = true
+					} else {
+						isMovingUp = true
+					}
+
+					playerPaddleRef.current.allowMove(isMovingDown)
 				}
 			}
 
 			const handleKeyUp = ({ key }: KeyboardEvent) => {
 				if (key === 's' || key === 'w' || KEYDOWN === key || KEYUP === key) {
+					if (key === 's' || key === KEYDOWN) {
+						isMovingDown = false
+					} else {
+						isMovingUp = false
+					}
 					playerPaddleRef.current.blockMove()
 				}
 			}
