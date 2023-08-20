@@ -157,7 +157,8 @@ export class GameEngineService {
       // Collided with paddle's right side && is within the paddle height
       if (
         gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH / 2 &&
-        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY)
+        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
+        gameRoom.ball.speed.x < 0
       ) {
         gameRoom.ball.bounceOnCollidePoint(
           player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
@@ -170,7 +171,8 @@ export class GameEngineService {
       // Collided with paddle's left side && is within the paddle height
       if (
         gameRoom.ball.x + BALL_RADIUS >= player.paddleX - PADDLE_WIDTH / 2 &&
-        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY)
+        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
+        gameRoom.ball.speed.x > 0
       ) {
         gameRoom.ball.bounceOnCollidePoint(
           player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,

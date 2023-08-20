@@ -86,9 +86,7 @@ export class RoomService {
     password?: string,
   ): Promise<void> {
     if (await this.isUserBannedFromRoom(room, senderId)) {
-      this.logger.log(
-        `User with uid= ${senderId} is banned from room: "${room.name}"`,
-      );
+      this.logger.log(`UID= ${senderId} is banned from room: "${room.name}"`);
       return;
     }
 
@@ -153,14 +151,14 @@ export class RoomService {
   ): Promise<void> {
     if (!(await this.isUserAnAdmin(room, userToBanId))) {
       this.logger.warn(
-        `User with uid= ${userToBanId} tried to kick someone but he's not an admin on room: "${room.name}"`,
+        `UID= ${userToBanId} tried to kick someone but he's not an admin on room: "${room.name}"`,
       );
       return;
     }
     if (userToBanId === room.owner.id) {
       // Some admin tried to kick the chatroom owner
       this.logger.warn(
-        `User with uid= ${userToBanId} tried to kick the chatroom owner on room: "${room.name}"`,
+        `UID= ${userToBanId} tried to kick the chatroom owner on room: "${room.name}"`,
       );
       return;
     }
@@ -171,7 +169,7 @@ export class RoomService {
     await this.leaveRoom(room, userToBanId, false);
 
     this.logger.debug(
-      `User with uid= ${userToBanId} was kicked from room "${room.name}"`,
+      `UID= ${userToBanId} was kicked from room "${room.name}"`,
     );
   }
 
@@ -190,14 +188,14 @@ export class RoomService {
 
     if (!(await this.isUserAnAdmin(room, senderId))) {
       this.logger.warn(
-        `User with uid= ${userToBanId} tried to ban someone but he's not an admin on room: "${room.name}"`,
+        `UID= ${userToBanId} tried to ban someone but he's not an admin on room: "${room.name}"`,
       );
       return;
     }
     if (userToBanId === room.owner.id) {
       // Some admin tried to ban the chatroom owner
       this.logger.warn(
-        `User with uid= ${userToBanId} tried to ban the chatroom owner on room: "${room.name}"`,
+        `UID= ${userToBanId} tried to ban the chatroom owner on room: "${room.name}"`,
       );
       return;
     }
@@ -213,7 +211,7 @@ export class RoomService {
 
     await this.leaveRoom(room, userToBanId, false);
     this.logger.debug(
-      `User with uid= ${userToBanId} was banned from room "${room.name}"`,
+      `UID= ${userToBanId} was banned from room "${room.name}"`,
     );
   }
 
@@ -233,7 +231,7 @@ export class RoomService {
     this.chatRoomRepository.save(room);
 
     this.logger.debug(
-      `User with uid= ${userToUnbanId} was unbanned from room "${room.name}"`,
+      `UID= ${userToUnbanId} was unbanned from room "${room.name}"`,
     );
   }
 
@@ -258,7 +256,7 @@ export class RoomService {
     });
 
     this.logger.debug(
-      `User with uid= ${userToMuteId} is now muted on room: "${room.name}"`,
+      `UID= ${userToMuteId} is now muted on room: "${room.name}"`,
     );
 
     setTimeout(async () => {
@@ -285,9 +283,9 @@ export class RoomService {
 
     if (indexToRemove !== -1) {
       this.mutedUsers.splice(indexToRemove, 1);
-      this.logger.debug(`User with uid= ${userToUnmuteId} is now unmuted`);
+      this.logger.debug(`UID= ${userToUnmuteId} is now unmuted`);
     } else {
-      this.logger.debug(`User with uid= ${userToUnmuteId} is not muted`);
+      this.logger.debug(`UID= ${userToUnmuteId} is not muted`);
     }
   }
 
@@ -331,7 +329,7 @@ export class RoomService {
     room.admins = room.admins.filter((user) => user.id !== userIdToRemoveRole);
     this.chatRoomRepository.save(room);
     this.logger.log(
-      `User with uid= ${userIdToRemoveRole} is no longer an admin in room "${room.name}"`,
+      `UID= ${userIdToRemoveRole} is no longer an admin in room "${room.name}"`,
     );
   }
 

@@ -55,14 +55,14 @@ export class Paddle {
 	}
 
 	moveDown() {
-		if (this.#position.y + PADDLE_HEIGHT / 2 > CANVAS_HEIGHT) return
+		if (this.#position.y + PADDLE_HEIGHT / 2 + PADDLE_SPEED > CANVAS_HEIGHT) return
 
 		this.#position.y += PADDLE_SPEED
 		this.#emitPaddleMovement(this.#position.y)
 	}
 
 	moveUp() {
-		if (this.#position.y - PADDLE_HEIGHT / 2 < 0) return
+		if (this.#position.y - PADDLE_HEIGHT / 2 - PADDLE_SPEED < 0) return
 
 		this.#position.y += -PADDLE_SPEED
 		this.#emitPaddleMovement(this.#position.y)

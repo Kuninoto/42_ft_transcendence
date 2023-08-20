@@ -11,8 +11,8 @@ import { GatewayCorsOption } from 'src/common/options/cors.option';
 import { PlayerSide } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
-import { CANVAS_HEIGHT, CANVAS_HEIGHT_OFFSET, GameRoom } from './GameRoom';
-import { Player } from './Player';
+import { CANVAS_HEIGHT, GameRoom } from './GameRoom';
+import { PADDLE_HEIGHT, Player } from './Player';
 import { GameEndDTO } from './dto/game-end.dto';
 import { GameRoomInfoDTO } from './dto/game-room-info.dto';
 import { InvitedToGameDTO } from './dto/invited-to-game.dto';
@@ -49,9 +49,7 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('queueToLadder')
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
-    this.logger.log(
-      `User with uid= ${client.data.userId} joined the ladder queue`,
-    );
+    this.logger.log(`UID= ${client.data.userId} joined the ladder queue`);
     if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) {
       return;
     }
@@ -62,9 +60,7 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('leaveQueueOrGame')
   async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
-    this.logger.log(
-      `User with uid= ${client.data.userId} left the queue or a game`,
-    );
+    this.logger.log(`UID= ${client.data.userId} left the queue or a game`);
     await this.gameService.disconnectPlayer(client.data.userId);
   }
 
@@ -75,7 +71,7 @@ export class GameGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidSendGameInviteMessage(messageBody)) {
       this.logger.warn(
-        `User with uid= ${client.data.userId} tried to send a wrong SendGameInviteDTO`,
+        `UID= ${client.data.userId} tried to send a wrong SendGameInviteDTO`,
       );
       return;
     }
@@ -85,7 +81,7 @@ export class GameGateway implements OnGatewayInit {
       this.gameService.isPlayerInQueueOrGame(parseInt(messageBody.recipientUID))
     ) {
       this.logger.warn(
-        `User with uid= ${client.data.userId} tried to send a game invite while in game or to a recipient in game`,
+        `UID= ${client.data.userId} tried to send a game invite while in game or to a recipient in game`,
       );
       return;
     }
@@ -125,7 +121,7 @@ export class GameGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidRespondToGameInviteMessage(messageBody)) {
       this.logger.warn(
-        `User with uid= ${client.data.userId} tried to send a wrong RespondToGameInviteDTO`,
+        `UID= ${client.data.userId} tried to send a wrong RespondToGameInviteDTO`,
       );
       return;
     }
@@ -150,7 +146,7 @@ export class GameGateway implements OnGatewayInit {
   ): void {
     if (!this.isValidPlayerReadyMessage(messageBody)) {
       this.logger.warn(
-        `User with uid= ${client.data.userId} tried to send a wrong PlayerReadyDTO`,
+        `UID= ${client.data.userId} tried to send a wrong PlayerReadyDTO`,
       );
       return;
     }
@@ -168,7 +164,7 @@ export class GameGateway implements OnGatewayInit {
   ): void {
     if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.warn(
-        `User with uid= ${client.data.userId} tried to send a wrong PaddleMoveDTO`,
+        `UID= ${client.data.userId} tried to send a wrong PaddleMoveDTO`,
       );
       return;
     }
@@ -258,8 +254,8 @@ export class GameGateway implements OnGatewayInit {
 
     const message: PaddleMoveDTO = messageBody;
     if (
-      message.newY < 0 ||
-      message.newY > CANVAS_HEIGHT - CANVAS_HEIGHT_OFFSET
+      message.newY - PADDLE_HEIGHT / 2 < 0 ||
+      message.newY + PADDLE_HEIGHT / 2 > CANVAS_HEIGHT
     ) {
       return false;
     }

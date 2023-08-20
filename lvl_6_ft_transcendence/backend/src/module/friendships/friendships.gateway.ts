@@ -46,7 +46,7 @@ export class FriendshipsGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidSendDirectMessageDTO(messageBody)) {
       this.logger.warn(
-        `User with uid= ${client.data.userId} tried to send a wrong SendDirectMessageDTO`,
+        `UID= ${client.data.userId} tried to send a wrong SendDirectMessageDTO`,
       );
       return;
     }
