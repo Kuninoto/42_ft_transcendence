@@ -4,8 +4,7 @@ import {
   Logger,
   PipeTransform,
 } from '@nestjs/common';
-import { FriendshipStatus } from 'types';
-import { FriendshipStatusUpdationRequest } from 'types/friendship/friendship-status-updation-request';
+import { FriendshipStatus, FriendshipStatusUpdationRequest } from 'types';
 
 @Injectable()
 export class FriendshipStatusUpdateValidationPipe

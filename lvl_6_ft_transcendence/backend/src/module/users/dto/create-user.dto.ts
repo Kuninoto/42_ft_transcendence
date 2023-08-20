@@ -4,8 +4,8 @@ import { IsAlphanumeric, IsNotEmpty, IsString } from 'class-validator';
 export class CreateUserDTO {
   @ApiProperty()
   @IsNotEmpty()
-  @IsAlphanumeric()
-  readonly name: string;
+  @IsString()
+  readonly avatar_url: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -15,10 +15,10 @@ export class CreateUserDTO {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  readonly avatar_url: string;
+  readonly intra_profile_url: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  @IsString()
-  readonly intra_profile_url: string;
+  @IsAlphanumeric()
+  readonly name: string;
 }

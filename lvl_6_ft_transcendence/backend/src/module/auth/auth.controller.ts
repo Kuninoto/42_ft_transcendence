@@ -37,25 +37,15 @@ import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 
-/**
- * Guards act as Middleware of validation
- * and in case they are the JWT ones they
- * also make the user binded to that token
- * available at req.user
- */
-
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger: Logger = new Logger(AuthController.name);
+
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
   ) {}
-
-  private readonly logger: Logger = new Logger(AuthController.name);
-
-  // passport flow
-  // request -> guard -> strategy -> session serializer
 
   /**
    * GET /api/auth/login/callback
@@ -73,6 +63,58 @@ export class AuthController {
     @Req() req: { user: User },
   ): Promise<LoginResponse> {
     return this.authService.login(req.user);
+  }
+
+  /**
+   * POST /api/auth/2fa/authenticate
+   *
+   * This route serves for 2fa authentication.
+   * Validates the Google Authenticator's OTP
+   * and if it is valid, signs a JWT and returns it
+   * else throws.
+   * @returns JWT access_token
+   */
+  @ApiOkResponse({
+    description:
+      'A new access_token that proves that the user is two factor authenticated',
+  })
+  @ApiBody({
+    schema: {
+      properties: {
+        otp: {
+          type: 'string',
+        },
+      },
+      required: ['otp'],
+      type: 'object',
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description:
+      'If the user which id is provided in the JWT or if the OTP is invalid',
+  })
+  @ApiBadRequestResponse({ description: "If request's body is malformed" })
+  @ApiBearerAuth('2fa')
+  @UseGuards(AuthGuard('2fa'))
+  @HttpCode(HttpStatus.OK)
+  @Post('2fa/authenticate')
+  public auth2fa(
+    @Req() req: { user: User },
+    @Body() body: OtpVerificationRequest,
+  ): AccessTokenResponse | ErrorResponse {
+    const isCodeValid: boolean = this.authService.is2faCodeValid(
+      body.otp,
+      req.user.secret_2fa,
+    );
+
+    if (!isCodeValid) {
+      this.logger.warn(
+        'A request was made with an invalid otp (2FA auth code)',
+      );
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    return this.authService.authenticate2fa(req.user);
   }
 
   /**
@@ -181,54 +223,18 @@ export class AuthController {
   }
 
   /**
-   * POST /api/auth/2fa/authenticate
+   * POST /api/auth/logout
    *
-   * This route serves for 2fa authentication.
-   * Validates the Google Authenticator's OTP
-   * and if it is valid, signs a JWT and returns it
-   * else throws.
-   * @returns JWT access_token
+   * This is the route to logout a user
+   * @returns Logs out the user (wipes the access token from whitelist)
    */
   @ApiOkResponse({
-    description:
-      'A new access_token that proves that the user is two factor authenticated',
+    description: 'Logs out the user (wipes the access token from whitelist)',
   })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['otp'],
-      properties: {
-        otp: {
-          type: 'string',
-        },
-      },
-    },
-  })
-  @ApiUnauthorizedResponse({
-    description:
-      'If the user which id is provided in the JWT or if the OTP is invalid',
-  })
-  @ApiBadRequestResponse({ description: "If request's body is malformed" })
-  @ApiBearerAuth('2fa')
-  @UseGuards(AuthGuard('2fa'))
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Post('2fa/authenticate')
-  public auth2fa(
-    @Req() req: { user: User },
-    @Body() body: OtpVerificationRequest,
-  ): AccessTokenResponse | ErrorResponse {
-    const isCodeValid: boolean = this.authService.is2faCodeValid(
-      body.otp,
-      req.user.secret_2fa,
-    );
-
-    if (!isCodeValid) {
-      this.logger.warn(
-        'A request was made with an invalid otp (2FA auth code)',
-      );
-      throw new UnauthorizedException('Invalid OTP');
-    }
-
-    return this.authService.authenticate2fa(req.user);
+  @Post('logout')
+  public async logout(@Req() req: { user: User }): Promise<SuccessResponse> {
+    return this.authService.logout(req.user.id);
   }
 }

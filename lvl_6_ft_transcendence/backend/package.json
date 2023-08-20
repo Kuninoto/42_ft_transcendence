@@ -108,6 +108,7 @@
     "@nestjs/testing": "^10.1.3",
     "@types/jest": "^29.5.3",
     "@types/node": "^20.5.0",
+    "eslint-plugin-perfectionist": "^1.5.1",
     "nestjs-spelunker": "^1.1.5"
   }
 }

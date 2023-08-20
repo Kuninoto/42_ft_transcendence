@@ -11,37 +11,37 @@ import { UsersService } from 'src/module/users/users.service';
 // represent the info that we'll in fact receive
 // (as asked in lines 29 && 30)
 interface User42Info {
-  username: string;
   avatar: string;
+  username: string;
 }
 
 @Injectable()
 export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
+  private readonly logger: Logger = new Logger(FortyTwoAuthStrategy.name);
+
   constructor(private usersService: UsersService) {
     console.log('INTRA_CLIENT_UID= ' + process.env.INTRA_CLIENT_UID);
     console.log('INTRA_CLIENT_SECRET= ' + process.env.INTRA_CLIENT_SECRET);
     console.log('INTRA_REDIRECT_URI= ' + process.env.INTRA_REDIRECT_URI);
 
     super({
+      callbackURL: process.env.INTRA_REDIRECT_URI,
       clientID: process.env.INTRA_CLIENT_UID,
       clientSecret: process.env.INTRA_CLIENT_SECRET,
-      callbackURL: process.env.INTRA_REDIRECT_URI,
       profileFields: {
-        username: 'login',
         avatar: 'image.versions.medium',
+        username: 'login',
       },
       scope: 'public',
     });
   }
-
-  private readonly logger: Logger = new Logger(FortyTwoAuthStrategy.name);
 
   async validate(
     accessToken: string,
     refreshToken: string,
     profile: User42Info,
   ): Promise<User> {
-    const user: User | null = await this.usersService.findUserByIntraName(
+    const user: null | User = await this.usersService.findUserByIntraName(
       profile.username,
     );
 
@@ -52,11 +52,11 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
     this.logger.log(`"${profile.username}" logging in for the 1st time!`);
 
     return await this.usersService.createUser({
-      name: profile.username,
-      intra_name: profile.username,
       avatar_url: profile.avatar,
+      intra_name: profile.username,
       intra_profile_url:
         'https://profile.intra.42.fr/users/' + profile.username,
+      name: profile.username,
     });
   }
 }

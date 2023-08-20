@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { ErrorResponse } from 'types';
+
 import { TokenPayload } from './jwt-auth.strategy';
 
 @Injectable()
@@ -12,14 +13,14 @@ export class twoFactorAuthStrategy extends PassportStrategy(Strategy, '2fa') {
 
   constructor(private readonly usersService: UsersService) {
     super({
+      ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.JWT_SECRET,
-      ignoreExpiration: false,
     });
   }
 
-  async validate(payload: TokenPayload): Promise<User | ErrorResponse> {
-    const user: User | null = await this.usersService.findUserByUID(payload.id);
+  async validate(payload: TokenPayload): Promise<ErrorResponse | User> {
+    const user: null | User = await this.usersService.findUserByUID(payload.id);
 
     if (!user) {
       this.logger.warn(

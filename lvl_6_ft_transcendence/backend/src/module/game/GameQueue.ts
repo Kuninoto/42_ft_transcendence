@@ -1,18 +1,14 @@
 import { Logger } from '@nestjs/common';
+
 import { Player } from './Player';
 
 export class GameQueue {
-  private players: Player[];
-
   private readonly logger: Logger = new Logger(GameQueue.name);
+
+  private players: Player[];
 
   constructor() {
     this.players = [];
-  }
-
-  public enqueue(player: Player): void {
-    this.players.push(player);
-    this.logger.log(`${this.size()} players in queue`);
   }
 
   public dequeue(): Player | undefined {
@@ -20,12 +16,13 @@ export class GameQueue {
     return this.players.shift();
   }
 
-  public isEmpty(): boolean {
-    return this.players.length === 0;
+  public enqueue(player: Player): void {
+    this.players.push(player);
+    this.logger.log(`${this.size()} players in queue`);
   }
 
-  public size(): number {
-    return this.players.length;
+  public isEmpty(): boolean {
+    return this.players.length === 0;
   }
 
   public isPlayerInQueue(playerUID: number): boolean {
@@ -40,7 +37,7 @@ export class GameQueue {
     return true;
   }
 
-  public removePlayerFromQueueByUID(playerUID: number): Player | null {
+  public removePlayerFromQueueByUID(playerUID: number): null | Player {
     const playerIndex: number = this.players.findIndex((player) => {
       return player.userId === playerUID;
     });
@@ -50,5 +47,9 @@ export class GameQueue {
     }
 
     return this.players.splice(playerIndex, 1)[0];
+  }
+
+  public size(): number {
+    return this.players.length;
   }
 }

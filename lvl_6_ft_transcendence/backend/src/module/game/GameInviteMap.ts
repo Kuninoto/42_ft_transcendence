@@ -1,4 +1,5 @@
 import { GameInvite } from 'types';
+
 import { CreateGameInviteDTO } from './dto/create-game-invite.dto';
 
 export class GameInviteMap {
@@ -9,21 +10,21 @@ export class GameInviteMap {
     string,
     GameInvite
   >();
-  private inviteIdCounter: number = 0;
+  private inviteIdCounter = 0;
 
   public createGameInvite(createGameInviteDto: CreateGameInviteDTO): number {
     this.gameInviteMap.set(this.inviteIdCounter.toString(), {
-      sender: createGameInviteDto.sender,
       recipientUID: parseInt(createGameInviteDto.recipientUID),
+      sender: createGameInviteDto.sender,
     });
     return this.inviteIdCounter++;
   }
 
-  public findInviteById(inviteId: string): GameInvite {
-    return this.gameInviteMap.get(inviteId);
-  }
-
   public deleteInviteByInviteId(inviteId: string): void {
     this.gameInviteMap.delete(inviteId);
+  }
+
+  public findInviteById(inviteId: string): GameInvite {
+    return this.gameInviteMap.get(inviteId);
   }
 }

@@ -66,7 +66,7 @@ export class FriendshipsController {
   public async sendFriendRequest(
     @Req() req: { user: User },
     @Param('receiverId', NonNegativeIntPipe) receiverUID: number,
-  ): Promise<SuccessResponse | ErrorResponse> {
+  ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.sendFriendRequest(
       req.user,
       receiverUID,
@@ -96,14 +96,14 @@ export class FriendshipsController {
   })
   @ApiBody({
     schema: {
-      type: 'object',
-      required: ['newStatus'],
       properties: {
         newStatus: {
-          type: 'string',
           enum: Object.values(['declined', 'accepted', 'unfriend']),
+          type: 'string',
         },
       },
+      required: ['newStatus'],
+      type: 'object',
     },
   })
   @Patch(':friendshipId/update')
@@ -112,7 +112,7 @@ export class FriendshipsController {
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
     @Body(new FriendshipStatusUpdateValidationPipe())
     newStatus: FriendshipStatus,
-  ): Promise<SuccessResponse | ErrorResponse> {
+  ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.updateFriendshipStatus(
       req.user,
       friendshipId,
@@ -125,9 +125,9 @@ export class FriendshipsController {
    *****************************/
 
   /**
-   * DELETE /api/block/:userToBlockId
+   * POST /api/block/:userToBlockId
    *
-   * - Checks if:
+   * @description Checks if:
    *   - The userToBlock exists
    *   - The user is trying to block himself
    *   - The userToBlock is already blocked
@@ -149,7 +149,7 @@ export class FriendshipsController {
   public async blockUser(
     @Req() req: { user: User },
     @Param('userToBlockId', NonNegativeIntPipe) userToBlockId: number,
-  ): Promise<SuccessResponse | ErrorResponse> {
+  ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.blockUserByUID(
       req.user,
       userToBlockId,
@@ -159,7 +159,7 @@ export class FriendshipsController {
   /**
    * DELETE /api/block/:userToUnblockId
    *
-   * Unblocks user which id=userToUnblockId
+   * @description Unblocks uid=userToUnblockId
    */
   @ApiOkResponse({
     description:
@@ -176,7 +176,7 @@ export class FriendshipsController {
   public async unblockUser(
     @Req() req: { user: User },
     @Param('userToUnblockId', NonNegativeIntPipe) userToUnblockId: number,
-  ): Promise<SuccessResponse | ErrorResponse> {
+  ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.unblockUserByUID(
       req.user,
       userToUnblockId,

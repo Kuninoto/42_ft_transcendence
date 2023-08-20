@@ -1,4 +1,4 @@
-import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -13,6 +13,7 @@ import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { ChatRoomMessageI, MuteDuration } from 'types';
+
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { AddAdminDTO } from './dto/add-admin.dto';
@@ -26,17 +27,19 @@ import { MuteUserDTO } from './dto/mute-user.dto';
 import { NewChatRoomMessageDTO } from './dto/new-chatroom-message.dto';
 import { RemoveAdminDTO } from './dto/remove-admin.dto';
 import { RemoveRoomPasswordDTO } from './dto/remove-room-password.dto';
-import { UnbanUserFromRoomDTO } from './dto/unban-user-from-room.dto';
+import { UnbanFromRoomDTO } from './dto/unban-user-from-room.dto';
 import { UnmuteUserDTO } from './dto/unmute-user.dto';
 import { UpdateRoomPasswordDTO } from './dto/update-room-password.dto';
 import { MessageService } from './message.service';
 import { RoomService } from './room.service';
 
 @WebSocketGateway({
-  namespace: 'connection',
   cors: GatewayCorsOption,
+  namespace: 'connection',
 })
 export class ChatGateway implements OnGatewayInit {
+  private readonly logger: Logger = new Logger(ChatGateway.name);
+
   constructor(
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
@@ -49,12 +52,6 @@ export class ChatGateway implements OnGatewayInit {
     private readonly connectionService: ConnectionService,
   ) {}
 
-  private readonly logger: Logger = new Logger(ChatGateway.name);
-
-  afterInit(server: Server) {
-    this.logger.log('Chat-Gateway Initialized');
-  }
-
   /*
 		TODO Passwords
  */
@@ -62,6 +59,10 @@ export class ChatGateway implements OnGatewayInit {
   /******************************
    *          MESSAGES          *
    ******************************/
+
+  afterInit(server: Server) {
+    this.logger.log('Chat-Gateway Initialized');
+  }
 
   @SubscribeMessage('createRoom')
   async onCreateRoom(
@@ -75,7 +76,7 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    if (!this.roomService.validRoomName(messageBody.name)) {
+    if (!this.roomService.isValidRoomName(messageBody.name)) {
       this.logger.warn(
         `UID= ${client.data.userId} tried to create a room with an invalid name: "${messageBody.name}"`,
       );
@@ -101,7 +102,7 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const invited: User | null = await this.usersService.findUserByUID(
+    const invited: null | User = await this.usersService.findUserByUID(
       messageBody.invitedUID,
     );
     if (!invited) {
@@ -142,63 +143,11 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const user: User | null = await this.usersService.findUserByUID(
+    const user: null | User = await this.usersService.findUserByUID(
       client.data.userId,
     );
 
     this.roomService.joinRoom(client.data.userId, user, room);
-  }
-
-  @SubscribeMessage('updateRoomPassword')
-  async onUpdateRoomPassword(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: UpdateRoomPasswordDTO,
-  ): Promise<void> {
-    if (!this.isValidUpdateRoomPasswordDTO(messageBody)) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong UpdateRoomPasswordDTO`,
-      );
-      return;
-    }
-
-    const room: ChatRoom | null = await this.roomService.findRoomById(
-      messageBody.roomId,
-    );
-
-    if (!room) {
-      this.logger.warn(`There's no room with id= ${messageBody.roomId}`);
-      return;
-    }
-
-    this.roomService.updateRoomPassword(
-      client.data.userId,
-      messageBody.newPassword,
-      room,
-    );
-  }
-
-  @SubscribeMessage('removeRoomPassword')
-  async onRemoveRoomPassword(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: RemoveRoomPasswordDTO,
-  ) {
-    if (!this.isValidRemoveRoomPasswordDTO(messageBody)) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong RemoveRoomPasswordDTO`,
-      );
-      return;
-    }
-
-    const room: ChatRoom | null = await this.roomService.findRoomById(
-      messageBody.roomId,
-    );
-
-    if (!room) {
-      this.logger.warn(`There's no room with id= ${messageBody.roomId}`);
-      return;
-    }
-
-    this.roomService.removeRoomPassword(client.data.userId, room);
   }
 
   @SubscribeMessage('leaveRoom')
@@ -224,6 +173,95 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     this.roomService.leaveRoom(room, messageBody.userId, true);
+  }
+
+  @SubscribeMessage('kickFromRoom')
+  async onKickFromRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: KickFromRoomDTO,
+  ): Promise<void> {
+    if (!this.isValidKickFromRoomDTO(messageBody)) {
+      this.logger.warn(
+        `UID= ${client.data.userId} tried to send a wrong KickFromRoomDTO`,
+      );
+      return;
+    }
+
+    const room: ChatRoom | null = await this.roomService.findRoomById(
+      messageBody.roomId,
+    );
+
+    if (client.data.userId == messageBody.userId) {
+      this.logger.warn(
+        `UID= ${client.data.userId} tried to kick himself from room: ${room.name}`,
+      );
+      return;
+    }
+
+    if (!room) {
+      this.logger.warn(
+        `UID= ${client.data.userId} tried to kick someone from a non-existing room`,
+      );
+      return;
+    }
+
+    this.roomService.kickFromRoom(room, messageBody.userId);
+  }
+
+  @SubscribeMessage('newChatRoomMessage')
+  async onNewChatRoomMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: NewChatRoomMessageDTO,
+  ): Promise<void> {
+    if (!this.isValidNewChatRoomMessageDTO(messageBody)) {
+      this.logger.warn(
+        `UID= ${client.data.userId} tried to send a wrong NewChatRoomMessageDTO`,
+      );
+      return;
+    }
+
+    const room: ChatRoom | null = await this.roomService.findRoomByName(
+      messageBody.roomName,
+    );
+    if (!room) {
+      this.logger.warn(
+        `UID= ${client.data.userId} tried to send a message to a non-existing room`,
+      );
+      return;
+    }
+
+    const isUserMuted: boolean = await this.roomService.isUserMuted(
+      client.data.userId,
+      room.id,
+    );
+    if (isUserMuted) {
+      this.logger.log(`UID= ${client.data.userId} is muted. Message not sent`);
+      return;
+    }
+
+    const message: ChatRoomMessageI =
+      await this.messageService.newChatRoomMessage(
+        client.data.userId,
+        room,
+        messageBody.text,
+      );
+
+    const idsOfUsersInRoom: number[] = room.users.map((user: User) => user.id);
+    idsOfUsersInRoom.forEach(async (uid: number) => {
+      const blockRelationship: boolean =
+        await this.friendshipService.isThereABlockRelationship(
+          client.data.userId,
+          uid,
+        );
+
+      // Retrieve the clientId of the user
+      const userSocketId: string = this.connectionService.findSocketIdByUID(
+        uid.toString(),
+      );
+      if (userSocketId && !blockRelationship) {
+        client.to(userSocketId).emit('newChatRoomMessage', message);
+      }
+    });
   }
 
   @SubscribeMessage('addAdmin')
@@ -295,39 +333,6 @@ export class ChatGateway implements OnGatewayInit {
     this.roomService.removeAdminRole(room, messageBody.userId);
   }
 
-  @SubscribeMessage('kickFromRoom')
-  async onKickFromRoom(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: KickFromRoomDTO,
-  ): Promise<void> {
-    if (!this.isValidKickFromRoomDTO(messageBody)) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong KickFromRoomDTO`,
-      );
-      return;
-    }
-
-    const room: ChatRoom | null = await this.roomService.findRoomById(
-      messageBody.roomId,
-    );
-
-    if (client.data.userId == messageBody.userId) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to kick himself from room: ${room.name}`,
-      );
-      return;
-    }
-
-    if (!room) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to kick someone from a non-existing room`,
-      );
-      return;
-    }
-
-    this.roomService.kickFromRoom(room, messageBody.userId);
-  }
-
   @SubscribeMessage('banFromRoom')
   async onBanFromRoom(
     @ConnectedSocket() client: Socket,
@@ -353,14 +358,14 @@ export class ChatGateway implements OnGatewayInit {
     this.roomService.banFromRoom(client.data.userId, messageBody.userId, room);
   }
 
-  @SubscribeMessage('unbanUserFromRoom')
-  async onUnbanUserFromRoom(
+  @SubscribeMessage('unbanFromRoom')
+  async onUnbanFromRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: UnbanUserFromRoomDTO,
+    @MessageBody() messageBody: UnbanFromRoomDTO,
   ): Promise<void> {
-    if (!this.isValidUnbanUserFromRoomDTO(messageBody)) {
+    if (!this.isValidUnbanFromRoomDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong UnbanUserFromRoomDTO`,
+        `UID= ${client.data.userId} tried to send a wrong UnbanFromRoomDTO`,
       );
       return;
     }
@@ -458,79 +463,59 @@ export class ChatGateway implements OnGatewayInit {
     );
   }
 
-  @SubscribeMessage('newChatRoomMessage')
-  async onNewChatRoomMessage(
+  @SubscribeMessage('updateRoomPassword')
+  async onUpdateRoomPassword(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: NewChatRoomMessageDTO,
+    @MessageBody() messageBody: UpdateRoomPasswordDTO,
   ): Promise<void> {
-    if (!this.isValidNewChatRoomMessageDTO(messageBody)) {
+    if (!this.isValidUpdateRoomPasswordDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong NewChatRoomMessageDTO`,
+        `UID= ${client.data.userId} tried to send a wrong UpdateRoomPasswordDTO`,
       );
       return;
     }
 
-    const room: ChatRoom | null = await this.roomService.findRoomByName(
-      messageBody.roomName,
+    const room: ChatRoom | null = await this.roomService.findRoomById(
+      messageBody.roomId,
     );
+
     if (!room) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a message to a non-existing room`,
-      );
+      this.logger.warn(`There's no room with id= ${messageBody.roomId}`);
       return;
     }
 
-    const isUserMuted: boolean = await this.roomService.isUserMuted(
+    this.roomService.updateRoomPassword(
       client.data.userId,
-      room.id,
+      messageBody.newPassword,
+      room,
     );
-    if (isUserMuted) {
-      this.logger.log(`UID= ${client.data.userId} is muted. Message not sent`);
+  }
+
+  @SubscribeMessage('removeRoomPassword')
+  async onRemoveRoomPassword(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: RemoveRoomPasswordDTO,
+  ) {
+    if (!this.isValidRemoveRoomPasswordDTO(messageBody)) {
+      this.logger.warn(
+        `UID= ${client.data.userId} tried to send a wrong RemoveRoomPasswordDTO`,
+      );
       return;
     }
 
-    const message: ChatRoomMessageI =
-      await this.messageService.newChatRoomMessage(
-        client.data.userId,
-        room,
-        messageBody.text,
-      );
-
-    const idsOfUsersInRoom: number[] = room.users.map((user: User) => user.id);
-    idsOfUsersInRoom.forEach(async (uid: number) => {
-      const blockRelationship: boolean =
-        await this.friendshipService.isThereABlockRelationship(
-          client.data.userId,
-          uid,
-        );
-
-      // Retrieve the clientId of the user
-      const userSocketId: string = this.connectionService.findSocketIdByUID(
-        uid.toString(),
-      );
-      if (userSocketId && !blockRelationship) {
-        client.to(userSocketId).emit('newChatRoomMessage', message);
-      }
-    });
-  }
-
-  private isValidJoinRoomDTO(messageBody: any): messageBody is JoinRoomDTO {
-    return (
-      typeof messageBody === 'object' && typeof messageBody.name === 'string'
+    const room: ChatRoom | null = await this.roomService.findRoomById(
+      messageBody.roomId,
     );
+
+    if (!room) {
+      this.logger.warn(`There's no room with id= ${messageBody.roomId}`);
+      return;
+    }
+
+    this.roomService.removeRoomPassword(client.data.userId, room);
   }
 
-  private isValidLeaveRoomDTO(messageBody: any): messageBody is LeaveRoomDTO {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.userId === 'number' &&
-      typeof messageBody.roomId === 'number'
-    );
-  }
-
-  private isValidKickFromRoomDTO(
-    messageBody: any,
-  ): messageBody is KickFromRoomDTO {
+  private isValidAddAdminDTO(messageBody: any): messageBody is AddAdminDTO {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.userId === 'number' &&
@@ -541,16 +526,6 @@ export class ChatGateway implements OnGatewayInit {
   private isValidBanFromRoomDTO(
     messageBody: any,
   ): messageBody is BanFromRoomDTO {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.userId === 'number' &&
-      typeof messageBody.roomId === 'number'
-    );
-  }
-
-  private isValidUnbanUserFromRoomDTO(
-    messageBody: any,
-  ): messageBody is UnbanUserFromRoomDTO {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.userId === 'number' &&
@@ -569,31 +544,27 @@ export class ChatGateway implements OnGatewayInit {
     );
   }
 
-  private isValidNewChatRoomMessageDTO(
-    messageBody: any,
-  ): messageBody is NewChatRoomMessageDTO {
+  private isValidJoinRoomDTO(messageBody: any): messageBody is JoinRoomDTO {
     return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.roomName === 'string' &&
-      typeof messageBody.text === 'string'
+      typeof messageBody === 'object' && typeof messageBody.name === 'string'
     );
   }
 
-  private isValidUpdateRoomPasswordDTO(
+  private isValidKickFromRoomDTO(
     messageBody: any,
-  ): messageBody is UpdateRoomPasswordDTO {
+  ): messageBody is KickFromRoomDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.roomId === 'number' &&
-      typeof messageBody.newPassword === 'string'
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number'
     );
   }
 
-  private isValidRemoveRoomPasswordDTO(
-    messageBody: any,
-  ): messageBody is RemoveRoomPasswordDTO {
+  private isValidLeaveRoomDTO(messageBody: any): messageBody is LeaveRoomDTO {
     return (
-      typeof messageBody === 'object' && typeof messageBody.roomId === 'number'
+      typeof messageBody === 'object' &&
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number'
     );
   }
 
@@ -606,19 +577,13 @@ export class ChatGateway implements OnGatewayInit {
     );
   }
 
-  private isValidUnmuteUserDTO(messageBody: any): messageBody is UnmuteUserDTO {
+  private isValidNewChatRoomMessageDTO(
+    messageBody: any,
+  ): messageBody is NewChatRoomMessageDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.userId === 'number' &&
-      typeof messageBody.roomId === 'number'
-    );
-  }
-
-  private isValidAddAdminDTO(messageBody: any): messageBody is AddAdminDTO {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.userId === 'number' &&
-      typeof messageBody.roomId === 'number'
+      typeof messageBody.roomName === 'string' &&
+      typeof messageBody.text === 'string'
     );
   }
 
@@ -629,6 +594,42 @@ export class ChatGateway implements OnGatewayInit {
       typeof messageBody === 'object' &&
       typeof messageBody.userId === 'number' &&
       typeof messageBody.roomId === 'number'
+    );
+  }
+
+  private isValidRemoveRoomPasswordDTO(
+    messageBody: any,
+  ): messageBody is RemoveRoomPasswordDTO {
+    return (
+      typeof messageBody === 'object' && typeof messageBody.roomId === 'number'
+    );
+  }
+
+  private isValidUnbanFromRoomDTO(
+    messageBody: any,
+  ): messageBody is UnbanFromRoomDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number'
+    );
+  }
+
+  private isValidUnmuteUserDTO(messageBody: any): messageBody is UnmuteUserDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.userId === 'number' &&
+      typeof messageBody.roomId === 'number'
+    );
+  }
+
+  private isValidUpdateRoomPasswordDTO(
+    messageBody: any,
+  ): messageBody is UpdateRoomPasswordDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.roomId === 'number' &&
+      typeof messageBody.newPassword === 'string'
     );
   }
 }
