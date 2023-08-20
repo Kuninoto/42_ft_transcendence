@@ -1,19 +1,14 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { PlayerSide } from 'types';
 import { BALL_RADIUS, Ball } from './Ball';
-import {
-  CANVAS_HEIGHT,
-  CANVAS_MID_WIDTH,
-  CANVAS_WIDTH,
-  GameRoom,
-} from './GameRoom';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 
-const GAME_LOOP_INTERVAL: number = 8;
-const RESET_GAME_DELAY: number = 5;
+const GAME_LOOP_INTERVAL: number = 10;
+const RESET_GAME_DELAY: number = 6;
 
 // Hacky way to make js wait
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -145,24 +140,43 @@ export class GameEngineService {
   /* Verifies if the ball is colliding with a paddle and updates
   its direction if so */
   private ballCollidedWithPaddle(gameRoom: GameRoom): boolean {
-    // If ball X position is smaller than canvas'
-    // midpoint it is on the left side
-    const player: Player =
-      gameRoom.ball.x < CANVAS_MID_WIDTH
-        ? gameRoom.leftPlayer
-        : gameRoom.rightPlayer;
-
-    if (
-      gameRoom.ball.x >= player.paddleX - PADDLE_WIDTH &&
-      gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH &&
-      gameRoom.ball.y < player.paddleY + PADDLE_HEIGHT &&
-      gameRoom.ball.y > player.paddleY
-    ) {
-      gameRoom.ball.bounceInX();
-      gameRoom.ball.bounceOnCollidePoint(
-        player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+    const isWithinPaddleHeight = (ballY: number, paddleY: number): boolean => {
+      return (
+        ballY + BALL_RADIUS <= paddleY + PADDLE_HEIGHT / 2 &&
+        ballY - BALL_RADIUS >= paddleY - PADDLE_HEIGHT / 2
       );
-      return true;
+    };
+
+    let player: Player;
+
+    if (gameRoom.ball.x < CANVAS_WIDTH / 2) {
+      // If ball X position is smaller than canvas'
+      // midpoint it's on the left side
+      player = gameRoom.leftPlayer;
+
+      // Collided with paddle's right side && is within the paddle height
+      if (
+        gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH / 2 &&
+        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY)
+      ) {
+        gameRoom.ball.bounceOnCollidePoint(
+          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+        );
+        return true;
+      }
+    } else {
+      player = gameRoom.rightPlayer;
+
+      // Collided with paddle's left side && is within the paddle height
+      if (
+        gameRoom.ball.x + BALL_RADIUS >= player.paddleX - PADDLE_WIDTH / 2 &&
+        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY)
+      ) {
+        gameRoom.ball.bounceOnCollidePoint(
+          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+        );
+        return true;
+      }
     }
     return false;
   }

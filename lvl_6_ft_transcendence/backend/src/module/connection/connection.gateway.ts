@@ -65,7 +65,7 @@ export class ConnectionGateway
 
       this.messageService.sendMissedDirectMessages(client.id, user.id);
 
-      this.logger.log(`${user.name} connected!`);
+      this.logger.log(`${user.name} is online!`);
     } catch (error: any) {
       this.logger.warn(`${error.message}. Disconnecting...`);
       client.disconnect();
@@ -81,7 +81,7 @@ export class ConnectionGateway
     this.connectionService.deleteSocketIdByUID(client.data.userId);
     this.authService.logout(client.data.userId);
   
-    this.logger.log(`User with uid= ${client.data.userId} has disconnected and logged out`);
+    this.logger.log(`User with uid= ${client.data.userId} is now offline`);
   }
 
   async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
