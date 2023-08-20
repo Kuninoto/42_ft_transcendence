@@ -4,8 +4,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { ErrorResponse } from 'types';
-
-import { AuthService } from '../auth.service';
+// TODO
+// uncomment this
+// import { AuthService } from '../auth.service';
 
 // JWT Payload
 // - User id
@@ -26,7 +27,9 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
   private readonly logger: Logger = new Logger('JwtAuthStrategy');
 
   constructor(
-    private readonly authService: AuthService,
+    // TODO
+    // uncomment this
+    // private readonly authService: AuthService,
     private readonly usersService: UsersService,
   ) {
     super({
@@ -46,10 +49,12 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Unauthenticated request');
     }
 
-    if (this.authService.tokenWhitelist.get(user.id.toString()) === undefined) {
-      this.logger.warn('A request was made with a blacklisted token');
-      throw new UnauthorizedException('Unauthenticated request');
-    }
+    // TODO
+    // uncomment this
+    //if (this.authService.tokenWhitelist.get(user.id.toString()) === undefined) {
+    //  this.logger.warn('A request was made with a blacklisted token');
+    //  throw new UnauthorizedException('Unauthenticated request');
+    //}
 
     if (!payload.has_2fa || (payload.has_2fa && payload.is_2fa_authed)) {
       // If user doesn't have 2fa or has 2fa and is 2f authenticated, return user
