@@ -1,6 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BlockedUser, Friendship, User } from 'src/typeorm/index';
+import { BlockedUser, Friendship, User } from 'src/entity/index';
 import { AchievementModule } from '../achievement/achievement.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConnectionModule } from '../connection/connection.module';

@@ -16,13 +16,15 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
+  ApiOAuth2,
   ApiOkResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { User } from 'src/entity/index';
 import { UsersService } from 'src/module/users/users.service';
-import { User } from 'src/typeorm/index';
 import {
   AccessTokenResponse,
   ErrorResponse,
@@ -64,6 +66,7 @@ export class AuthController {
    * @returns JWT's access token and a boolean informing if user has 2fa
    */
   @ApiOkResponse({ description: 'The access token of the logged in user' })
+  @ApiOAuth2(['public'], '42')
   @UseGuards(FortyTwoAuthGuard)
   @Get('login/callback')
   public async loginCallback(
@@ -102,6 +105,7 @@ export class AuthController {
       \ninclusively here.",
   })
   @ApiBadRequestResponse({ description: 'If the OTP is invalid' })
+  @ApiBearerAuth('Jwt')
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/enable')
   public async enable2fa(
@@ -133,6 +137,7 @@ export class AuthController {
    * Disables two factor authentication.
    */
   @ApiOkResponse({ description: 'Disables two factor authentication' })
+  @ApiBearerAuth('Jwt')
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/disable')
   public async disable2fa(
@@ -159,6 +164,7 @@ export class AuthController {
     description:
       'Returns the QRCode that enables app registration on Google Authenticator',
   })
+  @ApiBearerAuth('Jwt')
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
   public async generate2faQRCodeAndSecret(
@@ -203,6 +209,7 @@ export class AuthController {
       'If the user which id is provided in the JWT or if the OTP is invalid',
   })
   @ApiBadRequestResponse({ description: "If request's body is malformed" })
+  @ApiBearerAuth('2fa')
   @UseGuards(AuthGuard('2fa'))
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')

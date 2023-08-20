@@ -14,13 +14,14 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
   ApiConsumes,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { User } from 'src/typeorm/index';
+import { User } from 'src/entity/index';
 import {
   BlockedUserInterface,
   ErrorResponse,
@@ -38,6 +39,7 @@ import { multerConfig } from './middleware/multer/multer.config';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 
 @ApiTags('me')
+@ApiBearerAuth('Jwt')
 @UseGuards(JwtAuthGuard)
 @Controller('me')
 export class MeController {

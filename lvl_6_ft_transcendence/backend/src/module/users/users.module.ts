@@ -1,6 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GameResult, User } from 'src/typeorm/index';
+import { GameResult, User } from 'src/entity/index';
 import { AchievementModule } from '../achievement/achievement.module';
 import { FriendshipsModule } from '../friendships/friendships.module';
 import { UserStatsModule } from '../user-stats/user-stats.module';

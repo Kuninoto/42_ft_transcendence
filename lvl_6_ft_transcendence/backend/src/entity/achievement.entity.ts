@@ -6,8 +6,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Achievements } from '../../types/achievement';
-import { User } from './user.entity';
+import { Achievements } from 'types';
+import { User } from './index';
 
 @Entity('achievement')
 export class Achievement {

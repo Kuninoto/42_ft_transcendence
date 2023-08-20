@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiParam,
@@ -16,12 +17,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
+import { User } from 'src/entity';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
-import { User } from 'src/typeorm';
 import { ErrorResponse, UserProfile, UserSearchInfo } from 'types';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
+@ApiBearerAuth('Jwt')
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {

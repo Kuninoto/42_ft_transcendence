@@ -9,11 +9,13 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserStatus } from 'types';
-import { ChatRoom } from '../typeorm/index';
-import { Achievement } from './achievement.entity';
-import { BlockedUser } from './blocked-user.entity';
-import { GameResult } from './game-result.entity';
-import { UserStats } from './user-stats.entity';
+import {
+  Achievement,
+  BlockedUser,
+  ChatRoom,
+  GameResult,
+  UserStats,
+} from './index';
 
 @Entity('user')
 export class User {

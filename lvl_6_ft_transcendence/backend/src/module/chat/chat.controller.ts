@@ -1,10 +1,16 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { ChatRoomSearchInfo } from 'types';
 import { RoomService } from './room.service';
 
 @ApiTags('chat')
+@ApiBearerAuth('Jwt')
 @UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {
