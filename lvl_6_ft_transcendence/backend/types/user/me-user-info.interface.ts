@@ -6,5 +6,6 @@ export interface MeUserInfo {
   intra_profile_url: string;
   has_2fa: boolean;
   game_theme: string;
+  ladder_level: number;
   created_at: Date;
 }
