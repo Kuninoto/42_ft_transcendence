@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
 import { PlayerSide } from 'types';
-import { CANVAS_MID_HEIGHT, CANVAS_WIDTH } from './GameRoom';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 
 export const PADDLE_HEIGHT: number = 80;
 export const PADDLE_WIDTH: number = 10;
@@ -9,10 +9,11 @@ const PADDLE_WALL_OFFSET: number = 16;
 export const MAX_SCORE: number = 11;
 
 export class Player {
+  // Paddle's x & y represent the coordinates of the paddle's center
   constructor(client: Socket, userId: number) {
-    this.paddleY = CANVAS_MID_HEIGHT - PADDLE_HEIGHT / 2;
+    this.paddleY = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2;
     // PaddleX is later assigned based
-    // on the side he's assigned
+    // on the side the player is assigned
 
     this.client = client;
     this.userId = userId;

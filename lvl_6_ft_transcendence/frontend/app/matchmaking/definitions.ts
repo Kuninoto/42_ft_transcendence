@@ -1,4 +1,3 @@
-import { PlayerSide } from '@/common/types/backend/player-side.enum'
 
 export const PADDLE_HEIGHT = 80
 export const PADDLE_WALL_OFFSET = 16

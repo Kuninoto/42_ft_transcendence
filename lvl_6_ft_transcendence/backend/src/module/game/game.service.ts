@@ -62,7 +62,7 @@ export class GameService {
     // If there's no more players on the queue, assign the left side and keep him waiting
     if (this.gameQueue.size() === 1) {
       player.setPlayerSide(PlayerSide.LEFT);
-    } else {
+    } else if (this.gameQueue.size() >= 2) {
       player.setPlayerSide(PlayerSide.RIGHT);
 
       const playerOne: Player = this.gameQueue.dequeue();
