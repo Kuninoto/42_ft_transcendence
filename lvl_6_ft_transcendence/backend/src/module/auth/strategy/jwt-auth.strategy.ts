@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { ErrorResponse } from 'types';
+
 import { AuthService } from '../auth.service';
 
 // JWT Payload
@@ -13,11 +14,11 @@ import { AuthService } from '../auth.service';
 // - Issued at (automatic jwt info)
 // - Expiration dates (automatic jwt info)
 export interface TokenPayload {
-  id: number;
-  has_2fa: boolean;
-  is_2fa_authed?: boolean;
-  iat?: number;
   exp?: number;
+  has_2fa: boolean;
+  iat?: number;
+  id: number;
+  is_2fa_authed?: boolean;
 }
 
 @Injectable()
@@ -29,14 +30,14 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     private readonly usersService: UsersService,
   ) {
     super({
+      ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.JWT_SECRET,
-      ignoreExpiration: false,
     });
   }
 
-  async validate(payload: TokenPayload): Promise<User | ErrorResponse> {
-    const user: User | null = await this.usersService.findUserByUID(payload.id);
+  async validate(payload: TokenPayload): Promise<ErrorResponse | User> {
+    const user: null | User = await this.usersService.findUserByUID(payload.id);
 
     if (!user) {
       this.logger.warn(
@@ -45,8 +46,8 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Unauthenticated request');
     }
 
-    if (!this.authService.tokenWhitelist.get(user.id.toString())) {
-      this.logger.warn('A request was made with an invalid token');
+    if (this.authService.tokenWhitelist.get(user.id.toString()) === undefined) {
+      this.logger.warn('A request was made with a blacklisted token');
       throw new UnauthorizedException('Unauthenticated request');
     }
 

@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UserStatsForLeaderboard } from 'types';
+
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UserStatsService } from '../user-stats/user-stats.service';
 

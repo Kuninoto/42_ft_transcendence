@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { join } from 'path';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { UsersModule } from 'src/module/users/users.module';
+
 import entities from './entity/index';
 import { AchievementModule } from './module/achievement/achievement.module';
 import { ChatModule } from './module/chat/chat.module';
@@ -16,24 +17,25 @@ import { MeModule } from './module/me/me.module';
 import { UserStatsModule } from './module/user-stats/user-stats.module';
 
 @Module({
+  controllers: [],
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
+    ConfigModule.forRoot({ envFilePath: '../.env', isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: () => ({
-        type: 'postgres',
-        host: process.env.POSTGRES_HOST,
-        port: 5432,
-        username: process.env.POSTGRES_USER,
-        password: process.env.POSTGRES_PASSWORD,
+        autoLoadEntities: true,
         database: process.env.POSTGRES_DB,
         entities: entities,
-        autoLoadEntities: true,
-        // TODO
+        host: process.env.POSTGRES_HOST,
+        password: process.env.POSTGRES_PASSWORD,
+        port: 5432,
         // Turn off during prod
         synchronize: true,
+        type: 'postgres',
+        // TODO
+        username: process.env.POSTGRES_USER,
       }),
-      inject: [ConfigService],
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
@@ -59,6 +61,5 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
     UsersModule,
   ],
   providers: [],
-  controllers: [],
 })
 export class AppModule {}

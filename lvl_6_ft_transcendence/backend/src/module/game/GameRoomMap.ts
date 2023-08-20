@@ -7,6 +7,14 @@ export class GameRoomMap {
     this.gameRoomMap.set(newGameRoom.roomId, newGameRoom);
   }
 
+  public deleteGameRoomByRoomId(roomId: string): void {
+    this.gameRoomMap.delete(roomId);
+  }
+
+  public findGameRoomById(roomId: string): GameRoom | undefined {
+    return this.gameRoomMap.get(roomId);
+  }
+
   public findRoomWithPlayerByUID(userId: number): GameRoom | null {
     for (const gameRoom of this.gameRoomMap.values()) {
       if (
@@ -17,10 +25,6 @@ export class GameRoomMap {
       }
     }
     return null;
-  }
-
-  public findGameRoomById(roomId: string): GameRoom | undefined {
-    return this.gameRoomMap.get(roomId);
   }
 
   public isPlayerInGame(userId: number): boolean {
@@ -46,9 +50,5 @@ export class GameRoomMap {
     // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-1.html#partial-readonly-record-and-pick
     const updatedGameRoom: GameRoom = { ...gameRoom, ...newInfo };
     this.gameRoomMap.set(roomId, updatedGameRoom);
-  }
-
-  public deleteGameRoomByRoomId(roomId: string): void {
-    this.gameRoomMap.delete(roomId);
   }
 }

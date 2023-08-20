@@ -1,4 +1,4 @@
 export interface KickFromRoomDTO {
-  readonly userId: number;
   readonly roomId: number;
+  readonly userId: number;
 }

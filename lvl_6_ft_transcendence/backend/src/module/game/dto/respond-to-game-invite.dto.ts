@@ -1,4 +1,4 @@
 export interface RespondToGameInviteDTO {
-  inviteId: string;
   accepted: boolean;
+  inviteId: string;
 }

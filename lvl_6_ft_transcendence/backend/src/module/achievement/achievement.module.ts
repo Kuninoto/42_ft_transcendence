@@ -1,15 +1,16 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Achievement } from 'src/entity/achievement.entity';
+
 import { ConnectionModule } from '../connection/connection.module';
 import { AchievementService } from './achievement.service';
 
 @Module({
+  exports: [AchievementService],
   imports: [
     TypeOrmModule.forFeature([Achievement]),
     forwardRef(() => ConnectionModule),
   ],
   providers: [AchievementService],
-  exports: [AchievementService],
 })
 export class AchievementModule {}

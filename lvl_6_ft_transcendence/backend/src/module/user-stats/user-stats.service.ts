@@ -1,8 +1,9 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserStats } from 'src/entity';
 import { Repository } from 'typeorm';
 import { UserStatsForLeaderboard, UserStatsInterface } from 'types';
+
 import { AchievementService } from '../achievement/achievement.service';
 
 @Injectable()
@@ -18,6 +19,32 @@ export class UserStatsService {
     const newUserStats: UserStats = this.userStatsRepository.create();
     newUserStats.user = forUser;
     return await this.userStatsRepository.save(newUserStats);
+  }
+
+  public async findLadderLevelByUID(userId: number): Promise<number> {
+    return (await this.getLeaderboard()).findIndex(
+      (leaderBoardRow: UserStatsForLeaderboard) => {
+        return leaderBoardRow.uid == userId;
+      },
+    );
+  }
+
+  public async findUserStatsByUID(userId: number): Promise<UserStatsInterface> {
+    const userStats: UserStats = await this.userStatsRepository.findOneBy({
+      user: { id: userId },
+    });
+
+    const userStatsInterfaces: UserStatsInterface = {
+      losses: userStats.losses,
+      matches_played: userStats.matches_played,
+      win_rate:
+        userStats.win_rate == null
+          ? 0
+          : parseFloat(userStats.win_rate.toPrecision(3)),
+      wins: userStats.wins,
+    };
+
+    return userStatsInterfaces;
   }
 
   public async getLeaderboard(): Promise<UserStatsForLeaderboard[]> {
@@ -39,38 +66,12 @@ export class UserStatsService {
         .getRawMany();
 
     return leaderboardData.map((leaderboardRow) => ({
-      uid: leaderboardRow.uid,
       avatar_url: leaderboardRow.avatar_url,
       name: leaderboardRow.name,
-      wins: leaderboardRow.wins,
+      uid: leaderboardRow.uid,
       win_rate: leaderboardRow.win_rate === null ? 0 : leaderboardRow.win_rate,
+      wins: leaderboardRow.wins,
     }));
-  }
-
-  public async findLadderLevelByUID(userId: number): Promise<number> {
-    return (await this.getLeaderboard()).findIndex(
-      (leaderBoardRow: UserStatsForLeaderboard) => {
-        leaderBoardRow.uid == userId;
-      },
-    );
-  }
-
-  public async findUserStatsByUID(userId: number): Promise<UserStatsInterface> {
-    const userStats: UserStats = await this.userStatsRepository.findOneBy({
-      user: { id: userId },
-    });
-
-    const userStatsInterfaces: UserStatsInterface = {
-      wins: userStats.wins,
-      losses: userStats.losses,
-      win_rate:
-        userStats.win_rate == null
-          ? 0
-          : parseFloat(userStats.win_rate.toPrecision(3)),
-      matches_played: userStats.matches_played,
-    };
-
-    return userStatsInterfaces;
   }
 
   public async updateUserStatsUponGameEnd(
@@ -79,23 +80,21 @@ export class UserStatsService {
     wonByDisconnection: boolean,
   ) {
     await this.userStatsRepository.update(winnerUID, {
-      wins: () => 'wins + 1',
+      matches_played: () => 'matches_played + 1',
       win_rate: () =>
         'CAST(wins + 1 AS double precision) / (matches_played + 1) * 100.0',
-      matches_played: () => 'matches_played + 1',
+      wins: () => 'wins + 1',
     });
 
     await this.userStatsRepository.update(loserUID, {
       losses: () => 'losses + 1',
+      matches_played: () => 'matches_played + 1',
       win_rate: () =>
         'CAST(wins AS double precision) / (matches_played + 1) * 100.0',
-      matches_played: () => 'matches_played + 1',
     });
 
-    const winnerWins: number = Number(
-      (await this.findUserStatsByUID(winnerUID)).wins,
-    );
-    const loserLosses: number = Number(
+    const winnerWins = Number((await this.findUserStatsByUID(winnerUID)).wins);
+    const loserLosses = Number(
       (await this.findUserStatsByUID(loserUID)).losses,
     );
 
