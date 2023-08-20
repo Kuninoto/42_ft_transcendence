@@ -1,7 +1,6 @@
 'use client'
 
-import { PlayerSide } from '@/common/types/backend/player-side.enum'
-import { UserSearchInfo } from '@/common/types/backend/user-search-info.interface'
+import { PlayerSide, UserSearchInfo } from '@/common/types/backend'
 import { hasValues } from '@/common/utils/hasValues'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'
