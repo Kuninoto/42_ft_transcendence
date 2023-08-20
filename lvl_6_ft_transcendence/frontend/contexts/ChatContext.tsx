@@ -27,7 +27,7 @@ type ChatContextType = {
 	focusChat: (id: number) => void
 	friends: Friend[]
 	isOpen: boolean
-	open: (friend: Friend) => void
+	open: (id: number) => void
 	openChats: IChat[]
 	rejectChallenge: (id: number) => void
 	respondGameInvite: (accepted: boolean) => void
@@ -57,7 +57,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 	const [openChats, setOpenChats] = useState<[] | IChat[]>([])
 	const [currentOpenChat, setCurrentOpenChat] = useState<IChat>({} as IChat)
 
-	function open(friend: Friend) {
+	function open(id: number) {
 		const index = openChats?.findIndex((chat) => chat.friend.uid === friend.uid)
 
 		if (index !== -1) {
@@ -192,6 +192,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 		})
 
 		socket?.on('invitedToGame', function (data: InvitedToGameDTO) {
+			open(data.senderUID)
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
