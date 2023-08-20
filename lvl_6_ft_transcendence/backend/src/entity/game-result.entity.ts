@@ -13,23 +13,14 @@ import { User } from './index';
 @Entity('game_result')
 export class GameResult {
   @ApiProperty()
-  @Column()
-  game_type: GameType;
-
-  @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
   })
   id: number;
 
   @ApiProperty()
-  @ManyToOne(() => User)
-  @JoinColumn()
-  loser: User;
-
-  @ApiProperty()
-  @Column({ type: 'smallint' })
-  loser_score: number;
+  @Column()
+  game_type: GameType;
 
   @ApiProperty()
   @ManyToOne(() => User)
@@ -39,4 +30,13 @@ export class GameResult {
   @ApiProperty()
   @Column({ type: 'smallint' })
   winner_score: number;
+
+  @ApiProperty()
+  @ManyToOne(() => User)
+  @JoinColumn()
+  loser: User;
+
+  @ApiProperty()
+  @Column({ type: 'smallint' })
+  loser_score: number;
 }

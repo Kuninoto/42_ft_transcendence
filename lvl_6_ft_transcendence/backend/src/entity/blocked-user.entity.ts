@@ -5,11 +5,6 @@ import { User } from './index';
 @Entity('blocked_user')
 export class BlockedUser {
   @ApiProperty()
-  @ManyToOne(() => User)
-  @JoinColumn()
-  blocked_user: User;
-
-  @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
   })
@@ -19,4 +14,9 @@ export class BlockedUser {
   @ManyToOne(() => User)
   @JoinColumn()
   user_who_blocked: User;
+
+  @ApiProperty()
+  @ManyToOne(() => User)
+  @JoinColumn()
+  blocked_user: User;
 }

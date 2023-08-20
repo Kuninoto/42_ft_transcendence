@@ -52,6 +52,8 @@ export class FriendshipsGateway implements OnGatewayInit {
       return;
     }
 
+    console.log(messageBody);
+
     if (client.data.userId == messageBody.receiverUID) {
       // self message
       return;
@@ -84,6 +86,7 @@ export class FriendshipsGateway implements OnGatewayInit {
       await this.messageService.createDirectMessage(
         client.data.userId,
         messageBody.receiverUID,
+        messageBody.uniqueId,
         messageBody.content,
       );
     } else {
