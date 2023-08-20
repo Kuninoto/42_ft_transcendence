@@ -24,6 +24,7 @@ import {
   FriendshipStatus,
   GameResultInterface,
   GameThemes,
+  MeUserInfo,
   OpponentInfo,
   SuccessResponse,
   UserProfile,
@@ -63,6 +64,15 @@ export class UsersService {
     }
 
     return newUser;
+  }
+
+  public async findMyInfo(meUID: number): Promise<MeUserInfo> {
+    // Fetch user's table info of me user and get his ladder level
+    // Populate the resulting object with both all those properties
+    return {
+      ...(await this.usersRepository.findOneBy({ id: meUID })),
+      ladder_level: await this.userStatsService.findLadderLevelByUID(meUID),
+    };
   }
 
   public async findUserByName(name: string): Promise<User | null> {
@@ -177,6 +187,7 @@ export class UsersService {
         : null,
       friends: friends,
       is_blocked: isBlocked,
+      ladder_level: await this.userStatsService.findLadderLevelByUID(userId),
       match_history: await this.findMatchHistoryByUID(userId),
       stats: await this.userStatsService.findUserStatsByUID(userId),
       achievements: await this.achievementService.findAchievementsByUID(userId),
