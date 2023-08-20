@@ -31,7 +31,7 @@ function checkRequiredEnvVariables(): void {
   ];
 
   const missingVariables: string[] = requiredEnvVariables.filter(
-    (variable) => !process.env[variable],
+    (variable: string) => !process.env[variable],
   );
 
   if (missingVariables.length > 0) {
@@ -45,9 +45,9 @@ function checkRequiredEnvVariables(): void {
 }
 
 async function bootstrap() {
-  const logger: Logger = new Logger('NestApplication');
-
   checkRequiredEnvVariables();
+
+  const logger: Logger = new Logger('NestApplication');
 
   const app: NestExpressApplication =
     await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -66,7 +66,7 @@ async function bootstrap() {
 
   app.enableCors(AppCorsOption);
 
-  const oneDay: number = 86400000;
+  const oneDay: number = 60 * 60 * 24 * 1000;
   app.use(
     session({
       cookie: {

@@ -1,7 +1,7 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
-import { GameResult, User } from 'src/typeorm';
+import { GameResult, User } from 'src/entity';
 import { Repository } from 'typeorm';
 import {
   GameInvite,

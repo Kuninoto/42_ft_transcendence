@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from 'src/typeorm';
 import {
   Column,
   Entity,
@@ -7,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ChatRoom } from './chat-room.entity';
+import { ChatRoom, User } from './index';
 
 @Entity('message')
 export class Message {

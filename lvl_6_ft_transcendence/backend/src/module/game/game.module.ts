@@ -1,6 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GameResult } from 'src/typeorm/index';
+import { GameResult } from 'src/entity/index';
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConnectionModule } from '../connection/connection.module';

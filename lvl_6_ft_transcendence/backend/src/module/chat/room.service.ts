@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
-import { ChatRoom, User } from 'src/typeorm';
+import { ChatRoom, User } from 'src/entity';
 import { Repository } from 'typeorm';
 import { ChatRoomI, ChatRoomSearchInfo, ChatRoomType } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';

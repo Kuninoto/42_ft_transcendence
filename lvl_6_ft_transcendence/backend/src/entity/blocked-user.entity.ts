@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from './index';
 import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from './user.entity';
 
 @Entity('blocked_user')
 export class BlockedUser {

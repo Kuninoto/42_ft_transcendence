@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
-import { User } from 'src/typeorm';
+import { User } from 'src/entity';
 import { Repository } from 'typeorm';
 import { TokenPayload } from '../auth/strategy/jwt-auth.strategy';
 import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
