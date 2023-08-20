@@ -1,5 +1,5 @@
 import { api } from '@/api/api'
-import { Friend } from '@/common/types/backend/friend-interface.interface'
+import { Friend } from '@/common/types/backend'
 import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
 import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
 import { OponentFoundDTO } from '@/common/types/oponent-found'

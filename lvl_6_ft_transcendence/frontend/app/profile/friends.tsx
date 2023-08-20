@@ -1,5 +1,4 @@
-import { Friend } from '@/common/types/friend-interface.interface'
-import { hasValues } from '@/common/utils/hasValues'
+import { Friend } from '@/common/types/backend'
 import { removeParams } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import Link from 'next/link'

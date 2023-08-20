@@ -1,5 +1,5 @@
 import { AchievementsList } from '@/common/achievements'
-import { AchievementInterface } from '@/common/types/backend/achievement-interface.interface'
+import { AchievementInterface } from '@/common/types/backend'
 import Image from 'next/image'
 
 export default function Achievements({
