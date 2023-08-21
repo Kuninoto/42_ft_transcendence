@@ -7,8 +7,7 @@ import {
   Param,
   Patch,
   Post,
-  Req,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -26,6 +25,7 @@ import { ErrorResponse, FriendshipStatus, SuccessResponse } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from './friendships.service';
 import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
+import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 
 @ApiTags('friendships')
 @ApiBearerAuth('Jwt')
@@ -64,11 +64,11 @@ export class FriendshipsController {
   @HttpCode(HttpStatus.OK)
   @Post('send-request/:receiverId')
   public async sendFriendRequest(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Param('receiverId', NonNegativeIntPipe) receiverUID: number,
   ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.sendFriendRequest(
-      req.user,
+      user,
       receiverUID,
     );
   }
@@ -108,13 +108,13 @@ export class FriendshipsController {
   })
   @Patch(':friendshipId/update')
   public async updateFriendshipStatus(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
     @Body(new FriendshipStatusUpdateValidationPipe())
     newStatus: FriendshipStatus,
   ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.updateFriendshipStatus(
-      req.user,
+      user,
       friendshipId,
       newStatus,
     );
@@ -147,11 +147,11 @@ export class FriendshipsController {
   @HttpCode(HttpStatus.OK)
   @Post('block/:userToBlockId')
   public async blockUser(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Param('userToBlockId', NonNegativeIntPipe) userToBlockId: number,
   ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.blockUserByUID(
-      req.user,
+      user,
       userToBlockId,
     );
   }
@@ -174,11 +174,11 @@ export class FriendshipsController {
   })
   @Delete('block/:userToUnblockId')
   public async unblockUser(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Param('userToUnblockId', NonNegativeIntPipe) userToUnblockId: number,
   ): Promise<ErrorResponse | SuccessResponse> {
     return await this.friendshipsService.unblockUserByUID(
-      req.user,
+      user,
       userToUnblockId,
     );
   }

@@ -6,7 +6,7 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 
 import { AppModule } from './app.module';
-import { AppCorsOption } from './common/options/cors.option';
+import { AppCorsOption } from './common/option/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);

@@ -1,10 +1,9 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtOption } from 'src/common/options/jwt.option';
+import { JwtOption } from 'src/common/option/jwt.option';
 import { AuthController } from 'src/module/auth/auth.controller';
 import { FortyTwoAuthStrategy } from 'src/module/auth/strategy/fortytwo-auth.strategy';
-
 import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 import { SessionSerializer } from './session.serializer';

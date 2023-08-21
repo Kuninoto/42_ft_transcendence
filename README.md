@@ -81,6 +81,7 @@ A website to host the might pong contest!
 [Passportjs serializerUser and deserializeUser](https://stackoverflow.com/questions/29066348/passportjs-serializeuser-and-deserializeuser-execution-flow)  
 [2FA with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
 [NestJS passport docs](https://docs.nestjs.com/recipes/passport)    
+[Custom Decorators NestJS Docs](https://docs.nestjs.com/custom-decorators)  
 
 **File upload & serve**
 [Serve Static NestJS Docs](https://docs.nestjs.com/recipes/serve-static)  
