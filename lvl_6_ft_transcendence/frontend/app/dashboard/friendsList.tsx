@@ -95,7 +95,7 @@ export default function FriendsList(): JSX.Element {
 								>
 									<button
 										className="flex w-full place-content-between items-center px-4"
-										onClick={() => open(friend)}
+										onClick={() => open(friend.uid)}
 									>
 										<div className="flex items-center space-x-4">
 											<div className="relative aspect-square w-8 overflow-hidden rounded-sm">

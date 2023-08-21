@@ -157,7 +157,6 @@ export default function FriendsModal({
 
 		try {
 			api
-			api
 				.get(`/users/search?username=${search}`)
 				.then((result) => {
 					console.log(result.data)

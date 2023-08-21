@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		const token = localStorage.getItem('pong.token')
 
+		console.log(api)
 		if (token) {
 			if (pathname === '/') router.push('/dashboard')
 
@@ -103,8 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	async function login(code: string): Promise<boolean> {
+		console.log(process.env.NEXT_PUBLIC_BACKEND_URL)
 		const data = await axios
-			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
+			.get(
+				`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login/callback?code=${code}`
+			)
 			.then((result) => result.data)
 			.catch(() => {
 				throw 'Network error'

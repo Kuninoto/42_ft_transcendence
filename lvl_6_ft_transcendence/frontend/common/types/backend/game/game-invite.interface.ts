@@ -1,4 +1,4 @@
-import { Player } from 'src/module/game/Player'
+import { Player } from '../../game-room-info'
 
 export interface GameInvite {
 	recipientUID: number

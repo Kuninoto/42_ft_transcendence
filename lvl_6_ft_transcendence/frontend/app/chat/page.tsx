@@ -5,6 +5,8 @@ import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import { ChangeEventHandler, useState } from 'react'
 import { IoIosClose } from 'react-icons/io'
+import { LuSwords } from 'react-icons/lu'
+import { MdOutlineBlock } from 'react-icons/md'
 
 export default function Chat() {
 	const [isOpen, setIsOpen] = useState(false)
@@ -17,6 +19,7 @@ export default function Chat() {
 		focusChat,
 		isOpen: exists,
 		openChats,
+		rejectChallenge,
 		sendMessage,
 	} = useChat()
 
@@ -59,8 +62,8 @@ export default function Chat() {
 								key={chat.friend?.uid}
 							>
 								<button
-									className={`flex h-12 w-full items-center space-x-2 px-2 group-hover:w-5/6 ${
-										chat.unread && 'w-5/6'
+									className={`flex h-12 items-center space-x-2 px-2 group-hover:w-5/6 ${
+										chat.unread ? 'w-5/6' : 'w-full '
 									}`}
 									onClick={() => focusChat(chat.friend?.uid)}
 								>
@@ -97,7 +100,23 @@ export default function Chat() {
 						)
 					})}
 				</div>
-				<div className="flex h-full w-8/12 flex-col place-content-between">
+				<div className="relative flex h-full w-8/12 flex-col place-content-between">
+					{!!currentOpenChat.challengeId && (
+						<div className="absolute top-0 flex h-[49px] w-full place-content-between items-center border-b border-white bg-[#170317] px-4">
+							<div>Challenged you</div>
+							<div className="flex space-x-2">
+								<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+									<LuSwords />
+								</button>
+								<button
+									className="rounded border border-red-600 p-2 text-red-600 hover:bg-red-600 hover:text-white"
+									onClick={() => rejectChallenge(currentOpenChat.friend?.uid)}
+								>
+									<MdOutlineBlock />
+								</button>
+							</div>
+						</div>
+					)}
 					<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 						{currentOpenChat?.messages.map((message) => {
 							if (!message.sendByMe) {
@@ -124,7 +143,7 @@ export default function Chat() {
 					</div>
 
 					<textarea
-						className={`mx-2 mb-2 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none transition-all duration-500 placeholder:text-white/90`}
+						className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
 						cols={2}
 						onChange={handleChange}
 						placeholder="Write something beutiful"
