@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	async function login(code: string): Promise<boolean> {
 		const data = await axios
-			.get(`${process.env.BACKEND_URL}/api/auth/login/callback?code=${code}`)
+			.get(`http://localhost:3000/api/auth/login/callback?code=${code}`)
 			.then((result) => result.data)
 			.catch(() => {
 				throw 'Network error'

@@ -12,7 +12,7 @@ const SocketContext = createContext<SocketContextType>({} as SocketContextType)
 
 export function SocketProvider({ children }: { children: ReactNode }) {
 	const connect = () => {
-		socket = io(`${process.env.BACKEND_URL}/connection`, {
+		socket = io('http://localhost:3000/connection', {
 			extraHeaders: {
 				Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
 			},
