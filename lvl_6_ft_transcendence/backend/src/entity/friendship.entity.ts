@@ -18,9 +18,12 @@ export class Friendship {
   id: number;
 
   @ApiProperty()
-  @ManyToOne(() => User)
-  @JoinColumn()
-  receiver: User;
+  @Column({
+    default: FriendshipStatus.PENDING,
+    nullable: false,
+    type: 'varchar',
+  })
+  status: FriendshipStatus;
 
   @ApiProperty()
   @ManyToOne(() => User)
@@ -28,10 +31,7 @@ export class Friendship {
   sender: User;
 
   @ApiProperty()
-  @Column({
-    default: FriendshipStatus.PENDING,
-    nullable: false,
-    type: 'varchar',
-  })
-  status: FriendshipStatus;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  receiver: User;
 }

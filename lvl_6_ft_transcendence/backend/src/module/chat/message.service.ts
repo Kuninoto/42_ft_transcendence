@@ -22,9 +22,11 @@ export class MessageService {
   async createDirectMessage(
     senderUID: number,
     receiverUID: number,
+    uniqueId: string,
     content: string,
   ): Promise<DirectMessage> {
     const newMessage: DirectMessage = this.directMessageRepository.create({
+      unique_id: uniqueId,
       content: content,
       receiver: { id: receiverUID },
       sender: { id: senderUID },

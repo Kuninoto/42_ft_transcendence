@@ -84,6 +84,7 @@ export class FriendshipsGateway implements OnGatewayInit {
       await this.messageService.createDirectMessage(
         client.data.userId,
         messageBody.receiverUID,
+        messageBody.uniqueId,
         messageBody.content,
       );
     } else {
