@@ -15,6 +15,31 @@ import { Message, User } from './index';
 @Entity('chat_room')
 export class ChatRoom {
   @ApiProperty()
+  @PrimaryGeneratedColumn({
+    type: 'bigint',
+  })
+  id: number;
+
+  @ApiProperty()
+  @Column({ nullable: false, type: 'varchar' })
+  name: string;
+
+  @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+  })
+  type: ChatRoomType;
+
+  @ApiProperty()
+  @Column({ nullable: true, type: 'varchar' })
+  password: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn()
+  owner: User;
+
+  @ApiProperty()
   @ManyToMany(() => User, (users: User) => users.chat_admin)
   @JoinTable()
   admins: User[];
@@ -25,37 +50,12 @@ export class ChatRoom {
   bans: User[];
 
   @ApiProperty()
-  @PrimaryGeneratedColumn({
-    type: 'bigint',
-  })
-  id: number;
+  @ManyToMany(() => User, (users: User) => users.chat_rooms)
+  @JoinTable()
+  users: User[];
 
   @ApiProperty()
   @OneToMany(() => Message, (messages: Message) => messages.room)
   @JoinColumn()
   messages: Message[];
-
-  @ApiProperty()
-  @Column({ nullable: false, type: 'varchar' })
-  name: string;
-
-  @ManyToOne(() => User)
-  @JoinColumn()
-  owner: User;
-
-  @ApiProperty()
-  @Column({ nullable: true, type: 'varchar' })
-  password: string;
-
-  @ApiProperty()
-  @Column({
-    nullable: false,
-    type: 'varchar',
-  })
-  type: ChatRoomType;
-
-  @ApiProperty()
-  @ManyToMany(() => User, (users: User) => users.chat_rooms)
-  @JoinTable()
-  users: User[];
 }

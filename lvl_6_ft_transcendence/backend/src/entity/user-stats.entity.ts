@@ -21,7 +21,18 @@ export class UserStats {
     default: 0,
     type: 'bigint',
   })
+  wins: number;
+
+  @ApiProperty()
+  @Column({
+    default: 0,
+    type: 'bigint',
+  })
   losses: number;
+
+  @ApiProperty()
+  @Column({ default: null, nullable: true, type: 'double precision' })
+  win_rate: number;
 
   @ApiProperty()
   @Column({
@@ -34,15 +45,4 @@ export class UserStats {
   @OneToOne(() => User, (user) => user.user_stats, { cascade: true })
   @JoinColumn()
   user: User;
-
-  @ApiProperty()
-  @Column({ default: null, nullable: true, type: 'double precision' })
-  win_rate: number;
-
-  @ApiProperty()
-  @Column({
-    default: 0,
-    type: 'bigint',
-  })
-  wins: number;
 }
