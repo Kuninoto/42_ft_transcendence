@@ -13,10 +13,10 @@ export class BlockedUser {
   @ApiProperty()
   @ManyToOne(() => User)
   @JoinColumn()
-  user_who_blocked: User;
+  blocked_user: User;
 
   @ApiProperty()
   @ManyToOne(() => User)
   @JoinColumn()
-  blocked_user: User;
+  user_who_blocked: User;
 }

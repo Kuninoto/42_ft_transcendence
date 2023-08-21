@@ -16,7 +16,7 @@ interface User42Info {
 }
 
 @Injectable()
-export class FortyTwoAuthStrategy extends PassportStrategy(Strategy) {
+export class FortyTwoAuthStrategy extends PassportStrategy(Strategy, '42') {
   private readonly logger: Logger = new Logger(FortyTwoAuthStrategy.name);
 
   constructor(private usersService: UsersService) {
