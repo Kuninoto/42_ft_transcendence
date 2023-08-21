@@ -16,8 +16,10 @@ export class PostgresConfigService implements TypeOrmOptionsFactory {
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       entities: entities,
-      logging: true,
       autoLoadEntities: true,
+
+      // Set to true when needed
+      logging: false,
 
       // TODO
       // Change all types using snake_case due to the (past) db restriction

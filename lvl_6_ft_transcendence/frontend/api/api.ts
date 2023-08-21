@@ -1,14 +1,14 @@
 import axios from 'axios'
 
 export const api = axios.create({
-	baseURL: `${process.env.BACKEND_URL}/api`,
+	baseURL: `http://localhost:3000/api`,
 	headers: {
 		'Content-Type': 'application/json',
 	},
 })
 
 export const multipartApi = axios.create({
-	baseURL: `${process.env.BACKEND_URL}/api`,
+	baseURL: `http://localhost:3000/api`,
 	headers: {
 		'Content-Type': 'multipart/form-data',
 	},
