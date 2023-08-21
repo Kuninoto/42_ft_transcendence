@@ -5,8 +5,7 @@ import {
   NotFoundException,
   Param,
   Query,
-  Req,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,6 +21,7 @@ import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { ErrorResponse, UserProfile, UserSearchInfo } from 'types';
 
 import { UsersService } from './users.service';
+import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth('Jwt')
@@ -50,15 +50,15 @@ export class UsersController {
   })
   @Get('/:userId')
   public async findUserProfileByUID(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Param('userId', NonNegativeIntPipe) userId: number,
   ): Promise<ErrorResponse | UserProfile> {
     const userProfile: null | UserProfile =
-      await this.usersService.findUserProfileByUID(req.user, userId);
+      await this.usersService.findUserProfileByUID(user, userId);
 
     if (!userProfile) {
       this.logger.warn(
-        `"${req.user.name}" request the profile of a non-existing user`,
+        `"${user.name}" request the profile of a non-existing user`,
       );
       throw new NotFoundException('User with id= ' + userId + "doesn't exist");
     }
@@ -85,13 +85,13 @@ export class UsersController {
   })
   @Get('/search')
   public async findUsersByUsernameProximity(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Query('username') query: string,
   ): Promise<UserSearchInfo[]> {
     if (!query) return [];
 
     return await this.usersService.findUsersSearchInfoByUsernameProximity(
-      req.user,
+      user,
       query,
     );
   }

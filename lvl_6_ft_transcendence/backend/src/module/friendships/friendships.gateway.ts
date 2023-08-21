@@ -7,7 +7,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { GatewayCorsOption } from 'src/common/option/cors.option';
 
 import { MessageService } from '../chat/message.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
