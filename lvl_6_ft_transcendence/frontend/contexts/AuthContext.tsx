@@ -24,7 +24,7 @@ export interface AuthContextExports {
 	login2fa: (otp: string) => Promise<void>
 	logout: () => void
 	refreshUser: () => void
-	user: {} | UserProfile
+	user: UserProfile
 }
 
 const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
@@ -32,7 +32,7 @@ const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
 	const pathname = usePathname()
-	const [user, setUser] = useState<{} | UserProfile>({})
+	const [user, setUser] = useState<UserProfile>({} as UserProfile)
 
 	const [tempToken, setTempToken] = useState('')
 	const isAuth = hasValues(user)

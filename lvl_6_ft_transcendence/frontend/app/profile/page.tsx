@@ -300,10 +300,14 @@ export default function Profile() {
 						</div>
 					</div>
 
+					<h2 className="text-4xl">
+						Rank: #{userProfile?.ladder_level || '0'}
+					</h2>
+
 					<div className="text-xl opacity-80">
-						<div> Wins {userProfile?.stats?.wins || '0'} </div>
-						<div> Losses {userProfile?.stats?.losses || '0'} </div>
-						<div> Win Rate {userProfile?.stats?.win_rate || '0'}% </div>
+						<div> Wins: {userProfile?.stats?.wins || '0'} </div>
+						<div> Losses: {userProfile?.stats?.losses || '0'} </div>
+						<div> Win Rate: {userProfile?.stats?.win_rate || '0'}% </div>
 					</div>
 					<div className="text-gray-400">
 						since{' '}
