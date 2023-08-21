@@ -6,7 +6,6 @@ import {
   Get,
   Logger,
   Patch,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -33,6 +32,7 @@ import {
   UsernameUpdationRequest,
 } from 'types';
 
+import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
@@ -58,9 +58,9 @@ export class MeController {
    */
   @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
   @Get()
-  public async getMyInfo(@Req() req: { user: User }): Promise<MeUserInfo> {
-    this.logger.log(`"${req.user.name}" requested his info`);
-    return this.usersService.findMyInfo(req.user.id);
+  public async getMyInfo(@ExtractUser() user: User): Promise<MeUserInfo> {
+    this.logger.log(`"${user.name}" requested his info`);
+    return this.usersService.findMyInfo(user.id);
   }
 
   /**
@@ -72,11 +72,11 @@ export class MeController {
     description: "Finds and returns the 'me' user's friends",
   })
   @Get('friends')
-  public async getMyFriends(@Req() req: { user: User }): Promise<Friend[]> {
-    this.logger.log(`"${req.user.name}" requested his friends info`);
+  public async getMyFriends(@ExtractUser() user: User): Promise<Friend[]> {
+    this.logger.log(`"${user.name}" requested his friends info`);
 
     const friendList: Friend[] = await this.friendshipsService.findFriendsByUID(
-      req.user.id,
+      user.id,
     );
 
     return friendList;
@@ -92,13 +92,11 @@ export class MeController {
   })
   @Get('friend-request')
   public async getMyFriendRequests(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
   ): Promise<FriendRequest[]> {
-    this.logger.log(
-      `"${req.user.name}" requested his received friend-requests`,
-    );
+    this.logger.log(`"${user.name}" requested his received friend-requests`);
 
-    return await this.friendshipsService.getMyFriendRequests(req.user);
+    return await this.friendshipsService.getMyFriendRequests(user);
   }
 
   /**
@@ -111,10 +109,10 @@ export class MeController {
   })
   @Get('blocklist')
   public async getMyBlockedUsers(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
   ): Promise<BlockedUserInterface[]> {
-    this.logger.log(`"${req.user.name}" requested his blocklist`);
-    return await this.friendshipsService.getMyBlocklist(req.user.id);
+    this.logger.log(`"${user.name}" requested his blocklist`);
+    return await this.friendshipsService.getMyBlocklist(user.id);
   }
 
   /**
@@ -143,20 +141,20 @@ export class MeController {
   })
   @Patch('username')
   public async updateMyUsername(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Body() body: UsernameUpdationRequest,
   ): Promise<ErrorResponse | SuccessResponse> {
-    this.logger.log(`Updating ${req.user.name}'s username`);
+    this.logger.log(`Updating ${user.name}'s username`);
 
     if (!body.newUsername) {
-      this.logger.warn(`"${req.user.name}" failed to update his username`);
+      this.logger.warn(`"${user.name}" failed to update his username`);
       throw new BadRequestException(
         "Expected 'newUsername' as a field of the body's JSON",
       );
     }
 
     return await this.usersService.updateUsernameByUID(
-      req.user.id,
+      user.id,
       body.newUsername,
     );
   }
@@ -191,18 +189,18 @@ export class MeController {
   })
   @Patch('avatar')
   public async updateMyAvatar(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ErrorResponse | SuccessResponse> {
     if (!file) {
-      this.logger.warn(`"${req.user.name}" failed to upload his avatar`);
+      this.logger.warn(`"${user.name}" failed to upload his avatar`);
       throw new BadRequestException('Invalid file');
     }
 
-    this.logger.log(`Updating ${req.user.name}\'s avatar`);
+    this.logger.log(`Updating ${user.name}\'s avatar`);
 
     return await this.usersService.updateUserAvatarByUID(
-      req.user.id,
+      user.id,
       process.env.BACKEND_URL + '/api/users/avatars/' + file.filename,
     );
   }
@@ -228,15 +226,12 @@ export class MeController {
   })
   @Patch('game-theme')
   public async updateMyGameTheme(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
   ): Promise<ErrorResponse | SuccessResponse> {
-    this.logger.log(`${req.user.name} is updating his game theme`);
+    this.logger.log(`${user.name} is updating his game theme`);
 
-    return await this.usersService.updateGameThemeByUID(
-      req.user.id,
-      newGameTheme,
-    );
+    return await this.usersService.updateGameThemeByUID(user.id, newGameTheme);
   }
 
   /**
@@ -248,10 +243,10 @@ export class MeController {
   @ApiOkResponse({ description: "Deletes 'me' user's account" })
   @Delete()
   public async deleteMyAccount(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
   ): Promise<SuccessResponse> {
-    this.logger.log(`Deleting ${req.user.name}'s account`);
+    this.logger.log(`Deleting ${user.name}'s account`);
 
-    return await this.usersService.deleteUserByUID(req.user.id);
+    return await this.usersService.deleteUserByUID(user.id);
   }
 }

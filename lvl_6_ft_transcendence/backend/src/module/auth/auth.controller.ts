@@ -8,7 +8,6 @@ import {
   Logger,
   Patch,
   Post,
-  Req,
   Res,
   UnauthorizedException,
   UseGuards,
@@ -23,6 +22,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity/index';
 import { UsersService } from 'src/module/users/users.service';
 import {
@@ -60,9 +60,10 @@ export class AuthController {
   @UseGuards(FortyTwoAuthGuard)
   @Get('login/callback')
   public async loginCallback(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
+    // @Res() res: Response,
   ): Promise<LoginResponse> {
-    return this.authService.login(req.user);
+    return this.authService.login(user);
   }
 
   /**
@@ -76,7 +77,7 @@ export class AuthController {
    */
   @ApiOkResponse({
     description:
-      'A new access_token that proves that the user is two factor authenticated',
+      'A new access token that proves that the user is two factor authenticated',
   })
   @ApiBody({
     schema: {
@@ -99,12 +100,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
   public auth2fa(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Body() body: OtpVerificationRequest,
   ): AccessTokenResponse | ErrorResponse {
     const isCodeValid: boolean = this.authService.is2faCodeValid(
       body.otp,
-      req.user.secret_2fa,
+      user.secret_2fa,
     );
 
     if (!isCodeValid) {
@@ -114,7 +115,7 @@ export class AuthController {
       throw new UnauthorizedException('Invalid OTP');
     }
 
-    return this.authService.authenticate2fa(req.user);
+    return this.authService.authenticate2fa(user);
   }
 
   /**
@@ -151,24 +152,23 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/enable')
   public async enable2fa(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Body() body: OtpVerificationRequest,
   ): Promise<AccessTokenResponse | ErrorResponse> {
     const is2faCodeValid = this.authService.is2faCodeValid(
       body.otp,
-      req.user.secret_2fa,
+      user.secret_2fa,
     );
     if (!is2faCodeValid) {
       this.logger.warn('A request was made with a wrong auth code (2FA)');
       throw new BadRequestException('Wrong authentication code');
     }
 
-    this.logger.log(`Enabling 2FA for "${req.user.name}"`);
-    await this.usersService.enable2fa(req.user.id, req.user.secret_2fa);
+    this.logger.log(`Enabling 2FA for "${user.name}"`);
+    await this.usersService.enable2fa(user.id, user.secret_2fa);
 
-    const accessToken: AccessTokenResponse = this.authService.authenticate2fa(
-      req.user,
-    );
+    const accessToken: AccessTokenResponse =
+      this.authService.authenticate2fa(user);
 
     return accessToken;
   }
@@ -182,12 +182,10 @@ export class AuthController {
   @ApiBearerAuth('Jwt')
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/disable')
-  public async disable2fa(
-    @Req() req: { user: User },
-  ): Promise<SuccessResponse> {
-    this.logger.log(`Disabling 2FA for "${req.user.name}"`);
+  public async disable2fa(@ExtractUser() user: User): Promise<SuccessResponse> {
+    this.logger.log(`Disabling 2FA for "${user.name}"`);
 
-    return await this.usersService.disable2fa(req.user.id);
+    return await this.usersService.disable2fa(user.id);
   }
 
   /**
@@ -210,12 +208,12 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
   public async generate2faQRCodeAndSecret(
-    @Req() req: { user: User },
+    @ExtractUser() user: User,
     @Res() res: any,
   ): Promise<string> {
     const info2fa: OtpInfoDTO = await this.authService.generate2faSecret();
 
-    await this.usersService.update2faSecretByUID(req.user.id, info2fa.secret);
+    await this.usersService.update2faSecretByUID(user.id, info2fa.secret);
 
     return res.json(
       await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL),
@@ -234,7 +232,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  public async logout(@Req() req: { user: User }): Promise<SuccessResponse> {
-    return this.authService.logout(req.user.id);
+  public async logout(@ExtractUser() user: User): Promise<SuccessResponse> {
+    return this.authService.logout(user.id);
   }
 }
