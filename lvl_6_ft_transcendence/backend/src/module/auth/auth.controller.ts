@@ -95,8 +95,11 @@ export class AuthController {
       'If the user which id is provided in the JWT or if the OTP is invalid',
   })
   @ApiBadRequestResponse({ description: "If request's body is malformed" })
-  @ApiBearerAuth('2fa')
-  @UseGuards(AuthGuard('2fa'))
+  @ApiBearerAuth('2faExchange')
+  /* This guard is only used for this request
+  where the user will have has2fa true but is_2fa_authed false
+  thus we cannot use the JwtAuthGuard */
+  @UseGuards(AuthGuard('2faExchange'))
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
   public auth2fa(
