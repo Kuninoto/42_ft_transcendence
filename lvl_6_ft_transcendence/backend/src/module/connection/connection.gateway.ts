@@ -7,7 +7,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { GatewayCorsOption } from 'src/common/options/cors.option';
+import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { Achievements, Friend, UserStatus } from 'types';
