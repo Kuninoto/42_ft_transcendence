@@ -32,7 +32,7 @@ export default function page() {
 				/>
 				<a
 					className="group flex h-auto w-10"
-					href={process.env.INTRA_REDIRECT_URI}
+					href={process.env.NEXT_PUBLIC_INTRA_REDIRECT_URI}
 				>
 					<div className="h-auto w-8 rounded-md border-8 border-[#413F3F] bg-black"></div>
 					<Image

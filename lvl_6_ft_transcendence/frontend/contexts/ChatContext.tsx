@@ -43,7 +43,7 @@ export interface MessageDTO {
 
 interface IChat {
 	challengeId: null | number
-	friend: Friend
+	friend?: Friend
 	messages: MessageDTO[]
 	unread: boolean
 }
@@ -61,9 +61,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 		const index = openChats?.findIndex((chat) => chat.friend.uid === friend.uid)
 
 		if (index !== -1) {
-			focusChat(friend.uid)
+			focusChat(id)
 			return
 		}
+
+		const friend = friends.find((friend) => friend.uid === id)
 
 		const newChat: IChat = {
 			challengeId: null,
