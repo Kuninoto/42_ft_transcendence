@@ -2,6 +2,7 @@ import { api } from '@/api/api'
 import { Friend } from '@/common/types/backend'
 import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
 import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
+import { NewUserStatusDTO } from '@/common/types/new-user-status.dto'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
 import { RespondToGameInviteDTO } from '@/common/types/respond-to-game-invite.dto'
 import { SendDirectMessageDTO } from '@/common/types/send-direct-message.dto'
@@ -26,8 +27,9 @@ type ChatContextType = {
 	focusChat: (id: number) => void
 	friends: Friend[]
 	isOpen: boolean
-	open: (friend: Friend) => void
+	open: (id: number) => void
 	openChats: IChat[]
+	rejectChallenge: (id: number) => void
 	respondGameInvite: (accepted: boolean) => void
 	sendGameInvite: (id: number) => void
 	sendMessage: (message: string) => void
@@ -40,7 +42,8 @@ export interface MessageDTO {
 }
 
 interface IChat {
-	friend: Friend
+	challengeId: null | number
+	friend?: Friend
 	messages: MessageDTO[]
 	unread: boolean
 }
@@ -54,15 +57,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 	const [openChats, setOpenChats] = useState<[] | IChat[]>([])
 	const [currentOpenChat, setCurrentOpenChat] = useState<IChat>({} as IChat)
 
-	function open(friend: Friend) {
+	function open(id: number) {
 		const index = openChats?.findIndex((chat) => chat.friend.uid === friend.uid)
 
 		if (index !== -1) {
-			focusChat(friend.uid)
+			focusChat(id)
 			return
 		}
 
+		const friend = friends.find((friend) => friend.uid === id)
+
 		const newChat: IChat = {
+			challengeId: null,
 			friend,
 			messages: [],
 			unread: false,
@@ -153,6 +159,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
 					if (index === -1) {
 						newChat.push({
+							challenged: false,
 							friend: friends.find((friend) => friend.uid === data.senderUID),
 							messages: [
 								{
@@ -182,10 +189,33 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 			}
 		)
 
-		socket?.on('invitedToGame', function (data: InvitedToGameDTO) {
+		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
 			console.log(data)
 		})
+
+		socket?.on('invitedToGame', function (data: InvitedToGameDTO) {
+			open(data.senderUID)
+			setOpenChats((prevChat) => {
+				const newChat = [...prevChat]
+
+				const index = newChat?.findIndex(
+					(chat) => chat.friend.uid === data.senderUID
+				)
+
+				newChat[index].challengeId = data.inviteId
+				return newChat
+			})
+		})
 	}, [friends])
+
+	function rejectChallenge(id: number) {
+		setOpenChats((prevChat) => {
+			const newChat = [...prevChat]
+			const index = newChat?.findIndex((chat) => chat.friend.uid === id)
+			newChat[index].challengeId = null
+			return newChat
+		})
+	}
 
 	function sendMessage(message: string) {
 		if (!socket) return
@@ -223,6 +253,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 		isOpen: openChats.length !== 0,
 		open,
 		openChats,
+		rejectChallenge,
 		respondGameInvite,
 		sendGameInvite,
 		sendMessage,
