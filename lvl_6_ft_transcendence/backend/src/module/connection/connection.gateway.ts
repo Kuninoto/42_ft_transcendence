@@ -109,7 +109,7 @@ export class ConnectionGateway
       userId,
     );
 
-    friends.forEach((friend) => {
+    friends.forEach((friend: Friend) => {
       client.join(`friend-${friend.uid}`);
     });
   }
@@ -135,7 +135,7 @@ export class ConnectionGateway
 
     // If both users are online
     if (senderSocketId && receiverSocketId) {
-      this.server.to(receiverSocketId).emit('friendRequestAccepted');
+      this.server.to(senderSocketId).emit('friendRequestAccepted');
 
       this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
       this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
