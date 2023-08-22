@@ -92,7 +92,7 @@ export default function Leaderboard() {
 				{loading ? (
 					<div>Loading</div>
 				) : rest?.length === 0 ? (
-					<div className="text-xl">Kinda empty here</div>
+					<div className="my-auto text-4xl">Kinda empty here</div>
 				) : (
 					rest?.map((player, index) => {
 						return (
@@ -130,33 +130,34 @@ export default function Leaderboard() {
 					})
 				)}
 
-				<div className="fixed bottom-8">
-					<div className="group relative grid items-start justify-center  gap-8">
-						<div className="animate-tilt absolute -inset-0.5 rounded bg-gradient-to-r from-primary-fushia to-primary-shoque opacity-100 blur"></div>
-						<div className="relative flex items-center space-x-16 rounded bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-8 py-4 text-2xl">
-							<div className="flex items-center space-x-16">
-								<div className="text-center">#{user?.ladder_level}</div>
-								<div className="relative aspect-square w-10 rounded">
-									<Image
-										alt="third place picture"
-										className="object-cover"
-										fill
-										loader={removeParams}
-										sizes="100vw"
-										src={user?.avatar_url || '/placeholder.gif'}
-									/>
-								</div>
-								<div className="w-44 overflow-hidden text-ellipsis text-center">
-									{user?.name || 'NOT FOUND'}
-								</div>
-								<div className="flex items-center">
-									{user?.stats?.wins || '0'} <CgTrophy size={32} />
-								</div>
-								<div>{user?.stats?.win_rate || '0'}WR</div>
+				<Link
+					className="group group fixed bottom-8 grid items-start justify-center gap-8"
+					href={'/profile'}
+				>
+					<div className="animate-tilt absolute -inset-0.5 rounded bg-gradient-to-r from-primary-fushia to-primary-shoque opacity-100 blur"></div>
+					<div className="relative flex items-center space-x-16 rounded bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-8 py-4 text-2xl">
+						<div className="flex items-center space-x-16">
+							<div className="text-center">#{user?.ladder_level}</div>
+							<div className="relative aspect-square w-10 overflow-hidden rounded-sm">
+								<Image
+									alt="user picture"
+									className="object-cover"
+									fill
+									loader={removeParams}
+									sizes="100vw"
+									src={user?.avatar_url || '/placeholder.gif'}
+								/>
 							</div>
+							<div className="w-44 overflow-hidden text-ellipsis text-center group-hover:underline">
+								{user?.name || 'NOT FOUND'}
+							</div>
+							<div className="flex items-center">
+								{user?.stats?.wins || '0'} <CgTrophy size={32} />
+							</div>
+							<div>{user?.stats?.win_rate || '0'}WR</div>
 						</div>
 					</div>
-				</div>
+				</Link>
 			</div>
 		</div>
 	)
