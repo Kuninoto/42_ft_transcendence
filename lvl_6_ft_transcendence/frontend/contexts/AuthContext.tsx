@@ -42,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		const token = localStorage.getItem('pong.token')
 
-		console.log(api)
 		if (token) {
 			if (pathname === '/') router.push('/dashboard')
 

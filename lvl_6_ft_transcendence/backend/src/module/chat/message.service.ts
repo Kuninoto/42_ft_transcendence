@@ -1,10 +1,8 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChatRoom, DirectMessage } from 'src/entity';
+import { ChatRoom, DirectMessage, Message } from 'src/entity';
 import { Repository } from 'typeorm';
 import { ChatRoomMessageI } from 'types';
-
-import { Message } from '../../entity/message.entity';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { DirectMessageReceivedDTO } from '../friendships/dto/direct-message-received.dto';
 
@@ -71,7 +69,7 @@ export class MessageService {
   ): Promise<void> {
     // We only keep the unsent direct messages on the db
     // thus all the messages on the db are unsent
-    const missedDMs: DirectMessage[] = await this.directMessageRepository.find({
+    /* const missedDMs: DirectMessage[] = await this.directMessageRepository.find({
       relations: {
         sender: true,
       },
@@ -80,7 +78,23 @@ export class MessageService {
           id: receiverUID,
         },
       },
-    });
+    }); */
+
+    // We only keep the unsent direct messages on the db
+    // thus all the messages on the db are unsent
+
+    /* Left join sender, select every message where receiverId = receiverUID
+    and because on the db the message with the biggest id will be the newest
+    we must sort in ascending order by id (oldest at [0]) to emit them
+    from the oldest to the newest */
+    const missedDMs: DirectMessage[] = await this.directMessageRepository
+      .createQueryBuilder('direct_message')
+      .leftJoinAndSelect('direct_message.sender', 'sender')
+      .where('direct_message.receiver_id = :receiverUID', { receiverUID })
+      .orderBy('direct_message.id', 'ASC')
+      .getMany();
+
+    if (!missedDMs) return;
 
     // Send every missed DM
     missedDMs.forEach((dm: DirectMessage) => {
