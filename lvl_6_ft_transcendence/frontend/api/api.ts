@@ -1,4 +1,5 @@
 import axios from 'axios'
+import Cookies from 'js-cookie'
 
 export const api = axios.create({
 	baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api`,
@@ -15,13 +16,13 @@ export const multipartApi = axios.create({
 })
 
 multipartApi.interceptors.request.use((req) => {
-	const token = localStorage.getItem('pong.token')
+	const token = Cookies.get('pong.token')
 	if (token) req.headers['Authorization'] = `Bearer ${token}`
 	return req
 })
 
 api.interceptors.request.use((req) => {
-	const token = localStorage.getItem('pong.token')
+	const token = Cookies.get('pong.token')
 	if (token) req.headers['Authorization'] = `Bearer ${token}`
 	return req
 })

@@ -1,17 +1,6 @@
-'use client'
-
-import { useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
-import { useEffect } from 'react'
 
 export default function page() {
-	const { user } = useAuth()
-
-	useEffect(() => {
-		if (!!user) {
-		}
-	})
-
 	return (
 		<div className="flex flex-col items-center">
 			<Image
