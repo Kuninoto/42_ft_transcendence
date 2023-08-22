@@ -109,9 +109,11 @@ export class ConnectionGateway
       userId,
     );
 
-    friends.forEach((friend: Friend) => {
-      client.join(`friend-${friend.uid}`);
-    });
+    const friendRoomNames: string[] = friends.map(
+      (friend: Friend) => 'friend-' + friend.uid,
+    );
+
+    client.join(friendRoomNames);
   }
 
   leaveFriendRooms(senderUID: number, receiverUID: number): void {
@@ -150,6 +152,9 @@ export class ConnectionGateway
       newStatus: newStatus,
       uid: userId,
     };
+
+    console.log(newUserStatus);
+
     this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
   }
 }

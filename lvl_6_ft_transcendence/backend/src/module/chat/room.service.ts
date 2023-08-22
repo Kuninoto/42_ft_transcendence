@@ -97,12 +97,7 @@ export class RoomService {
 
     const roomNames: string[] = roomsToJoin.map((room) => room.name);
 
-    // Join each room
-    for (const roomName of roomNames) {
-      // TODO delete debug
-      this.logger.debug('Joining Room "' + roomName + '"');
-      await client.join(roomName);
-    }
+    client.join(roomNames);
   }
 
   public async assignAdminRole(room: ChatRoom, userId: number) {
