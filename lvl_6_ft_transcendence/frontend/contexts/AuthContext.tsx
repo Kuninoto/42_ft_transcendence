@@ -1,7 +1,10 @@
+'use client'
+
 import { api } from '@/api/api'
 import { UserProfile } from '@/common/types/backend'
 import { hasValues } from '@/common/utils/hasValues'
 import axios from 'axios'
+import Cookies from 'js-cookie'
 import { ImageLoader } from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -40,9 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const { connect } = useSocket()
 
 	useEffect(() => {
-		const token = localStorage.getItem('pong.token')
+		const token = Cookies.get('pong.token')
 
-		console.log(api)
 		if (token) {
 			if (pathname === '/') router.push('/dashboard')
 
@@ -65,8 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	function logout() {
 		router.push('/')
-		socket.disconnect()
-		localStorage.removeItem('pong.token')
+
+		if (socket) socket.disconnect()
+
+		Cookies.remove('pong.token')
 	}
 
 	async function login2fa(otp: string) {
@@ -87,11 +91,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				throw e.response.data.message
 			})
 
-		localStorage.setItem('pong.token', data.access_token)
+		Cookies.set('pong.token', data.access_token, {
+			expires: 1,
+		})
+
 		const login = await api
 			.get(`/me`, {
 				headers: {
-					Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+					Authorization: `Bearer ${Cookies.get('pong.token')}`,
 				},
 			})
 			.then((result) => result.data)
@@ -104,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	async function login(code: string): Promise<boolean> {
-		console.log(process.env.NEXT_PUBLIC_BACKEND_URL)
 		const data = await axios
 			.get(
 				`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login/callback?code=${code}`
@@ -119,11 +125,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			return false
 		}
 
-		localStorage.setItem('pong.token', data.accessToken)
+		Cookies.set('pong.token', data.accessToken, {
+			expires: 1,
+		})
+
 		const login = await api
 			.get(`/me`, {
 				headers: {
-					Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+					Authorization: `Bearer ${Cookies.get('pong.token')}`,
 				},
 			})
 			.then((result) => result.data)

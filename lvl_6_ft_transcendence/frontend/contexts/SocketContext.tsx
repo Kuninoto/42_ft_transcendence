@@ -1,3 +1,6 @@
+'use client'
+
+import Cookies from 'js-cookie'
 import { createContext, ReactNode, useContext, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import io from 'socket.io-client'
@@ -14,7 +17,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 	const connect = () => {
 		socket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}/connection`, {
 			extraHeaders: {
-				Authorization: `Bearer ${localStorage.getItem('pong.token')}`,
+				Authorization: `Bearer ${Cookies.get('pong.token')}`,
 			},
 		})
 
@@ -24,7 +27,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
-		if (localStorage.getItem('pong.token')) {
+		if (Cookies.get('pong.token')) {
 			connect()
 		}
 	}, [])
