@@ -279,7 +279,7 @@ export class UsersService {
     meUser: User,
     usernameQuery: string,
   ): Promise<UserSearchInfo[]> {
-    const meUserId = meUser.id;
+    const meUserId: number = meUser.id;
 
     // Find users which name starts with <usernameQuery> and keep only up to 5 of those
     // ignoring blocked users and friends
@@ -290,7 +290,7 @@ export class UsersService {
       })
       .andWhere('user.id != :meUserId', { meUserId })
       .andWhere((qb) => {
-        const subqueryBlockedMe = qb
+        const subqueryBlockedMe: string = qb
           .subQuery()
           .select('*')
           .from(BlockedUser, 'blockedUser')
@@ -299,7 +299,7 @@ export class UsersService {
         return `NOT EXISTS ${subqueryBlockedMe}`;
       })
       .andWhere((qb) => {
-        const subqueryFriend = qb
+        const subqueryFriend: string = qb
           .subQuery()
           .select('*')
           .from(Friendship, 'friendship')

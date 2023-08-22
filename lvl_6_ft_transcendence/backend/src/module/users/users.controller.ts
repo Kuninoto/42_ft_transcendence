@@ -33,7 +33,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   /**
-   * GET /api/users/:userId
+   * GET /api/users/profile/:userId
    *
    * @description This is the route to visit to retrieve user's
    * (identified by id) profile
@@ -48,7 +48,7 @@ export class UsersController {
     description: 'User id of the user to user we want the profile of',
     name: 'userId',
   })
-  @Get('/:userId')
+  @Get('/profile/:userId')
   public async findUserProfileByUID(
     @ExtractUser() user: User,
     @Param('userId', NonNegativeIntPipe) userId: number,
