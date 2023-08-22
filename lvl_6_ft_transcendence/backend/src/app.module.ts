@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import 'dotenv/config';
 import { join } from 'path';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { UsersModule } from 'src/module/users/users.module';
-
-import entities from './entity/index';
+import { PostgresConfigService } from './config/database/postgres-config.service';
 import { AchievementModule } from './module/achievement/achievement.module';
 import { ChatModule } from './module/chat/chat.module';
 import { ConnectionModule } from './module/connection/connection.module';
@@ -19,23 +18,9 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
 @Module({
   controllers: [],
   imports: [
-    ConfigModule.forRoot({ envFilePath: '../.env', isGlobal: true }),
     TypeOrmModule.forRootAsync({
+      useClass: PostgresConfigService,
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: () => ({
-        autoLoadEntities: true,
-        database: process.env.POSTGRES_DB,
-        entities: entities,
-        host: process.env.POSTGRES_HOST,
-        password: process.env.POSTGRES_PASSWORD,
-        port: 5432,
-        // Turn off during prod
-        synchronize: true,
-        type: 'postgres',
-        // TODO
-        username: process.env.POSTGRES_USER,
-      }),
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),

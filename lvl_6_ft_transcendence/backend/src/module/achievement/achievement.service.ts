@@ -12,7 +12,7 @@ import { ConnectionGateway } from '../connection/connection.gateway';
 // Because the first achievement (PONG_FIGHT_MAESTRO OR NEW_PONGFIGHTER)
 // is assigned right away upon user creation we must delay the socket event
 // so that the user have the time to connect to the socket and receive it
-const FIRST_ACHIEVEMENT_TIMEOUT = 20;
+const FIRST_ACHIEVEMENT_TIMEOUT = 1 * 1000;
 
 @Injectable()
 export class AchievementService {
@@ -183,6 +183,7 @@ export class AchievementService {
 
     if (timeout) {
       setTimeout(() => {
+        console.log('sending');
         this.connectionGateway.achievementUnlocked(userId, achievement);
       }, timeout);
     } else {

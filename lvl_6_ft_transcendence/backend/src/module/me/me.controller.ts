@@ -167,7 +167,7 @@ export class MeController {
    * Stores the uploaded file (the new avatar) at
    * /src/public/ and updates the avatar_url
    * on the user's table to the url that later allows requesting
-   * e.g http://localhost:3000/api/users/avatars/<hashed_filename>.png
+   * e.g http://http://localhost:3000/api/users/avatars/<hashed_filename>.png
    *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
    */
   @UseInterceptors(FileInterceptor('avatar', multerConfig))
