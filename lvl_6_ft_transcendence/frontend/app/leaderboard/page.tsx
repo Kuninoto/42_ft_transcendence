@@ -3,7 +3,7 @@
 import { api } from '@/api/api'
 import { UserStatsForLeaderboard } from '@/common/types/backend'
 import { hasValues } from '@/common/utils/hasValues'
-import { removeParams } from '@/contexts/AuthContext'
+import { removeParams, useAuth } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -47,14 +47,16 @@ function Podium({
 }
 
 export default function Leaderboard() {
-	const [users, setUsers] = useState<UserStatsForLeaderboard[]>()
+	const [users, setUsers] = useState<UserStatsForLeaderboard[]>([])
 
 	const [loading, isLoading] = useState(true)
+
+	const { user } = useAuth()
 
 	const first: undefined | UserStatsForLeaderboard = users?.at(0)
 	const second: undefined | UserStatsForLeaderboard = users?.at(1)
 	const third: undefined | UserStatsForLeaderboard = users?.at(2)
-	const rest: undefined | UserStatsForLeaderboard = users?.slice(3)
+	const rest: undefined | UserStatsForLeaderboard[] = users?.slice(3)
 
 	useEffect(() => {
 		try {
@@ -74,7 +76,7 @@ export default function Leaderboard() {
 	}, [])
 
 	return (
-		<div className="flex flex-col space-y-8">
+		<div className="flex h-full flex-col py-8">
 			<Link className="fixed left-12 top-12" href="/dashboard">
 				GO BACK
 			</Link>
@@ -84,39 +86,78 @@ export default function Leaderboard() {
 				<Podium top={'3'} user={third} width={'w-24'} />
 			</div>
 
-			<div className="mx-24 h-0.5 w-auto bg-white"></div>
+			<div className="mx-24 mb-3 mt-8 h-0.5 w-auto bg-white"></div>
 
-			<div className="flex w-full flex-col place-items-center space-y-4">
+			<div className="flex h-4/6 w-full scroll-py-48 flex-col place-items-center overflow-y-auto scroll-smooth scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 				{loading ? (
 					<div>Loading</div>
 				) : rest?.length === 0 ? (
-					<div className="text-xl">Kinda empty here</div>
+					<div className="my-auto text-4xl">Kinda empty here</div>
 				) : (
 					rest?.map((player, index) => {
-						;<div className="space-y-6" id={index}>
-							<div className="group relative flex text-xl">
-								<p className="invisible absolute -left-8 group-hover:visible group-focus:visible">
-									&gt;
-								</p>
-								<Link className="flex items-center space-x-16" href="/">
-									<div className="text-center">{index + 3}</div>
-									<Image
-										alt="third place picture"
-										className="aspect-square w-10 rounded-full"
-										height={0}
-										sizes="100vw"
-										src={'/placeholder.gif'}
-										width={0}
-									/>
-									<div className="w-44 overflow-hidden text-ellipsis text-center">
-										Moasdkdjghwrguierhjguierhi
-									</div>
-									<div className="text-center"> 123 </div>
-								</Link>
+						return (
+							<div
+								className="space-y-6 border-b border-white px-12 py-3"
+								key={player.uid}
+							>
+								<div className="group relative flex text-xl">
+									<p className="invisible absolute -left-8 group-hover:visible group-focus:visible">
+										&gt;
+									</p>
+									<Link className="flex items-center space-x-16" href="/">
+										<div className="text-center">#{index + 3}</div>
+										<div className="relative aspect-square w-10 rounded">
+											<Image
+												alt="third place picture"
+												className="object-cover"
+												fill
+												loader={removeParams}
+												sizes="100vw"
+												src={player.avatar_url || '/placeholder.gif'}
+											/>
+										</div>
+										<div className="w-44 overflow-hidden text-ellipsis text-center">
+											{player.name}
+										</div>
+										<div className="flex items-center">
+											{player.wins} <CgTrophy size={32} />
+										</div>
+										<div>{player.win_rate}WR</div>
+									</Link>
+								</div>
 							</div>
-						</div>
+						)
 					})
 				)}
+
+				<Link
+					className="group group fixed bottom-8 grid items-start justify-center gap-8"
+					href={'/profile'}
+				>
+					<div className="animate-tilt absolute -inset-0.5 rounded bg-gradient-to-r from-primary-fushia to-primary-shoque opacity-100 blur"></div>
+					<div className="relative flex items-center space-x-16 rounded bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-8 py-4 text-2xl">
+						<div className="flex items-center space-x-16">
+							<div className="text-center">#{user?.ladder_level}</div>
+							<div className="relative aspect-square w-10 overflow-hidden rounded-sm">
+								<Image
+									alt="user picture"
+									className="object-cover"
+									fill
+									loader={removeParams}
+									sizes="100vw"
+									src={user?.avatar_url || '/placeholder.gif'}
+								/>
+							</div>
+							<div className="w-44 overflow-hidden text-ellipsis text-center group-hover:underline">
+								{user?.name || 'NOT FOUND'}
+							</div>
+							<div className="flex items-center">
+								{user?.stats?.wins || '0'} <CgTrophy size={32} />
+							</div>
+							<div>{user?.stats?.win_rate || '0'}WR</div>
+						</div>
+					</div>
+				</Link>
 			</div>
 		</div>
 	)
