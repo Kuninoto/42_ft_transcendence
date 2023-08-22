@@ -7,7 +7,7 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -67,10 +67,7 @@ export class FriendshipsController {
     @ExtractUser() user: User,
     @Param('receiverId', NonNegativeIntPipe) receiverUID: number,
   ): Promise<ErrorResponse | SuccessResponse> {
-    return await this.friendshipsService.sendFriendRequest(
-      user,
-      receiverUID,
-    );
+    return await this.friendshipsService.sendFriendRequest(user, receiverUID);
   }
 
   /**
@@ -150,10 +147,7 @@ export class FriendshipsController {
     @ExtractUser() user: User,
     @Param('userToBlockId', NonNegativeIntPipe) userToBlockId: number,
   ): Promise<ErrorResponse | SuccessResponse> {
-    return await this.friendshipsService.blockUserByUID(
-      user,
-      userToBlockId,
-    );
+    return await this.friendshipsService.blockUserByUID(user, userToBlockId);
   }
 
   /**

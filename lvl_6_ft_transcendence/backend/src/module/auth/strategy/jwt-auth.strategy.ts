@@ -23,7 +23,7 @@ export interface TokenPayload {
 }
 
 @Injectable()
-export class JwtAuthStrategy extends PassportStrategy(Strategy) {
+export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
   private readonly logger: Logger = new Logger('JwtAuthStrategy');
 
   constructor(

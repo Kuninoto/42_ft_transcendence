@@ -544,9 +544,11 @@ export class FriendshipsService {
 
       case FriendshipStatus.DECLINED:
         await this.declineFriendRequest(friendship);
+        break;
 
       case FriendshipStatus.UNFRIEND:
         await this.unfriendOrDeleteFriendRequest(user.id, friendship);
+        break;
     }
 
     this.logger.log(

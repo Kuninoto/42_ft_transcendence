@@ -5,7 +5,7 @@ import {
   NotFoundException,
   Param,
   Query,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
