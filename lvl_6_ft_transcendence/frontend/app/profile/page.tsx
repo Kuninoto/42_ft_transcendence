@@ -44,7 +44,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -57,7 +57,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -70,7 +70,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -85,7 +85,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -100,7 +100,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -113,7 +113,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -215,7 +215,9 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 export default function Profile() {
 	const { user } = useAuth()
 
-	const [userProfile, setUserProfile] = useState<IUserProfile>()
+	const [userProfile, setUserProfile] = useState<IUserProfile>(
+		{} as IUserProfile
+	)
 	const searchParams = useSearchParams()
 	const id = searchParams.get('id') || user?.id
 
@@ -233,7 +235,7 @@ export default function Profile() {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -251,7 +253,7 @@ export default function Profile() {
 					.catch(() => {
 						throw 'Network error'
 					})
-			} catch (error) {
+			} catch (error: any) {
 				toast.error(error)
 			}
 		}
