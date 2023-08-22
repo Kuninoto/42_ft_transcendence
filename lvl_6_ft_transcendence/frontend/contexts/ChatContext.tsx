@@ -1,3 +1,5 @@
+'use client'
+
 import { api } from '@/api/api'
 import { Friend } from '@/common/types/backend'
 import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
