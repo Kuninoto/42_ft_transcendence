@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserStats } from 'src/entity';
 import { Repository } from 'typeorm';
 import { UserStatsForLeaderboard, UserStatsInterface } from 'types';
-
 import { AchievementService } from '../achievement/achievement.service';
 
 @Injectable()

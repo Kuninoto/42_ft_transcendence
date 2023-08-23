@@ -11,7 +11,7 @@ import { ChatRoomSearchInfo } from 'types';
 import { RoomService } from './room.service';
 
 @ApiTags('chat')
-@ApiBearerAuth('Jwt')
+@ApiBearerAuth('swagger-basic-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {

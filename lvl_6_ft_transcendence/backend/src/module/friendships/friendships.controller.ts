@@ -19,20 +19,24 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { User } from 'src/entity';
 import { ErrorResponse, FriendshipStatus, SuccessResponse } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from './friendships.service';
 import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
-import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 
 @ApiTags('friendships')
-@ApiBearerAuth('Jwt')
+@ApiBearerAuth('swagger-basic-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('friendships')
 export class FriendshipsController {
   constructor(private readonly friendshipsService: FriendshipsService) {}
+
+  /****************************
+   *        FRIENDSHIP        *
+   *****************************/
 
   /**
    * POST /api/friendships/send-request/:receiverId

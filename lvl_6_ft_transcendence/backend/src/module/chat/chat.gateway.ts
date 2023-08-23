@@ -70,15 +70,13 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: CreateRoomDTO,
   ): Promise<void> {
     if (!this.isValidJoinRoomDTO(messageBody)) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong JoinRoomDTO`,
-      );
+      this.logger.warn(`${client.data.name} tried to send a wrong JoinRoomDTO`);
       return;
     }
 
     if (!this.roomService.isValidRoomName(messageBody.name)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to create a room with an invalid name: "${messageBody.name}"`,
+        `${client.data.name} tried to create a room with an invalid name: "${messageBody.name}"`,
       );
       return;
     }
@@ -97,7 +95,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidInviteToRoomDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong InviteToRoomDTO`,
+        `${client.data.name} tried to send a wrong InviteToRoomDTO`,
       );
       return;
     }
@@ -107,7 +105,7 @@ export class ChatGateway implements OnGatewayInit {
     );
     if (!invited) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to invite a non-existing user to room: "${messageBody.roomName}"`,
+        `${client.data.name} tried to invite a non-existing user to room: "${messageBody.roomName}"`,
       );
       return;
     }
@@ -129,9 +127,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: JoinRoomDTO,
   ) {
     if (!this.isValidJoinRoomDTO(messageBody)) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong JoinRoomDTO`,
-      );
+      this.logger.warn(`${client.data.name} tried to send a wrong JoinRoomDTO`);
       return;
     }
 
@@ -157,7 +153,7 @@ export class ChatGateway implements OnGatewayInit {
   ) {
     if (!this.isValidLeaveRoomDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong LeaveRoomDTO`,
+        `${client.data.name} tried to send a wrong LeaveRoomDTO`,
       );
       return;
     }
@@ -167,7 +163,7 @@ export class ChatGateway implements OnGatewayInit {
     );
     if (!room) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to leave a non-existing room`,
+        `${client.data.name} tried to leave a non-existing room`,
       );
       return;
     }
@@ -182,7 +178,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidKickFromRoomDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong KickFromRoomDTO`,
+        `${client.data.name} tried to send a wrong KickFromRoomDTO`,
       );
       return;
     }
@@ -193,14 +189,14 @@ export class ChatGateway implements OnGatewayInit {
 
     if (client.data.userId == messageBody.userId) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to kick himself from room: ${room.name}`,
+        `${client.data.name} tried to kick himself from room: ${room.name}`,
       );
       return;
     }
 
     if (!room) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to kick someone from a non-existing room`,
+        `${client.data.name} tried to kick someone from a non-existing room`,
       );
       return;
     }
@@ -215,7 +211,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidNewChatRoomMessageDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong NewChatRoomMessageDTO`,
+        `${client.data.name} tried to send a wrong NewChatRoomMessageDTO`,
       );
       return;
     }
@@ -225,7 +221,7 @@ export class ChatGateway implements OnGatewayInit {
     );
     if (!room) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a message to a non-existing room`,
+        `${client.data.name} tried to send a message to a non-existing room`,
       );
       return;
     }
@@ -235,7 +231,7 @@ export class ChatGateway implements OnGatewayInit {
       room.id,
     );
     if (isUserMuted) {
-      this.logger.log(`UID= ${client.data.userId} is muted. Message not sent`);
+      this.logger.log(`${client.data.name} is muted. Message not sent`);
       return;
     }
 
@@ -270,9 +266,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: AddAdminDTO,
   ) {
     if (!this.isValidAddAdminDTO(messageBody)) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong AddAdminDTO`,
-      );
+      this.logger.warn(`${client.data.name} tried to send a wrong AddAdminDTO`);
       return;
     }
 
@@ -301,7 +295,7 @@ export class ChatGateway implements OnGatewayInit {
   ) {
     if (!this.isValidRemoveAdminDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong removeAdminDTO`,
+        `${client.data.name} tried to send a wrong removeAdminDTO`,
       );
       return;
     }
@@ -325,7 +319,7 @@ export class ChatGateway implements OnGatewayInit {
     on the admin list */
     if (room.owner.id != client.data.userId) {
       this.logger.debug(
-        `UID= ${client.data.userId} tried to remove an admin role but he's not the owner of the room: "${room.name}"`,
+        `${client.data.name} tried to remove an admin role but he's not the owner of the room: "${room.name}"`,
       );
       return;
     }
@@ -340,7 +334,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidBanFromRoomDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong BanFromRoomDTO`,
+        `${client.data.name} tried to send a wrong BanFromRoomDTO`,
       );
       return;
     }
@@ -350,7 +344,7 @@ export class ChatGateway implements OnGatewayInit {
 
     if (!room) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to ban someone from a non-existing room`,
+        `${client.data.name} tried to ban someone from a non-existing room`,
       );
       return;
     }
@@ -365,7 +359,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidUnbanFromRoomDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong UnbanFromRoomDTO`,
+        `${client.data.name} tried to send a wrong UnbanFromRoomDTO`,
       );
       return;
     }
@@ -376,7 +370,7 @@ export class ChatGateway implements OnGatewayInit {
 
     if (!room) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to unban someone on a non-existing room`,
+        `${client.data.name} tried to unban someone on a non-existing room`,
       );
       return;
     }
@@ -394,9 +388,7 @@ export class ChatGateway implements OnGatewayInit {
     @MessageBody() messageBody: MuteUserDTO,
   ): Promise<void> {
     if (!this.isValidMuteUserDTO(messageBody)) {
-      this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong MuteUserDTO`,
-      );
+      this.logger.warn(`${client.data.name} tried to send a wrong MuteUserDTO`);
       return;
     }
 
@@ -406,7 +398,7 @@ export class ChatGateway implements OnGatewayInit {
 
     if (!room) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to mute someone on a non-existing room`,
+        `${client.data.name} tried to mute someone on a non-existing room`,
       );
       return;
     }
@@ -441,7 +433,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidUnmuteUserDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong UnmuteUserDTO`,
+        `${client.data.name} tried to send a wrong UnmuteUserDTO`,
       );
       return;
     }
@@ -452,7 +444,7 @@ export class ChatGateway implements OnGatewayInit {
 
     if (!room) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to unmute someone on a non-existing room`,
+        `${client.data.name} tried to unmute someone on a non-existing room`,
       );
       return;
     }
@@ -470,7 +462,7 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidUpdateRoomPasswordDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong UpdateRoomPasswordDTO`,
+        `${client.data.name} tried to send a wrong UpdateRoomPasswordDTO`,
       );
       return;
     }
@@ -498,7 +490,7 @@ export class ChatGateway implements OnGatewayInit {
   ) {
     if (!this.isValidRemoveRoomPasswordDTO(messageBody)) {
       this.logger.warn(
-        `UID= ${client.data.userId} tried to send a wrong RemoveRoomPasswordDTO`,
+        `${client.data.name} tried to send a wrong RemoveRoomPasswordDTO`,
       );
       return;
     }

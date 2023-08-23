@@ -15,16 +15,15 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { User } from 'src/entity';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import { ErrorResponse, UserProfile, UserSearchInfo } from 'types';
-
 import { UsersService } from './users.service';
-import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 
 @ApiTags('users')
-@ApiBearerAuth('Jwt')
+@ApiBearerAuth('swagger-basic-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
