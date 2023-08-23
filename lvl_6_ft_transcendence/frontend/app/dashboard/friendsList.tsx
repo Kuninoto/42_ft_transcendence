@@ -1,7 +1,7 @@
 'use client'
 
 import { removeParams, useAuth } from '@/contexts/AuthContext'
-import { useChat } from '@/contexts/ChatContext'
+import { useFriends } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -21,13 +21,13 @@ enum openModalType {
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
-	const { friends } = useChat()
+	const { friends } = useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
 
-	const { open, sendGameInvite } = useChat()
+	const { open, sendGameInvite } = useFriends()
 
 	return (
 		<div className="flex h-full w-full">

@@ -7,7 +7,7 @@ import {
 	UserSearchInfo,
 } from '@/common/types/backend'
 import { removeParams } from '@/contexts/AuthContext'
-import { useChat } from '@/contexts/ChatContext'
+import { useFriends } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -19,7 +19,7 @@ export default function FriendsModal({
 }: {
 	closeModal: () => void
 }) {
-	const { addFriend } = useChat()
+	const { addFriend } = useFriends()
 
 	const [search, setSearch] = useState('')
 	const [requests, setRequests] = useState<FriendRequest[]>([])
