@@ -1,10 +1,11 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { SecuritySchemeObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 import * as session from 'express-session';
+import helmet from 'helmet';
 import * as passport from 'passport';
-
 import { AppModule } from './app.module';
 import { AppCorsOption } from './common/option/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
@@ -12,10 +13,10 @@ import { Passport42ExceptionFilter } from './module/auth/filter/passport42-excep
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
 function checkRequiredEnvVariables(): void {
-  const RED = '\x1b[31m';
-  const RESET = '\x1b[0m';
+  const RED: string = '\x1b[31m';
+  const RESET: string = '\x1b[0m';
 
-  const requiredEnvVariables = [
+  const requiredEnvVariables: string[] = [
     'POSTGRES_HOST',
     'POSTGRES_USER',
     'POSTGRES_PASSWORD',
@@ -29,6 +30,8 @@ function checkRequiredEnvVariables(): void {
     'JWT_SECRET',
     'JWT_EXPIRES_IN',
     'EXPRESS_SESSION_SECRET',
+    'SWAGGER_USER',
+    'SWAGGER_PASSWORD',
   ];
 
   const missingVariables: string[] = requiredEnvVariables.filter(
@@ -45,7 +48,7 @@ function checkRequiredEnvVariables(): void {
   }
 }
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   checkRequiredEnvVariables();
 
   const logger: Logger = new Logger('NestApplication');
@@ -53,26 +56,45 @@ async function bootstrap() {
   const app: NestExpressApplication =
     await NestFactory.create<NestExpressApplication>(AppModule, {
       logger: ['verbose'],
+      cors: AppCorsOption,
     });
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Transcendence API')
-    .setDescription('API for the transcendence project')
-    .setVersion('1.0')
-    .addTag('Transcendence')
-    //  .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('help', app, document);
+  // Only enable Swagger on dev mode
+  if (process.env.NODE_ENV === 'dev') {
+    const swaggerConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
+      .setTitle('ft_transcendence API')
+      .setDescription('API for the ft_transcendence project')
+      .setVersion('1.0')
+      .addTag('ft_transcendence')
+      .addBasicAuth(
+        {
+          type: 'http',
+          description: 'Enter password',
+          name: 'swagger-basic-auth',
+          scheme: 'basic',
+        } as SecuritySchemeObject,
+        'swagger-basic-auth',
+      )
+      .addSecurityRequirements('swagger-basic-auth')
+      .build();
 
-  app.enableCors(AppCorsOption);
+    const document: OpenAPIObject = SwaggerModule.createDocument(
+      app,
+      swaggerConfig,
+    );
+    SwaggerModule.setup('docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+  }
 
-  const oneDay: number = 60 * 60 * 24 * 1000;
+  const oneDayInMs: number = 60 * 60 * 24 * 1000;
   app.use(
     session({
       cookie: {
         httpOnly: true,
-        maxAge: oneDay,
+        maxAge: oneDayInMs,
         // We'll be using HTTP
         secure: false,
       },
@@ -85,7 +107,12 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.use(helmet());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      forbidNonWhitelisted: true,
+    }),
+  );
   app.useGlobalFilters(new Passport42ExceptionFilter());
   app.setGlobalPrefix('api');
 

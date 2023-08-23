@@ -54,6 +54,7 @@ export class ConnectionGateway
         await this.connectionService.authenticateClientAndRetrieveUser(client);
 
       client.data.userId = user.id;
+      client.data.name = user.name;
 
       await this.updateUserStatus(user.id, UserStatus.ONLINE);
 
@@ -78,7 +79,7 @@ export class ConnectionGateway
 
     this.connectionService.deleteSocketIdByUID(client.data.userId);
 
-    this.logger.log(`UID= ${client.data.userId} is now offline`);
+    this.logger.log(`${client.data.name} is now offline`);
   }
 
   async achievementUnlocked(
@@ -152,8 +153,6 @@ export class ConnectionGateway
       newStatus: newStatus,
       uid: userId,
     };
-
-    console.log(newUserStatus);
 
     this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
   }

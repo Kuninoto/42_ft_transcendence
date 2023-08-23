@@ -38,6 +38,7 @@ import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 
 @ApiTags('auth')
+@ApiBearerAuth('swagger-basic-auth')
 @Controller('auth')
 export class AuthController {
   private readonly logger: Logger = new Logger(AuthController.name);
@@ -95,7 +96,6 @@ export class AuthController {
       'If the user which id is provided in the JWT or if the OTP is invalid',
   })
   @ApiBadRequestResponse({ description: "If request's body is malformed" })
-  @ApiBearerAuth('2faExchange')
   /* This guard is only used for this request
   where the user will have has2fa true but is_2fa_authed false
   thus we cannot use the JwtAuthGuard */
@@ -151,7 +151,6 @@ export class AuthController {
       \ninclusively here.",
   })
   @ApiBadRequestResponse({ description: 'If the OTP is invalid' })
-  @ApiBearerAuth('Jwt')
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/enable')
   public async enable2fa(
@@ -182,7 +181,6 @@ export class AuthController {
    * Disables two factor authentication.
    */
   @ApiOkResponse({ description: 'Disables two factor authentication' })
-  @ApiBearerAuth('Jwt')
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/disable')
   public async disable2fa(@ExtractUser() user: User): Promise<SuccessResponse> {
@@ -207,7 +205,6 @@ export class AuthController {
     description:
       'Returns the QRCode that enables app registration on Google Authenticator',
   })
-  @ApiBearerAuth('Jwt')
   @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
   public async generate2faQRCodeAndSecret(
