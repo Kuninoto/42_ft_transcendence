@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useEffect } from 'react'
 
 export default function Loading() {
-	const { cancel, queue } = useGame()
+	const { canCancel, cancel, queue } = useGame()
 
 	useEffect(() => {
 		queue()
@@ -23,12 +23,14 @@ export default function Loading() {
 					width="0"
 				/>
 				<div>IN QUEUE</div>
-				<button
-					className="rounded border border-white px-4 py-2 hover:bg-white hover:text-[#170317]"
-					onClick={cancel}
-				>
-					Cancel
-				</button>
+				{canCancel && (
+					<button
+						className="rounded border border-white px-4 py-2 hover:bg-white hover:text-[#170317]"
+						onClick={cancel}
+					>
+						Cancel
+					</button>
+				)}
 			</div>
 		</div>
 	)
