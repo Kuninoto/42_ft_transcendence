@@ -7,12 +7,10 @@ import { GameModule } from '../game/game.module';
 import { UsersModule } from '../users/users.module';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
-import { MessageService } from './message.service';
-import { RoomService } from './room.service';
+import { ChatService } from './chat.service';
 
 @Module({
-  controllers: [ChatController],
-  exports: [ChatGateway, RoomService, MessageService],
+  exports: [ChatGateway, ChatService],
   imports: [
     TypeOrmModule.forFeature([ChatRoom, DirectMessage]),
     forwardRef(() => UsersModule),
@@ -20,6 +18,7 @@ import { RoomService } from './room.service';
     forwardRef(() => ConnectionModule),
     FriendshipsModule,
   ],
-  providers: [ChatGateway, RoomService, MessageService],
+  controllers: [ChatController],
+  providers: [ChatGateway, ChatService],
 })
 export class ChatModule {}
