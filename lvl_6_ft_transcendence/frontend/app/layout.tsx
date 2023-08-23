@@ -1,7 +1,7 @@
 'use client'
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { FriendsProvider } from '@/contexts/ChatContext'
+import { FriendsProvider } from '@/contexts/FriendsContext'
 import { SocketProvider } from '@/contexts/SocketContext'
 import { Press_Start_2P } from 'next/font/google'
 import Link from 'next/link'
