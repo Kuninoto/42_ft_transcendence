@@ -229,7 +229,6 @@ export default function Profile() {
 			api
 				.get(`/users/profile/${id}`)
 				.then((result) => {
-					console.log(result.data)
 					setUserProfile(result.data)
 				})
 				.catch(() => {
@@ -247,7 +246,6 @@ export default function Profile() {
 				api
 					.get(`/users/profile/${id}`)
 					.then((result) => {
-						console.log(result.data)
 						setUserProfile(result.data)
 					})
 					.catch(() => {

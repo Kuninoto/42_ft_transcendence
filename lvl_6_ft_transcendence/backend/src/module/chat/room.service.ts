@@ -1,4 +1,12 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotAcceptableException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
 import { ChatRoom, User } from 'src/entity';
@@ -26,22 +34,60 @@ export class RoomService {
     private readonly connectionGateway: ConnectionGateway,
   ) {}
 
+  /* Check room name for:
+      Unique name
+      Length boundaries (4-10)
+      Composed only by a-z, A-Z, 0-9 and  _
+  */
   public async createRoom(
     createRoomDto: CreateRoomDTO,
-    creator: User,
+    owner: User,
   ): Promise<ChatRoom> {
+    // If room name's already taken
+    const room: ChatRoom | null = await this.findRoomByName(createRoomDto.name);
+    if (room) {
+      this.logger.warn(
+        `${owner.name} tried to create a room with already taken name: "${createRoomDto.name}"`,
+      );
+      throw new ConflictException('Room name is already taken');
+    }
+
+    // If room name doesn't respect the boundaries (4-10 chars longs)
+    if (!(createRoomDto.name.length > 4 && createRoomDto.name.length < 10)) {
+      this.logger.warn(
+        `${owner.name} tried to create a room with a name too big: "${createRoomDto.name}"`,
+      );
+      throw new UnprocessableEntityException(
+        'Room names must be 4-10 chars long',
+      );
+    }
+
+    if (!createRoomDto.name.match('^[a-zA-Z0-9_]+$')) {
+      this.logger.warn(
+        `${owner.name} tried to create a room with invalid chars: "${createRoomDto.name}"`,
+      );
+      throw new NotAcceptableException(
+        'Room names can only be composed by letters (both cases), numbers and underscore',
+      );
+    }
+
     const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomDto);
 
-    /* Add the creator to the users in the room,
+    /* Add the owner to the users in the room,
       to the list of admins,
       and as the owner */
-    newRoom.users = [creator];
-    newRoom.admins = [creator];
-    newRoom.owner = creator;
+    newRoom.users = [owner];
+    newRoom.admins = [owner];
+    newRoom.owner = owner;
 
-    this.logger.log(
-      `New chatroom "${newRoom.name}" created by ${newRoom.owner}`,
-    );
+    const ownerSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(owner.id.toString());
+
+    if (ownerSocketId) {
+      this.connectionGateway.server
+        .to(ownerSocketId)
+        .socketsJoin(createRoomDto.name);
+    }
     return this.chatRoomRepository.save(newRoom);
   }
 
@@ -97,12 +143,7 @@ export class RoomService {
 
     const roomNames: string[] = roomsToJoin.map((room) => room.name);
 
-    // Join each room
-    for (const roomName of roomNames) {
-      // TODO delete debug
-      this.logger.debug('Joining Room "' + roomName + '"');
-      await client.join(roomName);
-    }
+    client.join(roomNames);
   }
 
   public async assignAdminRole(room: ChatRoom, userId: number) {
@@ -270,6 +311,16 @@ export class RoomService {
     userLeavingId: number,
     emitUserHasLeftTheRoom: boolean,
   ): Promise<void> {
+    // If owner is leaving, emit a ownerHasLeftTheRoom event
+    // and delete the room from db
+    if (userLeavingId == room.owner.id) {
+      this.connectionGateway.server
+        .to(room.name)
+        .emit('ownerHasLeftTheRoom', { room: room.name });
+
+      await this.chatRoomRepository.delete(room);
+    }
+
     room.users = room.users.filter((user) => user.id !== userLeavingId);
     await this.chatRoomRepository.save(room);
 
@@ -285,9 +336,10 @@ export class RoomService {
     (they will have their own events) */
     if (!emitUserHasLeftTheRoom) return;
 
-    this.connectionGateway.server
-      .to(room.name)
-      .emit('userHasLeftTheRoom', { userId: userLeavingId });
+    this.connectionGateway.server.to(room.name).emit('userHasLeftTheRoom', {
+      room: room.name,
+      userId: userLeavingId,
+    });
   }
 
   public async muteUser(
@@ -412,15 +464,5 @@ export class RoomService {
     }) !== -1
       ? true
       : false;
-  }
-
-  /* Check room name for:
-      Length boundaries (4-10)
-      Composed only by a-z, A-Z, 0-9 and  _
-  */
-  public isValidRoomName(name: string): boolean {
-    return (
-      name.length < 4 || name.length > 10 || !name.match('^[a-zA-Z0-9_]+$')
-    );
   }
 }

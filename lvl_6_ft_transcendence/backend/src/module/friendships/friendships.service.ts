@@ -183,7 +183,7 @@ export class FriendshipsService {
         `User with id= ${receiverUID} doesn't exist`,
       );
     }
-    if (receiverUID == sender.id) {
+    if (receiverUID === sender.id) {
       this.logger.warn(`"${sender.name}" tried to add himself as a friend`);
       throw new BadRequestException('You cannot add yourself as a friend');
     }

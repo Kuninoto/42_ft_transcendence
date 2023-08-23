@@ -15,11 +15,11 @@ import { ErrorResponse } from 'types';
 // - Issued at (automatic jwt info)
 // - Expiration dates (automatic jwt info)
 export interface TokenPayload {
-  exp?: number;
-  has_2fa: boolean;
-  iat?: number;
   id: number;
+  has_2fa: boolean;
   is_2fa_authed?: boolean;
+  iat?: number;
+  exp?: number;
 }
 
 @Injectable()
@@ -33,8 +33,8 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
     private readonly usersService: UsersService,
   ) {
     super({
-      ignoreExpiration: false,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
     });
   }

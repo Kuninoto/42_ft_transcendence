@@ -6,11 +6,10 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ChatRoomType } from 'types';
-import { Message, User } from './index';
+import { User } from './index';
 
 @Entity('chat_room')
 export class ChatRoom {
@@ -53,9 +52,4 @@ export class ChatRoom {
   @ManyToMany(() => User, (users: User) => users.chat_rooms)
   @JoinTable()
   users: User[];
-
-  @ApiProperty()
-  @OneToMany(() => Message, (messages: Message) => messages.room)
-  @JoinColumn()
-  messages: Message[];
 }

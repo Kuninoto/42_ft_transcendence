@@ -1,15 +1,17 @@
+import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
-const MAX_IMG_SIZE = 4 * 1024 * 1024;
+const MAX_IMG_SIZE: number = 4 * 1024 * 1024;
+const acceptableFileTypes: string[] = ['image/png', 'image/jpg', 'image/jpeg'];
 
-export const multerConfig = {
-  fileFilter: function (req: any, file: any, cb: any) {
-    if (
-      !file.mimetype.includes('image/png') &&
-      !file.mimetype.includes('image/jpg') &&
-      !file.mimetype.includes('image/jpeg')
-    ) {
+export const multerConfig: MulterOptions = {
+  fileFilter: function (
+    req: any,
+    file: any,
+    cb: (error: Error | null, acceptFile: boolean) => void,
+  ): void {
+    if (!acceptableFileTypes.includes(file.mimetype)) {
       return cb(null, false);
     }
     cb(null, true);
@@ -20,10 +22,7 @@ export const multerConfig = {
   storage: diskStorage({
     destination: 'public',
     filename: (req: any, file: any, callback) => {
-      const randomName = Array(32)
-        .fill(null)
-        .map(() => Math.round(Math.random() * 16).toString(16))
-        .join('');
+      const randomName: string = crypto.randomUUID().split('-').join('');
       callback(null, `${randomName}${extname(file.originalname)}`);
     },
   }),

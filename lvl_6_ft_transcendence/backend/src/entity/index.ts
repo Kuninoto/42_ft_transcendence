@@ -4,7 +4,6 @@ import { ChatRoom } from './chat-room.entity';
 import { DirectMessage } from './direct-messages.entity';
 import { Friendship } from './friendship.entity';
 import { GameResult } from './game-result.entity';
-import { Message } from './message.entity';
 import { UserStats } from './user-stats.entity';
 import { User } from './user.entity';
 
@@ -15,7 +14,6 @@ const entities = [
   DirectMessage,
   Friendship,
   GameResult,
-  Message,
   User,
   UserStats,
 ];
@@ -27,7 +25,6 @@ export {
   DirectMessage,
   Friendship,
   GameResult,
-  Message,
   User,
   UserStats,
 };
