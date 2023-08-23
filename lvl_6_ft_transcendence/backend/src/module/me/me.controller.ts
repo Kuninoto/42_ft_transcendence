@@ -40,7 +40,7 @@ import { multerConfig } from './middleware/multer/multer.config';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 
 @ApiTags('me')
-@ApiBearerAuth('Jwt')
+@ApiBearerAuth('swagger-basic-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('me')
 export class MeController {
@@ -174,9 +174,9 @@ export class MeController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
-      properties: { avatar: { format: 'binary', type: 'string' } },
-      required: ['avatar'],
       type: 'object',
+      required: ['avatar'],
+      properties: { avatar: { format: 'binary', type: 'string' } },
     },
   })
   @ApiBadRequestResponse({
@@ -191,13 +191,17 @@ export class MeController {
   public async updateMyAvatar(
     @ExtractUser() user: User,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     if (!file) {
-      this.logger.warn(`"${user.name}" failed to upload his avatar`);
+      this.logger.warn(
+        `"${user.name}" failed to update his avatar because the file was invalid`,
+      );
       throw new BadRequestException('Invalid file');
     }
+  
+    console.log(file);
 
-    this.logger.log(`Updating ${user.name}\'s avatar`);
+    this.logger.log(`${user.name} updated his avatar`);
 
     return await this.usersService.updateUserAvatarByUID(
       user.id,
@@ -219,9 +223,9 @@ export class MeController {
   })
   @ApiBody({
     schema: {
-      properties: { newGameTheme: { type: 'string' } },
-      required: ['newGameTheme'],
       type: 'object',
+      required: ['newGameTheme'],
+      properties: { newGameTheme: { type: 'string' } },
     },
   })
   @Patch('game-theme')

@@ -54,6 +54,7 @@ services:
       - ./backend/.env
     volumes:
       - ./backend/src:/app/src
+      - ./backend/public:/app/public
     restart: always
 
 networks:
