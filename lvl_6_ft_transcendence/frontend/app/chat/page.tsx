@@ -1,7 +1,7 @@
 'use client'
 
 import { removeParams, useAuth } from '@/contexts/AuthContext'
-import { useChat } from '@/contexts/ChatContext'
+import { useFriends } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import { ChangeEventHandler, useState } from 'react'
 import { IoIosClose } from 'react-icons/io'
@@ -22,7 +22,7 @@ export default function Chat() {
 		openChats,
 		rejectChallenge,
 		sendMessage,
-	} = useChat()
+	} = useFriends()
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value

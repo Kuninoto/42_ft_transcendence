@@ -18,7 +18,7 @@ import { toast } from 'react-toastify'
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
 
-type ChatContextType = {
+type FriendsContextType = {
 	addFriend: (friend: Friend) => void
 	changeOpenState: () => void
 	close: (id: number) => void
@@ -73,9 +73,11 @@ type IChat = (
 	unread: boolean
 }
 
-const ChatContext = createContext<ChatContextType>({} as ChatContextType)
+const FriendsContext = createContext<FriendsContextType>(
+	{} as FriendsContextType
+)
 
-export function ChatProvider({ children }: { children: ReactNode }) {
+export function FriendsProvider({ children }: { children: ReactNode }) {
 	const { isAuth } = useAuth()
 
 	const [friends, setFriends] = useState<[] | Friend[]>([])
@@ -333,7 +335,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	const value: ChatContextType = {
+	const value: FriendsContextType = {
 		addFriend,
 		changeOpenState,
 		close,
@@ -351,9 +353,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 		sendMessage,
 	}
 
-	return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
+	return (
+		<FriendsContext.Provider value={value}>{children}</FriendsContext.Provider>
+	)
 }
 
-export function useChat() {
-	return useContext(ChatContext)
+export function useFriends() {
+	return useContext(FriendsContext)
 }

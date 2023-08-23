@@ -1,7 +1,7 @@
 'use client'
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { ChatProvider } from '@/contexts/ChatContext'
+import { FriendsProvider } from '@/contexts/ChatContext'
 import { SocketProvider } from '@/contexts/SocketContext'
 import { Press_Start_2P } from 'next/font/google'
 import Link from 'next/link'
@@ -52,7 +52,7 @@ export default function RootLayout({
 	return (
 		<SocketProvider>
 			<AuthProvider>
-				<ChatProvider>
+				<FriendsProvider>
 					<html lang="en">
 						<body className={`overflow-hidden ${pressStart.className}`}>
 							<FullScreen handle={handle}>
@@ -82,7 +82,7 @@ export default function RootLayout({
 							</FullScreen>
 						</body>
 					</html>
-				</ChatProvider>
+				</FriendsProvider>
 			</AuthProvider>
 		</SocketProvider>
 	)
