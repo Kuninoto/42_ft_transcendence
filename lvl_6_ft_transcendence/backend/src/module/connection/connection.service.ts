@@ -54,7 +54,7 @@ export class ConnectionService {
     // Get the token itself (xxxxx) without "Bearer"
     const authToken: string = authHeader.split(' ')[1];
 
-    const user: null | User = await this.authClientFromAuthToken(authToken);
+    const user: User | null = await this.authClientFromAuthToken(authToken);
 
     if (!user) {
       throw new Error('Unauthorized client, unknown');

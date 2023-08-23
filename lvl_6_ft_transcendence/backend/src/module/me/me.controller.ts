@@ -198,9 +198,6 @@ export class MeController {
       );
       throw new BadRequestException('Invalid file');
     }
-  
-    console.log(file);
-
     this.logger.log(`${user.name} updated his avatar`);
 
     return await this.usersService.updateUserAvatarByUID(

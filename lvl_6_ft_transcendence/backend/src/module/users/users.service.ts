@@ -56,7 +56,7 @@ export class UsersService {
     newName: string,
     userId: number,
   ): Promise<boolean> {
-    const user: null | User = await this.usersRepository.findOneBy({
+    const user: User | null = await this.usersRepository.findOneBy({
       intra_name: newName,
     });
 
@@ -67,7 +67,7 @@ export class UsersService {
   }
 
   private async isNameAlreadyTaken(newName: string): Promise<boolean> {
-    const user: null | User = await this.usersRepository.findOneBy({
+    const user: User | null = await this.usersRepository.findOneBy({
       name: newName,
     });
     return user ? true : false;
@@ -195,23 +195,23 @@ export class UsersService {
     };
   }
 
-  public async findUserByIntraName(intraName: string): Promise<null | User> {
+  public async findUserByIntraName(intraName: string): Promise<User | null> {
     return await this.usersRepository.findOneBy({ intra_name: intraName });
   }
 
-  public async findUserByName(name: string): Promise<null | User> {
+  public async findUserByName(name: string): Promise<User | null> {
     return await this.usersRepository.findOneBy({ name: name });
   }
 
-  public async findUserByUID(userId: number): Promise<null | User> {
+  public async findUserByUID(userId: number): Promise<User | null> {
     return await this.usersRepository.findOneBy({ id: userId });
   }
 
   public async findUserProfileByUID(
     meUser: User,
     userId: number,
-  ): Promise<null | UserProfile> {
-    const user: null | User = await this.usersRepository.findOneBy({
+  ): Promise<UserProfile | null> {
+    const user: User | null = await this.usersRepository.findOneBy({
       id: userId,
     });
 
@@ -258,7 +258,7 @@ export class UsersService {
   public async findUserSearchInfoByUID(
     meUID: number,
     userId: number,
-  ): Promise<null | UserSearchInfo> {
+  ): Promise<UserSearchInfo | null> {
     const meUser: User = await this.findUserByUID(meUID);
     const user: User = await this.findUserByUID(userId);
     const friendship: Friendship | null =
@@ -390,12 +390,12 @@ export class UsersService {
     newName: string,
   ): Promise<ErrorResponse | SuccessResponse> {
     // Check name length boundaries (4-10)
-    if (newName.length < 4 || newName.length > 10) {
+    if (!(newName.length <= 4 && newName.length >= 10)) {
       this.logger.warn(
         `UID= ${userId} failed to update his username due to length boundaries`,
       );
       throw new BadRequestException(
-        "Usernames' length must at least 4 and up to 10 characters long",
+        'Usernames length must be 4-10 characters long',
       );
     }
 
