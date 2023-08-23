@@ -46,7 +46,7 @@ export default function FriendsModal({
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -71,7 +71,7 @@ export default function FriendsModal({
 						prevReq.filter((prevReq) => prevReq.friendship_id !== friendship_id)
 					)
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -91,7 +91,7 @@ export default function FriendsModal({
 			api.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.DECLINED,
 			})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -109,7 +109,7 @@ export default function FriendsModal({
 			)
 
 			api.post(`/friendships/block/${userId}`)
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -130,7 +130,7 @@ export default function FriendsModal({
 				.post(`/friendships/send-request/${userId}`)
 				.then((result) => console.log(result))
 				.catch((error) => console.error(error))
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -147,7 +147,7 @@ export default function FriendsModal({
 				})
 				.catch((error) => console.error(error))
 				.finally(() => setRequestsLoading(false))
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}, [])
@@ -164,7 +164,7 @@ export default function FriendsModal({
 				})
 				.catch((error) => console.error(error))
 				.finally(() => setSearchLoading(false))
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}, [search])

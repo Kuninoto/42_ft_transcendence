@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	function logout() {
 		router.push('/')
+		setUser({} as UserProfile)
 
 		if (socket) socket.disconnect()
 

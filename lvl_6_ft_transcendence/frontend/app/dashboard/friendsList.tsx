@@ -33,9 +33,11 @@ export default function FriendsList(): JSX.Element {
 		<div className="flex h-full w-full">
 			{openModal === openModalType.FRIENDS ? (
 				<FriendsModal closeModal={() => setOpenModal(openModalType.NULL)} />
-			) : openModal === openModalType.GROUPS ? (
-				<GroupsModal closeModal={() => setOpenModal(openModalType.NULL)} />
-			) : null}
+			) : (
+				openModal === openModalType.GROUPS && (
+					<GroupsModal closeModal={() => setOpenModal(openModalType.NULL)} />
+				)
+			)}
 
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex flex-col">
@@ -95,7 +97,7 @@ export default function FriendsList(): JSX.Element {
 								>
 									<button
 										className="flex w-full place-content-between items-center px-4"
-										onClick={() => open(friend.uid)}
+										onClick={() => open(friend)}
 									>
 										<div className="flex items-center space-x-4">
 											<div className="relative aspect-square w-8 overflow-hidden rounded-sm">
