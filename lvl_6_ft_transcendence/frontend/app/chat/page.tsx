@@ -1,6 +1,6 @@
 'use client'
 
-import { removeParams } from '@/contexts/AuthContext'
+import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useChat } from '@/contexts/ChatContext'
 import Image from 'next/image'
 import { ChangeEventHandler, useState } from 'react'
@@ -9,15 +9,16 @@ import { LuSwords } from 'react-icons/lu'
 import { MdOutlineBlock } from 'react-icons/md'
 
 export default function Chat() {
-	const [isOpen, setIsOpen] = useState(false)
 	const [message, setMessage] = useState('')
 
 	const {
+		changeOpenState,
 		close,
 		closeAll,
 		currentOpenChat,
+		exists,
 		focusChat,
-		isOpen: exists,
+		isOpen,
 		openChats,
 		rejectChallenge,
 		sendMessage,
@@ -26,7 +27,7 @@ export default function Chat() {
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value
 
-		if (value.includes('\n')) {
+		if (message.trim().length !== 0 && value.includes('\n')) {
 			sendMessage(message)
 			setMessage('')
 		} else {
@@ -34,7 +35,9 @@ export default function Chat() {
 		}
 	}
 
-	if (!exists) return <></>
+	const { isAuth } = useAuth()
+
+	if (!exists || !isAuth) return <></>
 
 	return (
 		<div
@@ -42,8 +45,8 @@ export default function Chat() {
 			absolute right-28 flex h-96 w-[38rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% transition-all`}
 		>
 			<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
-				<button className="w-full" onClick={() => setIsOpen(!isOpen)}>
-					{currentOpenChat?.friend.name}
+				<button className="w-full" onClick={changeOpenState}>
+					{currentOpenChat.friend?.name}
 				</button>
 				<button onClick={closeAll}>
 					<IoIosClose size={32} />
@@ -53,10 +56,12 @@ export default function Chat() {
 			<div className="flex h-full w-full overflow-hidden">
 				<div className="h-full w-4/12 overflow-y-auto border-r border-white scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 					{openChats?.map((chat) => {
+						if (!chat.display) return
+
 						return (
 							<div
 								className={`group relative w-full items-center border-b border-white ${
-									chat.friend?.uid !== currentOpenChat?.friend.uid &&
+									chat.friend?.uid !== currentOpenChat.friend?.uid &&
 									'opacity-60'
 								}  hover:opacity-100`}
 								key={chat.friend?.uid}

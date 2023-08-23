@@ -1,10 +1,7 @@
-'use client'
-
 import { api } from '@/api/api'
 import { Friend } from '@/common/types/backend'
 import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
 import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
-import { NewUserStatusDTO } from '@/common/types/new-user-status.dto'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
 import { RespondToGameInviteDTO } from '@/common/types/respond-to-game-invite.dto'
 import { SendDirectMessageDTO } from '@/common/types/send-direct-message.dto'
@@ -23,18 +20,25 @@ import { socket } from './SocketContext'
 
 type ChatContextType = {
 	addFriend: (friend: Friend) => void
+	changeOpenState: () => void
 	close: (id: number) => void
 	closeAll: () => void
 	currentOpenChat: IChat
+	exists: boolean
 	focusChat: (id: number) => void
 	friends: Friend[]
 	isOpen: boolean
-	open: (id: number) => void
+	open: (friend: Friend) => void
 	openChats: IChat[]
 	rejectChallenge: (id: number) => void
 	respondGameInvite: (accepted: boolean) => void
 	sendGameInvite: (id: number) => void
 	sendMessage: (message: string) => void
+}
+
+interface Group {
+	name: string
+	ownerName: string
 }
 
 export interface MessageDTO {
@@ -43,10 +47,29 @@ export interface MessageDTO {
 	uniqueID: string
 }
 
-interface IChat {
-	challengeId: null | number
-	friend?: Friend
-	messages: MessageDTO[]
+interface Author {
+	avatar_url: string
+	id: number
+	name: string
+}
+
+interface GroupMessageDTO {
+	author: Author
+	content: string
+}
+
+type IChat = (
+	| {
+			challengeId: null | number
+			friend: Friend
+			messages: MessageDTO[]
+	  }
+	| {
+			group: Group
+			messages: GroupMessageDTO[]
+	  }
+) & {
+	display: boolean
 	unread: boolean
 }
 
@@ -54,23 +77,73 @@ const ChatContext = createContext<ChatContextType>({} as ChatContextType)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
 	const { isAuth } = useAuth()
+
 	const [friends, setFriends] = useState<[] | Friend[]>([])
+	const [groups, setGroups] = useState<[] | Group[]>([])
 
 	const [openChats, setOpenChats] = useState<[] | IChat[]>([])
 	const [currentOpenChat, setCurrentOpenChat] = useState<IChat>({} as IChat)
 
-	function open(id: number) {
-		const index = openChats?.findIndex((chat) => chat.friend.uid === friend.uid)
+	const [isOpen, setIsOpen] = useState(false)
+	const [exists, setExists] = useState(false)
+
+	// ======================== General messages ========================
+
+	function closeAll() {
+		setOpenChats((prevChats) =>
+			prevChats.map((chat) => ({ ...chat, display: false }))
+		)
+	}
+
+	// ======================== Groups messages ========================
+
+	function openGroup(name: string) {
+		setIsOpen(true)
+		setExists(true)
+
+		const index = openChats?.findIndex((chat) => {
+			if (!('group' in chat)) return false
+
+			return chat.group.name === name
+		})
 
 		if (index !== -1) {
-			focusChat(id)
+			focusChat()
 			return
 		}
 
-		const friend = friends.find((friend) => friend.uid === id)
+		const newChat: IChat = {
+			challengeId: null,
+			display: true,
+			friend,
+			isGroup: false,
+			messages: [],
+			unread: false,
+		}
+		setOpenChats([newChat, ...openChats])
+		setCurrentOpenChat(newChat)
+	}
+
+	// ======================== Direct messages ========================
+
+	function open(friend: Friend) {
+		setIsOpen(true)
+		setExists(true)
+
+		const index = openChats?.findIndex((chat) => {
+			if (!('friend' in chat)) return false
+
+			return chat.friend.uid === friend.uid
+		})
+
+		if (index !== -1) {
+			focusChat(friend.uid)
+			return
+		}
 
 		const newChat: IChat = {
 			challengeId: null,
+			display: true,
 			friend,
 			messages: [],
 			unread: false,
@@ -80,26 +153,40 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 	}
 
 	function focusChat(id: number) {
-		setOpenChats((prevChat) =>
-			prevChat.map((chat) =>
-				chat.friend.uid === id ? { ...chat, unread: false } : chat
-			)
+		setOpenChats((prevChat) => {
+			const newChat = [...prevChat]
+			return newChat?.map((chat) => {
+				if (!('friend' in chat)) return chat
+
+				return chat.friend.uid === id
+					? { ...chat, display: true, unread: false }
+					: { ...chat, display: true }
+			})
+		})
+
+		setCurrentOpenChat(
+			openChats.find((chat) => {
+				if (!('friend' in chat)) return false
+
+				return chat.friend.uid === id
+			})
 		)
-		setCurrentOpenChat(openChats.find((chat) => chat.friend.uid === id))
 	}
 
 	function close(id: number) {
 		setOpenChats((prevChats) => {
-			if (prevChats.length > 1 && currentOpenChat.friend.uid === id) {
+			const newChat = [...prevChats]
+
+			if (newChat.length > 1 && currentOpenChat.friend.uid === id) {
 				setCurrentOpenChat(prevChats[1])
 			}
 
-			return prevChats.filter((chat) => chat.friend.uid !== id)
-		})
-	}
+			const index = newChat?.findIndex((chat) => chat.friend.uid === id)
 
-	function closeAll() {
-		setOpenChats([])
+			newChat[index].display = false
+			setExists(newChat.some((chat) => chat.display))
+			return newChat
+		})
 	}
 
 	function addFriend(friend: Friend) {
@@ -162,6 +249,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 					if (index === -1) {
 						newChat.push({
 							challenged: false,
+							display: true,
 							friend: friends.find((friend) => friend.uid === data.senderUID),
 							messages: [
 								{
@@ -184,19 +272,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 						}
 
 						newChat[index].unread = true
+						newChat[index].display = true
 						newChat[index]?.messages.unshift(newMessage)
 					}
 					return newChat
 				})
+				setExists(true)
 			}
 		)
 
-		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
-			console.log(data)
-		})
-
 		socket?.on('invitedToGame', function (data: InvitedToGameDTO) {
-			open(data.senderUID)
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
@@ -217,6 +302,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 			newChat[index].challengeId = null
 			return newChat
 		})
+	}
+
+	function changeOpenState() {
+		setIsOpen((prevState) => !prevState)
 	}
 
 	function sendMessage(message: string) {
@@ -247,12 +336,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
 	const value: ChatContextType = {
 		addFriend,
+		changeOpenState,
 		close,
 		closeAll,
 		currentOpenChat,
+		exists,
 		focusChat,
 		friends,
-		isOpen: openChats.length !== 0,
+		isOpen,
 		open,
 		openChats,
 		rejectChallenge,
