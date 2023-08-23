@@ -7,7 +7,7 @@ import {
 	UserSearchInfo,
 } from '@/common/types/backend'
 import { removeParams } from '@/contexts/AuthContext'
-import { useFriends } from '@/contexts/ChatContext'
+import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
