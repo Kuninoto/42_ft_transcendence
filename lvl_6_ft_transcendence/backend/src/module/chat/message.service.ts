@@ -1,16 +1,13 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChatRoom, DirectMessage, Message } from 'src/entity';
+import { DirectMessage } from 'src/entity';
 import { Repository } from 'typeorm';
-import { ChatRoomMessageI } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { DirectMessageReceivedDTO } from '../friendships/dto/direct-message-received.dto';
 
 @Injectable()
 export class MessageService {
   constructor(
-    @InjectRepository(Message)
-    private readonly messageRepository: Repository<Message>,
     @InjectRepository(DirectMessage)
     private readonly directMessageRepository: Repository<DirectMessage>,
     @Inject(forwardRef(() => ConnectionGateway))
@@ -31,36 +28,6 @@ export class MessageService {
     });
 
     return await this.directMessageRepository.save(newMessage);
-  }
-
-  async newChatRoomMessage(
-    authorUID: number,
-    toChatRoom: ChatRoom,
-    content: string,
-  ): Promise<ChatRoomMessageI> {
-    const newMessage: Message = this.messageRepository.create({
-      content: content,
-      room: { id: toChatRoom.id },
-      user: { id: authorUID },
-    });
-
-    await this.messageRepository.save(newMessage);
-
-    const message: Message = await this.messageRepository.findOne({
-      relations: {
-        user: true,
-      },
-      where: { id: newMessage.id },
-    });
-
-    return {
-      content: message.content,
-      user: {
-        avatar_url: message.user.avatar_url,
-        id: message.user.id,
-        name: message.user.name,
-      },
-    };
   }
 
   async sendMissedDirectMessages(

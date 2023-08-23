@@ -406,7 +406,7 @@ export class UsersService {
         `UID= ${userId} failed to update his username due to using forbidden chars`,
       );
       throw new BadRequestException(
-        'Usernames must only use a-z, A-Z, 0-9, _ and -',
+        'Usernames can only by composed by letters (both cases), underscore and hiphen',
       );
     }
 
