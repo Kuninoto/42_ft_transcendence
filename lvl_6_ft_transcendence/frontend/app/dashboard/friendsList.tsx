@@ -11,7 +11,7 @@ import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
 
 import FriendsModal from './friendsModal'
-import GroupsModal from './groupsModal'
+import RoomsModal from './roomsModal'
 
 enum openModalType {
 	FRIENDS = 'friends',
@@ -35,7 +35,7 @@ export default function FriendsList(): JSX.Element {
 				<FriendsModal closeModal={() => setOpenModal(openModalType.NULL)} />
 			) : (
 				openModal === openModalType.GROUPS && (
-					<GroupsModal closeModal={() => setOpenModal(openModalType.NULL)} />
+					<RoomsModal closeModal={() => setOpenModal(openModalType.NULL)} />
 				)
 			)}
 

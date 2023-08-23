@@ -1,10 +1,13 @@
 'use client'
 
-import { ChatRoomType } from '@/common/types/backend'
-import { useState } from 'react'
+import { api } from '@/api/api'
+import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
+import { CreateRoomDTO } from '@/common/types/create-room.dto'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { BiLockAlt } from 'react-icons/bi'
 
-function CreateGroup({ closeModal }: { closeModal: () => void }) {
+function CreateRoom({ closeModal }: { closeModal: () => void }) {
 	const { handleSubmit, register, watch } = useForm()
 
 	function createRoom({
@@ -14,8 +17,23 @@ function CreateGroup({ closeModal }: { closeModal: () => void }) {
 	}: {
 		name: string
 		password: string
-		type: string
+		type: ChatRoomType
 	}) {
+		const newRoom: CreateRoomDTO = {
+			name,
+			password: type === ChatRoomType.PROTECTED ? password : undefined,
+			type,
+		}
+
+		try {
+			api
+				.post('/chat/create-room', newRoom)
+				.then(() => {
+					closeModal()
+				})
+				.catch((e) => console.log(e))
+		} catch (error: any) {}
+
 		console.log(name, type)
 	}
 
@@ -99,19 +117,28 @@ function CreateGroup({ closeModal }: { closeModal: () => void }) {
 	)
 }
 
-export default function GroupsModal({
-	closeModal,
-}: {
-	closeModal: () => void
-}) {
+export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 	const [search, setSearch] = useState('')
-	const [searchLoading, setSearchLoading] = useState(true)
+	const [loading, setLoading] = useState(true)
 
-	const [createGroup, setCreateGroup] = useState(false)
+	const [rooms, setRooms] = useState<ChatRoomSearchInfo[]>([])
+
+	useEffect(() => {
+		setLoading(true)
+		api.get(`/chat/rooms/search?room-name=${search}`).then((result) => {
+			setRooms(result.data)
+			console.log(result.data)
+			setLoading(false)
+		})
+	}, [search])
+
+	function joinRoom() {}
+
+	const [createRoom, setCreateRoom] = useState(false)
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
-			{createGroup && <CreateGroup closeModal={() => setCreateGroup(false)} />}
+			{createRoom && <CreateRoom closeModal={() => setCreateRoom(false)} />}
 
 			<button
 				className="absolute left-0 top-0 h-screen w-screen bg-black/70"
@@ -132,7 +159,7 @@ export default function GroupsModal({
 							/>
 							<button
 								className="aspect-square w-12 place-content-center items-center rounded-r border border-white mix-blend-lighten hover:bg-white hover:text-black"
-								onClick={() => setCreateGroup(true)}
+								onClick={() => setCreateRoom(true)}
 							>
 								+
 							</button>
@@ -146,19 +173,35 @@ export default function GroupsModal({
 								</div>
 							)}
 
-							{searchLoading ? (
+							{loading ? (
 								<div> Loading... </div>
-							) : 1 ? (
+							) : rooms.length === 0 ? (
 								<div> No one </div>
 							) : (
-								<div className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white">
-									<div className="flex space-x-6">
-										<span className="text-xl">asda</span>
-									</div>
-									<button className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
-										oin
-									</button>
-								</div>
+								<>
+									{rooms.map((room) => {
+										return (
+											<div
+												className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
+												key={room.name}
+											>
+												<div className="flex space-x-6">
+													<span className="text-xl">{room.name}</span>
+												</div>
+												<div className="flex items-center space-x-2">
+													{room.protected && (
+														<div>
+															<BiLockAlt size={24} />
+														</div>
+													)}
+													<button className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
+														Join
+													</button>
+												</div>
+											</div>
+										)
+									})}
+								</>
 							)}
 						</div>
 					</div>

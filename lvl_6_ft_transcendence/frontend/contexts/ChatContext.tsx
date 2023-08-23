@@ -36,7 +36,7 @@ type ChatContextType = {
 	sendMessage: (message: string) => void
 }
 
-interface Group {
+interface Room {
 	name: string
 	ownerName: string
 }
@@ -53,7 +53,7 @@ interface Author {
 	name: string
 }
 
-interface GroupMessageDTO {
+interface RoomMessageDTO {
 	author: Author
 	content: string
 }
@@ -65,8 +65,8 @@ type IChat = (
 			messages: MessageDTO[]
 	  }
 	| {
-			group: Group
-			messages: GroupMessageDTO[]
+			messages: RoomMessageDTO[]
+			room: Room
 	  }
 ) & {
 	display: boolean
@@ -79,7 +79,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 	const { isAuth } = useAuth()
 
 	const [friends, setFriends] = useState<[] | Friend[]>([])
-	const [groups, setGroups] = useState<[] | Group[]>([])
+	const [rooms, setRooms] = useState<[] | Room[]>([])
 
 	const [openChats, setOpenChats] = useState<[] | IChat[]>([])
 	const [currentOpenChat, setCurrentOpenChat] = useState<IChat>({} as IChat)
@@ -95,16 +95,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 		)
 	}
 
-	// ======================== Groups messages ========================
+	// ======================== Rooms messages ========================
 
-	function openGroup(name: string) {
+	function openRoom(name: string) {
 		setIsOpen(true)
 		setExists(true)
 
 		const index = openChats?.findIndex((chat) => {
-			if (!('group' in chat)) return false
+			if (!('room' in chat)) return false
 
-			return chat.group.name === name
+			return chat.room.name === name
 		})
 
 		if (index !== -1) {
@@ -116,7 +116,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 			challengeId: null,
 			display: true,
 			friend,
-			isGroup: false,
 			messages: [],
 			unread: false,
 		}
