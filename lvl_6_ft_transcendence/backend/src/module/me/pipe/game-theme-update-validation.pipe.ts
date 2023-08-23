@@ -4,24 +4,23 @@ import {
   Logger,
   PipeTransform,
 } from '@nestjs/common';
-import { GameThemes, GameThemeUpdationRequest } from 'types';
+import { GameThemeUpdationRequest, GameThemes } from 'types';
 
 @Injectable()
 export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
   private readonly logger: Logger = new Logger();
 
-  readonly themes = [
+  readonly themes: string[] = [
     'default',
+    'safari',
     'fortyTwo',
-    'anime',
     'monke',
-    'melo',
     'miki',
     'mikao',
   ];
 
   transform(value: GameThemeUpdationRequest): GameThemes {
-    const response = value.newGameTheme;
+    const response: GameThemes = value.newGameTheme;
 
     if (!response || !this.themes.includes(response)) {
       this.logger.warn(

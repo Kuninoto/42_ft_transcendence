@@ -1,6 +1,6 @@
-import { Chatter } from './chatter.interface';
+import { Author } from "./author.interface";
 
-export interface ChatRoomMessageI {
-  user: Chatter;
+export interface ChatRoomMessage {
+  author: Author;
   content: string;
 }

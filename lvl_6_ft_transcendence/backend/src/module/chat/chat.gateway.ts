@@ -12,13 +12,12 @@ import { ChatRoom } from 'src/entity';
 import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
-import { ChatRoomMessageI, MuteDuration } from 'types';
-
+import { ChatRoomMessage, MuteDuration } from 'types';
+import { Author } from 'types/chat/author.interface';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { AddAdminDTO } from './dto/add-admin.dto';
 import { BanFromRoomDTO } from './dto/ban-from-room.dto';
-import { CreateRoomDTO } from './dto/create-room.dto';
 import { InviteToRoomDTO } from './dto/invite-to-room.dto';
 import { JoinRoomDTO } from './dto/join-room.dto';
 import { KickFromRoomDTO } from './dto/kick-from-room.dto';
@@ -30,7 +29,6 @@ import { RemoveRoomPasswordDTO } from './dto/remove-room-password.dto';
 import { UnbanFromRoomDTO } from './dto/unban-user-from-room.dto';
 import { UnmuteUserDTO } from './dto/unmute-user.dto';
 import { UpdateRoomPasswordDTO } from './dto/update-room-password.dto';
-import { MessageService } from './message.service';
 import { RoomService } from './room.service';
 
 @WebSocketGateway({
@@ -45,47 +43,18 @@ export class ChatGateway implements OnGatewayInit {
     private readonly usersService: UsersService,
     private readonly friendshipService: FriendshipsService,
     private readonly roomService: RoomService,
-    private readonly messageService: MessageService,
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
     @Inject(forwardRef(() => ConnectionService))
     private readonly connectionService: ConnectionService,
   ) {}
 
-  /*
-		TODO Passwords
- */
-
   /******************************
-   *          MESSAGES          *
+   *           ROOMS            *
    ******************************/
 
   afterInit(server: Server) {
     this.logger.log('Chat-Gateway Initialized');
-  }
-
-  @SubscribeMessage('createRoom')
-  async onCreateRoom(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: CreateRoomDTO,
-  ): Promise<void> {
-    if (!this.isValidJoinRoomDTO(messageBody)) {
-      this.logger.warn(`${client.data.name} tried to send a wrong JoinRoomDTO`);
-      return;
-    }
-
-    if (!this.roomService.isValidRoomName(messageBody.name)) {
-      this.logger.warn(
-        `${client.data.name} tried to create a room with an invalid name: "${messageBody.name}"`,
-      );
-      return;
-    }
-
-    this.roomService.createRoom(
-      messageBody,
-      await this.usersService.findUserByUID(client.data.userId),
-    );
-    client.join(messageBody.name);
   }
 
   @SubscribeMessage('inviteToRoom')
@@ -100,7 +69,7 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const invited: null | User = await this.usersService.findUserByUID(
+    const invited: User | null = await this.usersService.findUserByUID(
       messageBody.invitedUID,
     );
     if (!invited) {
@@ -131,11 +100,13 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const room: ChatRoom | null = await this.roomService.findRoomById(
-      messageBody.roomId,
+    const room: ChatRoom | null = await this.roomService.findRoomByName(
+      messageBody.roomName,
     );
     if (!room) {
-      this.logger.log(`A room with id= "${messageBody.roomId}" doesn't exist`);
+      this.logger.log(
+        `A room "${messageBody.roomName}" doesn't exist`,
+      );
       return;
     }
 
@@ -235,12 +206,18 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const message: ChatRoomMessageI =
-      await this.messageService.newChatRoomMessage(
-        client.data.userId,
-        room,
-        messageBody.text,
-      );
+    const user: User = await this.usersService.findUserByUID(
+      client.data.userId,
+    );
+    const messageAuthor: Author = {
+      id: client.data.userId,
+      name: user.name,
+      avatar_url: user.avatar_url,
+    };
+    const message: ChatRoomMessage = {
+      author: messageAuthor,
+      content: messageBody.text,
+    };
 
     const idsOfUsersInRoom: number[] = room.users.map((user: User) => user.id);
     idsOfUsersInRoom.forEach(async (uid: number) => {

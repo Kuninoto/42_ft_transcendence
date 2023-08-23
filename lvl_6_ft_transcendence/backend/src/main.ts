@@ -111,6 +111,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
   app.useGlobalFilters(new Passport42ExceptionFilter());

@@ -1,7 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatRoom, DirectMessage, Message } from 'src/entity';
-
+import { ChatRoom, DirectMessage } from 'src/entity';
 import { ConnectionModule } from '../connection/connection.module';
 import { FriendshipsModule } from '../friendships/friendships.module';
 import { GameModule } from '../game/game.module';
@@ -15,7 +14,7 @@ import { RoomService } from './room.service';
   controllers: [ChatController],
   exports: [ChatGateway, RoomService, MessageService],
   imports: [
-    TypeOrmModule.forFeature([ChatRoom, Message, DirectMessage]),
+    TypeOrmModule.forFeature([ChatRoom, DirectMessage]),
     forwardRef(() => UsersModule),
     forwardRef(() => GameModule),
     forwardRef(() => ConnectionModule),
