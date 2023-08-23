@@ -2,6 +2,7 @@ import { api } from '@/api/api'
 import { Friend } from '@/common/types/backend'
 import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
 import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
+import { NewUserStatusDTO } from '@/common/types/new-user-status.dto'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
 import { RespondToGameInviteDTO } from '@/common/types/respond-to-game-invite.dto'
 import { SendDirectMessageDTO } from '@/common/types/send-direct-message.dto'
@@ -89,12 +90,32 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false)
 	const [exists, setExists] = useState(false)
 
+	// ======================== General ========================
+
+	useEffect(() => {
+		try {
+			if (isAuth) {
+				api
+					.get('/me/friends')
+					.then((result) => {
+						setFriends(result.data)
+					})
+					.catch((e) => {
+						throw 'Network error'
+					})
+			}
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}, [isAuth])
+
 	// ======================== General messages ========================
 
 	function closeAll() {
 		setOpenChats((prevChats) =>
 			prevChats.map((chat) => ({ ...chat, display: false }))
 		)
+		setExists(false)
 	}
 
 	// ======================== Rooms messages ========================
@@ -126,6 +147,15 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	// ======================== Direct messages ========================
+
+	useEffect(() => {
+		socket?.on('directMessageReceived', onDirectMessageReceived)
+		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
+			console.log(data)
+			console.log('herherhe')
+		})
+		socket?.on('invitedToGame', onInvitedToGame)
+	}, [friends])
 
 	function open(friend: Friend) {
 		setIsOpen(true)
@@ -220,81 +250,59 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		)
 	}
 
-	useEffect(() => {
-		try {
-			if (isAuth) {
-				api
-					.get('/me/friends')
-					.then((result) => {
-						setFriends(result.data)
-					})
-					.catch((e) => {
-						throw 'Network error'
-					})
-			}
-		} catch (error: any) {
-			toast.error(error)
-		}
-	}, [isAuth])
+	function onDirectMessageReceived(data: DirectMessageReceivedDTO) {
+		setOpenChats((prevChat) => {
+			const newChat = [...prevChat]
+			const index = newChat?.findIndex(
+				(chat) => chat.friend.uid === data.senderUID
+			)
 
-	useEffect(() => {
-		socket?.on(
-			'directMessageReceived',
-			function (data: DirectMessageReceivedDTO) {
-				setOpenChats((prevChat) => {
-					const newChat = [...prevChat]
-					const index = newChat?.findIndex(
-						(chat) => chat.friend.uid === data.senderUID
-					)
-
-					if (index === -1) {
-						newChat.push({
-							challenged: false,
-							display: true,
-							friend: friends.find((friend) => friend.uid === data.senderUID),
-							messages: [
-								{
-									content: data.content,
-									sendByMe: false,
-									uniqueID: data.uniqueId,
-								},
-							],
-							unread: true,
-						})
-
-						if (newChat.length === 1) {
-							setCurrentOpenChat(newChat[0])
-						}
-					} else {
-						const newMessage: MessageDTO = {
+			if (index === -1) {
+				newChat.push({
+					challenged: false,
+					display: true,
+					friend: friends.find((friend) => friend.uid === data.senderUID),
+					messages: [
+						{
 							content: data.content,
 							sendByMe: false,
 							uniqueID: data.uniqueId,
-						}
-
-						newChat[index].unread = true
-						newChat[index].display = true
-						newChat[index]?.messages.unshift(newMessage)
-					}
-					return newChat
+						},
+					],
+					unread: true,
 				})
-				setExists(true)
+
+				if (newChat.length === 1) {
+					setCurrentOpenChat(newChat[0])
+				}
+			} else {
+				const newMessage: MessageDTO = {
+					content: data.content,
+					sendByMe: false,
+					uniqueID: data.uniqueId,
+				}
+
+				newChat[index].unread = true
+				newChat[index].display = true
+				newChat[index]?.messages.unshift(newMessage)
 			}
-		)
-
-		socket?.on('invitedToGame', function (data: InvitedToGameDTO) {
-			setOpenChats((prevChat) => {
-				const newChat = [...prevChat]
-
-				const index = newChat?.findIndex(
-					(chat) => chat.friend.uid === data.senderUID
-				)
-
-				newChat[index].challengeId = data.inviteId
-				return newChat
-			})
+			return newChat
 		})
-	}, [friends])
+		setExists(true)
+	}
+
+	function onInvitedToGame(data: InvitedToGameDTO) {
+		setOpenChats((prevChat) => {
+			const newChat = [...prevChat]
+
+			const index = newChat?.findIndex(
+				(chat) => chat.friend.uid === data.senderUID
+			)
+
+			newChat[index].challengeId = data.inviteId
+			return newChat
+		})
+	}
 
 	function rejectChallenge(id: number) {
 		setOpenChats((prevChat) => {

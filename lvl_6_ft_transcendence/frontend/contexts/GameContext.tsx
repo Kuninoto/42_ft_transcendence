@@ -1,4 +1,5 @@
 import { Ball } from '@/app/matchmaking/definitions'
+import { PlayerSide } from '@/common/types/backend'
 import { GameEndDTO } from '@/common/types/game-end.dto'
 import { GameRoomDTO } from '@/common/types/game-room-info'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
@@ -6,8 +7,8 @@ import { PaddleMoveDTO } from '@/common/types/paddle-move.dto'
 import { PlayerReadyDTO } from '@/common/types/player-ready.dto'
 import { PlayerScoredDTO } from '@/common/types/player-scored.dto'
 import { hasValues } from '@/common/utils/hasValues'
-import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
@@ -20,6 +21,7 @@ import { socket } from './SocketContext'
 
 type GameContextType = {
 	ballPosition: Ball
+	canCancel: boolean
 	cancel: () => void
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
@@ -67,7 +69,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		else {
 			socket?.on('opponentFound', function (data: OponentFoundDTO) {
 				setOpponentFound(data)
-				router.push('/matchmaking')
+				setTimeout(() => {
+					router.push('/matchmaking')
+				}, 10000)
 			})
 
 			socket?.on('connect_error', (err) => console.log(err))
@@ -130,6 +134,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	const value: GameContextType = {
 		ballPosition,
+		canCancel: hasValues(opponentFound),
 		cancel,
 		emitOnReady,
 		emitPaddleMovement,
