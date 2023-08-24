@@ -2,23 +2,26 @@ import Image from 'next/image'
 
 export default function page() {
 	return (
-		<div className="flex flex-col items-center">
-			<Image
-				alt="neon flickering light"
-				className="mx-auto w-[65vw]"
-				height={1}
-				src={'/neon.gif'}
-				width={850}
-			/>
-			<div className="flex h-max w-full place-content-end space-x-4 px-12 text-2xl">
-				<div className="my-auto">INSERT COIN</div>
+		<div className="flex h-full w-full flex-col items-center">
+			<div className="relative aspect-video h-5/6">
 				<Image
-					alt="neon arrow light"
-					className="animate-horizontalBounce"
-					height={1}
-					src={'/neonArrow.png'}
-					width={100}
+					alt="neon flickering light"
+					className="object-cover"
+					fill
+					priority
+					src={'/neon.gif'}
 				/>
+			</div>
+			<div className="flex h-max w-full place-content-end space-x-4 px-12 text-4xl">
+				<div className="my-auto">INSERT COIN</div>
+				<div className="relative aspect-square h-32">
+					<Image
+						alt="neon arrow light"
+						className="animate-horizontalBounce"
+						fill
+						src={'/neonArrow.png'}
+					/>
+				</div>
 				<a
 					className="group flex h-auto w-10"
 					href={process.env.NEXT_PUBLIC_INTRA_REDIRECT_URI}

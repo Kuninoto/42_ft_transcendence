@@ -36,14 +36,15 @@ export default function Dashboard() {
 
 	return (
 		<div className="flex">
-			<Image
-				alt="logo picture"
-				className="fixed h-28 w-40"
-				height="0"
-				sizes="100vw"
-				src={'/logo.png'}
-				width="0"
-			/>
+			<div className="fixed h-28 w-40">
+				<Image
+					alt="logo picture"
+					fill
+					priority
+					sizes="100%"
+					src={'/logo.png'}
+				/>
+			</div>
 
 			<div className="flex w-3/4 flex-col place-content-center gap-y-8">
 				<div className="mx-auto flex space-x-8">

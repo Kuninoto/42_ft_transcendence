@@ -14,6 +14,7 @@ import {
 	useEffect,
 	useState,
 } from 'react'
+import { toast } from 'react-toastify'
 
 import { socket, useSocket } from './SocketContext'
 
@@ -61,9 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	async function refreshUser() {
-		const user = await api.get('/me')
-		setUser(user.data)
+	function refreshUser() {
+		try {
+			api.get('/me').then((result) => setUser(result.data))
+		} catch (error: any) {
+			toast.error('Network error')
+		}
 	}
 
 	function logout() {

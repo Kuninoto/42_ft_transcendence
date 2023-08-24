@@ -51,6 +51,7 @@ export default function FriendsList(): JSX.Element {
 								loader={removeParams}
 								sizes="100vw"
 								src={user.avatar_url || '/placeholder.gif'}
+								unoptimized
 							/>
 						</div>
 						<div className="mx-4 my-auto">

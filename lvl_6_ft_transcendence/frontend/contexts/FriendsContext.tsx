@@ -20,7 +20,6 @@ import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
 
 type FriendsContextType = {
-	addFriend: (friend: Friend) => void
 	changeOpenState: () => void
 	close: (id: number) => void
 	closeAll: () => void
@@ -63,14 +62,14 @@ interface RoomMessageDTO {
 
 type IChat = (
 	| {
-		challengeId: null | number
-		friend: Friend
-		messages: MessageDTO[]
-	}
+			challengeId: null | number
+			friend: Friend
+			messages: MessageDTO[]
+	  }
 	| {
-		messages: RoomMessageDTO[]
-		room: Room
-	}
+			messages: RoomMessageDTO[]
+			room: Room
+	  }
 ) & {
 	display: boolean
 	unread: boolean
@@ -95,7 +94,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	// ======================== General ========================
 
-	useEffect(() => {
+	function getFriends() {
 		try {
 			if (isAuth) {
 				api
@@ -110,6 +109,10 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		} catch (error: any) {
 			toast.error(error)
 		}
+	}
+
+	useEffect(() => {
+		getFriends()
 	}, [isAuth])
 
 	// ======================== General messages ========================
@@ -150,12 +153,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
-		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
+		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
 			console.log(data)
-			console.log('herherhe')
 		})
-		socket?.on('friendRequestReceived', function() {
+		socket?.on('friendRequestReceived', function () {
 			setNewFriendNotification(true)
+		})
+		socket?.on('refreshUser', function () {
+			getFriends()
 		})
 	})
 
@@ -164,10 +169,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		socket?.on('directMessageReceived', onDirectMessageReceived)
 
-		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
-			console.log(data)
-			console.log('herherhe')
-		})
 		socket?.on('invitedToGame', onInvitedToGame)
 	}, [friends])
 
@@ -234,10 +235,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	function addFriend(friend: Friend) {
-		setFriends([...friends, friend])
-	}
-
 	function sendGameInvite(id: number) {
 		if (!socket) return
 
@@ -295,6 +292,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					sendByMe: false,
 					uniqueID: data.uniqueId,
 				}
+
+				console.log(currentOpenChat)
 
 				newChat[index].unread = true
 				newChat[index].display = true
@@ -354,7 +353,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	const value: FriendsContextType = {
-		addFriend,
 		changeOpenState: () => setIsOpen((prevState) => !prevState),
 		close,
 		closeAll,

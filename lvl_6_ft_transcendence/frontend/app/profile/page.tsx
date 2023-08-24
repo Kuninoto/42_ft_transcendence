@@ -247,6 +247,7 @@ export default function Profile() {
 					.get(`/users/profile/${id}`)
 					.then((result) => {
 						setUserProfile(result.data)
+						console.log(result.data)
 					})
 					.catch(() => {
 						throw 'Network error'
