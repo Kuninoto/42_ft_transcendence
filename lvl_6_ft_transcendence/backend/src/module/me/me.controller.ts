@@ -23,6 +23,7 @@ import {
 import { User } from 'src/entity/index';
 import {
   BlockedUserInterface,
+  ChatRoomInterface,
   ErrorResponse,
   Friend,
   FriendRequest,
@@ -34,7 +35,6 @@ import {
 
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
 import { multerConfig } from './middleware/multer/multer.config';
 import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
@@ -46,10 +46,7 @@ import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validati
 export class MeController {
   private readonly logger: Logger = new Logger(MeController.name);
 
-  constructor(
-    private readonly friendshipsService: FriendshipsService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   /**
    * GET /api/me
@@ -72,12 +69,10 @@ export class MeController {
     description: "Finds and returns the 'me' user's friends",
   })
   @Get('friends')
-  public async getMyFriends(@ExtractUser() user: User): Promise<Friend[]> {
+  public async findMyFriends(@ExtractUser() user: User): Promise<Friend[]> {
     this.logger.log(`"${user.name}" requested his friends info`);
 
-    const friendList: Friend[] = await this.friendshipsService.findFriendsByUID(
-      user.id,
-    );
+    const friendList: Friend[] = await this.usersService.findMyFriends(user.id);
 
     return friendList;
   }
@@ -91,12 +86,12 @@ export class MeController {
     description: "Finds and returns the 'me' user's friend-requests",
   })
   @Get('friend-request')
-  public async getMyFriendRequests(
+  public async findMyFriendRequests(
     @ExtractUser() user: User,
   ): Promise<FriendRequest[]> {
     this.logger.log(`"${user.name}" requested his received friend-requests`);
 
-    return await this.friendshipsService.getMyFriendRequests(user);
+    return await this.usersService.findMyFriendRequests(user.id);
   }
 
   /**
@@ -108,11 +103,27 @@ export class MeController {
     description: "Finds and returns the 'me' user's blocklist",
   })
   @Get('blocklist')
-  public async getMyBlockedUsers(
+  public async findMyBlocklist(
     @ExtractUser() user: User,
   ): Promise<BlockedUserInterface[]> {
     this.logger.log(`"${user.name}" requested his blocklist`);
-    return await this.friendshipsService.getMyBlocklist(user.id);
+    return await this.usersService.findMyBlocklist(user.id);
+  }
+
+  /**
+   * GET /api/me/rooms
+   *
+   * Finds and returns the 'me' user's blocklist
+   */
+  @ApiOkResponse({
+    description: "Finds and returns the rooms where 'me' user is",
+  })
+  @Get('rooms')
+  public async findMyChatRooms(
+    @ExtractUser() user: User,
+  ): Promise<ChatRoomInterface[]> {
+    this.logger.log(`"${user.name}" requested his rooms`);
+    return await this.usersService.findChatRoomsWhereUserIs(user.id);
   }
 
   /**
