@@ -27,7 +27,6 @@ import {
   UserSearchInfo,
   UserStatus,
 } from 'types';
-
 import {
   BlockedUser,
   ChatRoom,

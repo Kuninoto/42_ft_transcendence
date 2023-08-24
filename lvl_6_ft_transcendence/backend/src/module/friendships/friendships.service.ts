@@ -128,7 +128,9 @@ export class FriendshipsService {
     });
   }
 
-  public async findBlocklistByUID(userId: number): Promise<BlockedUserInterface[]> {
+  public async findBlocklistByUID(
+    userId: number,
+  ): Promise<BlockedUserInterface[]> {
     const myBlockedUsers: BlockedUser[] = (
       await this.usersRepository.findOne({
         relations: ['blocked_users', 'blocked_users.blocked_user'],
@@ -149,7 +151,9 @@ export class FriendshipsService {
     return myBlockedUsersInterfaces;
   }
 
-  public async findFriendRequestsByUID(userId: number): Promise<FriendRequest[]> {
+  public async findFriendRequestsByUID(
+    userId: number,
+  ): Promise<FriendRequest[]> {
     const [myFriendRequestsAsReceiver, myFriendRequestsAsSender] =
       await Promise.all([
         this.friendshipRepository.find({
