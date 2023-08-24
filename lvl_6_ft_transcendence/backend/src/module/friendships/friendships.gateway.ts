@@ -8,13 +8,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
-
-import { MessageService } from '../chat/message.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
 import { SendDirectMessageDTO } from './dto/send-direct-message.dto';
 import { FriendshipsService } from './friendships.service';
+import { ChatService } from '../chat/chat.service';
 
 @WebSocketGateway({
   cors: GatewayCorsOption,
@@ -28,8 +27,8 @@ export class FriendshipsGateway implements OnGatewayInit {
     private readonly connectionGateway: ConnectionGateway,
     @Inject(forwardRef(() => ConnectionService))
     private readonly connectionService: ConnectionService,
-    private readonly messageService: MessageService,
     private readonly friendshipService: FriendshipsService,
+    private readonly chatService: ChatService,
   ) {}
 
   /******************************
@@ -81,7 +80,7 @@ export class FriendshipsGateway implements OnGatewayInit {
     if (!receiverSocketId) {
       // If user is offline save DM on database
       // to later send when he comes back online
-      await this.messageService.createDirectMessage(
+      await this.chatService.createDirectMessage(
         client.data.userId,
         messageBody.receiverUID,
         messageBody.uniqueId,

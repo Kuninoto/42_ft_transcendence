@@ -60,7 +60,8 @@ async function bootstrap(): Promise<void> {
     });
 
   // Only enable Swagger on dev mode
-  if (process.env.NODE_ENV === 'dev') {
+  // TODO
+  // if (process.env.NODE_ENV === 'dev') {
     const swaggerConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
       .setTitle('ft_transcendence API')
       .setDescription('API for the ft_transcendence project')
@@ -82,12 +83,12 @@ async function bootstrap(): Promise<void> {
       app,
       swaggerConfig,
     );
-    SwaggerModule.setup('docs', app, document, {
+    SwaggerModule.setup('help', app, document, {
       swaggerOptions: {
         persistAuthorization: true,
       },
     });
-  }
+  // }
 
   const oneDayInMs: number = 60 * 60 * 24 * 1000;
   app.use(
