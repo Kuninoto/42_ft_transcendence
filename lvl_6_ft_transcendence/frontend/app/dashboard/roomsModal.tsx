@@ -32,7 +32,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 					closeModal()
 				})
 				.catch((e) => console.log(e))
-		} catch (error: any) {}
+		} catch (error: any) { }
 
 		console.log(name, type)
 	}
@@ -50,7 +50,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none">
 						<form
-							className="flex flex-col space-y-6"
+							className="flex flex-col space-y-8"
 							onSubmit={handleSubmit(createRoom)}
 						>
 							<input
@@ -60,7 +60,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 								type="text"
 							/>
 
-							<fieldset className="flex flex-col space-y-2">
+							<fieldset className="flex flex-col space-y-8">
 								<label className="flex items-center space-x-2">
 									<input
 										{...register('type')}
@@ -88,7 +88,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 									</span>
 								</label>
 
-								<label className="flex items-center space-x-2">
+								<label className="flex w-full items-center space-x-2">
 									<input
 										{...register('type')}
 										className="peer accent-primary-fushia"
@@ -96,19 +96,23 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										type="radio"
 										value={ChatRoomType.PROTECTED}
 									/>
-									<span className="text-white peer-checked:text-primary-fushia">
-										Protected
+									<div className="w-full space-x-2 text-white peer-checked:text-primary-fushia">
+										<span>Protected</span>
 										<input
 											disabled={roomType !== ChatRoomType.PROTECTED}
 											{...register('password')}
-											className="text-black"
+											className=" w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
 											type="password"
 										/>
-									</span>
+									</div>
 								</label>
 							</fieldset>
 
-							<input type="submit" value={'Create'} />
+							<input
+								className=" mx-auto w-1/2 rounded border border-white py-3 text-white mix-blend-lighten hover:bg-white hover:text-black"
+								type="submit"
+								value={'Create'}
+							/>
 						</form>
 					</div>
 				</div>
@@ -132,7 +136,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 		})
 	}, [search])
 
-	function joinRoom() {}
+	function joinRoom() { }
 
 	const [createRoom, setCreateRoom] = useState(false)
 

@@ -27,15 +27,15 @@ function HorizontalCard({ player, score, side }: card) {
 				<h4 className="text-md">140 w</h4>
 				{score}
 			</div>
-			<Image
-				alt={'one of the players profile picture'}
-				className="aspect-square w-20 rounded"
-				height="0"
-				loader={removeParams}
-				sizes="100vw"
-				src={player?.avatar_url || '/placeholder.gif'}
-				width="0"
-			/>
+			<div className="relative aspect-square w-20 overflow-hidden rounded">
+				<Image
+					alt={'one of the players profile picture'}
+					className="object-cover"
+					fill
+					loader={removeParams}
+					src={player?.avatar_url || '/placeholder.gif'}
+				/>
+			</div>
 		</div>
 	)
 }
