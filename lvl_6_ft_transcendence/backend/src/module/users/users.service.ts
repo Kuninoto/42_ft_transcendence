@@ -11,9 +11,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Repository } from 'typeorm';
 import {
-  ChatRoomI,
+  BlockedUserInterface,
+  ChatRoomInterface,
+  Chatter,
   ErrorResponse,
   Friend,
+  FriendRequest,
   FriendshipStatus,
   GameResultInterface,
   GameThemes,
@@ -52,27 +55,6 @@ export class UsersService {
     private readonly achievementService: AchievementService,
   ) {}
 
-  private async doesNameConflictWithAnyIntraName(
-    newName: string,
-    userId: number,
-  ): Promise<boolean> {
-    const user: User | null = await this.usersRepository.findOneBy({
-      intra_name: newName,
-    });
-
-    // If a user with intra_name = newName exists
-    // and it isn't the requesting user it's because
-    // newName would conflict with someone else's intra_name
-    return user && user.id != userId;
-  }
-
-  private async isNameAlreadyTaken(newName: string): Promise<boolean> {
-    const user: User | null = await this.usersRepository.findOneBy({
-      name: newName,
-    });
-    return user ? true : false;
-  }
-
   public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
     const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
 
@@ -88,43 +70,30 @@ export class UsersService {
     return newUser;
   }
 
-  public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
-    await this.usersRepository.delete(userId);
-    return { message: 'Successfully deleted user' };
+  public async findMyInfo(meUID: number): Promise<MeUserInfo> {
+    // Fetch user's table info of me user and get his ladder level
+    // Populate the resulting object with both all those properties
+    return {
+      ...(await this.usersRepository.findOneBy({ id: meUID })),
+      ladder_level: await this.userStatsService.findLadderLevelByUID(meUID),
+    };
   }
 
-  public async disable2fa(userId: number): Promise<SuccessResponse> {
-    await this.usersRepository.update(userId, {
-      has_2fa: false,
-      last_updated_at: new Date(),
-      secret_2fa: null,
-    });
-    return { message: 'Successfully disabled two factor authentication' };
+  public async findMyFriendRequests(meUID: number): Promise<FriendRequest[]> {
+    return await this.friendshipsService.findFriendRequestsByUID(meUID);
   }
 
-  public async enable2fa(
-    userId: number,
-    secret_2fa: string,
-  ): Promise<SuccessResponse> {
-    await this.usersRepository.update(userId, {
-      has_2fa: true,
-      last_updated_at: new Date(),
-      secret_2fa: secret_2fa,
-    });
-    return { message: 'Successfully enabled two factor authentication' };
+  public async findMyFriends(meUID: number): Promise<Friend[]> {
+    return await this.friendshipsService.findFriendsByUID(meUID);
   }
 
-  public async findBlockedUsersByUID(userId: number): Promise<BlockedUser[]> {
-    const user: User = await this.usersRepository.findOne({
-      relations: ['blocked_users', 'blocked_users.blocked_user'],
-      where: { id: userId },
-    });
-    return user.blocked_users;
+  public async findMyBlocklist(meUID: number): Promise<BlockedUserInterface[]> {
+    return await this.friendshipsService.findBlocklistByUID(meUID);
   }
 
   public async findChatRoomsWhereUserIs(
     uid: number,
-  ): Promise<ChatRoomI[] | null> {
+  ): Promise<ChatRoomInterface[]> {
     const rooms: ChatRoom[] | undefined = (
       await this.usersRepository.findOne({
         relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
@@ -133,15 +102,23 @@ export class UsersService {
     ).chat_rooms;
 
     if (!rooms) {
-      return null;
+      return [];
     }
 
-    const roomInterfaces: ChatRoomI[] = rooms.map((room: ChatRoom) => ({
-      id: room.id,
-      name: room.name,
-      ownerName: room.owner.name,
-      users: room.users,
-    }));
+    const roomInterfaces: ChatRoomInterface[] = rooms.map(
+      (room: ChatRoom): ChatRoomInterface => ({
+        roomId: room.id,
+        roomName: room.name,
+        ownerName: room.owner.name,
+        participants: room.users.map(
+          (user: User): Chatter => ({
+            id: user.id,
+            name: user.name,
+            avatar_url: user.avatar_url,
+          }),
+        ),
+      }),
+    );
 
     return roomInterfaces;
   }
@@ -174,15 +151,6 @@ export class UsersService {
       },
     );
     return matchHistory;
-  }
-
-  public async findMyInfo(meUID: number): Promise<MeUserInfo> {
-    // Fetch user's table info of me user and get his ladder level
-    // Populate the resulting object with both all those properties
-    return {
-      ...(await this.usersRepository.findOneBy({ id: meUID })),
-      ladder_level: await this.userStatsService.findLadderLevelByUID(meUID),
-    };
   }
 
   public async findOpponentInfoByUID(userId: number): Promise<OpponentInfo> {
@@ -250,10 +218,6 @@ export class UsersService {
       stats: await this.userStatsService.findUserStatsByUID(userId),
     };
   }
-
-  /**********************************
-   *               2FA               *
-   **********************************/
 
   public async findUserSearchInfoByUID(
     meUID: number,
@@ -442,5 +406,56 @@ export class UsersService {
       status: newStatus,
     });
     return { message: 'Successfully updated user status' };
+  }
+
+  public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
+    await this.usersRepository.delete(userId);
+    return { message: 'Successfully deleted user' };
+  }
+
+  /**********************************
+   *               2FA               *
+   **********************************/
+
+  public async enable2fa(
+    userId: number,
+    secret_2fa: string,
+  ): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, {
+      has_2fa: true,
+      last_updated_at: new Date(),
+      secret_2fa: secret_2fa,
+    });
+    return { message: 'Successfully enabled two factor authentication' };
+  }
+
+  public async disable2fa(userId: number): Promise<SuccessResponse> {
+    await this.usersRepository.update(userId, {
+      has_2fa: false,
+      last_updated_at: new Date(),
+      secret_2fa: null,
+    });
+    return { message: 'Successfully disabled two factor authentication' };
+  }
+
+  private async doesNameConflictWithAnyIntraName(
+    newName: string,
+    userId: number,
+  ): Promise<boolean> {
+    const user: User | null = await this.usersRepository.findOneBy({
+      intra_name: newName,
+    });
+
+    // If a user with intra_name = newName exists
+    // and it isn't the requesting user it's because
+    // newName would conflict with someone else's intra_name
+    return user && user.id != userId;
+  }
+
+  private async isNameAlreadyTaken(newName: string): Promise<boolean> {
+    const user: User | null = await this.usersRepository.findOneBy({
+      name: newName,
+    });
+    return user ? true : false;
   }
 }

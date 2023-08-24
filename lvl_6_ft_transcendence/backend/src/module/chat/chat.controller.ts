@@ -84,6 +84,29 @@ export class ChatController {
     return { message: `Successfully created room "${body.name}"` };
   }
 
+  /**
+   * GET /api/chat/rooms/search?room-name=
+   *
+   * This is the route to visit to search for ChatRoomSearchInfo by room-name proximity.
+   * Returns the rooms that match that "piece" of name,
+   * If no roomname is provided returns all rooms
+   */
+  @ApiOkResponse({
+    description:
+      'This is the route to visit to search for ChatRoomSearchInfo, by room-name proximity.\nReturns the rooms that match that "piece" of name, If no <name> is provided returns all rooms',
+  })
+  @ApiQuery({
+    description: 'A piece of the room name(s) to match',
+    name: 'room-name',
+    type: 'string',
+  })
+  @Get('/rooms/search')
+  public async findRoomsByRoomNameProximity(
+    @Query('room-name') query: string,
+  ): Promise<ChatRoomSearchInfo[]> {
+    return await this.chatService.findRoomsByRoomNameProximity(query);
+  }
+
   @ApiNotFoundResponse({
     description: "The room doesn't exist",
   })
@@ -183,7 +206,6 @@ export class ChatController {
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.unbanFromRoom(
-      user.id,
       body.userId,
       body.roomId,
     );
@@ -295,28 +317,5 @@ export class ChatController {
     @Body() body: RemoveRoomPasswordDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.removeRoomPassword(body.roomId);
-  }
-
-  /**
-   * GET /api/chat/rooms/search?room-name=
-   *
-   * This is the route to visit to search for ChatRoomSearchInfo by room-name proximity.
-   * Returns the rooms that match that "piece" of name,
-   * If no roomname is provided returns all rooms
-   */
-  @ApiOkResponse({
-    description:
-      'This is the route to visit to search for ChatRoomSearchInfo, by room-name proximity.\nReturns the rooms that match that "piece" of name, If no <name> is provided returns all rooms',
-  })
-  @ApiQuery({
-    description: 'A piece of the room name(s) to match',
-    name: 'room-name',
-    type: 'string',
-  })
-  @Get('/rooms/search')
-  public async getUsersByUsernameProximity(
-    @Query('room-name') query: string,
-  ): Promise<ChatRoomSearchInfo[]> {
-    return await this.chatService.findRoomsByRoomNameProximity(query);
   }
 }

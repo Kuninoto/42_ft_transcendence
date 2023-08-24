@@ -13,7 +13,7 @@ import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { ChatRoomMessage } from 'types';
-import { Author } from 'types/chat/author.interface';
+import { Author } from 'types/chat/chatter.interface';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
 import { SendChatRoomMessageDTO } from './dto/send-chatroom-message.dto';
