@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			api
 				.get<UserProfile>('/me')
 				.then((result) => {
+					console.log(result.data)
 					if (hasValues(result.data)) setUser(result.data)
 					else logout()
 				})

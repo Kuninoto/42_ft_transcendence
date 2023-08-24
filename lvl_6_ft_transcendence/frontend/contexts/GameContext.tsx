@@ -67,7 +67,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))
 			router.push('/dashboard')
 		else {
-			socket?.on('opponentFound', function (data: OponentFoundDTO) {
+			socket?.on('opponentFound', function(data: OponentFoundDTO) {
 				setOpponentFound(data)
 				setTimeout(() => {
 					router.push('/matchmaking')
@@ -91,7 +91,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}, [pathname])
 
 	useEffect(() => {
-		socket?.on('gameRoomInfo', function (data: GameRoomDTO) {
+		socket?.on('gameRoomInfo', function(data: GameRoomDTO) {
 			if (opponentFound.side === PlayerSide.LEFT) {
 				setOpponentPosition(data.rightPlayer.paddleY)
 			} else {
@@ -101,11 +101,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			setBallPosition(data.ball)
 		})
 
-		socket?.on('gameEnd', function (data: GameEndDTO) {
+		socket?.on('gameEnd', function(data: GameEndDTO) {
 			setGameEndInfo(data)
 		})
 
-		socket?.on('playerScored', function (data: PlayerScoredDTO) {
+		socket?.on('playerScored', function(data: PlayerScoredDTO) {
 			setLeftPlayerScore(data.leftPlayerScore)
 			setRightPlayerScore(data.rightPlayerScore)
 		})
@@ -134,7 +134,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	const value: GameContextType = {
 		ballPosition,
-		canCancel: hasValues(opponentFound),
+		canCancel: !hasValues(opponentFound),
 		cancel,
 		emitOnReady,
 		emitPaddleMovement,
