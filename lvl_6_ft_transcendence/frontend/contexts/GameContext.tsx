@@ -71,7 +71,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				setOpponentFound(data)
 				setTimeout(() => {
 					router.push('/matchmaking')
-				}, 10000)
+				}, 2 * 1000)
 			})
 
 			socket?.on('connect_error', (err) => console.log(err))
