@@ -3,9 +3,11 @@
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { FriendsProvider } from '@/contexts/FriendsContext'
 import { SocketProvider } from '@/contexts/SocketContext'
+import { detect } from 'detect-browser'
 import { Press_Start_2P } from 'next/font/google'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { FullScreen, useFullScreenHandle } from 'react-full-screen'
 import { AiOutlineFullscreen, AiOutlineFullscreenExit } from 'react-icons/ai'
 import { MdOutlineExitToApp } from 'react-icons/md'
@@ -42,12 +44,75 @@ function FixedPanel({ handle }: { handle: any }) {
 	)
 }
 
+function Body({ children }: { children: React.ReactNode }) {
+	const handle = useFullScreenHandle()
+
+	const [isMobile, setIsMobile] = useState(false)
+
+	useEffect(() => {
+		const mediaQuery = window.matchMedia('(max-width: 768px)') // Adjust the breakpoint as needed
+
+		const handleResize = (e: any) => {
+			setIsMobile(e.matches)
+		}
+
+		mediaQuery.addEventListener('change', handleResize)
+		handleResize(mediaQuery)
+
+		return () => {
+			mediaQuery.removeEventListener('change', handleResize)
+		}
+	}, [])
+
+	if (isMobile) {
+		return (
+			<div className="flex h-full w-full place-content-center items-center text-center text-2xl">
+				CAN&apos;T FIT THIS <br />
+				MUCH BEAUTY HERE
+			</div>
+		)
+	}
+
+	return (
+		<>
+			{children}
+			<Chat />
+			<FixedPanel handle={handle} />
+			<Link href={'/profile'}>
+				<ToastContainer
+					autoClose={5000}
+					closeOnClick
+					draggable
+					icon={false}
+					limit={2}
+					newestOnTop
+					pauseOnFocusLoss
+					pauseOnHover={false}
+					position="top-center"
+					progressClassName={'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'}
+					theme="dark"
+					toastClassName={`font-xs whitespace-nowrap w-max bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% ${pressStart.className}`}
+				/>
+			</Link>
+		</>
+	)
+}
+
 export default function RootLayout({
 	children,
 }: {
 	children: React.ReactNode
 }) {
 	const handle = useFullScreenHandle()
+	const browser = detect()
+
+	useEffect(() => {
+		if (browser.name != 'chrome') {
+			console.warn(
+				`Not supported for ${browser.name}! May contain minor issues or inconsistencies`
+			)
+		}
+	})
 
 	return (
 		<SocketProvider>
@@ -57,28 +122,8 @@ export default function RootLayout({
 						<body className={`overflow-hidden ${pressStart.className}`}>
 							<FullScreen handle={handle}>
 								<div className="h-screen bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80%">
-									{children}
-									<Chat />
+									<Body>{children}</Body>
 								</div>
-								<FixedPanel handle={handle} />
-								<Link href={'/profile'}>
-									<ToastContainer
-										progressClassName={
-											'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'
-										}
-										autoClose={5000}
-										closeOnClick
-										draggable
-										icon={false}
-										limit={2}
-										newestOnTop
-										pauseOnFocusLoss
-										pauseOnHover={false}
-										position="top-center"
-										theme="dark"
-										toastClassName={`font-xs whitespace-nowrap w-max bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% ${pressStart.className}`}
-									/>
-								</Link>
 							</FullScreen>
 						</body>
 					</html>
