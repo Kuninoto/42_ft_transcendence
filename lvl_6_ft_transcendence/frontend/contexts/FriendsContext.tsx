@@ -29,10 +29,12 @@ type FriendsContextType = {
 	focusChat: (id: number) => void
 	friends: Friend[]
 	isOpen: boolean
+	newFriendNotification: boolean
 	open: (friend: Friend) => void
 	openChats: IChat[]
 	rejectChallenge: (id: number) => void
 	respondGameInvite: (accepted: boolean) => void
+	seeNewFriendNotification: () => void
 	sendGameInvite: (id: number) => void
 	sendMessage: (message: string) => void
 }
@@ -61,14 +63,14 @@ interface RoomMessageDTO {
 
 type IChat = (
 	| {
-			challengeId: null | number
-			friend: Friend
-			messages: MessageDTO[]
-	  }
+		challengeId: null | number
+		friend: Friend
+		messages: MessageDTO[]
+	}
 	| {
-			messages: RoomMessageDTO[]
-			room: Room
-	  }
+		messages: RoomMessageDTO[]
+		room: Room
+	}
 ) & {
 	display: boolean
 	unread: boolean
@@ -89,6 +91,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	const [isOpen, setIsOpen] = useState(false)
 	const [exists, setExists] = useState(false)
+	const [newFriendNotification, setNewFriendNotification] = useState(false)
 
 	// ======================== General ========================
 
@@ -146,11 +149,22 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		setCurrentOpenChat(newChat)
 	}
 
+	useEffect(() => {
+		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
+			console.log(data)
+			console.log('herherhe')
+		})
+		socket?.on('friendRequestReceived', function() {
+			setNewFriendNotification(true)
+		})
+	})
+
 	// ======================== Direct messages ========================
 
 	useEffect(() => {
 		socket?.on('directMessageReceived', onDirectMessageReceived)
-		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
+
+		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
 			console.log(data)
 			console.log('herherhe')
 		})
@@ -313,10 +327,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	function changeOpenState() {
-		setIsOpen((prevState) => !prevState)
-	}
-
 	function sendMessage(message: string) {
 		if (!socket) return
 
@@ -345,7 +355,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	const value: FriendsContextType = {
 		addFriend,
-		changeOpenState,
+		changeOpenState: () => setIsOpen((prevState) => !prevState),
 		close,
 		closeAll,
 		currentOpenChat,
@@ -353,10 +363,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		focusChat,
 		friends,
 		isOpen,
+		newFriendNotification,
 		open,
 		openChats,
 		rejectChallenge,
 		respondGameInvite,
+		seeNewFriendNotification: () => setNewFriendNotification(false),
 		sendGameInvite,
 		sendMessage,
 	}

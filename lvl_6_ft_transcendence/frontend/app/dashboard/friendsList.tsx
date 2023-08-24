@@ -21,7 +21,8 @@ enum openModalType {
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
-	const { friends } = useFriends()
+	const { friends, newFriendNotification, seeNewFriendNotification } =
+		useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
@@ -64,13 +65,24 @@ export default function FriendsList(): JSX.Element {
 						<div className="flex items-center space-x-2 border-b border-white p-2">
 							<button
 								onClick={() => {
+									seeNewFriendNotification()
 									setOpenModal(openModalType.FRIENDS)
 								}}
 							>
-								<AiOutlineUserAdd
-									className="text-white hover:text-primary-fushia"
-									size={24}
-								/>
+								<div className="relative">
+									<AiOutlineUserAdd
+										className="text-white hover:text-primary-fushia"
+										size={24}
+									/>
+									{newFriendNotification && (
+										<div className="absolute -bottom-1 -left-0.5 flex h-full items-center group-hover:hidden">
+											<span className="relative my-auto flex h-3 w-3">
+												<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-shoque opacity-75"></span>
+												<span className="relative inline-flex h-3 w-3 rounded-full bg-primary-fushia"></span>
+											</span>
+										</div>
+									)}
+								</div>
 							</button>
 							<div
 								className="group flex w-full place-content-between text-start transition-all duration-200 hover:cursor-pointer hover:text-[#F32E7C]"
