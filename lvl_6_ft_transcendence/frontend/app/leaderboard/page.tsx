@@ -32,8 +32,10 @@ function Podium({
 					className="object-cover"
 					fill
 					loader={removeParams}
-					sizes="100vw"
+					priority
+					sizes="100%"
 					src={user?.avatar_url || '/placeholder.gif'}
+					unoptimized
 				/>
 			</div>
 			<div className="text-xl">{user?.name || 'NOT FOUND'}</div>
@@ -112,8 +114,10 @@ export default function Leaderboard() {
 												className="object-cover"
 												fill
 												loader={removeParams}
-												sizes="100vw"
+												priority
+												sizes="100%"
 												src={player.avatar_url || '/placeholder.gif'}
+												unoptimized
 											/>
 										</div>
 										<div className="w-44 overflow-hidden text-ellipsis text-center">
@@ -144,8 +148,10 @@ export default function Leaderboard() {
 									className="object-cover"
 									fill
 									loader={removeParams}
-									sizes="100vw"
+									priority
+									sizes="100%"
 									src={user?.avatar_url || '/placeholder.gif'}
+									unoptimized
 								/>
 							</div>
 							<div className="w-44 overflow-hidden text-ellipsis text-center group-hover:underline">
