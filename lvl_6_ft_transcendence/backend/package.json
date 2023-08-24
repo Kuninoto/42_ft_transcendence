@@ -92,7 +92,7 @@
     "testEnvironment": "node"
   },
   "devDependencies": {
-    "@nestjs/swagger": "^7.0.0-next.2",
+    "@nestjs/swagger": "^7.1.8",
     "@nestjs/testing": "^10.1.3",
     "@types/express-session": "^1.17.7",
     "@types/jest": "^29.5.3",

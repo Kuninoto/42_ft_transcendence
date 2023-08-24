@@ -179,9 +179,7 @@ export class FriendshipsService {
       this.logger.warn(
         `"${sender.name}" tried to friend request a user that doesn't exist`,
       );
-      throw new BadRequestException(
-        `User with id= ${receiverUID} doesn't exist`,
-      );
+      throw new NotFoundException(`User with id= ${receiverUID} doesn't exist`);
     }
     if (receiverUID === sender.id) {
       this.logger.warn(`"${sender.name}" tried to add himself as a friend`);

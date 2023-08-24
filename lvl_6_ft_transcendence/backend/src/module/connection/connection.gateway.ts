@@ -11,14 +11,12 @@ import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { Achievements, Friend, UserStatus } from 'types';
-
-import { MessageService } from '../chat/message.service';
-import { RoomService } from '../chat/room.service';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { GameService } from '../game/game.service';
 import { ConnectionService } from './connection.service';
 import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
 import { NewUserStatusDTO } from './dto/new-user-status.dto';
+import { ChatService } from '../chat/chat.service';
 
 @WebSocketGateway({
 	cors: GatewayCorsOption,
@@ -30,14 +28,12 @@ export class ConnectionGateway
 
 	@WebSocketServer()
 	public server: Server;
-
 	constructor(
 		@Inject(forwardRef(() => UsersService))
 		private readonly usersService: UsersService,
 		private readonly friendshipsService: FriendshipsService,
 		private readonly gameService: GameService,
-		private readonly roomService: RoomService,
-		private readonly messageService: MessageService,
+		private readonly chatService: ChatService,
 		private readonly connectionService: ConnectionService,
 	) { }
 
@@ -59,9 +55,9 @@ export class ConnectionGateway
 
 			this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
-			this.roomService.joinUserRooms(client);
+			this.chatService.joinUserRooms(client);
 
-			this.messageService.sendMissedDirectMessages(client.id, user.id);
+			this.chatService.sendMissedDirectMessages(client.id, user.id);
 
 			this.logger.log(`${user.name} is online`);
 		} catch (error: any) {
@@ -137,7 +133,7 @@ export class ConnectionGateway
 
 		// If both users are online
 		if (senderSocketId && receiverSocketId) {
-			this.server.to(senderSocketId).emit('friendRequestAccepted');
+			this.server.to(senderSocketId).emit('refreshUser');
 
 			this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
 			this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);

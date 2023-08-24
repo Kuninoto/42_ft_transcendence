@@ -1,7 +1,19 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNumber, IsPositive } from 'class-validator';
 import { MuteDuration } from 'types';
 
-export interface MuteUserDTO {
-  readonly duration: MuteDuration;
+export class MuteUserDTO {
+  @ApiProperty()
+  @IsNumber()
+  @IsPositive()
   readonly roomId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsPositive()
   readonly userId: number;
+
+  @ApiProperty()
+  @IsEnum(MuteDuration)
+  readonly duration: MuteDuration;
 }
