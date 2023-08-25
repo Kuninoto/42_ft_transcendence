@@ -1,5 +1,7 @@
+import { Chatter } from 'types';
+
 export interface DirectMessageReceivedDTO {
-  content: string;
-  senderUID: number;
   uniqueId: string;
+  author: Chatter;
+  content: string;
 }

@@ -8,12 +8,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
+import { ChatService } from '../chat/chat.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
 import { SendDirectMessageDTO } from './dto/send-direct-message.dto';
 import { FriendshipsService } from './friendships.service';
-import { ChatService } from '../chat/chat.service';
 
 @WebSocketGateway({
   cors: GatewayCorsOption,
@@ -72,9 +72,9 @@ export class FriendshipsGateway implements OnGatewayInit {
       );
 
     const directMessageReceived: DirectMessageReceivedDTO = {
-      content: messageBody.content,
-      senderUID: client.data.userId,
       uniqueId: messageBody.uniqueId,
+      author: await this.chatService.findChatterInfoByUID(client.data.userId),
+      content: messageBody.content,
     };
 
     if (!receiverSocketId) {

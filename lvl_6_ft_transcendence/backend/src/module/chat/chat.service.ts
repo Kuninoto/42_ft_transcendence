@@ -8,7 +8,6 @@ import {
   Logger,
   NotAcceptableException,
   NotFoundException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
@@ -18,6 +17,7 @@ import {
   ChatRoomInterface,
   ChatRoomSearchInfo,
   ChatRoomType,
+  Chatter,
   ErrorResponse,
   SuccessResponse,
 } from 'types';
@@ -87,11 +87,11 @@ export class ChatService {
     if (!missedDMs) return;
 
     // Send every missed DM
-    missedDMs.forEach((dm: DirectMessage) => {
+    missedDMs.forEach(async (dm: DirectMessage) => {
       const directMessageReceived: DirectMessageReceivedDTO = {
-        content: dm.content,
-        senderUID: dm.sender.id,
         uniqueId: dm.unique_id,
+        author: await this.findChatterInfoByUID(dm.sender.id),
+        content: dm.content,
       };
 
       this.connectionGateway.server
@@ -163,6 +163,16 @@ export class ChatService {
         .socketsJoin(createRoomDto.name);
     }
     return this.chatRoomRepository.save(newRoom);
+  }
+
+  public async findChatterInfoByUID(userId: number): Promise<Chatter> {
+    const user: User = await this.usersService.findUserByUID(userId);
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatar_url: user.avatar_url,
+    };
   }
 
   public async joinRoom(
@@ -354,7 +364,7 @@ export class ChatService {
     userToUnbanId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom  = await this.findRoomById(roomId);
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     const userToUnban: User | null = await this.usersService.findUserByUID(
       userToUnbanId,
@@ -615,9 +625,7 @@ export class ChatService {
   public checkForValidRoomName(name: string): void {
     // If room name doesn't respect the boundaries (4-10 chars longs)
     if (!(name.length >= 4 && name.length <= 10)) {
-      throw new UnprocessableEntityException(
-        'Room names must be 4-10 chars long',
-      );
+      throw new BadRequestException('Room names must be 4-10 chars long');
     }
 
     // If room name is not composed only by a-z, A-Z, 0-9, _
@@ -634,9 +642,7 @@ export class ChatService {
     }
 
     if (!(password.length >= 4 && password.length <= 20)) {
-      throw new UnprocessableEntityException(
-        `Room passwords must be 4-20 chars long`,
-      );
+      throw new BadRequestException(`Room passwords must be 4-20 chars long`);
     }
 
     // Check if password doesn't contain white spaces or special unicode chars
