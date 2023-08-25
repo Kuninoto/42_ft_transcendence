@@ -172,10 +172,8 @@ function FriendRequests() {
 						alt="no requests"
 						className="mx-auto"
 						fill
-						height={0}
-						sizes="100vw"
+						sizes="100%"
 						src="/norequests.jpg"
-						width={0}
 					/>
 				</div>
 			) : (
@@ -189,11 +187,10 @@ function FriendRequests() {
 							<Image
 								alt="profile picture"
 								className="aspect-square w-8 rounded"
-								height={0}
 								loader={removeParams}
-								sizes="100vw"
+								sizes="100%"
 								src={request?.avatar_url || '/placeholder.gif'}
-								width={0}
+								unoptimized
 							/>
 							<span className="text-xl">{request.name}</span>
 						</div>
