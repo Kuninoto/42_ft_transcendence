@@ -240,7 +240,6 @@ export class ChatController {
   @UseGuards(AdminGuard)
   @Delete('/mute')
   public async unmuteUser(
-    @ExtractUser() user: User,
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.unmuteUser(body.userId, body.roomId);
