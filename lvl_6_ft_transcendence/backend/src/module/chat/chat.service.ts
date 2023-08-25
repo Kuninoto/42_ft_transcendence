@@ -259,14 +259,10 @@ export class ChatService {
   }
 
   public async assignAdminRole(
-    senderId: number,
     userToAssignRoleId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
-    }
 
     const userToAssignRole: User | null = await this.usersService.findUserByUID(
       userToAssignRoleId,
@@ -278,7 +274,7 @@ export class ChatService {
     }
 
     if (await this.isUserAnAdmin(room, userToAssignRoleId)) {
-      throw new ConflictException('User already have admin privileges');
+      throw new ConflictException('User already has admin privileges');
     }
 
     room.admins.push(userToAssignRole);
@@ -295,10 +291,7 @@ export class ChatService {
     userIdToRemoveRole: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
-    }
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     const userToRemoveRole: User | null = await this.usersService.findUserByUID(
       userIdToRemoveRole,
@@ -327,10 +320,7 @@ export class ChatService {
     userToBanId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
-    }
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     if (senderId === userToBanId) {
       this.logger.warn(
@@ -364,10 +354,7 @@ export class ChatService {
     userToUnbanId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
-    }
+    const room: ChatRoom  = await this.findRoomById(roomId);
 
     const userToUnban: User | null = await this.usersService.findUserByUID(
       userToUnbanId,
@@ -394,10 +381,7 @@ export class ChatService {
     userToKickId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
-    }
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     if (senderId === userToKickId) {
       this.logger.warn(
@@ -535,10 +519,7 @@ export class ChatService {
     durationInMs: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
-    }
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     const userToMute: User | null = await this.usersService.findUserByUID(
       userToMuteId,
@@ -568,10 +549,7 @@ export class ChatService {
     userToUnmuteId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
-    }
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     const userToUnmute: User | null = await this.usersService.findUserByUID(
       userToUnmuteId,

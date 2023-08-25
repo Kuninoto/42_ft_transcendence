@@ -196,7 +196,6 @@ export class ChatController {
   @UseGuards(AdminGuard)
   @Delete('/ban')
   public async unbanFromRoom(
-    @ExtractUser() user: User,
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.unbanFromRoom(body.userId, body.roomId);
@@ -256,14 +255,9 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   @Post('/add-admin')
   public async addAdmin(
-    @ExtractUser() user: User,
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.assignAdminRole(
-      user.id,
-      body.userId,
-      body.roomId,
-    );
+    return await this.chatService.assignAdminRole(body.userId, body.roomId);
   }
 
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
