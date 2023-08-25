@@ -4,13 +4,21 @@ import { api } from '@/api/api'
 import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
 import { CreateRoomDTO } from '@/common/types/create-room.dto'
 import { JoinRoomDTO } from '@/common/types/join-room.dto'
+import { useFriends } from '@/contexts/FriendsContext'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { BiLockAlt } from 'react-icons/bi'
 import { toast } from 'react-toastify'
 
 function CreateRoom({ closeModal }: { closeModal: () => void }) {
-	const { handleSubmit, register, watch } = useForm()
+	const {
+		formState: { errors },
+		handleSubmit,
+		register,
+		setError,
+		watch,
+	} = useForm()
+	const roomType = watch('type')
 
 	function createRoom({
 		name,
@@ -33,13 +41,16 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 				.then(() => {
 					closeModal()
 				})
-				.catch((e) => console.log(e))
+				.catch((e) =>
+					setError('name', {
+						message: e.response.data.message,
+						type: 'alreadyInUser',
+					})
+				)
 		} catch (error: any) {}
 
 		console.log(name, type)
 	}
-
-	const roomType = watch('type')
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
@@ -55,12 +66,32 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 							className="flex flex-col space-y-8"
 							onSubmit={handleSubmit(createRoom)}
 						>
-							<input
-								{...register('name')}
-								className="rounded border border-white bg-transparent px-4 py-2"
-								placeholder="Room name"
-								type="text"
-							/>
+							<fieldset className="flex w-full flex-col space-y-2">
+								<input
+									{...register('name', {
+										maxLength: {
+											message: 'Room names must have up to 10 characters long ',
+											value: 10,
+										},
+										minLength: {
+											message: 'Room names must at least 4 characters long',
+											value: 4,
+										},
+										pattern: {
+											message: 'Invalid character',
+											value: /^[A-Za-z0-9_]+$/,
+										},
+									})}
+									className="w-full rounded border border-white bg-transparent px-4 py-3"
+									placeholder="Room name"
+									type="text"
+								/>
+								{errors.name && (
+									<span className="text-xs text-red-600">
+										{errors.name.message}
+									</span>
+								)}
+							</fieldset>
 
 							<fieldset className="flex flex-col space-y-8">
 								<label className="flex items-center space-x-2">
@@ -130,24 +161,38 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 	const [rooms, setRooms] = useState<ChatRoomSearchInfo[]>([])
 	const [createRoom, setCreateRoom] = useState(false)
 
-	useEffect(() => {
+	const { refreshRooms } = useFriends()
+
+	function searchRoom(search: string) {
 		setLoading(true)
 		api.get(`/chat/rooms/search?room-name=${search}`).then((result) => {
 			setRooms(result.data)
-			console.log(result.data)
 			setLoading(false)
 		})
+	}
+
+	useEffect(() => {
+		searchRoom(search)
 	}, [search])
 
 	function joinRoom(id: number) {
 		const roomInfo: JoinRoomDTO = {
-			roomId: id,
+			roomId: parseInt(id),
 		}
 
 		try {
-			api.post('/chat/join-room', roomInfo).then(() => {})
+			api
+				.post('/chat/join-room', roomInfo)
+				.then(() => {
+					refreshRooms()
+					searchRoom('')
+				})
+				.catch((e) => {
+					console.log(e)
+					throw 'Network error'
+				})
 		} catch (error: any) {
-			toast.error('Network error')
+			toast.error(error)
 		}
 	}
 
