@@ -102,9 +102,10 @@ export class ChatController {
   })
   @Get('/rooms/search')
   public async findRoomsByRoomNameProximity(
+    @ExtractUser() user: User,
     @Query('room-name') query: string,
   ): Promise<ChatRoomSearchInfo[]> {
-    return await this.chatService.findRoomsByRoomNameProximity(query);
+    return await this.chatService.findRoomsByRoomNameProximity(user.id, query);
   }
 
   @ApiNotFoundResponse({
@@ -198,10 +199,7 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.unbanFromRoom(
-      body.userId,
-      body.roomId,
-    );
+    return await this.chatService.unbanFromRoom(body.userId, body.roomId);
   }
 
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
