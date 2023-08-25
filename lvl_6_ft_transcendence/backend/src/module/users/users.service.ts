@@ -70,11 +70,18 @@ export class UsersService {
   }
 
   public async findMyInfo(meUID: number): Promise<MeUserInfo> {
-    // Fetch user's table info of me user and get his ladder level
-    // Populate the resulting object with the properties of those queries
+    const meUser: User = await this.usersRepository.findOneBy({ id: meUID });
+
     return {
-      ...(await this.usersRepository.findOneBy({ id: meUID })),
+      id: meUser.id,
+      name: meUser.name,
+      intra_name: meUser.intra_name,
+      avatar_url: meUser.avatar_url,
+      intra_profile_url: meUser.intra_profile_url,
+      has_2fa: meUser.has_2fa,
+      game_theme: meUser.game_theme,
       ladder_level: await this.userStatsService.findLadderLevelByUID(meUID),
+      created_at: meUser.created_at,
     };
   }
 
