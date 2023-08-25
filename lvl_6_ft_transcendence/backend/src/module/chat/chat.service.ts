@@ -451,6 +451,7 @@ export class ChatService {
   }
 
   public async findRoomsByRoomNameProximity(
+    meUID: number,
     chatRoomNameQuery: string,
   ): Promise<ChatRoomSearchInfo[]> {
     const chatRooms: ChatRoom[] = await this.chatRoomRepository
@@ -460,6 +461,26 @@ export class ChatService {
         roomNameProximity: chatRoomNameQuery + '%',
       })
       .andWhere("chat_room.type != 'private'")
+      .andWhere((qb) => {
+        const subqueryUserRooms: string = qb
+          .subQuery()
+          .select('user_room.id')
+          .from(ChatRoom, 'user_room')
+          .leftJoin('user_room.users', 'user')
+          .where('user.id = :meUID', { meUID })
+          .getQuery();
+        return `chat_room.id NOT IN ${subqueryUserRooms}`;
+      })
+      .andWhere((qb) => {
+        const subqueryBannedRooms: string = qb
+          .subQuery()
+          .select('banned_room.id')
+          .from(ChatRoom, 'banned_room')
+          .leftJoin('banned_room.bans', 'banned_user')
+          .where('banned_user.id = :meUID', { meUID })
+          .getQuery();
+        return `chat_room.id NOT IN ${subqueryBannedRooms}`;
+      })
       .getMany();
 
     const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
