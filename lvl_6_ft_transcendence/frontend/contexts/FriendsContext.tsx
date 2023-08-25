@@ -1,5 +1,5 @@
 import { api } from '@/api/api'
-import { Friend } from '@/common/types/backend'
+import { ChatRoomInterface, Friend } from '@/common/types/backend'
 import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
 import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
 import { NewUserStatusDTO } from '@/common/types/new-user-status.dto'
@@ -33,14 +33,10 @@ type FriendsContextType = {
 	openChats: IChat[]
 	rejectChallenge: (id: number) => void
 	respondGameInvite: (accepted: boolean) => void
+	rooms: Room[]
 	seeNewFriendNotification: () => void
 	sendGameInvite: (id: number) => void
 	sendMessage: (message: string) => void
-}
-
-interface Room {
-	name: string
-	ownerName: string
 }
 
 export interface MessageDTO {
@@ -68,7 +64,7 @@ type IChat = (
 	  }
 	| {
 			messages: RoomMessageDTO[]
-			room: Room
+			room: ChatRoomInterface
 	  }
 ) & {
 	display: boolean
@@ -83,7 +79,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	const { isAuth } = useAuth()
 
 	const [friends, setFriends] = useState<[] | Friend[]>([])
-	const [rooms, setRooms] = useState<[] | Room[]>([])
+	const [rooms, setRooms] = useState<[] | ChatRoomInterface[]>([])
 
 	const [openChats, setOpenChats] = useState<[] | IChat[]>([])
 	const [currentOpenChat, setCurrentOpenChat] = useState<IChat>({} as IChat)
@@ -111,8 +107,27 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		}
 	}
 
+	function getRooms() {
+		try {
+			if (isAuth) {
+				api
+					.get('/me/rooms')
+					.then((result) => {
+						setRooms(result.data)
+						console.log(result.data)
+					})
+					.catch((e) => {
+						throw 'Network error'
+					})
+			}
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
+
 	useEffect(() => {
 		getFriends()
+		getRooms()
 	}, [isAuth])
 
 	// ======================== General messages ========================
@@ -366,6 +381,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		openChats,
 		rejectChallenge,
 		respondGameInvite,
+		rooms,
 		seeNewFriendNotification: () => setNewFriendNotification(false),
 		sendGameInvite,
 		sendMessage,

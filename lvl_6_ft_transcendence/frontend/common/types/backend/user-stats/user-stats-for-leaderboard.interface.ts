@@ -1,7 +1,7 @@
 export interface UserStatsForLeaderboard {
-	avatar_url: string
-	name: string
-	uid: number
-	win_rate: number
-	wins: number
+  uid: number;
+  name: string;
+  avatar_url: string;
+  wins: number;
+  win_rate: number;
 }

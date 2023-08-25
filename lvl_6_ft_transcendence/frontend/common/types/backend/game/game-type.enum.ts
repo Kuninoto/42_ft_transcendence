@@ -1,4 +1,4 @@
 export enum GameType {
-	LADDER = 'ladder',
-	ONEVSONE = '1v1',
+  LADDER = 'ladder',
+  ONEVSONE = '1v1',
 }

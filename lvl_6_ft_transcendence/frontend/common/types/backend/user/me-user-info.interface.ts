@@ -1,11 +1,11 @@
 export interface MeUserInfo {
-	avatar_url: string
-	created_at: Date
-	game_theme: string
-	has_2fa: boolean
-	id: number
-	intra_name: string
-	intra_profile_url: string
-	ladder_level: number
-	name: string
+  id: number;
+  name: string;
+  avatar_url: string;
+  intra_name: string;
+  intra_profile_url: string;
+  has_2fa: boolean;
+  game_theme: string;
+  ladder_level: number;
+  created_at: Date;
 }
