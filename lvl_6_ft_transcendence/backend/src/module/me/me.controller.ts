@@ -32,7 +32,6 @@ import {
   SuccessResponse,
   UsernameUpdationRequest,
 } from 'types';
-
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UsersService } from '../users/users.service';

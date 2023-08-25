@@ -12,8 +12,8 @@ export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
 
   readonly themes: string[] = [
     'default',
-    'safari',
     'fortyTwo',
+    'safari',
     'monke',
     'miki',
     'mikao',
