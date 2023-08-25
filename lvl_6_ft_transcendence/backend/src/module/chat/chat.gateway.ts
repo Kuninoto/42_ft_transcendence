@@ -12,10 +12,11 @@ import { ChatRoom } from 'src/entity';
 import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
-import { ChatRoomMessage, Chatter } from 'types';
+import { Chatter } from 'types';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
-import { SendChatRoomMessageDTO } from './dto/send-chatroom-message.dto';
+import { MessageReceivedDTO } from './dto/message-received.dto';
+import { SendMessageDTO } from './dto/send-message.dto';
 
 @WebSocketGateway({
   cors: GatewayCorsOption,
@@ -40,17 +41,17 @@ export class ChatGateway implements OnGatewayInit {
   @SubscribeMessage('sendChatRoomMessage')
   async onSendChatRoomMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendChatRoomMessageDTO,
+    @MessageBody() messageBody: SendMessageDTO,
   ): Promise<void> {
-    if (!this.isValidSendChatRoomMessageDTO(messageBody)) {
+    if (!this.isValidSendMessageDTO(messageBody)) {
       this.logger.warn(
         `${client.data.name} tried to send a wrong sendChatRoomMessageDTO`,
       );
       return;
     }
 
-    const room: ChatRoom | null = await this.chatService.findRoomByName(
-      messageBody.roomName,
+    const room: ChatRoom | null = await this.chatService.findRoomById(
+      messageBody.receiverId,
     );
     if (!room) {
       this.logger.warn(
@@ -76,10 +77,10 @@ export class ChatGateway implements OnGatewayInit {
       name: user.name,
       avatar_url: user.avatar_url,
     };
-    const message: ChatRoomMessage = {
+    const message: MessageReceivedDTO = {
       uniqueId: messageBody.uniqueId,
       author: messageAuthor,
-      content: messageBody.text,
+      content: messageBody.content,
     };
 
     const idsOfUsersInRoom: number[] = room.users.map((user: User) => user.id);
@@ -100,13 +101,15 @@ export class ChatGateway implements OnGatewayInit {
     });
   }
 
-  private isValidSendChatRoomMessageDTO(
+  private isValidSendMessageDTO(
     messageBody: any,
-  ): messageBody is SendChatRoomMessageDTO {
+  ): messageBody is SendMessageDTO {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.roomName === 'string' &&
-      typeof messageBody.text === 'string'
+      typeof messageBody.uniqueId === 'string' &&
+      typeof messageBody.senderId === 'number' &&
+      typeof messageBody.receiverId === 'number' &&
+      typeof messageBody.content === 'string'
     );
   }
 }
