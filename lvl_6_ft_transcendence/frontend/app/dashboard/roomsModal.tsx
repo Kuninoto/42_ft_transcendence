@@ -7,6 +7,7 @@ import { JoinRoomDTO } from '@/common/types/join-room.dto'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { BiLockAlt } from 'react-icons/bi'
+import { toast } from 'react-toastify'
 
 function CreateRoom({ closeModal }: { closeModal: () => void }) {
 	const { handleSubmit, register, watch } = useForm()
@@ -33,7 +34,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 					closeModal()
 				})
 				.catch((e) => console.log(e))
-		} catch (error: any) { }
+		} catch (error: any) {}
 
 		console.log(name, type)
 	}
@@ -127,6 +128,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 	const [loading, setLoading] = useState(true)
 
 	const [rooms, setRooms] = useState<ChatRoomSearchInfo[]>([])
+	const [createRoom, setCreateRoom] = useState(false)
 
 	useEffect(() => {
 		setLoading(true)
@@ -142,10 +144,12 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 			roomId: id,
 		}
 
-		api.post('/chat/join-room', roomInfo)
+		try {
+			api.post('/chat/join-room', roomInfo).then(() => {})
+		} catch (error: any) {
+			toast.error('Network error')
+		}
 	}
-
-	const [createRoom, setCreateRoom] = useState(false)
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
@@ -194,7 +198,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 										return (
 											<div
 												className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-												key={room.roomId}
+												key={room.id}
 											>
 												<div className="flex space-x-6">
 													<span className="text-xl">{room.name}</span>
@@ -212,7 +216,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 													) : (
 														<button
 															className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
-															onClick={() => joinRoom(room.)}
+															onClick={() => joinRoom(room.id)}
 														>
 															Join
 														</button>
