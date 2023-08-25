@@ -23,9 +23,9 @@ import {
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
-import { DirectMessageReceivedDTO } from '../friendships/dto/direct-message-received.dto';
 import { UsersService } from '../users/users.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
+import { MessageReceivedDTO } from './dto/message-received.dto';
 
 @Injectable()
 export class ChatService {
@@ -88,7 +88,7 @@ export class ChatService {
 
 		// Send every missed DM
 		missedDMs.forEach(async (dm: DirectMessage) => {
-			const directMessageReceived: DirectMessageReceivedDTO = {
+			const directMessageReceived: MessageReceivedDTO = {
 				uniqueId: dm.unique_id,
 				author: await this.findChatterInfoByUID(dm.sender.id),
 				content: dm.content,

@@ -9,10 +9,10 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { ChatService } from '../chat/chat.service';
+import { MessageReceivedDTO } from '../chat/dto/message-received.dto';
+import { SendMessageDTO } from '../chat/dto/send-message.dto';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
-import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
-import { SendDirectMessageDTO } from './dto/send-direct-message.dto';
 import { FriendshipsService } from './friendships.service';
 
 @WebSocketGateway({
@@ -42,23 +42,23 @@ export class FriendshipsGateway implements OnGatewayInit {
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendDirectMessageDTO,
+    @MessageBody() messageBody: SendMessageDTO,
   ): Promise<void> {
-    if (!this.isValidSendDirectMessageDTO(messageBody)) {
+    if (!this.isValidSendMessageDTO(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong SendDirectMessageDTO`,
+        `${client.data.name} tried to send a wrong SendMessageDTO`,
       );
       return;
     }
 
-    if (client.data.userId == messageBody.receiverUID) {
+    if (client.data.userId == messageBody.receiverId) {
       // self message
       return;
     }
 
     const areTheyFriends: boolean = await this.friendshipService.areTheyFriends(
       client.data.userId,
-      messageBody.receiverUID,
+      messageBody.receiverId,
     );
 
     if (!areTheyFriends) {
@@ -68,10 +68,10 @@ export class FriendshipsGateway implements OnGatewayInit {
 
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(
-        messageBody.receiverUID.toString(),
+        messageBody.receiverId.toString(),
       );
 
-    const directMessageReceived: DirectMessageReceivedDTO = {
+    const directMessageReceived: MessageReceivedDTO = {
       uniqueId: messageBody.uniqueId,
       author: await this.chatService.findChatterInfoByUID(client.data.userId),
       content: messageBody.content,
@@ -82,7 +82,7 @@ export class FriendshipsGateway implements OnGatewayInit {
       // to later send when he comes back online
       await this.chatService.createDirectMessage(
         client.data.userId,
-        messageBody.receiverUID,
+        messageBody.receiverId,
         messageBody.uniqueId,
         messageBody.content,
       );
@@ -93,13 +93,14 @@ export class FriendshipsGateway implements OnGatewayInit {
     }
   }
 
-  private isValidSendDirectMessageDTO(
+  private isValidSendMessageDTO(
     messageBody: any,
-  ): messageBody is SendDirectMessageDTO {
+  ): messageBody is SendMessageDTO {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.uniqueId === 'string' &&
-      typeof messageBody.receiverUID === 'number' &&
+      typeof messageBody.senderId === 'number' &&
+      typeof messageBody.receiverId === 'number' &&
       typeof messageBody.content === 'string'
     );
   }
