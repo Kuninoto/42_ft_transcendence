@@ -1,14 +1,14 @@
 export interface GameResultInterface {
-  winner: {
-    userId: number;
-    name: string;
-    avatar_url: string;
-    score: number;
-  };
-  loser: {
-    userId: number;
-    name: string;
-    avatar_url: string;
-    score: number;
-  };
+	loser: {
+		avatar_url: string
+		name: string
+		score: number
+		userId: number
+	}
+	winner: {
+		avatar_url: string
+		name: string
+		score: number
+		userId: number
+	}
 }

@@ -1,8 +1,8 @@
 export interface FriendRequest {
-  friendship_id: number;
-  uid: number;
-  name: string;
-  avatar_url: string;
-  status: string;
-  sent_by_me: boolean;
+	avatar_url: string
+	friendship_id: number
+	name: string
+	sent_by_me: boolean
+	status: string
+	uid: number
 }

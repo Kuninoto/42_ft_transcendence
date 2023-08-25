@@ -1,6 +1,6 @@
 export enum UserStatus {
-  OFFLINE = 'offline',
-  ONLINE = 'online',
-  IN_QUEUE = 'in queue',
-  IN_GAME = 'in game',
+	IN_GAME = 'in game',
+	IN_QUEUE = 'in queue',
+	OFFLINE = 'offline',
+	ONLINE = 'online',
 }

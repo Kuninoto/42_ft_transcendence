@@ -1,5 +1,5 @@
-import { GameThemes } from 'types';
+import { GameThemes } from 'types'
 
 export interface GameThemeUpdationRequest {
-  newGameTheme: GameThemes;
+	newGameTheme: GameThemes
 }

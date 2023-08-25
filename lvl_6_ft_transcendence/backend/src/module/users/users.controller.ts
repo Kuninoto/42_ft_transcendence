@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Logger,
   NotFoundException,
   Param,
   Query,
@@ -27,9 +26,9 @@ import { UsersService } from './users.service';
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  private readonly logger: Logger = new Logger(UsersController.name);
-
   constructor(private readonly usersService: UsersService) {}
+
+  //private readonly logger: Logger = new Logger(UsersController.name);
 
   /**
    * GET /api/users/profile/:userId
@@ -41,7 +40,8 @@ export class UsersController {
     description: "Finds User's which id=userId profile",
   })
   @ApiNotFoundResponse({
-    description: "If user with id=userId doesn't exist ",
+    description:
+      "If user with id=userId doesn't exist or the requester is blocked by him ",
   })
   @ApiParam({
     description: 'User id of the user to user we want the profile of',
@@ -51,15 +51,12 @@ export class UsersController {
   public async findUserProfileByUID(
     @ExtractUser() user: User,
     @Param('userId', NonNegativeIntPipe) userId: number,
-  ): Promise<ErrorResponse | UserProfile> {
-    const userProfile: null | UserProfile =
+  ): Promise<UserProfile | ErrorResponse> {
+    const userProfile: UserProfile | null =
       await this.usersService.findUserProfileByUID(user, userId);
 
     if (!userProfile) {
-      this.logger.warn(
-        `"${user.name}" request the profile of a non-existing user`,
-      );
-      throw new NotFoundException('User with id= ' + userId + "doesn't exist");
+      throw new NotFoundException('User not found');
     }
 
     return userProfile;
