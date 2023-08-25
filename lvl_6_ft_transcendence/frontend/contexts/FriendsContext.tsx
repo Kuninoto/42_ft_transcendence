@@ -54,12 +54,12 @@ interface MessageDTO {
 
 type IChat = (
 	| {
-		challengeId: null | number
-		friend: Friend
-	}
+			challengeId: null | number
+			friend: Friend
+	  }
 	| {
-		room: ChatRoomInterface
-	}
+			room: ChatRoomInterface
+	  }
 ) & {
 	display: boolean
 	messages: MessageDTO[]
@@ -231,57 +231,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	// ======================== Rooms messages ========================
-
-	useEffect(() => {
-		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
-			console.log(data)
-		})
-		socket?.on('friendRequestReceived', function() {
-			setNewFriendNotification(true)
-		})
-		socket?.on('refreshUser', function() {
-			getFriends()
-		})
-		socket?.on('directMessageReceived', onDirectMessageReceived)
-
-		socket?.on('invitedToGame', onInvitedToGame)
-	})
-
-	// ======================== Direct messages ========================
-
-	function sendGameInvite(id: number) {
-		if (!socket) return
-
-		const gameInviteDTO: SendGameInviteDTO = {
-			recipientUID: id,
-		}
-		socket.emit('sendGameInvite', gameInviteDTO)
-	}
-
-	function respondGameInvite(accepted: boolean) {
-		if (!socket) return
-
-		// parameter in user
-		const response: RespondToGameInviteDTO = {
-			accepted,
-			inviteId: 2,
-		}
-		socket.emit(
-			'respondToGameInvite',
-			response,
-			(response: OponentFoundDTO) => {
-				console.log(response)
-			}
-		)
-	}
-
-	function onDirectMessageReceived(data: DirectMessageReceivedDTO) {
+	function onMessageReceived(data: ChatRoomMessage | DirectMessageReceivedDTO) {
 		setOpenChats((prevChat) => {
 			const newChat = [...prevChat]
-			const index = newChat?.findIndex(
-				(chat) => chat.friend.uid === data.senderUID
-			)
+			const index = newChat?.findIndex((chat) => {
+				chat.friend.uid === data.senderUID
+			})
 
 			if (index === -1) {
 				newChat.push({
@@ -317,6 +272,51 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			return newChat
 		})
 		setExists(true)
+	}
+
+	// ======================== Rooms messages ========================
+
+	useEffect(() => {
+		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
+			console.log(data)
+		})
+		socket?.on('friendRequestReceived', function () {
+			setNewFriendNotification(true)
+		})
+		socket?.on('refreshUser', function () {
+			getFriends()
+		})
+		socket?.on('directMessageReceived', onMessageReceived)
+
+		socket?.on('invitedToGame', onInvitedToGame)
+	})
+
+	// ======================== Direct messages ========================
+
+	function sendGameInvite(id: number) {
+		if (!socket) return
+
+		const gameInviteDTO: SendGameInviteDTO = {
+			recipientUID: id,
+		}
+		socket.emit('sendGameInvite', gameInviteDTO)
+	}
+
+	function respondGameInvite(accepted: boolean) {
+		if (!socket) return
+
+		// parameter in user
+		const response: RespondToGameInviteDTO = {
+			accepted,
+			inviteId: 2,
+		}
+		socket.emit(
+			'respondToGameInvite',
+			response,
+			(response: OponentFoundDTO) => {
+				console.log(response)
+			}
+		)
 	}
 
 	function onInvitedToGame(data: InvitedToGameDTO) {
