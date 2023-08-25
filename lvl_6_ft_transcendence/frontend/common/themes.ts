@@ -2,33 +2,30 @@ interface IThemes {
 	[name: string]: {
 		background: string
 		paddle: string
+		// ball: string
 	}
 }
 
 export const themes: IThemes = {
-	anime: {
-		background: 'anime.jpg',
-		paddle: '',
-	},
 	default: {
 		background: 'default.png',
-		paddle: 'dev.png',
+		paddle: 'white.png',
 	},
 	fortyTwo: {
-		background: '42.jpg',
-		paddle: '',
+		background: 'forty_two.jpg',
+		paddle: 'black.jpeg',
 	},
-	melo: {
-		background: 'melo.jpg',
-		paddle: '',
-	},
+	//safari: {
+	//	background: 'safari.png',
+	//	paddle: '',
+	//},
 	mikao: {
 		background: 'mikao.jpeg',
-		paddle: '',
+		paddle: 'black.jpeg',
 	},
 	miki: {
 		background: 'miki.png',
-		paddle: '',
+		paddle: 'white.png',
 	},
 	monke: {
 		background: 'monke.png',
@@ -37,4 +34,3 @@ export const themes: IThemes = {
 }
 
 export const amount: number = Object.keys(themes).length
-

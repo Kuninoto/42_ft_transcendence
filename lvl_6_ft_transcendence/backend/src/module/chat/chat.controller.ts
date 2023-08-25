@@ -23,7 +23,6 @@ import {
   ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
-  ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { ChatRoom, User } from 'src/entity';
@@ -55,17 +54,13 @@ export class ChatController {
   private readonly logger: Logger = new Logger(ChatController.name);
 
   @ApiConflictResponse({ description: 'If room name is already taken' })
-  @ApiUnprocessableEntityResponse({
-    description:
-      'If room name is not 4-10 chars long or room is protected and password is not 4-20 chars long',
-  })
   @ApiNotAcceptableResponse({
     description:
       'If room name is not composed only by letters (both case), digits and underscore',
   })
   @ApiBadRequestResponse({
     description:
-      "If room is protected and there's no password or if it is not composed only by letters (both case), digits and special chars",
+      "If room is protected and there's no password or if it is not composed only by letters (both case), digits and special chars or if room name is not 4-10 chars long or room is protected and password is not 4-20 chars long",
   })
   @ApiOkResponse({
     description: 'Successfully created a room named createRoomDto.name',
@@ -76,7 +71,7 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: CreateRoomDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
-    this.chatService.createRoom(body, user);
+    await this.chatService.createRoom(body, user);
 
     this.logger.log(
       `${user.name} created a ${body.type} room named "${body.name}"`,
@@ -196,7 +191,6 @@ export class ChatController {
   @UseGuards(AdminGuard)
   @Delete('/ban')
   public async unbanFromRoom(
-    @ExtractUser() user: User,
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.unbanFromRoom(body.userId, body.roomId);
@@ -256,14 +250,9 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   @Post('/add-admin')
   public async addAdmin(
-    @ExtractUser() user: User,
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.assignAdminRole(
-      user.id,
-      body.userId,
-      body.roomId,
-    );
+    return await this.chatService.assignAdminRole(body.userId, body.roomId);
   }
 
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
