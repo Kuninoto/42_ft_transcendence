@@ -71,7 +71,7 @@ export class UsersService {
 
   public async findMyInfo(meUID: number): Promise<MeUserInfo> {
     // Fetch user's table info of me user and get his ladder level
-    // Populate the resulting object with both all those properties
+    // Populate the resulting object with the properties of those queries
     return {
       ...(await this.usersRepository.findOneBy({ id: meUID })),
       ladder_level: await this.userStatsService.findLadderLevelByUID(meUID),
@@ -106,8 +106,8 @@ export class UsersService {
 
     const roomInterfaces: ChatRoomInterface[] = rooms.map(
       (room: ChatRoom): ChatRoomInterface => ({
-        roomId: room.id,
-        roomName: room.name,
+        id: room.id,
+        name: room.name,
         ownerName: room.owner.name,
         participants: room.users.map(
           (user: User): Chatter => ({
@@ -178,6 +178,10 @@ export class UsersService {
     meUser: User,
     userId: number,
   ): Promise<UserProfile | null> {
+    if (await this.friendshipsService.isSenderBlocked(meUser.id, userId)) {
+      return null;
+    }
+
     const user: User | null = await this.usersRepository.findOneBy({
       id: userId,
     });
@@ -187,34 +191,31 @@ export class UsersService {
     }
 
     const friendship: Friendship | null =
-      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
-    const isBlocked = await this.friendshipsService.isThereABlockRelationship(
-      meUser.id,
-      userId,
-    );
-
-    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
-      user.id,
-    );
-
+      await this.friendshipsService.findFriendshipBetween2Users(
+        meUser.id,
+        user.id,
+      );
     return {
-      achievements: await this.achievementService.findAchievementsByUID(userId),
-      avatar_url: user.avatar_url,
-      created_at: user.created_at,
-      friend_request_sent_by_me: friendship
-        ? friendship.sender.id === meUser.id
-        : null,
-      friends: friends,
-      friendship_id: friendship ? friendship.id : null,
-      friendship_status: friendship ? friendship.status : null,
       id: user.id,
+      name: user.name,
       intra_name: user.intra_name,
+      avatar_url: user.avatar_url,
       intra_profile_url: user.intra_profile_url,
-      is_blocked: isBlocked,
+      friends: await this.friendshipsService.findFriendsByUID(user.id),
+      friendship_id: friendship?.id,
+      friendship_status: friendship?.status,
+      friend_request_sent_by_me: friendship
+        ? friendship.sender.id == meUser.id
+        : null,
+      blocked_by_me: await this.friendshipsService.isReceiverBlocked(
+        meUser.id,
+        userId,
+      ),
       ladder_level: await this.userStatsService.findLadderLevelByUID(userId),
       match_history: await this.findMatchHistoryByUID(userId),
-      name: user.name,
       stats: await this.userStatsService.findUserStatsByUID(userId),
+      achievements: await this.achievementService.findAchievementsByUID(userId),
+      created_at: user.created_at,
     };
   }
 
@@ -222,19 +223,22 @@ export class UsersService {
     meUID: number,
     userId: number,
   ): Promise<UserSearchInfo | null> {
-    const meUser: User = await this.findUserByUID(meUID);
     const user: User = await this.findUserByUID(userId);
     const friendship: Friendship | null =
-      await this.friendshipsService.findFriendshipBetween2Users(meUser, user);
+      await this.friendshipsService.findFriendshipBetween2Users(meUID, userId);
 
     return {
-      avatar_url: user.avatar_url,
-      friend_request_sent_by_me: friendship
-        ? friendship.sender === meUser
-        : null,
-      friendship_status: friendship ? friendship.status : null,
       id: user.id,
       name: user.name,
+      avatar_url: user.avatar_url,
+      friendship_status: friendship?.status,
+      friend_request_sent_by_me: friendship
+        ? friendship.sender.id == meUID
+        : null,
+      blocked_by_me: await this.friendshipsService.isReceiverBlocked(
+        meUID,
+        userId,
+      ),
     };
   }
 
@@ -245,7 +249,7 @@ export class UsersService {
     const meUserId: number = meUser.id;
 
     // Find users which name starts with <usernameQuery> and keep only up to 5 of those
-    // ignoring blocked users and friends
+    // ignoring users that blocked me and friends
     const users: User[] = await this.usersRepository
       .createQueryBuilder('user')
       .where('user.name LIKE :usernameProximity', {
@@ -277,23 +281,27 @@ export class UsersService {
       .getMany();
 
     const usersSearchInfo: UserSearchInfo[] = await Promise.all(
-      users.map(async (user: User) => {
+      users.map(async (user: User): Promise<UserSearchInfo> => {
         const friendship: Friendship | null =
           await this.friendshipsService.findFriendshipBetween2Users(
-            meUser,
-            user,
+            meUser.id,
+            user.id,
           );
 
         return {
+          id: user.id,
+          name: user.name,
           avatar_url: user.avatar_url,
+          friendship_status: friendship ? friendship.status : null,
           friend_request_sent_by_me: friendship
             ? friendship.sender.id === meUser.id
               ? true
               : false
             : null,
-          friendship_status: friendship ? friendship.status : null,
-          id: user.id,
-          name: user.name,
+          blocked_by_me: await this.friendshipsService.isReceiverBlocked(
+            meUserId,
+            user.id,
+          ),
         };
       }),
     );

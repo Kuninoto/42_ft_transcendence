@@ -113,7 +113,7 @@ export class MeController {
   /**
    * GET /api/me/rooms
    *
-   * Finds and returns the 'me' user's blocklist
+   * Finds and returns the rooms where 'me' user is
    */
   @ApiOkResponse({
     description: "Finds and returns the rooms where 'me' user is",

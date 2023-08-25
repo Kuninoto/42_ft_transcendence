@@ -22,25 +22,6 @@ export class ConnectionService {
     private userIdToSocketId: UserIdToSocketIdMap,
   ) {}
 
-  private async authClientFromAuthToken(token: string): Promise<null | User> {
-    // verify() throws if JWT's signature is not valid
-    try {
-      const payload: TokenPayload = await this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
-      });
-
-      if (payload.has_2fa && !payload.is_2fa_authed) {
-        throw new Error('Unauthorized Client');
-      }
-
-      const userId: number = payload.id;
-
-      return await this.usersRepository.findOneBy({ id: userId });
-    } catch (error) {
-      return null;
-    }
-  }
-
   public async authenticateClientAndRetrieveUser(
     client: Socket,
   ): Promise<User> {
@@ -70,15 +51,34 @@ export class ConnectionService {
     return user;
   }
 
-  public deleteSocketIdByUID(userId: string): void {
-    this.userIdToSocketId.deleteSocketIdByUID(userId);
-  }
-
   public findSocketIdByUID(userId: string): string | undefined {
     return this.userIdToSocketId.findSocketIdByUID(userId);
   }
 
   public updateSocketIdByUID(userId: string, socketId: string): void {
     this.userIdToSocketId.updateSocketIdByUID(userId, socketId);
+  }
+
+  public deleteSocketIdByUID(userId: string): void {
+    this.userIdToSocketId.deleteSocketIdByUID(userId);
+  }
+
+  private async authClientFromAuthToken(token: string): Promise<null | User> {
+    // verify() throws if JWT's signature is not valid
+    try {
+      const payload: TokenPayload = await this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      if (payload.has_2fa && !payload.is_2fa_authed) {
+        throw new Error('Unauthorized Client');
+      }
+
+      const userId: number = payload.id;
+
+      return await this.usersRepository.findOneBy({ id: userId });
+    } catch (error) {
+      return null;
+    }
   }
 }

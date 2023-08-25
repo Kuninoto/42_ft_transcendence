@@ -4,4 +4,5 @@ export interface Friend {
   name: string;
   avatar_url: string;
   status: string;
+  ladder_level: number;
 }

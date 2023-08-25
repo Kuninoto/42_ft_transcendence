@@ -118,14 +118,7 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: JoinRoomDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.chatService.findRoomById(
-      body.roomId,
-    );
-    if (!room) {
-      throw new NotFoundException(`Room with id=${body.roomId} doesn't exist`);
-    }
-
-    return this.chatService.joinRoom(user, body.roomId);
+    return await this.chatService.joinRoom(user, body.roomId);
   }
 
   @ApiNotFoundResponse({ description: "If room doesn't exist" })

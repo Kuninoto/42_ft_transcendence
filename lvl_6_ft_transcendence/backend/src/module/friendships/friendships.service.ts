@@ -21,6 +21,7 @@ import {
 } from 'types';
 import { AchievementService } from '../achievement/achievement.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
+import { UserStatsService } from '../user-stats/user-stats.service';
 
 @Injectable()
 export class FriendshipsService {
@@ -37,6 +38,7 @@ export class FriendshipsService {
     private readonly blockedUserRepository: Repository<BlockedUser>,
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
+    private readonly usersStatsService: UserStatsService,
   ) {}
 
   public async areTheyFriends(
@@ -78,53 +80,55 @@ export class FriendshipsService {
     return { message: `Successfully blocked "${userToBlock.name}"` };
   }
 
-  public async findFriendsByUID(userId: number): Promise<Friend[]> {
+  public async findFriendsByUID(meUID: number): Promise<Friend[]> {
     const myFriendships: Friendship[] = await this.friendshipRepository.find({
+      where: [
+        { receiver: { id: meUID }, status: FriendshipStatus.ACCEPTED },
+        { sender: { id: meUID }, status: FriendshipStatus.ACCEPTED },
+      ],
       relations: {
         receiver: true,
         sender: true,
       },
-      where: [
-        { receiver: { id: userId }, status: FriendshipStatus.ACCEPTED },
-        { sender: { id: userId }, status: FriendshipStatus.ACCEPTED },
-      ],
     });
 
-    const myFriendsInterfaces: Friend[] = myFriendships.map(
-      (friendship: Friendship) => {
+    const myFriendsInterfaces: Friend[] = await Promise.all(
+      myFriendships.map(async (friendship: Friendship) => {
         let friend: User;
-        if (userId === friendship.sender.id) {
+        if (meUID === friendship.sender.id) {
           friend = friendship.receiver;
-        } else if (userId === friendship.receiver.id) {
+        } else if (meUID === friendship.receiver.id) {
           friend = friendship.sender;
         }
 
         return {
+          uid: friend.id,
+          name: friend.name,
           avatar_url: friend.avatar_url,
           friendship_id: friendship.id,
-          name: friend.name,
           status: friend.status,
-          uid: friend.id,
+          ladder_level: await this.usersStatsService.findLadderLevelByUID(
+            friend.id,
+          ),
         };
-      },
+      }),
     );
-
     return myFriendsInterfaces;
   }
 
   public async findFriendshipBetween2Users(
-    user1: User,
-    user2: User,
+    user1UID: number,
+    user2UID: number,
   ): Promise<Friendship | null> {
     return await this.friendshipRepository.findOne({
+      where: [
+        { receiver: { id: user2UID }, sender: { id: user1UID } }, // user1 -> user2
+        { receiver: { id: user1UID }, sender: { id: user2UID } }, // user2 -> user1
+      ],
       relations: {
         receiver: true,
         sender: true,
       },
-      where: [
-        { receiver: user2, sender: user1 }, // user1 -> user2
-        { receiver: user1, sender: user2 }, // user2 -> user1
-      ],
     });
   }
 
@@ -307,6 +311,40 @@ export class FriendshipsService {
     };
   }
 
+  /* Searches for an entry on the blocked_user table
+  where blockedUser = sender && user_who_blocked = receiver */
+  public async isSenderBlocked(
+    senderUID: number,
+    receiverUID: number,
+  ): Promise<boolean> {
+    const blockedUserEntry: BlockedUser =
+      await this.blockedUserRepository.findOneBy([
+        {
+          blocked_user: { id: senderUID },
+          user_who_blocked: { id: receiverUID },
+        }, // sender is the blockedUser
+      ]);
+
+    return blockedUserEntry ? true : false;
+  }
+
+  /* Searches for an entry on the blocked_user table
+  where blockedUser = receiver && user_who_blocked = sender */
+  public async isReceiverBlocked(
+    senderUID: number,
+    receiverUID: number,
+  ): Promise<boolean> {
+    const blockedUserEntry: BlockedUser =
+      await this.blockedUserRepository.findOneBy([
+        {
+          blocked_user: { id: receiverUID },
+          user_who_blocked: { id: senderUID },
+        }, // receiver is the blockedUser
+      ]);
+
+    return blockedUserEntry ? true : false;
+  }
+
   private async acceptFriendRequest(friendship: Friendship) {
     friendship.status = FriendshipStatus.ACCEPTED;
     await this.friendshipRepository.save(friendship);
@@ -318,6 +356,8 @@ export class FriendshipsService {
       senderUID,
       receiverUID,
     );
+
+    this.connectionGateway.sendRefreshUser(senderUID);
 
     const senderNrFriends: number = (
       await this.findFriendsByUID(friendship.sender.id)
@@ -514,49 +554,23 @@ export class FriendshipsService {
     return friendRequest ? true : false;
   }
 
-  /* Searches for an entry on the blocked_user table
-  where blockedUser = receiver && user_who_blocked = sender */
-  private async isReceiverBlocked(
-    senderUID: number,
-    receiverUID: number,
-  ): Promise<boolean> {
-    const blockedUserEntry: BlockedUser =
-      await this.blockedUserRepository.findOneBy([
-        {
-          blocked_user: { id: receiverUID },
-          user_who_blocked: { id: senderUID },
-        }, // receiver is the blockedUser
-      ]);
-
-    return blockedUserEntry ? true : false;
-  }
-
-  /* Searches for an entry on the blocked_user table
-  where blockedUser = sender && user_who_blocked = receiver */
-  private async isSenderBlocked(
-    senderUID: number,
-    receiverUID: number,
-  ): Promise<boolean> {
-    const blockedUserEntry: BlockedUser =
-      await this.blockedUserRepository.findOneBy([
-        {
-          blocked_user: { id: senderUID },
-          user_who_blocked: { id: receiverUID },
-        }, // sender is the blockedUser
-      ]);
-
-    return blockedUserEntry ? true : false;
-  }
-
   private async unfriendOrDeleteFriendRequest(
     userId: number,
     friendship: Friendship,
   ) {
-    await this.achievementsService.grantBreakingThePaddleBond(userId);
     this.connectionGateway.leaveFriendRooms(
       friendship.sender.id,
       friendship.receiver.id,
     );
+
+    const removedUserId: number =
+      friendship.sender.id == userId
+        ? friendship.receiver.id
+        : friendship.sender.id;
+
+    this.connectionGateway.sendRefreshUser(removedUserId);
+
     await this.friendshipRepository.delete(friendship);
+    await this.achievementsService.grantBreakingThePaddleBond(userId);
   }
 }
