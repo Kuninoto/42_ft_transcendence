@@ -1,5 +1,10 @@
 import { api } from '@/api/api'
-import { ChatRoomInterface, Friend } from '@/common/types/backend'
+import {
+	ChatRoomInterface,
+	ChatRoomMessage,
+	Chatter,
+	Friend,
+} from '@/common/types/backend'
 import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
 import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
 import { NewUserStatusDTO } from '@/common/types/new-user-status.dto'
@@ -25,49 +30,39 @@ type FriendsContextType = {
 	closeAll: () => void
 	currentOpenChat: IChat
 	exists: boolean
-	focusChat: (id: number) => void
+	focus: (id: number) => void
 	friends: Friend[]
 	isOpen: boolean
 	newFriendNotification: boolean
-	open: (friend: Friend) => void
+	open: (id: number, isRoom: boolean) => void
 	openChats: IChat[]
+	refreshRooms: () => void
 	rejectChallenge: (id: number) => void
 	respondGameInvite: (accepted: boolean) => void
-	rooms: Room[]
+	rooms: ChatRoomInterface[]
 	seeNewFriendNotification: () => void
 	sendGameInvite: (id: number) => void
 	sendMessage: (message: string) => void
 }
 
-export interface MessageDTO {
+interface MessageDTO {
+	author?: Chatter
 	content: string
 	sendByMe: boolean
 	uniqueID: string
 }
 
-interface Author {
-	avatar_url: string
-	id: number
-	name: string
-}
-
-interface RoomMessageDTO {
-	author: Author
-	content: string
-}
-
 type IChat = (
 	| {
-			challengeId: null | number
-			friend: Friend
-			messages: MessageDTO[]
-	  }
+		challengeId: null | number
+		friend: Friend
+	}
 	| {
-			messages: RoomMessageDTO[]
-			room: ChatRoomInterface
-	  }
+		room: ChatRoomInterface
+	}
 ) & {
 	display: boolean
+	messages: MessageDTO[]
 	unread: boolean
 }
 
@@ -139,116 +134,121 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		setExists(false)
 	}
 
-	// ======================== Rooms messages ========================
-
-	function openRoom(name: string) {
+	function open(id: number, isRoom: boolean) {
 		setIsOpen(true)
 		setExists(true)
 
 		const index = openChats?.findIndex((chat) => {
-			if (!('room' in chat)) return false
-
-			return chat.room.name === name
+			if (!isRoom && 'friend' in chat) return chat.friend.uid === id
+			if (isRoom && 'room' in chat) return chat.room.id === id
+			return false
 		})
 
 		if (index !== -1) {
-			focusChat()
+			focus(id)
 			return
 		}
 
-		const newChat: IChat = {
-			challengeId: null,
-			display: true,
-			friend,
-			messages: [],
-			unread: false,
+		if (isRoom) {
+			const room = rooms.find((room) => room.id === id)
+			if (room === undefined) return
+
+			const newRoom: IChat = {
+				display: true,
+				messages: [],
+				room,
+				unread: false,
+			}
+
+			setOpenChats([newRoom, ...openChats])
+			setCurrentOpenChat(newRoom)
+		} else {
+			const friend = friends.find((friend) => friend.uid === id)
+			if (friend === undefined) return
+
+			const newChat: IChat = {
+				challengeId: null,
+				display: true,
+				friend,
+				messages: [],
+				unread: false,
+			}
+
+			setOpenChats([newChat, ...openChats])
+			setCurrentOpenChat(newChat)
 		}
-		setOpenChats([newChat, ...openChats])
-		setCurrentOpenChat(newChat)
 	}
 
-	useEffect(() => {
-		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
-			console.log(data)
-		})
-		socket?.on('friendRequestReceived', function () {
-			setNewFriendNotification(true)
-		})
-		socket?.on('refreshUser', function () {
-			getFriends()
-		})
-	})
-
-	// ======================== Direct messages ========================
-
-	useEffect(() => {
-		socket?.on('directMessageReceived', onDirectMessageReceived)
-
-		socket?.on('invitedToGame', onInvitedToGame)
-	}, [friends])
-
-	function open(friend: Friend) {
-		setIsOpen(true)
-		setExists(true)
-
-		const index = openChats?.findIndex((chat) => {
-			if (!('friend' in chat)) return false
-
-			return chat.friend.uid === friend.uid
-		})
-
-		if (index !== -1) {
-			focusChat(friend.uid)
-			return
-		}
-
-		const newChat: IChat = {
-			challengeId: null,
-			display: true,
-			friend,
-			messages: [],
-			unread: false,
-		}
-		setOpenChats([newChat, ...openChats])
-		setCurrentOpenChat(newChat)
-	}
-
-	function focusChat(id: number) {
+	function focus(id: number) {
 		setOpenChats((prevChat) => {
 			const newChat = [...prevChat]
-			return newChat?.map((chat) => {
-				if (!('friend' in chat)) return chat
 
+			return newChat?.map((chat) => {
+				if ('room' in chat) {
+					return chat.room.id === id
+						? { ...chat, display: true, unread: false }
+						: { ...chat, display: true }
+				}
 				return chat.friend.uid === id
 					? { ...chat, display: true, unread: false }
 					: { ...chat, display: true }
 			})
 		})
 
-		setCurrentOpenChat(
-			openChats.find((chat) => {
-				if (!('friend' in chat)) return false
-
+		setCurrentOpenChat(() => {
+			const newCurrent = openChats.find((chat) => {
+				if ('room' in chat) return chat.room.id === id
 				return chat.friend.uid === id
 			})
-		)
+
+			if (newCurrent === undefined) return {} as IChat
+			return newCurrent
+		})
 	}
 
-	function close(id: number) {
+	function close(id: number, isRoom: boolean) {
 		setOpenChats((prevChats) => {
 			const newChat = [...prevChats]
 
-			if (newChat.length > 1 && currentOpenChat.friend.uid === id) {
+			const currentId =
+				'room' in currentOpenChat
+					? currentOpenChat.room.id
+					: currentOpenChat.friend.uid
+
+			if (newChat.length > 1 && currentId === id) {
 				setCurrentOpenChat(prevChats[1])
 			}
 
-			const index = newChat?.findIndex((chat) => chat.friend.uid === id)
+			const index = newChat?.findIndex((chat) => {
+				if (isRoom && 'room' in chat) chat.room.id === id
+				if (!isRoom && 'friend' in chat) chat.friend.uid === id
+				return false
+			})
 
 			newChat[index].display = false
 			setExists(newChat.some((chat) => chat.display))
 			return newChat
 		})
 	}
+
+	// ======================== Rooms messages ========================
+
+	useEffect(() => {
+		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
+			console.log(data)
+		})
+		socket?.on('friendRequestReceived', function() {
+			setNewFriendNotification(true)
+		})
+		socket?.on('refreshUser', function() {
+			getFriends()
+		})
+		socket?.on('directMessageReceived', onDirectMessageReceived)
+
+		socket?.on('invitedToGame', onInvitedToGame)
+	})
+
+	// ======================== Direct messages ========================
 
 	function sendGameInvite(id: number) {
 		if (!socket) return
@@ -373,12 +373,13 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		closeAll,
 		currentOpenChat,
 		exists,
-		focusChat,
+		focus,
 		friends,
 		isOpen,
 		newFriendNotification,
 		open,
 		openChats,
+		refreshRooms: getRooms,
 		rejectChallenge,
 		respondGameInvite,
 		rooms,

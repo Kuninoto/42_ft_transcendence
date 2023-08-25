@@ -184,14 +184,16 @@ function FriendRequests() {
 						key={request.uid}
 					>
 						<div className="flex space-x-6">
-							<Image
-								alt="profile picture"
-								className="aspect-square w-8 rounded"
-								loader={removeParams}
-								sizes="100%"
-								src={request?.avatar_url || '/placeholder.gif'}
-								unoptimized
-							/>
+							<div className="relative aspect-square w-8 rounded">
+								<Image
+									alt="profile picture"
+									fill
+									loader={removeParams}
+									sizes="100%"
+									src={request?.avatar_url || '/placeholder.gif'}
+									unoptimized
+								/>
+							</div>
 							<span className="text-xl">{request.name}</span>
 						</div>
 						<div className="flex space-x-2">
@@ -239,15 +241,17 @@ function FriendSearch({
 								key={user.id}
 							>
 								<div className="flex space-x-6">
-									<Image
-										alt="profile picture"
-										className="aspect-square w-8 rounded"
-										height={0}
-										loader={removeParams}
-										sizes="100%"
-										src={user.avatar_url || '/placeholder.gif'}
-										width={0}
-									/>
+									<div className="relative aspect-square w-8 rounded">
+										<Image
+											alt="profile picture"
+											className="object-cover"
+											fill
+											loader={removeParams}
+											sizes="100%"
+											src={user.avatar_url || '/placeholder.gif'}
+											unoptimized
+										/>
+									</div>
 									<span className="text-xl">{user.name}</span>{' '}
 								</div>
 
