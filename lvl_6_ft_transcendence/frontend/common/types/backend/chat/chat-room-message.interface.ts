@@ -1,6 +1,6 @@
-import { Chatter } from './chatter.interface';
+import { Chatter } from './chatter.interface'
 
 export interface ChatRoomMessage {
-  author: Chatter;
-  content: string;
+	author: Chatter
+	content: string
 }

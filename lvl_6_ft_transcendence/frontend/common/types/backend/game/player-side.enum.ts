@@ -1,4 +1,4 @@
 export enum PlayerSide {
-  LEFT = 'left',
-  RIGHT = 'right',
+	LEFT = 'left',
+	RIGHT = 'right',
 }

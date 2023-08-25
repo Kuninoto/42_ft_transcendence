@@ -113,7 +113,7 @@ export class FriendshipsController {
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
     @Body(new FriendshipStatusUpdateValidationPipe())
     newStatus: FriendshipStatus,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     return await this.friendshipsService.updateFriendshipStatus(
       user,
       friendshipId,
