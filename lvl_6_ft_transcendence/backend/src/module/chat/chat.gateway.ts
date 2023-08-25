@@ -77,6 +77,7 @@ export class ChatGateway implements OnGatewayInit {
       avatar_url: user.avatar_url,
     };
     const message: ChatRoomMessage = {
+      uniqueId: messageBody.uniqueId,
       author: messageAuthor,
       content: messageBody.text,
     };
@@ -94,7 +95,7 @@ export class ChatGateway implements OnGatewayInit {
         uid.toString(),
       );
       if (userSocketId && !blockRelationship) {
-        client.to(userSocketId).emit('sendChatRoomMessage', message);
+        client.to(userSocketId).emit('newChatRoomMessage', message);
       }
     });
   }
