@@ -7,17 +7,17 @@ import { UserStatsInterface } from '../user-stats/user-stats-interface.interface
 export interface UserProfile {
   id: number;
   name: string;
-  avatar_url: string;
   intra_name: string;
+  avatar_url: string;
   intra_profile_url: string;
-  created_at: Date;
   friends: Friend[];
   friendship_id: number | null;
   friendship_status: FriendshipStatus | null;
   friend_request_sent_by_me: boolean | null;
-  is_blocked: boolean;
+  blocked_by_me: boolean;
   ladder_level: number;
   match_history: GameResultInterface[];
   stats: UserStatsInterface;
   achievements: AchievementInterface[];
+  created_at: Date;
 }

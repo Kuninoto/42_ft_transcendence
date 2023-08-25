@@ -202,6 +202,8 @@ export class ChatService {
       .to(socketIdOfJoiningUser)
       .socketsJoin(room.name);
 
+    this.connectionGateway.sendRefreshUser(user.id, socketIdOfJoiningUser);
+
     const username: string = user.name;
 
     this.connectionGateway.server
@@ -220,7 +222,7 @@ export class ChatService {
     }
 
     const roomNames: string[] = roomsToJoin.map(
-      (room: ChatRoomInterface): string => room.roomName,
+      (room: ChatRoomInterface): string => room.name,
     );
 
     client.join(roomNames);
@@ -347,11 +349,10 @@ export class ChatService {
     room.bans.push(userToBan);
     await this.chatRoomRepository.save(room);
 
-    await this.leaveRoom(room, userToBanId, false);
-
     this.connectionGateway.server
       .to(room.name)
       .emit('userWasBannedFromRoom', { userId: userToBanId });
+    await this.leaveRoom(room, userToBanId, false);
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
     return {
@@ -462,7 +463,8 @@ export class ChatService {
       .getMany();
 
     const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
-      (room: ChatRoom) => ({
+      (room: ChatRoom): ChatRoomSearchInfo => ({
+        id: room.id,
         name: room.name,
         protected: room.type === ChatRoomType.PROTECTED ? true : false,
       }),
