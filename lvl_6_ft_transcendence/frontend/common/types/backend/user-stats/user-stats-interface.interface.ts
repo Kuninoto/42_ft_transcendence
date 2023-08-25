@@ -1,6 +1,6 @@
 export interface UserStatsInterface {
-	losses: number
-	matches_played: number
-	win_rate: number
-	wins: number
+  wins: number;
+  losses: number;
+  win_rate: number;
+  matches_played: number;
 }

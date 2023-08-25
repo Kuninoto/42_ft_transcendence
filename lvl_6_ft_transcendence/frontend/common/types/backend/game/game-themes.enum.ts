@@ -1,9 +1,8 @@
 export enum GameThemes {
-	ANIME = 'anime',
-	DEFAULT = 'default',
-	FORTY_TWO = 'forty_two',
-	MELO = 'melo',
-	MIKAO = 'mikao',
-	MIKI = 'miki',
-	MONKE = 'monke',
+  DEFAULT = 'default',
+  SAFARI = 'safari',
+  FORTY_TWO = 'forty_two',
+  MONKE = 'monke',
+  MIKI = 'miki',
+  MIKAO = 'mikao',
 }

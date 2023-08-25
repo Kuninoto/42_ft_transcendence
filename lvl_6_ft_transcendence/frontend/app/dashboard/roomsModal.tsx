@@ -3,6 +3,7 @@
 import { api } from '@/api/api'
 import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
 import { CreateRoomDTO } from '@/common/types/create-room.dto'
+import { JoinRoomDTO } from '@/common/types/join-room.dto'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { BiLockAlt } from 'react-icons/bi'
@@ -136,7 +137,13 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 		})
 	}, [search])
 
-	function joinRoom() { }
+	function joinRoom(id: number) {
+		const roomInfo: JoinRoomDTO = {
+			roomId: id,
+		}
+
+		api.post('/chat/join-room', roomInfo)
+	}
 
 	const [createRoom, setCreateRoom] = useState(false)
 
@@ -187,20 +194,29 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 										return (
 											<div
 												className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-												key={room.name}
+												key={room.roomId}
 											>
 												<div className="flex space-x-6">
 													<span className="text-xl">{room.name}</span>
 												</div>
 												<div className="flex items-center space-x-2">
-													{room.protected && (
-														<div>
-															<BiLockAlt size={24} />
-														</div>
+													{room.protected ? (
+														<>
+															<div>
+																<BiLockAlt size={24} />
+															</div>
+															<button className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
+																Join
+															</button>
+														</>
+													) : (
+														<button
+															className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+															onClick={() => joinRoom(room.)}
+														>
+															Join
+														</button>
 													)}
-													<button className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
-														Join
-													</button>
 												</div>
 											</div>
 										)

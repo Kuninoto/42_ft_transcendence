@@ -21,7 +21,7 @@ enum openModalType {
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
-	const { friends, newFriendNotification, seeNewFriendNotification } =
+	const { friends, newFriendNotification, rooms, seeNewFriendNotification } =
 		useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
@@ -177,36 +177,21 @@ export default function FriendsList(): JSX.Element {
 							className={`flex flex-col space-y-2 overflow-hidden transition-all 
 						${openGroupsAccordean ? 'max-h-full' : 'max-h-0'}`}
 						>
-							<button className="group" onClick={open}>
-								<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
-									<div>friend</div>
-									<div className="group-hover:invisible">members count</div>
-									<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
-										akjgwe
-									</div>
-								</div>
-							</button>
-
-							<Link className="group" href={'/'}>
-								<div className="roundend relative flex w-full place-content-around rounded border border-white py-2">
-									<div>friend</div>
-									<div className="group-hover:invisible">wins</div>
-									<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
-										akjgwe
-									</div>
-								</div>
-							</Link>
-
-							<Link className="group" href={'/'}>
-								<div className="roundend relative flex w-full place-content-around rounded border border-white py-2">
-									<div>friend</div>
-									<div className="group-hover:invisible">wins</div>
-									<div className="invisible absolute right-4 bg-red-500 group-hover:visible">
-										akjgwe
-										<button></button>
-									</div>
-								</div>
-							</Link>
+							{rooms?.map((room) => {
+								return (
+									<button className="group" key={room.roomId} onClick={open}>
+										<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
+											<div>{room.roomName}</div>
+											<div className="group-hover:invisible">
+												{room.participants?.length}
+											</div>
+											<div className="invisible absolute right-4 group-hover:visible">
+												by {room.ownerName}
+											</div>
+										</div>
+									</button>
+								)
+							})}
 						</div>
 					</>
 				</div>
