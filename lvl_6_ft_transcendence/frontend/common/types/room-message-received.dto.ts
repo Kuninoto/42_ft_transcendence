@@ -1,7 +1,8 @@
 import { Chatter } from './backend'
 
-export interface DirectMessageReceivedDTO {
+export interface RoomMessageReceivedDTO {
 	author: Chatter
 	content: string
+	id: number
 	uniqueId: string
 }

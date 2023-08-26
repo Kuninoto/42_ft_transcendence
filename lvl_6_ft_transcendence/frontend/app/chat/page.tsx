@@ -97,7 +97,7 @@ export default function Chat() {
 								</button>
 
 								<div className="absolute right-3 top-0 hidden h-full items-center group-hover:flex">
-									<button onClick={() => close(display.id)}>
+									<button onClick={() => close(display.id, 'room' in chat)}>
 										<IoIosClose className="h-6 w-6 rounded-full text-white hover:bg-[#FB37FF]" />
 									</button>
 								</div>
@@ -133,7 +133,7 @@ export default function Chat() {
 						</div>
 					)}
 					<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
-						{currentOpenChat?.messages.map((message) => {
+						{currentOpenChat?.messages?.map((message) => {
 							if (!message.sendByMe) {
 								return (
 									<div

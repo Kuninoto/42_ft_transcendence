@@ -110,7 +110,7 @@ export default function FriendsList(): JSX.Element {
 								>
 									<button
 										className="flex w-full place-content-between items-center px-4"
-										onClick={() => open(friend.uid)}
+										onClick={() => open(friend.uid, false)}
 									>
 										<div className="flex items-center space-x-4">
 											<div className="relative aspect-square w-8 overflow-hidden rounded-sm">
@@ -179,7 +179,11 @@ export default function FriendsList(): JSX.Element {
 						>
 							{rooms?.map((room) => {
 								return (
-									<button className="group" key={room.id} onClick={open}>
+									<button
+										className="group"
+										key={room.id}
+										onClick={() => open(room.id, true)}
+									>
 										<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
 											<div>{room.name}</div>
 											<div className="group-hover:invisible">
