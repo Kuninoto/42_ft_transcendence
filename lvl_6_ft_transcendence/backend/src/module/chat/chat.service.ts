@@ -392,6 +392,7 @@ export class ChatService {
 	): Promise<SuccessResponse | ErrorResponse> {
 		const room: ChatRoom = await this.findRoomById(roomId);
 
+
 		if (senderId === userToKickId) {
 			this.logger.warn(
 				`UID= ${senderId} tried to kick himself from room: "${room.name}"`,
@@ -504,7 +505,8 @@ export class ChatService {
 			this.connectionGateway.server.to(room.name).socketsLeave(room.name);
 			await this.chatRoomRepository.delete(room);
 		} else {
-			room.users = room.users.filter((user) => user.id !== userLeavingId);
+			room.users = room.users.filter((user) => user.id != userLeavingId);
+			console.log(room.users)
 			await this.chatRoomRepository.save(room);
 
 			/* In case this function is being used by kickFromRoom or banFromRoom
