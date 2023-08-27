@@ -3,6 +3,7 @@
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
+import Link from 'next/link'
 import { ChangeEventHandler, useState } from 'react'
 import { IoIosClose } from 'react-icons/io'
 import { LuSwords } from 'react-icons/lu'
@@ -46,7 +47,9 @@ export default function Chat() {
 		>
 			<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
 				<button className="w-full" onClick={changeOpenState}>
-					{'friend' in currentOpenChat ? currentOpenChat.friend?.name : 'room'}
+					{'friend' in currentOpenChat
+						? currentOpenChat.friend?.name
+						: currentOpenChat.room.name}
 				</button>
 				<button onClick={closeAll}>
 					<IoIosClose size={32} />
@@ -55,11 +58,13 @@ export default function Chat() {
 
 			<div className="flex h-full w-full overflow-hidden">
 				<div className="h-full w-4/12 overflow-y-auto border-r border-white scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
-					{openChats?.map((chat) => {
+					{openChats?.map((chat, index) => {
 						if (!chat.display) return
 
 						const display = {
+							avatar: 'room' in chat ? null : chat.friend.avatar_url,
 							id: 'room' in chat ? chat.room.id : chat.friend.uid,
+							isRoom: 'room' in chat,
 							name: 'room' in chat ? chat.room.name : chat.friend.name,
 						}
 
@@ -72,22 +77,22 @@ export default function Chat() {
 							<div
 								className={`group relative w-full items-center border-b border-white
 								${display.id !== openId && 'opacity-60 hover:opacity-100'}`}
-								key={display.id}
+								key={index}
 							>
 								<button
 									className={`flex h-12 items-center space-x-2 px-2 group-hover:w-5/6
 									${chat.unread ? 'w-5/6' : 'w-full '}`}
-									onClick={() => focus(display.id)}
+									onClick={() => focus(display.id, display.isRoom)}
 								>
 									{'friend' in chat && (
 										<div className="relative h-8 w-8 overflow-hidden rounded-sm">
 											<Image
 												alt={'player in chat profile picture'}
-												className="h-fit w-fit object-cover "
+												className="h-fit w-fit object-cover"
 												fill
 												loader={removeParams}
-												sizes="100vw"
-												src={chat.friend?.avatar_url || '/placeholder.gif'}
+												sizes="100%"
+												src={display.avatar || '/placeholder.gif'}
 											/>
 										</div>
 									)}
@@ -97,7 +102,7 @@ export default function Chat() {
 								</button>
 
 								<div className="absolute right-3 top-0 hidden h-full items-center group-hover:flex">
-									<button onClick={() => close(display.id, 'room' in chat)}>
+									<button onClick={() => close(display.id, display.isRoom)}>
 										<IoIosClose className="h-6 w-6 rounded-full text-white hover:bg-[#FB37FF]" />
 									</button>
 								</div>
@@ -133,25 +138,42 @@ export default function Chat() {
 						</div>
 					)}
 					<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
-						{currentOpenChat?.messages?.map((message) => {
+						{currentOpenChat?.messages?.map((message, index) => {
+							const isRoom = 'room' in currentOpenChat
+
+							const isLastOfSameAuthor =
+								!currentOpenChat.messages[index - 1] ||
+								currentOpenChat.messages[index - 1]?.author?.id !==
+									message.author?.id
+
 							if (!message.sendByMe) {
 								return (
-									<div
-										className=" my-2 w-fit max-w-[60%] break-words rounded border border-white p-2"
-										key={message.uniqueID}
-									>
-										{message.content}
+									<div className="mb-2 space-y-2" key={message.uniqueID}>
+										<div className="w-fit max-w-[60%] break-words rounded border border-white p-2">
+											{message.content}
+										</div>
+										{isRoom && isLastOfSameAuthor && (
+											<Link
+												className="mb-4 text-xs text-gray-500 hover:underline"
+												href={`/profile?id=${message.author?.id}`}
+											>
+												{message.author?.name}
+											</Link>
+										)}
 									</div>
 								)
 							}
 							return (
 								<div
-									className="my-2 flex w-full place-content-end "
+									className="mb-2 flex w-full flex-col place-content-end items-end space-y-1 "
 									key={message.uniqueID}
 								>
 									<div className="max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
 										{message.content}
 									</div>
+									{isRoom && isLastOfSameAuthor && (
+										<div className="mb-4 text-xs text-gray-500">You</div>
+									)}
 								</div>
 							)
 						})}
