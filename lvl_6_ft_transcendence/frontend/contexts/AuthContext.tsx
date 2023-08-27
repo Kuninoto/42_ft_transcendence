@@ -71,10 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}
 
 	function logout() {
+		if (socket) socket.disconnect()
+
 		router.push('/')
 		setUser({} as UserProfile)
-
-		if (socket) socket.disconnect()
 
 		Cookies.remove('pong.token')
 	}

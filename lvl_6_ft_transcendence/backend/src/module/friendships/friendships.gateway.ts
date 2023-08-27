@@ -87,6 +87,7 @@ export class FriendshipsGateway implements OnGatewayInit {
 				messageBody.content,
 			);
 		} else {
+			console.log("here")
 			this.connectionGateway.server
 				.to(receiverSocketId)
 				.emit('directMessageReceived', directMessageReceived);

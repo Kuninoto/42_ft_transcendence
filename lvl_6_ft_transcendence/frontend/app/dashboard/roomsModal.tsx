@@ -20,6 +20,8 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 	} = useForm()
 	const roomType = watch('type')
 
+	const { refreshRooms } = useFriends()
+
 	function createRoom({
 		name,
 		password,
@@ -40,6 +42,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 				.post('/chat/create-room', newRoom)
 				.then(() => {
 					closeModal()
+					refreshRooms()
 				})
 				.catch((e) =>
 					setError('name', {
@@ -184,8 +187,8 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 			api
 				.post('/chat/join-room', roomInfo)
 				.then(() => {
-					refreshRooms()
 					searchRoom('')
+					refreshRooms()
 				})
 				.catch((e) => {
 					console.log(e)
