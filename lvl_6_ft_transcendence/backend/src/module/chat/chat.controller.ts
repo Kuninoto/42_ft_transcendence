@@ -103,6 +103,56 @@ export class ChatController {
     return await this.chatService.findRoomsByRoomNameProximity(user.id, query);
   }
 
+  /**
+   * GET /api/chat/rooms/bans?room-id=
+   *
+   */
+  @ApiOkResponse({
+    description: 'Returns an array of the user ids of the banned users',
+  })
+  @ApiQuery({
+    description: 'The room id',
+    name: 'room-id',
+    type: 'number',
+  })
+  @UseGuards(OwnerGuard)
+  @Get('/rooms/bans')
+  public async findRoomBans(
+    @Query('room-id') query: number,
+  ): Promise<number[]> {
+    const room: ChatRoom | null = await this.chatService.findRoomById(query);
+    if (!room) {
+      throw new NotFoundException(`Room with id=${query} doesn't exist`);
+    }
+
+    return room.bans.map((bannedUser: User) => bannedUser.id);
+  }
+
+  /**
+   * GET /api/chat/rooms/admins?room-id=
+   *
+   */
+  @ApiOkResponse({
+    description: 'Returns an array of the user ids of the admins',
+  })
+  @ApiQuery({
+    description: 'The room id',
+    name: 'room-id',
+    type: 'number',
+  })
+  @UseGuards(OwnerGuard)
+  @Get('/rooms/admins')
+  public async findRoomAdmins(
+    @Query('room-id') query: number,
+  ): Promise<number[]> {
+    const room: ChatRoom | null = await this.chatService.findRoomById(query);
+    if (!room) {
+      throw new NotFoundException(`Room with id=${query} doesn't exist`);
+    }
+
+    return room.admins.map((bannedUser: User) => bannedUser.id);
+  }
+
   @ApiNotFoundResponse({
     description: "The room doesn't exist",
   })
