@@ -41,9 +41,9 @@ function MuteTooltip({ id, roomId }: ITooltip) {
 
 	function mute({ duration, span }: { duration: number; span: string }) {
 		api.post(`/chat/mute`, {
+			roomId: parseInt(roomId),
+			userId: parseInt(id),
 			duration: `${duration}${span}`,
-			roomId,
-			userId: id,
 		})
 	}
 
@@ -72,15 +72,15 @@ function MuteTooltip({ id, roomId }: ITooltip) {
 function Tooltip({ id, roomId }: ITooltip) {
 	function promote() {
 		api.post(`/chat/add-admin`, {
-			roomId,
-			userId: id,
+			roomId: parseInt(roomId),
+			userId: parseInt(id),
 		})
 	}
 
 	function demote() {
 		api.post(`/chat/remove-admin`, {
-			roomId,
-			userId: id,
+			roomId: parseInt(roomId),
+			userId: parseInt(id),
 		})
 	}
 
@@ -93,8 +93,8 @@ function Tooltip({ id, roomId }: ITooltip) {
 
 	function ban() {
 		api.post(`/chat/ban`, {
-			roomId,
-			userId: id,
+			roomId: parseInt(roomId),
+			userId: parseInt(id),
 		})
 	}
 

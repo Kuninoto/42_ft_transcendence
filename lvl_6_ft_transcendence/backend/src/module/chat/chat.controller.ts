@@ -20,6 +20,7 @@ import {
   ApiNotAcceptableResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -96,20 +97,26 @@ export class ChatController {
     type: 'string',
   })
   @Get('/rooms/search')
-  public async findRoomsByRoomNameProximity(
+  public async findRoomsByNameProximity(
     @ExtractUser() user: User,
     @Query('room-name') query: string,
   ): Promise<ChatRoomSearchInfo[]> {
-    return await this.chatService.findRoomsByRoomNameProximity(user.id, query);
+    return await this.chatService.findRoomsByNameProximity(user.id, query);
   }
 
   /**
    * GET /api/chat/rooms/bans?room-id=
    *
+   * This is the route to visit to get the ids
+   * of the banned users on the room which id=room-id
    */
+  @ApiOperation({
+    description: 'Get the ids of the banned users on the room which id=room-id',
+  })
   @ApiOkResponse({
     description: 'Returns an array of the user ids of the banned users',
   })
+  @ApiNotFoundResponse({ description: "Room with id= room-id doesn't exist" })
   @ApiQuery({
     description: 'The room id',
     name: 'room-id',
@@ -125,16 +132,22 @@ export class ChatController {
       throw new NotFoundException(`Room with id=${query} doesn't exist`);
     }
 
-    return room.bans.map((bannedUser: User) => bannedUser.id);
+    return room.bans.map((bannedUser: User): number => bannedUser.id);
   }
 
   /**
    * GET /api/chat/rooms/admins?room-id=
    *
+   * This is the route to visit to get the ids
+   * of the admins on the room which id=room-id
    */
+  @ApiOperation({
+    description: 'Get the ids of the admins on the room which id=room-id',
+  })
   @ApiOkResponse({
     description: 'Returns an array of the user ids of the admins',
   })
+  @ApiNotFoundResponse({ description: "Room with id= room-id doesn't exist" })
   @ApiQuery({
     description: 'The room id',
     name: 'room-id',
@@ -150,11 +163,14 @@ export class ChatController {
       throw new NotFoundException(`Room with id=${query} doesn't exist`);
     }
 
-    return room.admins.map((bannedUser: User) => bannedUser.id);
+    return room.admins.map((bannedUser: User): number => bannedUser.id);
   }
 
   @ApiNotFoundResponse({
     description: "The room doesn't exist",
+  })
+  @ApiUnauthorizedResponse({
+    description: 'If room is protected and user fails the room password',
   })
   @ApiForbiddenResponse({ description: 'If user is banned from room' })
   @ApiConflictResponse({ description: 'If user is already in the room' })
@@ -164,7 +180,7 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: JoinRoomDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.joinRoom(user, body.roomId);
+    return await this.chatService.joinRoom(user, body.roomId, body.password);
   }
 
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
@@ -187,6 +203,9 @@ export class ChatController {
   }
 
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
+  @ApiConflictResponse({
+    description: 'If the invited user is already part of the room',
+  })
   @HttpCode(HttpStatus.OK)
   @Post('/invite')
   public async inviteToRoom(
@@ -305,6 +324,9 @@ export class ChatController {
     return await this.chatService.assignAdminRole(body.userId, body.roomId);
   }
 
+  @ApiOperation({
+    description: 'Remove admin privileges of a participant of a room',
+  })
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",

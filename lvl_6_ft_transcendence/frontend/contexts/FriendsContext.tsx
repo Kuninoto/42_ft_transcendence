@@ -247,7 +247,13 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			setExists(anyDisplay)
 
 			if (anyDisplay && currentId === id) {
-				setCurrentOpenChat(newChat.find((chat) => chat.display)[0])
+				const oneDisplay: IChat | undefined = newChat.find(
+					(chat) => chat.display
+				)
+
+				if (oneDisplay) {
+					setCurrentOpenChat(oneDisplay)
+				}
 			}
 			return newChat
 		})

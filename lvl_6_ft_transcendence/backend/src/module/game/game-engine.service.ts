@@ -31,12 +31,57 @@ CANVAS AXIS
 @Injectable()
 export class GameEngineService {
   constructor(
-    @Inject(forwardRef(() => GameGateway))
-    private readonly gameGateway: GameGateway,
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
     private readonly GameRoomMap: GameRoomMap,
+    @Inject(forwardRef(() => GameGateway))
+    private readonly gameGateway: GameGateway,
   ) {}
+
+  public startGame(roomId: string): void {
+    const gameRoom: GameRoom | undefined =
+      this.GameRoomMap.findGameRoomById(roomId);
+
+    // If a user disconnects right upon game start
+    // gameRoom will end up undefined
+    if (!gameRoom) {
+      return;
+    }
+
+    gameRoom.gameLoopIntervalId = setInterval(() => {
+      // Fetch the game room info (which can possibly be updated by
+      // game-gateway on 'paddle-move' message) and pass it to the gameLoop()
+      this.gameLoop(this.GameRoomMap.findGameRoomById(roomId));
+    }, GAME_LOOP_INTERVAL);
+  }
+
+  private gameLoop(gameRoom: GameRoom): void {
+    gameRoom.ball.moveBySpeed();
+    this.gameGateway.broadcastGameRoomInfo(gameRoom);
+
+    if (this.ballCollidedWithPaddle(gameRoom)) {
+      this.gameGateway.broadcastGameRoomInfo(gameRoom);
+    }
+
+    if (this.ballCollidedWithWall(gameRoom.ball)) {
+      this.gameGateway.broadcastGameRoomInfo(gameRoom);
+    }
+
+    if (this.somePlayerScored(gameRoom)) {
+      this.gameGateway.broadcastGameRoomInfo(gameRoom);
+
+      // Check if game should end
+      if (
+        gameRoom.rightPlayer.score === MAX_SCORE ||
+        gameRoom.leftPlayer.score === MAX_SCORE
+      ) {
+        this.endGame(gameRoom);
+        return;
+      }
+
+      sleep(RESET_GAME_DELAY);
+    }
+  }
 
   /* Verifies if the ball is colliding with a paddle and updates
   its direction if so */
@@ -80,73 +125,6 @@ export class GameEngineService {
         );
         return true;
       }
-    }
-    return false;
-  }
-
-  private ballCollidedWithWall(ball: Ball): boolean {
-    // TOP || BOTTOM
-    if (
-      (ball.y - BALL_RADIUS <= 0 && ball.speed.y < 0) ||
-      (ball.y + BALL_RADIUS >= CANVAS_HEIGHT && ball.speed.y > 0)
-    ) {
-      ball.bounceInY();
-      return true;
-    }
-    return false;
-  }
-
-  private gameLoop(gameRoom: GameRoom): void {
-    gameRoom.ball.moveBySpeed();
-    this.gameGateway.broadcastGameRoomInfo(gameRoom);
-
-    if (this.ballCollidedWithPaddle(gameRoom)) {
-      this.gameGateway.broadcastGameRoomInfo(gameRoom);
-    }
-
-    if (this.ballCollidedWithWall(gameRoom.ball)) {
-      this.gameGateway.broadcastGameRoomInfo(gameRoom);
-    }
-
-    if (this.somePlayerScored(gameRoom)) {
-      this.gameGateway.broadcastGameRoomInfo(gameRoom);
-
-      // Check if game should end
-      if (
-        gameRoom.rightPlayer.score === MAX_SCORE ||
-        gameRoom.leftPlayer.score === MAX_SCORE
-      ) {
-        this.endGame(gameRoom);
-        return;
-      }
-
-      sleep(RESET_GAME_DELAY);
-    }
-  }
-
-  private somePlayerScored(gameRoom: GameRoom): boolean {
-    if (gameRoom.ball.x - BALL_RADIUS <= 0) {
-      // BALL PASSED LEFT SIDE
-
-      gameRoom.rightPlayer.score += 1;
-      gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(
-        gameRoom.roomId,
-        gameRoom.leftPlayer.score,
-        gameRoom.rightPlayer.score,
-      );
-      return true;
-    } else if (gameRoom.ball.x + BALL_RADIUS >= CANVAS_WIDTH) {
-      // BALL PASSED RIGHT SIDE
-
-      gameRoom.leftPlayer.score += 1;
-      gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(
-        gameRoom.roomId,
-        gameRoom.leftPlayer.score,
-        gameRoom.rightPlayer.score,
-      );
-      return true;
     }
     return false;
   }
@@ -202,12 +180,42 @@ export class GameEngineService {
     }
   }
 
-  public startGame(roomId: string): void {
-    const gameRoom: GameRoom = this.GameRoomMap.findGameRoomById(roomId);
-    gameRoom.gameLoopIntervalId = setInterval(() => {
-      // Fetch the game room info (which can possibly be updated by
-      // game-gateway on 'paddle-move' message) and pass it to the gameLoop()
-      this.gameLoop(this.GameRoomMap.findGameRoomById(roomId));
-    }, GAME_LOOP_INTERVAL);
+  private ballCollidedWithWall(ball: Ball): boolean {
+    // TOP || BOTTOM
+    if (
+      (ball.y - BALL_RADIUS <= 0 && ball.speed.y < 0) ||
+      (ball.y + BALL_RADIUS >= CANVAS_HEIGHT && ball.speed.y > 0)
+    ) {
+      ball.bounceInY();
+      return true;
+    }
+    return false;
+  }
+
+  private somePlayerScored(gameRoom: GameRoom): boolean {
+    if (gameRoom.ball.x - BALL_RADIUS <= 0) {
+      // BALL PASSED LEFT SIDE
+
+      gameRoom.rightPlayer.score += 1;
+      gameRoom.ball.reset();
+      this.gameGateway.emitPlayerScoredEvent(
+        gameRoom.roomId,
+        gameRoom.leftPlayer.score,
+        gameRoom.rightPlayer.score,
+      );
+      return true;
+    } else if (gameRoom.ball.x + BALL_RADIUS >= CANVAS_WIDTH) {
+      // BALL PASSED RIGHT SIDE
+
+      gameRoom.leftPlayer.score += 1;
+      gameRoom.ball.reset();
+      this.gameGateway.emitPlayerScoredEvent(
+        gameRoom.roomId,
+        gameRoom.leftPlayer.score,
+        gameRoom.rightPlayer.score,
+      );
+      return true;
+    }
+    return false;
   }
 }

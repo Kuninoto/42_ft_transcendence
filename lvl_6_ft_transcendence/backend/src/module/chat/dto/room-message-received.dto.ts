@@ -1,8 +1,8 @@
 import { Chatter } from 'types';
 
 export interface RoomMessageReceivedDTO {
-	uniqueId: string;
-	author: Chatter;
-	content: string;
-	id: number;
+  uniqueId: string;
+  id: number;
+  author: Chatter;
+  content: string;
 }
