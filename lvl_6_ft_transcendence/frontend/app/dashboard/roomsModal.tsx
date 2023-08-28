@@ -3,12 +3,26 @@
 import { api } from '@/api/api'
 import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
 import { CreateRoomDTO } from '@/common/types/create-room.dto'
+import { JoinRoomDTO } from '@/common/types/join-room.dto'
+import { useFriends } from '@/contexts/FriendsContext'
+import bycrypt from 'bcryptjs'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { AiOutlinePlus } from 'react-icons/ai'
 import { BiLockAlt } from 'react-icons/bi'
+import { toast } from 'react-toastify'
 
 function CreateRoom({ closeModal }: { closeModal: () => void }) {
-	const { handleSubmit, register, watch } = useForm()
+	const {
+		formState: { errors },
+		handleSubmit,
+		register,
+		setError,
+		watch,
+	} = useForm()
+	const roomType = watch('type')
+
+	const { refreshRooms } = useFriends()
 
 	function createRoom({
 		name,
@@ -30,14 +44,18 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 				.post('/chat/create-room', newRoom)
 				.then(() => {
 					closeModal()
+					refreshRooms()
 				})
-				.catch((e) => console.log(e))
-		} catch (error: any) { }
+				.catch((e) =>
+					setError('name', {
+						message: e.response.data.message,
+						type: 'alreadyInUser',
+					})
+				)
+		} catch (error: any) {}
 
 		console.log(name, type)
 	}
-
-	const roomType = watch('type')
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
@@ -53,12 +71,32 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 							className="flex flex-col space-y-8"
 							onSubmit={handleSubmit(createRoom)}
 						>
-							<input
-								{...register('name')}
-								className="rounded border border-white bg-transparent px-4 py-2"
-								placeholder="Room name"
-								type="text"
-							/>
+							<fieldset className="flex w-full flex-col space-y-2">
+								<input
+									{...register('name', {
+										maxLength: {
+											message: 'Room names must have up to 10 characters long ',
+											value: 10,
+										},
+										minLength: {
+											message: 'Room names must at least 4 characters long',
+											value: 4,
+										},
+										pattern: {
+											message: 'Invalid character',
+											value: /^[A-Za-z0-9_]+$/,
+										},
+									})}
+									className="w-full rounded border border-white bg-transparent px-4 py-3"
+									placeholder="Room name"
+									type="text"
+								/>
+								{errors.name && (
+									<span className="text-xs text-red-600">
+										{errors.name.message}
+									</span>
+								)}
+							</fieldset>
 
 							<fieldset className="flex flex-col space-y-8">
 								<label className="flex items-center space-x-2">
@@ -100,7 +138,9 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										<span>Protected</span>
 										<input
 											disabled={roomType !== ChatRoomType.PROTECTED}
-											{...register('password')}
+											{...register('password', {
+												required: roomType === ChatRoomType.PROTECTED,
+											})}
 											className=" w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
 											type="password"
 										/>
@@ -126,19 +166,57 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 	const [loading, setLoading] = useState(true)
 
 	const [rooms, setRooms] = useState<ChatRoomSearchInfo[]>([])
+	const [createRoom, setCreateRoom] = useState(false)
 
-	useEffect(() => {
+	const [showPasswordField, setShowPassowordField] = useState(-1)
+
+	const { handleSubmit, register } = useForm()
+
+	const { refreshRooms } = useFriends()
+
+	function searchRoom(search: string) {
 		setLoading(true)
 		api.get(`/chat/rooms/search?room-name=${search}`).then((result) => {
 			setRooms(result.data)
-			console.log(result.data)
 			setLoading(false)
 		})
+	}
+
+	useEffect(() => {
+		searchRoom(search)
 	}, [search])
 
-	function joinRoom() { }
+	function onSubmit(data: any) {
+		console.log('asdasd')
+		console.log(data)
+		joinRoom(data.roomId, data.password)
+		setShowPassowordField(-1)
+	}
 
-	const [createRoom, setCreateRoom] = useState(false)
+	function joinRoom(id: number, password: string | undefined) {
+		console.log(password)
+
+		const roomInfo: JoinRoomDTO = {
+			password,
+			roomId: parseInt(id),
+		}
+
+		try {
+			api
+				.post('/chat/join-room', roomInfo)
+				.then((data) => {
+					console.log(data)
+					searchRoom('')
+					refreshRooms()
+				})
+				.catch((e) => {
+					console.log(e)
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
@@ -149,7 +227,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 				onClick={closeModal}
 			></button>
 			<div className="px-8 py-32">
-				<div className="group relative grid items-start justify-center  gap-8">
+				<div className="group relative grid items-start justify-center gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none">
 						<div className="flex w-[34rem] space-x-2">
@@ -162,10 +240,10 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 								value={search}
 							/>
 							<button
-								className="aspect-square w-12 place-content-center items-center rounded-r border border-white mix-blend-lighten hover:bg-white hover:text-black"
+								className="flex aspect-square w-12 place-content-center items-center rounded-r border border-white text-white mix-blend-lighten hover:bg-white hover:text-black"
 								onClick={() => setCreateRoom(true)}
 							>
-								+
+								<AiOutlinePlus size={24} />
 							</button>
 						</div>
 						<div className="mt-8 h-56 space-y-3 overflow-auto border-none ">
@@ -182,30 +260,72 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 							) : rooms.length === 0 ? (
 								<div> No one </div>
 							) : (
-								<>
+								<div className="flex h-full flex-col space-y-2 overflow-auto scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 									{rooms.map((room) => {
 										return (
 											<div
 												className="flex place-content-between items-center rounded border border-white/50 px-4 py-2 text-white/50 hover:border-white hover:text-white"
-												key={room.name}
+												key={room.id}
 											>
 												<div className="flex space-x-6">
 													<span className="text-xl">{room.name}</span>
 												</div>
 												<div className="flex items-center space-x-2">
-													{room.protected && (
-														<div>
-															<BiLockAlt size={24} />
-														</div>
+													{room.protected ? (
+														<>
+															<div>
+																<BiLockAlt size={24} />
+															</div>
+															<form
+																className="space-x-2"
+																onSubmit={handleSubmit(onSubmit)}
+															>
+																<input
+																	className={`${
+																		showPasswordField === room.id
+																			? 'w-40 border border-white px-3 py-1'
+																			: 'w-0'
+																	} rounded  bg-transparent text-white transition-all duration-300 `}
+																	{...register('password', { required: true })}
+																	placeholder="Password"
+																	type="password"
+																/>
+																<input
+																	className="hidden"
+																	type="number"
+																	value={room.id}
+																	{...register('roomId')}
+																/>
+																{showPasswordField === room.id && (
+																	<input
+																		className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+																		type="submit"
+																		value={'Join'}
+																	></input>
+																)}
+															</form>
+															{showPasswordField !== room.id && (
+																<button
+																	className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+																	onClick={() => setShowPassowordField(room.id)}
+																>
+																	Join
+																</button>
+															)}
+														</>
+													) : (
+														<button
+															className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+															onClick={() => joinRoom(room.id, undefined)}
+														>
+															Join
+														</button>
 													)}
-													<button className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
-														Join
-													</button>
 												</div>
 											</div>
 										)
 									})}
-								</>
+								</div>
 							)}
 						</div>
 					</div>

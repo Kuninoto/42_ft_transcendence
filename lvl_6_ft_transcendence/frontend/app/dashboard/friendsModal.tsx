@@ -7,6 +7,7 @@ import {
 	UserSearchInfo,
 } from '@/common/types/backend'
 import { removeParams } from '@/contexts/AuthContext'
+import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -30,6 +31,8 @@ function Buttons({
 	resetSearch?: () => void
 }) {
 	const isRequest = 'uid' in request
+
+	const { refreshFriends } = useFriends()
 
 	const friend: InfoOrRequest = {
 		friendship_id: isRequest ? request.friendship_id : null,
@@ -67,7 +70,10 @@ function Buttons({
 			.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.ACCEPTED,
 			})
-			.then(() => refresh())
+			.then(() => {
+				refresh()
+				refreshFriends()
+			})
 	}
 
 	function decline(friendship_id: number) {
@@ -184,14 +190,16 @@ function FriendRequests() {
 						key={request.uid}
 					>
 						<div className="flex space-x-6">
-							<Image
-								alt="profile picture"
-								className="aspect-square w-8 rounded"
-								loader={removeParams}
-								sizes="100%"
-								src={request?.avatar_url || '/placeholder.gif'}
-								unoptimized
-							/>
+							<div className="relative aspect-square w-8 rounded">
+								<Image
+									alt="profile picture"
+									fill
+									loader={removeParams}
+									sizes="100%"
+									src={request?.avatar_url || '/placeholder.gif'}
+									unoptimized
+								/>
+							</div>
 							<span className="text-xl">{request.name}</span>
 						</div>
 						<div className="flex space-x-2">
@@ -239,15 +247,17 @@ function FriendSearch({
 								key={user.id}
 							>
 								<div className="flex space-x-6">
-									<Image
-										alt="profile picture"
-										className="aspect-square w-8 rounded"
-										height={0}
-										loader={removeParams}
-										sizes="100%"
-										src={user.avatar_url || '/placeholder.gif'}
-										width={0}
-									/>
+									<div className="relative aspect-square w-8 rounded">
+										<Image
+											alt="profile picture"
+											className="object-cover"
+											fill
+											loader={removeParams}
+											sizes="100%"
+											src={user.avatar_url || '/placeholder.gif'}
+											unoptimized
+										/>
+									</div>
 									<span className="text-xl">{user.name}</span>{' '}
 								</div>
 

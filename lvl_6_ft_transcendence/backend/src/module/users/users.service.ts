@@ -12,7 +12,6 @@ import * as path from 'path';
 import { Repository } from 'typeorm';
 import {
   BlockedUserInterface,
-  ChatRoomRoles,
   Chatter,
   ErrorResponse,
   Friend,
@@ -28,6 +27,7 @@ import {
   UserSearchInfo,
   UserStatus,
 } from 'types';
+import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import {
   BlockedUser,
   ChatRoom,
@@ -101,7 +101,12 @@ export class UsersService {
   public async findChatRoomsWhereUserIs(uid: number): Promise<MeChatRoom[]> {
     const rooms: ChatRoom[] | undefined = (
       await this.usersRepository.findOne({
-        relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
+        relations: [
+          'chat_rooms',
+          'chat_rooms.owner',
+          'chat_rooms.admins',
+          'chat_rooms.users',
+        ],
         where: { id: uid },
       })
     ).chat_rooms;
@@ -139,7 +144,7 @@ export class UsersService {
     });
 
     const matchHistory: GameResultInterface[] = gameResults.map(
-      (gameResult) => {
+      (gameResult: GameResult): GameResultInterface => {
         return {
           loser: {
             avatar_url: gameResult.loser.avatar_url,
@@ -368,7 +373,7 @@ export class UsersService {
     newName: string,
   ): Promise<ErrorResponse | SuccessResponse> {
     // Check name length boundaries (4-10)
-    if (!(newName.length <= 4 && newName.length >= 10)) {
+    if (newName.length <= 4 || newName.length >= 10) {
       this.logger.warn(
         `UID= ${userId} failed to update his username due to length boundaries`,
       );
@@ -480,7 +485,7 @@ export class UsersService {
     if (chatRoom.owner.id == meUID) return ChatRoomRoles.OWNER;
 
     const isAdmin: boolean = chatRoom.admins.find((admin: User) => {
-      admin.id == meUID;
+      return admin.id == meUID;
     })
       ? true
       : false;
