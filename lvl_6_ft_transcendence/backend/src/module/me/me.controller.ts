@@ -20,19 +20,19 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity/index';
 import {
   BlockedUserInterface,
-  ChatRoomInterface,
   ErrorResponse,
   Friend,
   FriendRequest,
   GameThemes,
+  MeChatRoom,
   MeUserInfo,
   SuccessResponse,
   UsernameUpdationRequest,
 } from 'types';
-import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UsersService } from '../users/users.service';
 import { multerConfig } from './middleware/multer/multer.config';
@@ -115,12 +115,13 @@ export class MeController {
    * Finds and returns the rooms where 'me' user is
    */
   @ApiOkResponse({
-    description: "Finds and returns the rooms where 'me' user is",
+    description:
+      "Finds and returns the rooms where 'me' user is (MeChatRoom[])",
   })
   @Get('rooms')
   public async findMyChatRooms(
     @ExtractUser() user: User,
-  ): Promise<ChatRoomInterface[]> {
+  ): Promise<MeChatRoom[]> {
     this.logger.log(`"${user.name}" requested his rooms`);
     return await this.usersService.findChatRoomsWhereUserIs(user.id);
   }

@@ -12,7 +12,7 @@ import * as path from 'path';
 import { Repository } from 'typeorm';
 import {
 	BlockedUserInterface,
-	ChatRoomInterface,
+	ChatRoomRoles,
 	Chatter,
 	ErrorResponse,
 	Friend,
@@ -20,6 +20,7 @@ import {
 	FriendshipStatus,
 	GameResultInterface,
 	GameThemes,
+	MeChatRoom,
 	MeUserInfo,
 	OpponentInfo,
 	SuccessResponse,
@@ -97,9 +98,7 @@ export class UsersService {
 		return await this.friendshipsService.findBlocklistByUID(meUID);
 	}
 
-	public async findChatRoomsWhereUserIs(
-		uid: number,
-	): Promise<ChatRoomInterface[]> {
+	public async findChatRoomsWhereUserIs(uid: number): Promise<MeChatRoom[]> {
 		const rooms: ChatRoom[] | undefined = (
 			await this.usersRepository.findOne({
 				relations: ['chat_rooms', 'chat_rooms.owner', 'chat_rooms.users'],
@@ -111,11 +110,12 @@ export class UsersService {
 			return [];
 		}
 
-		const roomInterfaces: ChatRoomInterface[] = rooms.map(
-			(room: ChatRoom): ChatRoomInterface => ({
+		const roomInterfaces: MeChatRoom[] = rooms.map(
+			(room: ChatRoom): MeChatRoom => ({
 				id: room.id,
 				name: room.name,
 				ownerName: room.owner.name,
+				myRole: this.findMyRoleOnChatRoom(uid, room),
 				participants: room.users.map(
 					(user: User): Chatter => ({
 						id: user.id,
@@ -471,5 +471,22 @@ export class UsersService {
 			name: newName,
 		});
 		return user ? true : false;
+	}
+
+	private findMyRoleOnChatRoom(
+		meUID: number,
+		chatRoom: ChatRoom,
+	): ChatRoomRoles {
+		if (chatRoom.owner.id == meUID) return ChatRoomRoles.OWNER;
+
+		const isAdmin: boolean = chatRoom.admins.find((admin: User) => {
+			admin.id == meUID;
+		})
+			? true
+			: false;
+
+		if (isAdmin) return ChatRoomRoles.ADMIN;
+
+		return ChatRoomRoles.CHATTER;
 	}
 }
