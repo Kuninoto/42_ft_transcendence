@@ -233,10 +233,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					? currentOpenChat.room.id
 					: currentOpenChat.friend.uid
 
-			if (newChat.length > 1 && currentId === id) {
-				setCurrentOpenChat(prevChats[1])
-			}
-
 			const index = newChat?.findIndex((chat) => {
 				if (isRoom && 'room' in chat) return chat.room.id === id
 				if (!isRoom && 'friend' in chat) return chat.friend.uid === id
@@ -245,7 +241,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			})
 
 			newChat[index].display = false
-			setExists(newChat.some((chat) => chat.display))
+
+			const anyDisplay = newChat.some((chat) => chat.display)
+
+			setExists(anyDisplay)
+
+			if (anyDisplay && currentId === id) {
+				setCurrentOpenChat(newChat.find((chat) => chat.display)[0])
+			}
 			return newChat
 		})
 	}

@@ -10,19 +10,13 @@ import { GameThemeUpdationRequest, GameThemes } from 'types';
 export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
   private readonly logger: Logger = new Logger();
 
-  readonly themes: string[] = [
-    'default',
-    'fortyTwo',
-    'safari',
-    'monke',
-    'miki',
-    'mikao',
-  ];
-
   transform(value: GameThemeUpdationRequest): GameThemes {
     const response: GameThemes = value.newGameTheme;
 
-    if (!response || !this.themes.includes(response)) {
+    if (
+      !response ||
+      !Object.keys(GameThemes).some((value: string) => response === value)
+    ) {
       this.logger.warn(
         'A request to update a game theme was made with an invalid game theme',
       );
