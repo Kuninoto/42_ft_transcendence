@@ -1,10 +1,10 @@
 import { forwardRef, Inject, Logger } from '@nestjs/common';
 import {
-	OnGatewayConnection,
-	OnGatewayDisconnect,
-	OnGatewayInit,
-	WebSocketGateway,
-	WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
@@ -19,149 +19,151 @@ import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
 import { NewUserStatusDTO } from './dto/new-user-status.dto';
 
 @WebSocketGateway({
-	cors: GatewayCorsOption,
-	namespace: 'connection',
+  cors: GatewayCorsOption,
+  namespace: 'connection',
 })
 export class ConnectionGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-	private readonly logger: Logger = new Logger(ConnectionGateway.name);
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+  constructor(
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+    private readonly friendshipsService: FriendshipsService,
+    private readonly gameService: GameService,
+    private readonly chatService: ChatService,
+    private readonly connectionService: ConnectionService,
+  ) {}
 
-	@WebSocketServer()
-	public server: Server;
-	constructor(
-		@Inject(forwardRef(() => UsersService))
-		private readonly usersService: UsersService,
-		private readonly friendshipsService: FriendshipsService,
-		private readonly gameService: GameService,
-		private readonly chatService: ChatService,
-		private readonly connectionService: ConnectionService,
-	) { }
+  private readonly logger: Logger = new Logger(ConnectionGateway.name);
 
-	afterInit(server: Server) {
-		this.logger.log('Connection-Gateway Initialized');
-	}
+  @WebSocketServer()
+  public server: Server;
 
-	async handleConnection(client: Socket): Promise<void> {
-		try {
-			// Throws if there's any misconfig with the access token
-			// (bad signature, user doesn't exist or isn't part of the whitelist)
-			const user: User =
-				await this.connectionService.authenticateClientAndRetrieveUser(client);
+  afterInit(server: Server) {
+    this.logger.log('Connection-Gateway Initialized');
+  }
 
-			client.data.userId = user.id;
-			client.data.name = user.name;
+  async handleConnection(client: Socket): Promise<void> {
+    try {
+      // Throws if there's any misconfig with the access token
+      // (bad signature, user doesn't exist or isn't part of the whitelist)
+      const user: User =
+        await this.connectionService.authenticateClientAndRetrieveUser(client);
 
-			await this.updateUserStatus(user.id, UserStatus.ONLINE);
+      client.data.userId = user.id;
+      client.data.name = user.name;
 
-			this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
+      await this.updateUserStatus(user.id, UserStatus.ONLINE);
 
-			this.chatService.joinUserRooms(client);
+      this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
-			this.chatService.sendMissedDirectMessages(client.id, user.id);
+      this.chatService.joinUserRooms(client);
 
-			this.logger.log(`${user.name} is online`);
-		} catch (error: any) {
-			this.logger.warn(`${error.message}. Disconnecting...`);
-			client.disconnect();
-		}
-	}
+      this.chatService.sendMissedDirectMessages(client.id, user.id);
 
-	async handleDisconnect(client: Socket): Promise<void> {
-		if (!client.data.userId) return;
+      this.logger.log(`${user.name} is online`);
+    } catch (error: any) {
+      this.logger.warn(`${error.message}. Disconnecting...`);
+      client.disconnect();
+    }
+  }
 
-		await this.gameService.disconnectPlayer(client.data.userId);
-		await this.updateUserStatus(client.data.userId, UserStatus.OFFLINE);
+  async handleDisconnect(client: Socket): Promise<void> {
+    if (!client.data.userId) return;
 
-		this.connectionService.deleteSocketIdByUID(client.data.userId);
+    await this.gameService.disconnectPlayer(client.data.userId);
+    await this.updateUserStatus(client.data.userId, UserStatus.OFFLINE);
 
-		this.logger.log(`${client.data.name} is now offline`);
-	}
+    this.connectionService.deleteSocketIdByUID(client.data.userId);
 
-	async achievementUnlocked(
-		userId: number,
-		achievement: Achievements,
-	): Promise<void> {
-		const socketId: string = this.connectionService.findSocketIdByUID(
-			userId.toString(),
-		);
+    this.logger.log(`${client.data.name} is now offline`);
+  }
 
-		const achievementUnlocked: AchievementUnlockedDTO = {
-			achievement: achievement,
-		};
-		this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
-	}
+  async achievementUnlocked(
+    userId: number,
+    achievement: Achievements,
+  ): Promise<void> {
+    const socketId: string = this.connectionService.findSocketIdByUID(
+      userId.toString(),
+    );
 
-	friendRequestReceived(receiverUID: number) {
-		const receiverSocketId: string | undefined =
-			this.connectionService.findSocketIdByUID(receiverUID.toString());
+    const achievementUnlocked: AchievementUnlockedDTO = {
+      achievement: achievement,
+    };
+    this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
+  }
 
-		if (receiverSocketId) {
-			this.server.to(receiverSocketId).emit('friendRequestReceived');
-		}
-	}
+  friendRequestReceived(receiverUID: number) {
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-	async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
-		const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
-			userId,
-		);
+    if (receiverSocketId) {
+      this.server.to(receiverSocketId).emit('friendRequestReceived');
+    }
+  }
 
-		const friendRoomNames: string[] = friends.map(
-			(friend: Friend) => 'friend-' + friend.uid,
-		);
+  async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
+    const friends: Friend[] = await this.friendshipsService.findFriendsByUID(
+      userId,
+    );
 
-		client.join(friendRoomNames);
-	}
+    const friendRoomNames: string[] = friends.map(
+      (friend: Friend) => 'friend-' + friend.uid,
+    );
 
-	leaveFriendRooms(senderUID: number, receiverUID: number): void {
-		const senderSocketId: string | undefined =
-			this.connectionService.findSocketIdByUID(senderUID.toString());
-		const receiverSocketId: string | undefined =
-			this.connectionService.findSocketIdByUID(receiverUID.toString());
+    client.join(friendRoomNames);
+  }
 
-		if (senderSocketId)
-			this.server.to(senderSocketId).socketsLeave(`friend-${receiverUID}`);
+  leaveFriendRooms(senderUID: number, receiverUID: number): void {
+    const senderSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(senderUID.toString());
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-		if (receiverSocketId)
-			this.server.to(receiverSocketId).socketsLeave(`friend-${senderUID}`);
-	}
+    if (senderSocketId)
+      this.server.to(senderSocketId).socketsLeave(`friend-${receiverUID}`);
 
-	makeFriendsJoinEachOthersRoom(senderUID: number, receiverUID: number): void {
-		const senderSocketId: string | undefined =
-			this.connectionService.findSocketIdByUID(senderUID.toString());
-		const receiverSocketId: string | undefined =
-			this.connectionService.findSocketIdByUID(receiverUID.toString());
+    if (receiverSocketId)
+      this.server.to(receiverSocketId).socketsLeave(`friend-${senderUID}`);
+  }
 
-		// If both users are online
-		if (senderSocketId && receiverSocketId) {
-			this.sendRefreshUser(senderUID, senderSocketId);
+  makeFriendsJoinEachOthersRoom(senderUID: number, receiverUID: number): void {
+    const senderSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(senderUID.toString());
+    const receiverSocketId: string | undefined =
+      this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-			this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
-			this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
-		}
-	}
+    // If both users are online
+    if (senderSocketId && receiverSocketId) {
+      this.sendRefreshUser(senderUID, senderSocketId);
 
-	async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
-		await this.usersService.updateUserStatusByUID(userId, newStatus);
+      this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
+      this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
+    }
+  }
 
-		// Broadcast new user status to all users in the friend room (his friends)
-		const newUserStatus: NewUserStatusDTO = {
-			newStatus: newStatus,
-			uid: userId,
-		};
+  async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
+    await this.usersService.updateUserStatusByUID(userId, newStatus);
 
-		this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
-	}
+    // Broadcast new user status to all users in the friend room (his friends)
+    const newUserStatus: NewUserStatusDTO = {
+      newStatus: newStatus,
+      uid: userId,
+    };
 
-	sendRefreshUser(userId: number, socketId?: string): void {
-		if (socketId) {
-			this.server.to(socketId).emit('refreshUser');
-		} else {
-			const socketIdOfUser: string | undefined =
-				this.connectionService.findSocketIdByUID(userId.toString());
+    this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
+  }
 
-			if (socketIdOfUser) {
-				this.server.to(socketIdOfUser).emit('refreshUser');
-			}
-		}
-	}
+  sendRefreshUser(userId: number, socketId?: string): void {
+    if (socketId) {
+      this.server.to(socketId).emit('refreshUser');
+    } else {
+      const socketIdOfUser: string | undefined =
+        this.connectionService.findSocketIdByUID(userId.toString());
+
+      if (socketIdOfUser) {
+        this.server.to(socketIdOfUser).emit('refreshUser');
+      }
+    }
+  }
 }
