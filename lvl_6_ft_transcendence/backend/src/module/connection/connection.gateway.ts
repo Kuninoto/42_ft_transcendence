@@ -25,10 +25,6 @@ import { NewUserStatusDTO } from './dto/new-user-status.dto';
 export class ConnectionGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly logger: Logger = new Logger(ConnectionGateway.name);
-
-  @WebSocketServer()
-  public server: Server;
   constructor(
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
@@ -37,6 +33,11 @@ export class ConnectionGateway
     private readonly chatService: ChatService,
     private readonly connectionService: ConnectionService,
   ) {}
+
+  private readonly logger: Logger = new Logger(ConnectionGateway.name);
+
+  @WebSocketServer()
+  public server: Server;
 
   afterInit(server: Server) {
     this.logger.log('Connection-Gateway Initialized');

@@ -15,7 +15,7 @@ import { UsersService } from 'src/module/users/users.service';
 import { Chatter } from 'types';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
-import { MessageReceivedDTO } from './dto/message-received.dto';
+import { RoomMessageReceivedDTO } from './dto/room-message-received.dto';
 import { SendMessageDTO } from './dto/send-message.dto';
 
 @WebSocketGateway({
@@ -23,8 +23,6 @@ import { SendMessageDTO } from './dto/send-message.dto';
   namespace: 'connection',
 })
 export class ChatGateway implements OnGatewayInit {
-  private readonly logger: Logger = new Logger(ChatGateway.name);
-
   constructor(
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
@@ -33,6 +31,8 @@ export class ChatGateway implements OnGatewayInit {
     private readonly connectionService: ConnectionService,
     private readonly chatService: ChatService,
   ) {}
+
+  private readonly logger: Logger = new Logger(ChatGateway.name);
 
   afterInit(server: Server) {
     this.logger.log('Chat-Gateway Initialized');
@@ -77,10 +77,11 @@ export class ChatGateway implements OnGatewayInit {
       name: user.name,
       avatar_url: user.avatar_url,
     };
-    const message: MessageReceivedDTO = {
+    const message: RoomMessageReceivedDTO = {
       uniqueId: messageBody.uniqueId,
       author: messageAuthor,
       content: messageBody.content,
+      id: room.id,
     };
 
     const idsOfUsersInRoom: number[] = room.users.map((user: User) => user.id);
@@ -107,7 +108,6 @@ export class ChatGateway implements OnGatewayInit {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.uniqueId === 'string' &&
-      typeof messageBody.senderId === 'number' &&
       typeof messageBody.receiverId === 'number' &&
       typeof messageBody.content === 'string'
     );

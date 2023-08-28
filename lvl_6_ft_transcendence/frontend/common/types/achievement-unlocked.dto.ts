@@ -1,4 +1,4 @@
-import { Achievements } from 'src/entity/achievement.entity'
+import { Achievements } from './backend'
 
 export interface AchievementUnlockedDTO {
 	achievement: Achievements

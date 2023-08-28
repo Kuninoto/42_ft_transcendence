@@ -67,16 +67,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))
 			router.push('/dashboard')
 		else {
-			socket?.on('opponentFound', function(data: OponentFoundDTO) {
+			socket?.on('opponentFound', function (data: OponentFoundDTO) {
 				setOpponentFound(data)
 				setTimeout(() => {
 					router.push('/matchmaking')
-				}, 2 * 1000)
+				}, 4 * 1000)
 			})
 
-			socket?.on('connect_error', (err) => console.log(err))
-			socket?.on('connect_failed', (err) => console.log(err))
-			socket?.on('disconnect', (err) => console.log(err))
+			socket?.on('connect_error', (err: any) => console.log(err))
+			socket?.on('connect_failed', (err: any) => console.log(err))
+			socket?.on('disconnect', (err: any) => console.log(err))
 		}
 	}, [])
 
@@ -85,13 +85,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			pathname === '/matchmaking/finding-opponent' &&
 			hasValues(opponentFound)
 		) {
-			history.go(1)
 			socket?.emit('leaveQueueOrGame')
+			history.go(2)
+			setOpponentFound({} as OponentFoundDTO)
+		}
+
+		return () => {
+			if (pathname === '/matchmaking') {
+				socket?.emit('leaveQueueOrGame')
+				setOpponentFound({} as OponentFoundDTO)
+			}
 		}
 	}, [pathname])
 
 	useEffect(() => {
-		socket?.on('gameRoomInfo', function(data: GameRoomDTO) {
+		socket?.on('gameRoomInfo', function (data: GameRoomDTO) {
 			if (opponentFound.side === PlayerSide.LEFT) {
 				setOpponentPosition(data.rightPlayer.paddleY)
 			} else {
@@ -101,11 +109,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			setBallPosition(data.ball)
 		})
 
-		socket?.on('gameEnd', function(data: GameEndDTO) {
+		socket?.on('gameEnd', function (data: GameEndDTO) {
 			setGameEndInfo(data)
 		})
 
-		socket?.on('playerScored', function(data: PlayerScoredDTO) {
+		socket?.on('playerScored', function (data: PlayerScoredDTO) {
 			setLeftPlayerScore(data.leftPlayerScore)
 			setRightPlayerScore(data.rightPlayerScore)
 		})

@@ -8,6 +8,7 @@ import {
   Logger,
   NotAcceptableException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
@@ -25,7 +26,7 @@ import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
-import { MessageReceivedDTO } from './dto/message-received.dto';
+import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
 
 @Injectable()
 export class ChatService {
@@ -88,7 +89,7 @@ export class ChatService {
 
     // Send every missed DM
     missedDMs.forEach(async (dm: DirectMessage) => {
-      const directMessageReceived: MessageReceivedDTO = {
+      const directMessageReceived: DirectMessageReceivedDTO = {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),
         content: dm.content,
@@ -198,7 +199,8 @@ export class ChatService {
 
     if (room.type === ChatRoomType.PROTECTED) {
       if (password !== room.password) {
-        return;
+        console.log(password, room.password);
+        throw new UnauthorizedException(`Wrong password`);
       }
     }
 
@@ -252,7 +254,19 @@ export class ChatService {
 
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
+      this.logger.warn(
+        `UID=${inviterUID} tried to invite a user to a non-existing room`,
+      );
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
+    }
+
+    if (this.isUserInRoom(room, receiverUID)) {
+      this.logger.warn(
+        `UID=${inviterUID} tried to invite a user to a room that he's already part of`,
+      );
+      throw new ConflictException(
+        `${receiver.name} is already part of the room`,
+      );
     }
 
     const receiverSocketId: string | undefined =
@@ -272,18 +286,24 @@ export class ChatService {
     userToAssignRoleId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     const userToAssignRole: User | null = await this.usersService.findUserByUID(
       userToAssignRoleId,
     );
     if (!userToAssignRole) {
+      this.logger.warn(
+        `Owner of room "${room.name}" tried to add admin privileges to a non-existing user`,
+      );
       throw new NotFoundException(
         `User with uid=${userToAssignRole} doesn't exist`,
       );
     }
 
-    if (await this.isUserAnAdmin(room, userToAssignRoleId)) {
+    if (this.isUserAnAdmin(room, userToAssignRoleId)) {
+      this.logger.warn(
+        `Owner of room "${room.name}" tried to add admin privileges to an admin`,
+      );
       throw new ConflictException('User already has admin privileges');
     }
 
@@ -293,7 +313,7 @@ export class ChatService {
       `"${userToAssignRole.name}" is now an admin on room: "${room.name}"`,
     );
     return {
-      message: `Succesfully assign admin privileges to "${userToAssignRole.name}" on room "${room.name}"`,
+      message: `Succesfully assigned admin privileges to "${userToAssignRole.name}"`,
     };
   }
 
@@ -307,13 +327,25 @@ export class ChatService {
       userIdToRemoveRole,
     );
     if (!userToRemoveRole) {
+      this.logger.warn(
+        `Owner of room "${room.name}" tried to remove admin privileges of a non-existing user`,
+      );
       throw new NotFoundException(
-        `User with uid=${userToRemoveRole} doesn't exist`,
+        `User with uid=${userIdToRemoveRole} doesn't exist`,
+      );
+    }
+
+    if (!this.isUserAnAdmin(room, userIdToRemoveRole)) {
+      this.logger.warn(
+        `Owner of room "${room.name}" tried to remove admin privileges of a non-admin`,
+      );
+      throw new BadRequestException(
+        `User with uid=${userIdToRemoveRole} is not an admin`,
       );
     }
 
     room.admins = room.admins.filter(
-      (user: User) => user.id !== userIdToRemoveRole,
+      (user: User): boolean => user.id !== userIdToRemoveRole,
     );
     this.chatRoomRepository.save(room);
     this.logger.log(
@@ -400,6 +432,15 @@ export class ChatService {
       throw new ConflictException('You cannot kick yourself');
     }
 
+    if (!(await this.isUserInRoom(room, userToKickId))) {
+      this.logger.warn(
+        `UID= ${senderId} tried to kick a user that isn't part of the requesting room`,
+      );
+      throw new NotFoundException(
+        `User with uid=${userToKickId} isn't on that room`,
+      );
+    }
+
     const userToKick: User | null = await this.usersService.findUserByUID(
       userToKickId,
     );
@@ -444,7 +485,7 @@ export class ChatService {
     });
   }
 
-  public async findRoomsByRoomNameProximity(
+  public async findRoomsByNameProximity(
     meUID: number,
     chatRoomNameQuery: string,
   ): Promise<ChatRoomSearchInfo[]> {
@@ -505,8 +546,14 @@ export class ChatService {
       this.connectionGateway.server.to(room.name).socketsLeave(room.name);
       await this.chatRoomRepository.delete(room);
     } else {
-      room.users = room.users.filter((user) => user.id !== userLeavingId);
+      room.users = room.users.filter(
+        (user: User): boolean => user.id != userLeavingId,
+      );
       await this.chatRoomRepository.save(room);
+
+      this.connectionGateway.server
+        .to(socketIdOfLeavingUser)
+        .socketsLeave(room.name);
 
       /* In case this function is being used by kickFromRoom or banFromRoom
 			(they will have their own events) */
@@ -516,12 +563,12 @@ export class ChatService {
         room: room.name,
         userId: userLeavingId,
       });
-    }
 
-    // Kick userLeaving from server
-    this.connectionGateway.server
-      .to(socketIdOfLeavingUser)
-      .socketsLeave(room.name);
+      // Kick userLeaving from chat room
+      this.connectionGateway.server
+        .to(socketIdOfLeavingUser)
+        .socketsLeave(room.name);
+    }
   }
 
   public async muteUser(
@@ -666,21 +713,21 @@ export class ChatService {
     userId: number,
   ): Promise<boolean> {
     return room.bans.find((user: User) => {
-      user.id == userId;
+      return user.id == userId;
     })
       ? true
       : false;
   }
 
-  public async isUserInRoom(room: ChatRoom, userId: number): Promise<boolean> {
+  public isUserInRoom(room: ChatRoom, userId: number): boolean {
     return room.users.find((user: User) => {
-      user.id == userId;
+      return user.id == userId;
     })
       ? true
       : false;
   }
 
-  public async isUserMuted(userId: number, roomId: number): Promise<boolean> {
+  public isUserMuted(userId: number, roomId: number): boolean {
     return this.mutedUsers.findIndex((entry) => {
       return entry.userId === userId && entry.roomId === roomId;
     }) !== -1

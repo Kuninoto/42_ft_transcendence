@@ -263,10 +263,16 @@ export default function Profile() {
 			{openModal && <SettingsModal closeModal={() => setOpenModal(false)} />}
 
 			<Link
-				className="fixed left-12 top-12 hover:underline"
+				className="fixed  top-0 h-28 w-40 hover:underline"
 				href={'/dashboard'}
 			>
-				GO BACK
+				<Image
+					alt="logo picture"
+					fill
+					priority
+					sizes="100%"
+					src={'/logo.png'}
+				/>
 			</Link>
 
 			<div className="mx-64 grid h-full grid-cols-2">

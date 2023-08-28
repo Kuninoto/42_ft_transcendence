@@ -9,7 +9,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { ChatService } from '../chat/chat.service';
-import { MessageReceivedDTO } from '../chat/dto/message-received.dto';
+import { DirectMessageReceivedDTO } from '../chat/dto/direct-message-received.dto';
 import { SendMessageDTO } from '../chat/dto/send-message.dto';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
@@ -71,7 +71,7 @@ export class FriendshipsGateway implements OnGatewayInit {
         messageBody.receiverId.toString(),
       );
 
-    const directMessageReceived: MessageReceivedDTO = {
+    const directMessageReceived: DirectMessageReceivedDTO = {
       uniqueId: messageBody.uniqueId,
       author: await this.chatService.findChatterInfoByUID(client.data.userId),
       content: messageBody.content,
@@ -99,7 +99,6 @@ export class FriendshipsGateway implements OnGatewayInit {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.uniqueId === 'string' &&
-      typeof messageBody.senderId === 'number' &&
       typeof messageBody.receiverId === 'number' &&
       typeof messageBody.content === 'string'
     );

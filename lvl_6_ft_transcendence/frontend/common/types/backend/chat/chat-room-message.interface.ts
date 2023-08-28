@@ -1,6 +1,7 @@
 import { Chatter } from './chatter.interface'
 
-export interface ChatRoomMessageI {
+export interface ChatRoomMessage {
+	author: Chatter
 	content: string
-	user: Chatter
+	uniqueId: string
 }
