@@ -2,11 +2,30 @@
 
 import { api, multipartApi } from '@/api/api'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
+import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { AiOutlineQuestionCircle } from 'react-icons/ai'
 import { toast } from 'react-toastify'
 import OtpInput from 'react18-input-otp'
+
+function Tooltip() {
+	return (
+		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-2 ">
+			<span className="py-2">
+				<b>Step 1</b>: Install Google Authenticator
+			</span>
+			<span className="py-2">
+				<b>Step 2</b>: Scan the QRCode to register the app
+			</span>
+			<span className="py-2">
+				<b>Step 3</b>: Type down the OTP on your phone&apos;s screen and press
+				&quot;enable&quot;
+			</span>
+		</div>
+	)
+}
 
 function QRCode() {
 	const [otp, setOtp] = useState('')
@@ -226,7 +245,14 @@ export default function SettingsModal({
 						<div className="h-full w-px bg-white"></div>
 
 						<div className="flex flex-col space-y-8">
-							<h2>2FA Authentication</h2>
+							<h2 className="flex items-center space-x-2">
+								<span>2FA Authentication</span>
+								<Tippy content={<Tooltip />} placement={'right'}>
+									<button>
+										<AiOutlineQuestionCircle size={24} />
+									</button>
+								</Tippy>
+							</h2>
 							<QRCode />
 						</div>
 					</div>
