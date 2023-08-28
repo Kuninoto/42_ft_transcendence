@@ -7,6 +7,7 @@ import {
 	UserSearchInfo,
 } from '@/common/types/backend'
 import { removeParams } from '@/contexts/AuthContext'
+import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -30,6 +31,8 @@ function Buttons({
 	resetSearch?: () => void
 }) {
 	const isRequest = 'uid' in request
+
+	const { refreshFriends } = useFriends()
 
 	const friend: InfoOrRequest = {
 		friendship_id: isRequest ? request.friendship_id : null,
@@ -67,7 +70,10 @@ function Buttons({
 			.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.ACCEPTED,
 			})
-			.then(() => refresh())
+			.then(() => {
+				refresh()
+				refreshFriends()
+			})
 	}
 
 	function decline(friendship_id: number) {
