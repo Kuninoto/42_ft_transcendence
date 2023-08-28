@@ -5,8 +5,10 @@ import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
 import { CreateRoomDTO } from '@/common/types/create-room.dto'
 import { JoinRoomDTO } from '@/common/types/join-room.dto'
 import { useFriends } from '@/contexts/FriendsContext'
+import bycrypt from 'bcryptjs'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { AiOutlinePlus } from 'react-icons/ai'
 import { BiLockAlt } from 'react-icons/bi'
 import { toast } from 'react-toastify'
 
@@ -136,7 +138,9 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										<span>Protected</span>
 										<input
 											disabled={roomType !== ChatRoomType.PROTECTED}
-											{...register('password')}
+											{...register('password', {
+												required: roomType === ChatRoomType.PROTECTED,
+											})}
 											className=" w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
 											type="password"
 										/>
@@ -164,6 +168,10 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 	const [rooms, setRooms] = useState<ChatRoomSearchInfo[]>([])
 	const [createRoom, setCreateRoom] = useState(false)
 
+	const [showPasswordField, setShowPassowordField] = useState(-1)
+
+	const { handleSubmit, register } = useForm()
+
 	const { refreshRooms } = useFriends()
 
 	function searchRoom(search: string) {
@@ -178,15 +186,26 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 		searchRoom(search)
 	}, [search])
 
-	function joinRoom(id: number) {
+	function onSubmit(data: any) {
+		console.log('asdasd')
+		console.log(data)
+		joinRoom(data.roomId, data.password)
+		setShowPassowordField(-1)
+	}
+
+	function joinRoom(id: number, password: string | undefined) {
+		console.log(password)
+
 		const roomInfo: JoinRoomDTO = {
+			password,
 			roomId: parseInt(id),
 		}
 
 		try {
 			api
 				.post('/chat/join-room', roomInfo)
-				.then(() => {
+				.then((data) => {
+					console.log(data)
 					searchRoom('')
 					refreshRooms()
 				})
@@ -208,7 +227,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 				onClick={closeModal}
 			></button>
 			<div className="px-8 py-32">
-				<div className="group relative grid items-start justify-center  gap-8">
+				<div className="group relative grid items-start justify-center gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none">
 						<div className="flex w-[34rem] space-x-2">
@@ -221,10 +240,10 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 								value={search}
 							/>
 							<button
-								className="aspect-square w-12 place-content-center items-center rounded-r border border-white mix-blend-lighten hover:bg-white hover:text-black"
+								className="flex aspect-square w-12 place-content-center items-center rounded-r border border-white text-white mix-blend-lighten hover:bg-white hover:text-black"
 								onClick={() => setCreateRoom(true)}
 							>
-								+
+								<AiOutlinePlus size={24} />
 							</button>
 						</div>
 						<div className="mt-8 h-56 space-y-3 overflow-auto border-none ">
@@ -241,7 +260,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 							) : rooms.length === 0 ? (
 								<div> No one </div>
 							) : (
-								<>
+								<div className="flex h-full flex-col space-y-2 overflow-auto scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 									{rooms.map((room) => {
 										return (
 											<div
@@ -257,14 +276,47 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 															<div>
 																<BiLockAlt size={24} />
 															</div>
-															<button className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black">
-																Join
-															</button>
+															<form
+																className="space-x-2"
+																onSubmit={handleSubmit(onSubmit)}
+															>
+																<input
+																	className={`${
+																		showPasswordField === room.id
+																			? 'w-40 border border-white px-3 py-1'
+																			: 'w-0'
+																	} rounded  bg-transparent text-white transition-all duration-300 `}
+																	{...register('password', { required: true })}
+																	placeholder="Password"
+																	type="password"
+																/>
+																<input
+																	className="hidden"
+																	type="number"
+																	value={room.id}
+																	{...register('roomId')}
+																/>
+																{showPasswordField === room.id && (
+																	<input
+																		className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+																		type="submit"
+																		value={'Join'}
+																	></input>
+																)}
+															</form>
+															{showPasswordField !== room.id && (
+																<button
+																	className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+																	onClick={() => setShowPassowordField(room.id)}
+																>
+																	Join
+																</button>
+															)}
 														</>
 													) : (
 														<button
 															className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
-															onClick={() => joinRoom(room.id)}
+															onClick={() => joinRoom(room.id, undefined)}
 														>
 															Join
 														</button>
@@ -273,7 +325,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 											</div>
 										)
 									})}
-								</>
+								</div>
 							)}
 						</div>
 					</div>

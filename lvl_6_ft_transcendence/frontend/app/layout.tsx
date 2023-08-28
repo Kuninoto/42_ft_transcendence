@@ -80,7 +80,8 @@ function Body({ children }: { children: React.ReactNode }) {
 			<FixedPanel handle={handle} />
 			<Link href={'/profile'}>
 				<ToastContainer
-					autoClose={5000}
+					autoClose={2500}
+					closeButton={false}
 					closeOnClick
 					draggable
 					icon={false}

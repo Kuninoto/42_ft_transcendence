@@ -27,7 +27,7 @@ function QRCode() {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -42,7 +42,7 @@ function QRCode() {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}
@@ -55,7 +55,7 @@ function QRCode() {
 				.catch(() => {
 					throw 'Network error'
 				})
-		} catch (error) {
+		} catch (error: any) {
 			toast.error(error)
 		}
 	}, [])
@@ -78,11 +78,10 @@ function QRCode() {
 			<div className="relative aspect-square w-48">
 				<Image
 					alt={'choose new image - image'}
-					className="h-max w-max"
+					className="object-cover"
 					fill
 					loader={removeParams}
-					objectFit="cover"
-					sizes="100vw"
+					sizes="100%"
 					src={QRCodeEncode || '/placeholder.gif'}
 				/>
 			</div>
@@ -92,7 +91,7 @@ function QRCode() {
 				inputStyle="border bg-transparent !w-8 aspect-square rounded"
 				isInputNum
 				numInputs={6}
-				onChange={(newOtp) => setOtp(newOtp)}
+				onChange={(newOtp: string) => setOtp(newOtp)}
 				value={otp}
 			/>
 
@@ -140,7 +139,7 @@ export default function SettingsModal({
 
 			refreshUser()
 			closeModal()
-		} catch (error) {
+		} catch (error: any) {
 			setError('name', {
 				message: error.response.data.message,
 				type: 'Conflict',
@@ -176,11 +175,10 @@ export default function SettingsModal({
 										</div>
 										<Image
 											alt={'choose new image - image'}
-											className="h-max w-max"
+											className="h-max w-max object-cover"
 											fill
 											loader={removeParams}
-											objectFit="cover"
-											sizes="100vw"
+											sizes="100%"
 											src={user?.avatar_url || '/placeholder.gif'}
 										/>
 									</div>

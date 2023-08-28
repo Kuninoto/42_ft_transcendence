@@ -1,4 +1,4 @@
 export interface PlayerScoredDTO {
-  leftPlayerScore: number;
-  rightPlayerScore: number;
+	leftPlayerScore: number
+	rightPlayerScore: number
 }

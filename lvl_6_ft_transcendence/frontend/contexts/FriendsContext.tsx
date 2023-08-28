@@ -51,7 +51,7 @@ interface MessageDTO {
 }
 
 interface InfoMessage {
-	content: string
+	information: string
 }
 
 interface InviteMessage {

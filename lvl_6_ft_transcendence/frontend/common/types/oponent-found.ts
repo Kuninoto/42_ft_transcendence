@@ -1,8 +1,8 @@
-import { PlayerSide } from "./backend/player-side.enum";
-import { UserSearchInfo } from "./backend/user-search-info.interface";
+import { PlayerSide, UserSearchInfo } from './backend'
 
 export interface OponentFoundDTO {
-    roomId: string;
-    side: PlayerSide;
-    opponentInfo: UserSearchInfo;
+	opponentInfo: UserSearchInfo
+	roomId: string
+	side: PlayerSide
 }
+
