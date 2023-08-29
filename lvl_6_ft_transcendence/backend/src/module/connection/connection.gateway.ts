@@ -12,6 +12,7 @@ import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { Achievements, Friend, UserStatus } from 'types';
 import { ChatService } from '../chat/chat.service';
+import { RoomWarningDTO } from '../chat/dto/room-warning.dto';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { GameService } from '../game/game.service';
 import { ConnectionService } from './connection.service';
@@ -165,5 +166,9 @@ export class ConnectionGateway
         this.server.to(socketIdOfUser).emit('refreshUser');
       }
     }
+  }
+
+  sendRoomWarning(roomId: number, warning: RoomWarningDTO): void {
+    this.server.to(`room-${roomId}`).emit('roomWarning', warning);
   }
 }

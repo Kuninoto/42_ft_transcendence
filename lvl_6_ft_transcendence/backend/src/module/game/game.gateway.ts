@@ -9,7 +9,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { PlayerSide } from 'types';
-
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { GameEndDTO } from './dto/game-end.dto';
@@ -40,157 +39,13 @@ export class GameGateway implements OnGatewayInit {
     private readonly connectionService: ConnectionService,
   ) {}
 
-  private isValidPaddleMoveMessage(
-    messageBody: any,
-  ): messageBody is PaddleMoveDTO {
-    if (
-      !(
-        typeof messageBody === 'object' &&
-        typeof messageBody.gameRoomId === 'string' &&
-        typeof messageBody.newY === 'number'
-      )
-    ) {
-      return false;
-    }
-
-    const message: PaddleMoveDTO = messageBody;
-    if (
-      message.newY - PADDLE_HEIGHT / 2 < 0 ||
-      message.newY + PADDLE_HEIGHT / 2 > CANVAS_HEIGHT
-    ) {
-      return false;
-    }
-
-    return true;
-  }
 
   /******************************
    *          MESSAGES          *
    ******************************/
 
-  private isValidPlayerReadyMessage(
-    messageBody: any,
-  ): messageBody is PlayerReadyDTO {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.gameRoomId === 'string'
-    );
-  }
-
-  private isValidRespondToGameInviteMessage(
-    messageBody: any,
-  ): messageBody is RespondToGameInviteDTO {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.inviteId === 'number' &&
-      typeof messageBody.accepted === 'boolean'
-    );
-  }
-
-  private isValidSendGameInviteMessage(
-    messageBody: any,
-  ): messageBody is SendGameInviteDTO {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.recipientUID === 'string'
-    );
-  }
-
   afterInit(server: Server) {
     this.logger.log('Game-Gateway Initialized');
-  }
-
-  public broadcastGameEnd(
-    gameRoomId: string,
-    winner: Player,
-    loser: Player,
-  ): void {
-    const gameEnd: GameEndDTO = {
-      loser: { score: loser.score, userId: loser.userId },
-      winner: { score: winner.score, userId: winner.userId },
-    };
-    this.connectionGateway.server.to(gameRoomId).emit('gameEnd', gameEnd);
-  }
-
-  public broadcastGameRoomInfo(gameRoom: GameRoom): void {
-    const { ball, leftPlayer, rightPlayer } = gameRoom;
-
-    const gameRoomInfo: GameRoomInfoDTO = {
-      ball: { x: ball.x, y: ball.y },
-      leftPlayer: { paddleY: leftPlayer.paddleY },
-      rightPlayer: { paddleY: rightPlayer.paddleY },
-    };
-    this.connectionGateway.server
-      .to(gameRoom.roomId)
-      .emit('gameRoomInfo', gameRoomInfo);
-  }
-
-  /******************************
-   *           EVENTS           *
-   ******************************/
-
-  public emitPlayerScoredEvent(
-    gameRoomId: string,
-    leftPlayerScore: number,
-    rightPlayerScore: number,
-  ) {
-    const playerScoredDTO: PlayerScoredDTO = {
-      leftPlayerScore: leftPlayerScore,
-      rightPlayerScore: rightPlayerScore,
-    };
-
-    this.connectionGateway.server
-      .to(gameRoomId)
-      .emit('playerScored', playerScoredDTO);
-  }
-
-  @SubscribeMessage('leaveQueueOrGame')
-  async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
-    this.logger.log(`${client.data.name} left the queue or a game`);
-    await this.gameService.disconnectPlayer(client.data.userId);
-  }
-
-  /*
-   * Listen to 'paddleMove' messages
-   */
-  @SubscribeMessage('paddleMove')
-  paddleMove(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: PaddleMoveDTO,
-  ): void {
-    if (!this.isValidPaddleMoveMessage(messageBody)) {
-      this.logger.warn(
-        `${client.data.name} tried to send a wrong PaddleMoveDTO`,
-      );
-      return;
-    }
-
-    this.gameService.paddleMove(
-      messageBody.gameRoomId,
-      client.id,
-      messageBody.newY,
-    );
-  }
-
-  /**
-   * Listen to 'playerReady' messages
-   *
-   * @param client client's socket
-   * @param messageBody body of the received message
-   */
-  @SubscribeMessage('playerReady')
-  playerReady(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: PlayerReadyDTO,
-  ): void {
-    if (!this.isValidPlayerReadyMessage(messageBody)) {
-      this.logger.warn(
-        `${client.data.name} tried to send a wrong PlayerReadyDTO`,
-      );
-      return;
-    }
-
-    this.gameService.playerReady(messageBody.gameRoomId, client.id);
   }
 
   @SubscribeMessage('queueToLadder')
@@ -204,29 +59,10 @@ export class GameGateway implements OnGatewayInit {
     await this.gameService.queueToLadder(newPlayer);
   }
 
-  /**
-   * Listen to 'respondToGameInvite' messages
-   *
-   * @param client client's socket
-   * @param messageBody body of the received message
-   */
-  @SubscribeMessage('respondToGameInvite')
-  async respondToGameInvite(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: RespondToGameInviteDTO,
-  ): Promise<void> {
-    if (!this.isValidRespondToGameInviteMessage(messageBody)) {
-      this.logger.warn(
-        `${client.data.name} tried to send a wrong RespondToGameInviteDTO`,
-      );
-      return;
-    }
-
-    if (messageBody.accepted === true) {
-      await this.gameService.gameInviteAccepted(messageBody.inviteId, client);
-    } else {
-      this.gameService.gameInviteDeclined(messageBody.inviteId);
-    }
+  @SubscribeMessage('leaveQueueOrGame')
+  async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
+    this.logger.log(`${client.data.name} left the queue or a game`);
+    await this.gameService.disconnectPlayer(client.data.userId);
   }
 
   @SubscribeMessage('sendGameInvite')
@@ -272,4 +108,169 @@ export class GameGateway implements OnGatewayInit {
       .to(recipientSocketId)
       .emit('invitedToGame', invitedToGame);
   }
+
+  /**
+   * Listen to 'respondToGameInvite' messages
+   *
+   * @param client client's socket
+   * @param messageBody body of the received message
+   */
+  @SubscribeMessage('respondToGameInvite')
+  async respondToGameInvite(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: RespondToGameInviteDTO,
+  ): Promise<void> {
+    if (!this.isValidRespondToGameInviteMessage(messageBody)) {
+      this.logger.warn(
+        `${client.data.name} tried to send a wrong RespondToGameInviteDTO`,
+      );
+      return;
+    }
+
+    if (messageBody.accepted === true) {
+      await this.gameService.gameInviteAccepted(messageBody.inviteId, client);
+    } else {
+      this.gameService.gameInviteDeclined(messageBody.inviteId);
+    }
+  }
+
+  /**
+   * Listen to 'playerReady' messages
+   *
+   * @param client client's socket
+   * @param messageBody body of the received message
+   */
+  @SubscribeMessage('playerReady')
+  playerReady(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: PlayerReadyDTO,
+  ): void {
+    if (!this.isValidPlayerReadyMessage(messageBody)) {
+      this.logger.warn(
+        `${client.data.name} tried to send a wrong PlayerReadyDTO`,
+      );
+      return;
+    }
+
+    this.gameService.playerReady(messageBody.gameRoomId, client.id);
+  }
+
+  /*
+   * Listen to 'paddleMove' messages
+   */
+  @SubscribeMessage('paddleMove')
+  paddleMove(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: PaddleMoveDTO,
+  ): void {
+    if (!this.isValidPaddleMoveMessage(messageBody)) {
+      this.logger.warn(
+        `${client.data.name} tried to send a wrong PaddleMoveDTO`,
+      );
+      return;
+    }
+
+    this.gameService.paddleMove(
+      messageBody.gameRoomId,
+      client.id,
+      messageBody.newY,
+    );
+  }
+
+  /******************************
+   *           EVENTS           *
+   ******************************/
+
+  public broadcastGameRoomInfo(gameRoom: GameRoom): void {
+    const { ball, leftPlayer, rightPlayer } = gameRoom;
+
+    const gameRoomInfo: GameRoomInfoDTO = {
+      ball: { x: ball.x, y: ball.y },
+      leftPlayer: { paddleY: leftPlayer.paddleY },
+      rightPlayer: { paddleY: rightPlayer.paddleY },
+    };
+    this.connectionGateway.server
+      .to(gameRoom.roomId)
+      .emit('gameRoomInfo', gameRoomInfo);
+  }
+
+  public broadcastGameEnd(
+    gameRoomId: string,
+    winner: Player,
+    loser: Player,
+  ): void {
+    const gameEnd: GameEndDTO = {
+      loser: { score: loser.score, userId: loser.userId },
+      winner: { score: winner.score, userId: winner.userId },
+    };
+    this.connectionGateway.server.to(gameRoomId).emit('gameEnd', gameEnd);
+  }
+
+  public emitPlayerScoredEvent(
+    gameRoomId: string,
+    leftPlayerScore: number,
+    rightPlayerScore: number,
+  ) {
+    const playerScoredDTO: PlayerScoredDTO = {
+      leftPlayerScore: leftPlayerScore,
+      rightPlayerScore: rightPlayerScore,
+    };
+
+    this.connectionGateway.server
+      .to(gameRoomId)
+      .emit('playerScored', playerScoredDTO);
+  }
+
+  private isValidPaddleMoveMessage(
+    messageBody: any,
+  ): messageBody is PaddleMoveDTO {
+    if (
+      !(
+        typeof messageBody === 'object' &&
+        typeof messageBody.gameRoomId === 'string' &&
+        typeof messageBody.newY === 'number'
+      )
+    ) {
+      return false;
+    }
+
+    const message: PaddleMoveDTO = messageBody;
+    if (
+      message.newY - PADDLE_HEIGHT / 2 < 0 ||
+      message.newY + PADDLE_HEIGHT / 2 > CANVAS_HEIGHT
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private isValidPlayerReadyMessage(
+    messageBody: any,
+  ): messageBody is PlayerReadyDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.gameRoomId === 'string'
+    );
+  }
+
+  private isValidRespondToGameInviteMessage(
+    messageBody: any,
+  ): messageBody is RespondToGameInviteDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.inviteId === 'number' &&
+      typeof messageBody.accepted === 'boolean'
+    );
+  }
+
+  private isValidSendGameInviteMessage(
+    messageBody: any,
+  ): messageBody is SendGameInviteDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.recipientUID === 'string'
+    );
+  }
+
 }
