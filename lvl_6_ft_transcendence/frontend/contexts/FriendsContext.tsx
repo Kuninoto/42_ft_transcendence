@@ -60,12 +60,12 @@ interface InviteMessage {
 
 type IChat = (
 	| {
-			challengeId: null | number
-			friend: Friend
-	  }
+		challengeId: null | number
+		friend: Friend
+	}
 	| {
-			room: ChatRoomInterface
-	  }
+		room: ChatRoomInterface
+	}
 ) & {
 	display: boolean
 	messages: (InfoMessage | MessageDTO)[]
@@ -92,7 +92,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	// ======================== General ========================
 
 	const getFriends = useCallback(
-		function () {
+		function() {
 			try {
 				if (isAuth) {
 					api
@@ -112,12 +112,13 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	)
 
 	const getRooms = useCallback(
-		function () {
+		function() {
 			try {
 				if (isAuth) {
 					api
 						.get('/me/rooms')
 						.then((result) => {
+							console.log(result)
 							setRooms(result.data)
 						})
 						.catch((e) => {
@@ -260,7 +261,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	const onMessageReceived = useCallback(
-		function (data: DirectMessageReceivedDTO | RoomMessageReceivedDTO) {
+		function(data: DirectMessageReceivedDTO | RoomMessageReceivedDTO) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
@@ -371,15 +372,15 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
-		socket?.on('friendRequestReceived', function () {
+		socket?.on('friendRequestReceived', function() {
 			setNewFriendNotification(true)
 		})
 
-		socket?.on('refreshUser', function () {
+		socket?.on('refreshUser', function() {
 			getFriends()
 		})
 
-		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
+		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
 			console.log('here')
 			console.log(data)
 		})

@@ -19,8 +19,14 @@ module.exports = {
 			},
 			keyframes: {
 				blink: {
-					'0%, 100%': { display: 'none' },
-					'50%': { display: 'flex' },
+					'0%, 100%': {
+						opacity: 1,
+						visibility: 'visible',
+					},
+					'50%': {
+						opacity: 0,
+						visibility: 'hidden',
+					},
 				},
 				ellipsis: {
 					to: {

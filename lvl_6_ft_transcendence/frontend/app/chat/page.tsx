@@ -1,25 +1,52 @@
 'use client'
 
 import { api } from '@/api/api'
+import { ChatRoomRoles } from '@/common/types/backend/chat/chat-room-roles.enum'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChangeEventHandler, useState } from 'react'
+import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
 import { LuSwords } from 'react-icons/lu'
 import { MdOutlineBlock } from 'react-icons/md'
+import { toast } from 'react-toastify'
 
-interface ITooltip {
+interface IMuteTooltip {
 	id: number | undefined
 	roomId: number
 }
 
-function RoomSettings({ closeModal }: { closeModal: () => void }) {
+interface ITooltip extends IMuteTooltip {
+	role: ChatRoomRoles
+}
+
+function RoomSettings({
+	closeModal,
+	id,
+}: {
+	closeModal: () => void
+	id: number
+}) {
+	const [bans, setBans] = useState<>([])
+
+	useEffect(() => {
+		try {
+			api
+				.get(`/chat/rooms/bans?room-id=${id}`)
+				.then((result) => setBans(result.data))
+				.catch(() => {
+					throw 'Network Error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}, [])
+
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
 			<button
@@ -29,21 +56,23 @@ function RoomSettings({ closeModal }: { closeModal: () => void }) {
 			<div className="px-8 py-32">
 				<div className="group relative grid items-start justify-center  gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
-					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none"></div>
+					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
+						<div></div>
+					</div>
 				</div>
 			</div>
 		</div>
 	)
 }
 
-function MuteTooltip({ id, roomId }: ITooltip) {
+function MuteTooltip({ id, roomId }: IMuteTooltip) {
 	const { handleSubmit, register } = useForm()
 
 	function mute({ duration, span }: { duration: number; span: string }) {
 		api.post(`/chat/mute`, {
+			duration: `${duration}${span}`,
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
-			duration: `${duration}${span}`,
 		})
 	}
 
@@ -69,7 +98,7 @@ function MuteTooltip({ id, roomId }: ITooltip) {
 	)
 }
 
-function Tooltip({ id, roomId }: ITooltip) {
+function Tooltip({ id, role, roomId }: ITooltip) {
 	function promote() {
 		api.post(`/chat/add-admin`, {
 			roomId: parseInt(roomId),
@@ -106,34 +135,40 @@ function Tooltip({ id, roomId }: ITooltip) {
 			>
 				Profile
 			</Link>
-			<button
-				className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
-				onClick={promote}
-			>
-				Promote
-			</button>
-			<Tippy
-				content={<MuteTooltip id={id} roomId={roomId} />}
-				interactive
-				placement={'right'}
-				trigger={'click'}
-			>
-				<button className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black">
-					Mute
+			{role === ChatRoomRoles.OWNER && (
+				<button
+					className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+					onClick={promote}
+				>
+					Promote
 				</button>
-			</Tippy>
-			<button
-				className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
-				onClick={kick}
-			>
-				Kick
-			</button>
-			<button
-				className="py-2 text-center text-red-600 hover:bg-white "
-				onClick={ban}
-			>
-				Ban
-			</button>
+			)}
+			{(role === ChatRoomRoles.OWNER || role === ChatRoomRoles.ADMIN) && (
+				<>
+					<Tippy
+						content={<MuteTooltip id={id} roomId={roomId} />}
+						interactive
+						placement={'right'}
+						trigger={'click'}
+					>
+						<button className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black">
+							Mute
+						</button>
+					</Tippy>
+					<button
+						className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+						onClick={kick}
+					>
+						Kick
+					</button>
+					<button
+						className="py-2 text-center text-red-600 hover:bg-white "
+						onClick={ban}
+					>
+						Ban
+					</button>
+				</>
+			)}
 		</div>
 	)
 }
@@ -173,17 +208,23 @@ export default function Chat() {
 
 	return (
 		<>
-			{settings && <RoomSettings closeModal={() => setSettings(false)} />}
+			{settings && 'room' in currentOpenChat && (
+				<RoomSettings
+					closeModal={() => setSettings(false)}
+					id={currentOpenChat.room.id}
+				/>
+			)}
 			<div
 				className={`${isOpen ? 'bottom-0' : '-bottom-[22rem]'} 
 			absolute right-28 flex h-96 w-[38rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% transition-all`}
 			>
 				<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
-					{'room' in currentOpenChat && (
-						<button className="" onClick={() => setSettings(true)}>
-							<FiSettings size={24} />
-						</button>
-					)}
+					{'room' in currentOpenChat &&
+						currentOpenChat.room.myRole === ChatRoomRoles.OWNER && (
+							<button className="" onClick={() => setSettings(true)}>
+								<FiSettings size={24} />
+							</button>
+						)}
 					<button className="w-full" onClick={changeOpenState}>
 						{'friend' in currentOpenChat
 							? currentOpenChat.friend?.name
@@ -285,7 +326,7 @@ export default function Chat() {
 									!currentOpenChat.messages[index - 1] ||
 									!('author' in currentOpenChat.messages[index - 1]) ||
 									currentOpenChat.messages[index - 1]!.author?.id !==
-										message.author?.id
+									message.author?.id
 
 								if (!message.sendByMe) {
 									return (
@@ -298,6 +339,7 @@ export default function Chat() {
 													content={
 														<Tooltip
 															id={message.author?.id}
+															role={currentOpenChat.room.myRole}
 															roomId={currentOpenChat.room.id}
 														/>
 													}
