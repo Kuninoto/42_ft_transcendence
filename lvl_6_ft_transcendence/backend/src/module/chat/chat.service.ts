@@ -213,7 +213,7 @@ export class ChatService {
 
     this.connectionGateway.server
       .to(socketIdOfJoiningUser)
-      .socketsJoin(room.name);
+      .socketsJoin(`room-${room.id}`);
 
     this.connectionGateway.sendRefreshUser(user.id, socketIdOfJoiningUser);
 
@@ -387,7 +387,7 @@ export class ChatService {
       warning: `${userToBan.name} was banned!`,
     }
     this.connectionGateway.server
-      .to(room.name)
+      .to(`room-${room.id}`)
       .emit('roomWarning', warning);
     await this.leaveRoom(room, userToBanId, false);
 
@@ -462,7 +462,7 @@ export class ChatService {
       warning: `${userToKick.name} was kicked!`
     }
     this.connectionGateway.server
-      .to(room.name)
+      .to(`room-${room.id}`)
       .emit('roomWarning', warning);
 
     this.logger.log(`${userToKick.name} was kicked from room "${room.name}"`);
@@ -554,10 +554,10 @@ export class ChatService {
         warning: 'Owner has left the room',
       };
       this.connectionGateway.server
-        .to(room.name)
+        .to(`room-${room.id}`)
         .emit('roomWarning', warning);
 
-      this.connectionGateway.server.to(room.name).socketsLeave(room.name);
+      this.connectionGateway.server.to(`room-${room.id}`).socketsLeave(`room-${room.id}`);
       await this.chatRoomRepository.delete(room);
     } else {
       room.users = room.users.filter(
@@ -568,7 +568,7 @@ export class ChatService {
       // Kick userLeaving from chat room
       this.connectionGateway.server
         .to(socketIdOfLeavingUser)
-        .socketsLeave(room.name);
+        .socketsLeave(`room-${room.id}`);
 
       /* In case this function is being used by kickFromRoom or banFromRoom
 			(they will have their own events) */
@@ -580,7 +580,7 @@ export class ChatService {
         warning: `${leavingUser.name} has left the room`,
       };
 
-      this.connectionGateway.server.to(room.name).emit('roomWarning', warning);
+      this.connectionGateway.server.to(`room-${room.id}`).emit('roomWarning', warning);
     }
   }
 
@@ -714,9 +714,7 @@ export class ChatService {
   }
 
   public isUserAnAdmin(room: ChatRoom, userId: number): boolean {
-    return room.admins.find((admin: User) => {
-      admin.id == userId;
-    })
+    return room.admins.find((admin: User) => admin.id == userId)
       ? true
       : false;
   }
@@ -725,25 +723,19 @@ export class ChatService {
     room: ChatRoom,
     userId: number,
   ): boolean {
-    return room.bans.find((user: User) => {
-      return user.id == userId;
-    })
+    return room.bans.find((user: User) => user.id == userId)
       ? true
       : false;
   }
 
   public isUserInRoom(room: ChatRoom, userId: number): boolean {
-    return room.users.find((user: User) => {
-      return user.id == userId;
-    })
+    return room.users.find((user: User) => user.id == userId)
       ? true
       : false;
   }
 
   public isUserMuted(userId: number, roomId: number): boolean {
-    return this.mutedUsers.findIndex((entry) => {
-      return entry.userId === userId && entry.roomId === roomId;
-    }) !== -1
+    return this.mutedUsers.findIndex((entry) => entry.userId === userId && entry.roomId === roomId) !== -1
       ? true
       : false;
   }
