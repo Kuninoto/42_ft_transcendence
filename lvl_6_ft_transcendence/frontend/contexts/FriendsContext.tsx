@@ -20,6 +20,7 @@ import { toast } from 'react-toastify'
 
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
+import { RoomWarningDTO } from '@/common/types/room-warning.dto'
 
 type FriendsContextType = {
 	changeOpenState: () => void
@@ -50,8 +51,8 @@ interface MessageDTO {
 	uniqueID: string
 }
 
-interface InfoMessage {
-	information: string
+interface RoomWarning {
+	warning: string
 }
 
 interface InviteMessage {
@@ -68,7 +69,7 @@ type IChat = (
 	}
 ) & {
 	display: boolean
-	messages: (InfoMessage | MessageDTO)[]
+	messages: (RoomWarning | MessageDTO)[]
 	unread: boolean
 }
 
@@ -256,11 +257,10 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	const onMessageReceived = useCallback(
-		function(data: DirectMessageReceivedDTO | RoomMessageReceivedDTO) {
+		function(data: DirectMessageReceivedDTO | RoomMessageReceivedDTO | RoomWarningDTO) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
-				console.log(newChat)
 				const index = newChat?.findIndex((chat) => {
 					if ('room' in chat && 'id' in data) return chat.room.id === data.id
 					if ('friend' in chat && !('id' in data))
@@ -269,12 +269,16 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					return false
 				})
 
-				const newMessage: MessageDTO = {
-					author: data.author,
-					content: data.content,
-					sendByMe: false,
-					uniqueID: data.uniqueId,
-				}
+				const newMessage: (MessageDTO | RoomWarning) = 
+					'warning' in data ? 
+					{
+						warning: data.warning
+					} : {
+						author: data.author,
+						content: data.content,
+						sendByMe: false,
+						uniqueID: data.uniqueId,
+					}
 
 				if (index === -1) {
 					if ('id' in data) {
@@ -386,10 +390,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		socket?.on('directMessageReceived', onMessageReceived)
 		socket?.on('newChatRoomMessage', onMessageReceived)
+		socket?.on('roomWarning', function(data) {
+			console.log(data)
+		})
 
 		return () => {
 			socket?.off('directMessageReceived', onMessageReceived)
 			socket?.off('newChatRoomMessage', onMessageReceived)
+			socket?.off('roomWarning', onMessageReceived)
 		}
 	}, [onMessageReceived])
 
