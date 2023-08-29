@@ -27,6 +27,7 @@ import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
+import { RoomWarningDTO } from './dto/room-warning.dto';
 
 @Injectable()
 export class ChatService {
@@ -381,9 +382,13 @@ export class ChatService {
     room.bans.push(userToBan);
     await this.chatRoomRepository.save(room);
 
+    const warning: RoomWarningDTO = {
+      roomId: room.id,
+      warning: `${userToBan.name} was banned!`,
+    }
     this.connectionGateway.server
       .to(room.name)
-      .emit('userWasBannedFromRoom', { userId: userToBanId });
+      .emit('roomWarning', warning);
     await this.leaveRoom(room, userToBanId, false);
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
@@ -450,10 +455,15 @@ export class ChatService {
       );
     }
 
+    await this.leaveRoom(room, userToKickId, false);
+
+    const warning: RoomWarningDTO = {
+      roomId: room.id,
+      warning: `${userToKick.name} was kicked!`
+    }
     this.connectionGateway.server
       .to(room.name)
-      .emit('userWasKickedFromRoom', { userId: userToKickId });
-    await this.leaveRoom(room, userToKickId, false);
+      .emit('roomWarning', warning);
 
     this.logger.log(`${userToKick.name} was kicked from room "${room.name}"`);
     return {
@@ -539,9 +549,13 @@ export class ChatService {
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
+      const warning: RoomWarningDTO = {
+        roomId: room.id,
+        warning: 'Owner has left the room',
+      };
       this.connectionGateway.server
         .to(room.name)
-        .emit('ownerHasLeftTheRoom', { room: room.name });
+        .emit('roomWarning', warning);
 
       this.connectionGateway.server.to(room.name).socketsLeave(room.name);
       await this.chatRoomRepository.delete(room);
@@ -551,6 +565,7 @@ export class ChatService {
       );
       await this.chatRoomRepository.save(room);
 
+      // Kick userLeaving from chat room
       this.connectionGateway.server
         .to(socketIdOfLeavingUser)
         .socketsLeave(room.name);
@@ -559,15 +574,13 @@ export class ChatService {
 			(they will have their own events) */
       if (!emitUserHasLeftTheRoom) return;
 
-      this.connectionGateway.server.to(room.name).emit('userHasLeftTheRoom', {
-        room: room.name,
-        userId: userLeavingId,
-      });
+      const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
+      const warning: RoomWarningDTO = {
+        roomId: room.id,
+        warning: `${leavingUser.name} has left the room`,
+      };
 
-      // Kick userLeaving from chat room
-      this.connectionGateway.server
-        .to(socketIdOfLeavingUser)
-        .socketsLeave(room.name);
+      this.connectionGateway.server.to(room.name).emit('roomWarning', warning);
     }
   }
 
