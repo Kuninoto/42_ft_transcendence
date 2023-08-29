@@ -38,6 +38,7 @@ type FriendsContextType = {
 	refreshRooms: () => void
 	rejectChallenge: (id: number) => void
 	respondGameInvite: (accepted: boolean) => void
+	exitRoom: (id: number) => void
 	rooms: ChatRoomInterface[]
 	seeNewFriendNotification: () => void
 	sendGameInvite: (id: number) => void
@@ -270,8 +271,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				})
 
 				const newMessage: (MessageDTO | RoomWarning) = 
-					'warning' in data ? 
-					{
+					'warning' in data ? {
 						warning: data.warning
 					} : {
 						author: data.author,
@@ -336,8 +336,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 		const id =
 			'room' in currentOpenChat
-				? currentOpenChat.room.id
-				: currentOpenChat.friend.uid
+				? currentOpenChat?.room?.id
+				: currentOpenChat?.friend?.uid
 
 		const sendMessageDTO: SendMessageDTO = {
 			content: message,
@@ -371,31 +371,35 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
-		socket?.on('friendRequestReceived', function() {
+
+		if (socket ) {
+
+		socket.on('friendRequestReceived', function() {
 			setNewFriendNotification(true)
 		})
 
-		socket?.on('refreshUser', function() {
+
+		socket.on('kickedFromRoom', function({id}: { id : number}) {
+			console.log(id)
+			exitRoom(id)
+		})
+
+		socket.on('refreshUser', function() {
 			getFriends()
 		})
 
-		socket?.on('newUserStatus', function(data: NewUserStatusDTO) {
-			console.log('here')
-			console.log(data)
-		})
+		socket.on('newUserStatus', updateFriendStatus)
 
-		socket?.on('invitedToGame', onInvitedToGame)
+		socket.on('invitedToGame', onInvitedToGame)
+		}
 	}, [socket])
 
 	useEffect(() => {
 
 		if ( socket ) {
-			console.log(socket)
 			socket.on('directMessageReceived', onMessageReceived)
 			socket.on('newChatRoomMessage', onMessageReceived)
-			socket.on('roomWarning', function(data) {
-				console.log(data)
-			})
+			socket.on('roomWarning', onMessageReceived)
 
 			return () => {
 				socket.off('directMessageReceived', onMessageReceived)
@@ -409,6 +413,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	// ======================== Room messages ========================
 
 	function exitRoom(id: number) {
+
 		setOpenChats((prevChats) => {
 			const newChat = [...prevChats]
 
@@ -417,16 +422,24 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				return chat.room.id !== id
 			})
 
-			const oneDisplay: IChat | undefined = newChat.find(
-				(chat) => chat.display
-			)
-			setExists(!!oneDisplay)
+			if (currentOpenChat?.room?.id === id) {
 
-			if (oneDisplay && currentOpenChat.room.id === id) {
-				setCurrentOpenChat(oneDisplay)
+				const oneDisplay: IChat | undefined = updatedChat.find(
+					(chat) => chat.display
+				)
+
+				if (oneDisplay) {
+					setCurrentOpenChat(oneDisplay)
+				}
+
+				if (exists) {
+					setExists(!!oneDisplay)
+				}
 			}
-			return newChat
+			return updatedChat
 		})
+
+		getRooms()
 	}
 
 	// ======================== Direct messages ========================
@@ -499,6 +512,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		refreshFriends: getFriends,
 		refreshRooms: getRooms,
 		rejectChallenge,
+		exitRoom,
 		respondGameInvite,
 		rooms,
 		seeNewFriendNotification: () => setNewFriendNotification(false),

@@ -22,7 +22,7 @@ enum openModalType {
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
-	const { friends, newFriendNotification, rooms, seeNewFriendNotification } =
+	const { friends, newFriendNotification, rooms, seeNewFriendNotification, exitRoom } =
 		useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
@@ -35,6 +35,8 @@ export default function FriendsList(): JSX.Element {
 		api.post('/chat/leave-room', {
 			roomId: parseInt(roomId),
 			userId: parseInt(user.id),
+		}).then(() => {
+			exitRoom(roomId)
 		})
 	}
 
@@ -63,7 +65,7 @@ export default function FriendsList(): JSX.Element {
 							/>
 						</div>
 						<div className="mx-4 my-auto">
-							<div className="text-xl">{user.name}</div>
+							<div className="text-xl">{user?.name}</div>
 							<a className="text-sm text-gray-400 hover:underline" target="_blank" href={user?.intra_profile_url}>{user?.intra_name}</a>
 						</div>
 					</div>
@@ -188,21 +190,21 @@ export default function FriendsList(): JSX.Element {
 						>
 							{rooms?.map((room) => {
 								return (
-									<button
-										className="group"
+									<div 
 										key={room.id}
-										onClick={() => open(room.id, true)}
-									>
-										<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
-											<div>{room.name}</div>
-											<div className="group-hover:invisible">
-												{room.participants?.length}
+										className="relative w-full peer">
+										<button
+											className="w-full "
+											onClick={() => open(room.id, true)}
+										>
+											<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
+												<div>{room.name}</div>
 											</div>
-											<div className="invisible absolute right-4 group-hover:visible">
-												<button onClick={() => leaveRoom(room.id)} className="text-xs text-gray-400 hover:text-red-500">Exit room</button>
-											</div>
+										</button>
+										<div className="absolute top-2 right-4 visible">
+											<button onClick={() => leaveRoom(room.id)} className="text-xs text-gray-400 hover:text-red-500">Exit room</button>
 										</div>
-									</button>
+									</div>
 								)
 							})}
 						</div>

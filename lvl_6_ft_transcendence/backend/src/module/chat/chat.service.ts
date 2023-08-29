@@ -27,7 +27,6 @@ import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
 import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
-import { RoomWarningDTO } from './dto/room-warning.dto';
 
 @Injectable()
 export class ChatService {
