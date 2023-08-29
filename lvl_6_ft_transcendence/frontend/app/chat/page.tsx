@@ -315,7 +315,13 @@ export default function Chat() {
 						)}
 						<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 							{currentOpenChat?.messages?.map((message, index) => {
-								if ('information' in message) return <></>
+								if ('warning' in message) {
+									return (
+									<div>
+										{message.warning}
+									</div>
+									)
+								}
 
 								const isRoom = 'room' in currentOpenChat
 
