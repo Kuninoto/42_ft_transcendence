@@ -202,12 +202,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				if (isRoom && 'room' in chat) {
 					return chat.room.id === id
 						? { ...chat, display: true, unread: false }
-						: { ...chat, display: true }
+						: chat 
 				}
 				if (!isRoom && 'friend' in chat) {
 					return chat.friend.uid === id
 						? { ...chat, display: true, unread: false }
-						: { ...chat, display: true }
+						: chat
 				}
 				return chat
 			})
@@ -243,18 +243,13 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 			newChat[index].display = false
 
-			const anyDisplay = newChat.some((chat) => chat.display)
+			const oneDisplay: IChat | undefined = newChat.find(
+				(chat) => chat.display
+			)
+			setExists(!!oneDisplay)
 
-			setExists(anyDisplay)
-
-			if (anyDisplay && currentId === id) {
-				const oneDisplay: IChat | undefined = newChat.find(
-					(chat) => chat.display
-				)
-
-				if (oneDisplay) {
-					setCurrentOpenChat(oneDisplay)
-				}
+			if (oneDisplay && currentId === id) {
+				setCurrentOpenChat(oneDisplay)
 			}
 			return newChat
 		})
@@ -397,6 +392,29 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			socket?.off('newChatRoomMessage', onMessageReceived)
 		}
 	}, [onMessageReceived])
+
+	// ======================== Room messages ========================
+
+	function exitRoom(id: number) {
+		setOpenChats((prevChats) => {
+			const newChat = [...prevChats]
+
+			const updatedChat = newChat.filter((chat) => {
+				if (!('room' in chat)) return true
+				return chat.room.id !== id
+			})
+
+			const oneDisplay: IChat | undefined = newChat.find(
+				(chat) => chat.display
+			)
+			setExists(!!oneDisplay)
+
+			if (oneDisplay && currentOpenChat.room.id === id) {
+				setCurrentOpenChat(oneDisplay)
+			}
+			return newChat
+		})
+	}
 
 	// ======================== Direct messages ========================
 

@@ -78,10 +78,11 @@ export class ChatGateway implements OnGatewayInit {
       avatar_url: user.avatar_url,
     };
     const message: RoomMessageReceivedDTO = {
+      id: room.id,
       uniqueId: messageBody.uniqueId,
       author: messageAuthor,
+      authorRole: this.usersService.findMyRoleOnChatRoom(messageAuthor.id, room),
       content: messageBody.content,
-      id: room.id,
     };
 
     const idsOfUsersInRoom: number[] = room.users.map((user: User) => user.id);

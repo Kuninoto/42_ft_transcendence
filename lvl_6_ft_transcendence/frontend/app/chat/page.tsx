@@ -1,6 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
+import { MuteDuration } from '@/common/types/backend'
 import { ChatRoomRoles } from '@/common/types/backend/chat/chat-room-roles.enum'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
@@ -68,9 +69,9 @@ function RoomSettings({
 function MuteTooltip({ id, roomId }: IMuteTooltip) {
 	const { handleSubmit, register } = useForm()
 
-	function mute({ duration, span }: { duration: number; span: string }) {
+	function mute({ duration }: { duration: MuteDuration }) {
 		api.post(`/chat/mute`, {
-			duration: `${duration}${span}`,
+			duration, 
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
 		})
@@ -78,21 +79,16 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 
 	return (
 		<div className="rounded border border-t-0 border-white bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-2">
-			<form className="flex space-x-1" onSubmit={handleSubmit(mute)}>
-				<input
-					onKeyDown={(evt) =>
-						['-', '.', '+', 'e', 'E'].includes(evt.key) && evt.preventDefault()
-					}
-					{...register('duration')}
-					className="w-16 appearance-none rounded-l border border-white bg-transparent py-1 text-white"
-					type="number"
-				/>
-				<select {...register('span')} className="rounded-r text-[#170317]">
-					<option value={'s'}>s</option>
-					<option value={'m'}>m</option>
-					<option value={'h'}>h</option>
-					<option value={'d'}>d</option>
-				</select>
+			<form className="flex flex-col space-y-1" onSubmit={handleSubmit(mute)}>
+				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
+					<input  {...register('duration')} checked type="radio" value={MuteDuration.THIRTEEN_SEGS} name="duration" id="30s" />
+					<span htmlFor="30s">30s</span>
+				</fieldset>
+
+				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
+					<input  {...register('duration')} type="radio" value={MuteDuration.FIVE_MINS} name="duration" id="5m"/>
+					<span htmlFor="5m">5m</span>
+				</fieldset>
 			</form>
 		</div>
 	)
@@ -228,7 +224,8 @@ export default function Chat() {
 					<button className="w-full" onClick={changeOpenState}>
 						{'friend' in currentOpenChat
 							? currentOpenChat.friend?.name
-							: currentOpenChat.room.name}
+							: currentOpenChat.room?.name
+						}
 					</button>
 					<button onClick={closeAll}>
 						<IoIosClose size={32} />
