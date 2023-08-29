@@ -187,11 +187,11 @@ export class ChatService {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
-    if (await this.isUserBannedFromRoom(room, user.id)) {
+    if (this.isUserBannedFromRoom(room, user.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
     }
 
-    if (await this.isUserInRoom(room, user.id)) {
+    if (this.isUserInRoom(room, user.id)) {
       this.logger.warn(
         `${user.name} tried to join a room where he's already in (room: "${room.name}")`,
       );
@@ -383,7 +383,7 @@ export class ChatService {
     await this.chatRoomRepository.save(room);
 
     const warning: RoomWarningDTO = {
-      roomId: room.id,
+      id: room.id,
       warning: `${userToBan.name} was banned!`,
     }
     this.connectionGateway.server
@@ -437,7 +437,7 @@ export class ChatService {
       throw new ConflictException('You cannot kick yourself');
     }
 
-    if (!(await this.isUserInRoom(room, userToKickId))) {
+    if (!this.isUserInRoom(room, userToKickId)) {
       this.logger.warn(
         `UID= ${senderId} tried to kick a user that isn't part of the requesting room`,
       );
@@ -458,7 +458,7 @@ export class ChatService {
     await this.leaveRoom(room, userToKickId, false);
 
     const warning: RoomWarningDTO = {
-      roomId: room.id,
+      id: room.id,
       warning: `${userToKick.name} was kicked!`
     }
     this.connectionGateway.server
@@ -506,7 +506,7 @@ export class ChatService {
         roomNameProximity: chatRoomNameQuery + '%',
       })
       .andWhere("chat_room.type != 'private'")
-      .andWhere((qb) => {
+      .andWhere((qb): string => {
         const subqueryUserRooms: string = qb
           .subQuery()
           .select('user_room.id')
@@ -516,7 +516,7 @@ export class ChatService {
           .getQuery();
         return `chat_room.id NOT IN ${subqueryUserRooms}`;
       })
-      .andWhere((qb) => {
+      .andWhere((qb): string => {
         const subqueryBannedRooms: string = qb
           .subQuery()
           .select('banned_room.id')
@@ -550,7 +550,7 @@ export class ChatService {
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
       const warning: RoomWarningDTO = {
-        roomId: room.id,
+        id: room.id,
         warning: 'Owner has left the room',
       };
       this.connectionGateway.server
@@ -576,7 +576,7 @@ export class ChatService {
 
       const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
       const warning: RoomWarningDTO = {
-        roomId: room.id,
+        id: room.id,
         warning: `${leavingUser.name} has left the room`,
       };
 
@@ -713,7 +713,7 @@ export class ChatService {
     }
   }
 
-  public async isUserAnAdmin(room: ChatRoom, userId: number): Promise<boolean> {
+  public isUserAnAdmin(room: ChatRoom, userId: number): boolean {
     return room.admins.find((admin: User) => {
       admin.id == userId;
     })
@@ -721,10 +721,10 @@ export class ChatService {
       : false;
   }
 
-  public async isUserBannedFromRoom(
+  public isUserBannedFromRoom(
     room: ChatRoom,
     userId: number,
-  ): Promise<boolean> {
+  ): boolean {
     return room.bans.find((user: User) => {
       return user.id == userId;
     })

@@ -1,4 +1,4 @@
 export interface RoomWarningDTO {
-  roomId: number;
+  id: number;
   warning: string;
 }
