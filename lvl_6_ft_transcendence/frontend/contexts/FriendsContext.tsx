@@ -388,17 +388,22 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}, [socket])
 
 	useEffect(() => {
-		socket?.on('directMessageReceived', onMessageReceived)
-		socket?.on('newChatRoomMessage', onMessageReceived)
-		socket?.on('roomWarning', function(data) {
-			console.log(data)
-		})
 
-		return () => {
-			socket?.off('directMessageReceived', onMessageReceived)
-			socket?.off('newChatRoomMessage', onMessageReceived)
-			socket?.off('roomWarning', onMessageReceived)
+		if ( socket ) {
+			console.log(socket)
+			socket.on('directMessageReceived', onMessageReceived)
+			socket.on('newChatRoomMessage', onMessageReceived)
+			socket.on('roomWarning', function(data) {
+				console.log(data)
+			})
+
+			return () => {
+				socket.off('directMessageReceived', onMessageReceived)
+				socket.off('newChatRoomMessage', onMessageReceived)
+				socket.off('roomWarning', onMessageReceived)
+			}
 		}
+
 	}, [onMessageReceived])
 
 	// ======================== Room messages ========================
