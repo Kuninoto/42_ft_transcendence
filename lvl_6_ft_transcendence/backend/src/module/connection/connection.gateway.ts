@@ -54,13 +54,13 @@ export class ConnectionGateway
       client.data.userId = user.id;
       client.data.name = user.name;
 
-      await this.updateUserStatus(user.id, UserStatus.ONLINE);
-
       this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
-      this.chatService.joinUserRooms(client);
+      await this.updateUserStatus(user.id, UserStatus.ONLINE);
 
-      this.chatService.sendMissedDirectMessages(client.id, user.id);
+      await this.chatService.joinUserRooms(client);
+      await this.joinFriendsRooms(client, user.id),
+      await this.chatService.sendMissedDirectMessages(client.id, user.id);
 
       this.logger.log(`${user.name} is online`);
     } catch (error: any) {

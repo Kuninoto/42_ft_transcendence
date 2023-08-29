@@ -198,7 +198,7 @@ export class ChatController {
       throw new NotFoundException(`Room "${room.name}" doesn't exist`);
     }
 
-    this.chatService.leaveRoom(room, body.userId, true);
+    await this.chatService.leaveRoom(room, body.userId, true);
     return { message: `Succesfully left room "${room.name}"` };
   }
 
