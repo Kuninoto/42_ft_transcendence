@@ -12,6 +12,7 @@ import { RxTriangleUp } from 'react-icons/rx'
 
 import FriendsModal from './friendsModal'
 import RoomsModal from './roomsModal'
+import { api } from '@/api/api'
 
 enum openModalType {
 	FRIENDS = 'friends',
@@ -30,6 +31,13 @@ export default function FriendsList(): JSX.Element {
 
 	const { open, sendGameInvite } = useFriends()
 
+	function leaveRoom(roomId: number) {
+		api.post('/chat/leave-room', {
+			roomId: parseInt(roomId),
+			userId: parseInt(user.id),
+		})
+	}
+
 	return (
 		<div className="flex h-full w-full">
 			{openModal === openModalType.FRIENDS ? (
@@ -41,7 +49,7 @@ export default function FriendsList(): JSX.Element {
 			)}
 
 			<div className="flex w-full flex-col px-4 py-2">
-				<div className="flex flex-col">
+				<div className="flex items-center">
 					<div className="flex w-full rounded-t-md px-4 py-2">
 						<div className="relative aspect-square w-16 overflow-hidden rounded">
 							<Image
@@ -59,6 +67,7 @@ export default function FriendsList(): JSX.Element {
 							<div>rank wins</div>
 						</div>
 					</div>
+					<div className="text-2xl">#{user.ladder_level} </div>
 				</div>
 
 				<div className="my-2 space-y-2">
@@ -190,7 +199,7 @@ export default function FriendsList(): JSX.Element {
 												{room.participants?.length}
 											</div>
 											<div className="invisible absolute right-4 group-hover:visible">
-												by {room.ownerName}
+												<button onClick={() => leaveRoom(room.id)} className="text-xs text-gray-400 hover:text-red-500">Exit room</button>
 											</div>
 										</div>
 									</button>

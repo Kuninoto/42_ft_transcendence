@@ -194,6 +194,7 @@ function FriendRequests() {
 								<Image
 									alt="profile picture"
 									fill
+									className="object-cover"
 									loader={removeParams}
 									sizes="100%"
 									src={request?.avatar_url || '/placeholder.gif'}

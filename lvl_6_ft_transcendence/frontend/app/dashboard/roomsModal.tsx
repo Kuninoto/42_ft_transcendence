@@ -33,7 +33,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		password: string
 		type: ChatRoomType
 	}) {
-		if (password.length < 4 || password.length > 20) {
+		if (type === ChatRoomType.PROTECTED && (password.length < 4 || password.length > 20)) {
 			setError('name', {
 				message: 'Password must be 4-20 characters',
 				type: 'alreadyInUser',
@@ -205,7 +205,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 			setPassword('')
 		}
 
-		if (!password.length) return
+		if (needPassword && !password.length) return
 
 		const roomInfo: JoinRoomDTO = {
 			password: needPassword ? md5(password) : null,
