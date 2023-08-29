@@ -114,7 +114,8 @@ export class GameService {
     } else {
       // Remove player from queue if he was there
       this.gameQueue.removePlayerFromQueueByUID(playerUserId);
-    }
+      await this.connectionGateway.updateUserStatus(playerUserId, UserStatus.ONLINE);
+    }  
   }
 
   public findGameInviteByInviteId(inviteId: string): GameInvite | undefined {
