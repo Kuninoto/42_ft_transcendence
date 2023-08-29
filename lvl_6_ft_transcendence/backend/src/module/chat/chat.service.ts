@@ -178,7 +178,7 @@ export class ChatService {
   }
 
   public async joinRoom(
-    user: User,
+    joiningUser: User,
     roomId: number,
     password?: string,
   ): Promise<SuccessResponse | ErrorResponse> {
@@ -187,15 +187,15 @@ export class ChatService {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
-    if (this.isUserBannedFromRoom(room, user.id)) {
+    if (this.isUserBannedFromRoom(room, joiningUser.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
     }
 
-    if (this.isUserInRoom(room, user.id)) {
+    if (this.isUserInRoom(room, joiningUser.id)) {
       this.logger.warn(
-        `${user.name} tried to join a room where he's already in (room: "${room.name}")`,
+        `${joiningUser.name} tried to join a room where he's already in (room: "${room.name}")`,
       );
-      throw new ConflictException(`You\'re already in room "${room.name}"`);
+      throw new ConflictException(`You're already in room "${room.name}"`);
     }
 
     if (room.type === ChatRoomType.PROTECTED) {
@@ -205,23 +205,23 @@ export class ChatService {
       }
     }
 
-    room.users.push(user);
+    room.users.push(joiningUser);
     this.chatRoomRepository.save(room);
 
     const socketIdOfJoiningUser: string =
-      this.connectionService.findSocketIdByUID(user.id.toString());
+      this.connectionService.findSocketIdByUID(joiningUser.id.toString());
 
     this.connectionGateway.server
       .to(socketIdOfJoiningUser)
       .socketsJoin(`room-${room.id}`);
 
-    this.connectionGateway.sendRefreshUser(user.id, socketIdOfJoiningUser);
+    this.connectionGateway.sendRefreshUser(joiningUser.id, socketIdOfJoiningUser);
 
-    const username: string = user.name;
+    this.connectionGateway.sendRoomWarning(room.id, {
+      id: room.id,
+      warning: `${joiningUser.name} joined the room!`,
+    });
 
-    this.connectionGateway.server
-      .to(socketIdOfJoiningUser)
-      .emit('userJoinedRoom', { username: username });
     return { message: `Successfully joined room "${room.name}"` };
   }
 
@@ -234,11 +234,11 @@ export class ChatService {
       return;
     }
 
-    const roomNames: string[] = roomsToJoin.map(
-      (room: ChatRoomInterface): string => room.name,
+    const roomSocketIds: string[] = roomsToJoin.map(
+      (room: ChatRoomInterface): string => 'room-' + room.id,
     );
 
-    client.join(roomNames);
+    client.join(roomSocketIds);
   }
 
   public async inviteToRoom(
@@ -389,13 +389,10 @@ export class ChatService {
       .emit('bannedFromRoom', { id: roomId });
     await this.leaveRoom(room, userToBanId, false);
 
-    const warning: RoomWarningDTO = {
+    this.connectionGateway.sendRoomWarning(room.id, {
       id: room.id,
       warning: `${userToBan.name} was banned!`,
-    }
-    this.connectionGateway.server
-      .to(`room-${room.id}`)
-      .emit('roomWarning', warning);
+    });
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
     return {
@@ -467,13 +464,10 @@ export class ChatService {
       .emit('kickedFromRoom', { id: roomId });
     await this.leaveRoom(room, userToKickId, false);
 
-    const warning: RoomWarningDTO = {
+    this.connectionGateway.sendRoomWarning(room.id, {
       id: room.id,
       warning: `${userToKick.name} was kicked!`
-    }
-    this.connectionGateway.server
-      .to(`room-${room.id}`)
-      .emit('roomWarning', warning);
+    });
 
     this.logger.log(`${userToKick.name} was kicked from room "${room.name}"`);
     return {
@@ -559,13 +553,10 @@ export class ChatService {
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
-      const warning: RoomWarningDTO = {
+      this.connectionGateway.sendRoomWarning(room.id, {
         id: room.id,
         warning: 'Owner has left the room',
-      };
-      this.connectionGateway.server
-        .to(`room-${room.id}`)
-        .emit('roomWarning', warning);
+      });
 
       this.connectionGateway.server.to(`room-${room.id}`).socketsLeave(`room-${room.id}`);
       await this.chatRoomRepository.delete(room);
@@ -585,12 +576,11 @@ export class ChatService {
       if (!emitUserHasLeftTheRoom) return;
 
       const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
-      const warning: RoomWarningDTO = {
+      
+      this.connectionGateway.sendRoomWarning(room.id, {
         id: room.id,
         warning: `${leavingUser.name} has left the room`,
-      };
-
-      this.connectionGateway.server.to(`room-${room.id}`).emit('roomWarning', warning);
+      });
     }
   }
 
