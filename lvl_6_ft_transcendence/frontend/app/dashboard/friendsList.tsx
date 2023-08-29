@@ -64,7 +64,7 @@ export default function FriendsList(): JSX.Element {
 						</div>
 						<div className="mx-4 my-auto">
 							<div className="text-xl">{user.name}</div>
-							<div>rank wins</div>
+							<a className="text-sm text-gray-400 hover:underline" target="_blank" href={user?.intra_profile_url}>{user?.intra_name}</a>
 						</div>
 					</div>
 					<div className="text-2xl">#{user.ladder_level} </div>
