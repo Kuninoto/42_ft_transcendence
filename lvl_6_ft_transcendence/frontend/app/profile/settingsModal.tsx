@@ -32,6 +32,9 @@ function QRCode() {
 	const [QRCodeEncode, setQRCodeEncode] = useState('')
 
 	const { refreshUser, user } = useAuth()
+	{
+		console.log(user)
+	}
 
 	const enable2fa = () => {
 		try {
