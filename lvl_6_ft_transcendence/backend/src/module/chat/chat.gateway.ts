@@ -60,7 +60,7 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const isUserMuted: boolean = await this.chatService.isUserMuted(
+    const isUserMuted: boolean = this.chatService.isUserMuted(
       client.data.userId,
       room.id,
     );
