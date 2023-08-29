@@ -34,7 +34,7 @@ type buttons = {
 function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 	const { user } = useAuth()
 
-	function removeFriendship(friendshipId: number) {
+	function removeFriendship(friendshipId: null | number) {
 		try {
 			api
 				.patch(`/friendships/${friendshipId}/update`, {
@@ -75,7 +75,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 		}
 	}
 
-	function accept(friendship_id: number) {
+	function accept(friendship_id: null | number) {
 		try {
 			api
 				.patch(`/friendships/${friendship_id}/update`, {
@@ -90,7 +90,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 		}
 	}
 
-	function decline(friendship_id: number) {
+	function decline(friendship_id: null | number) {
 		try {
 			api
 				.patch(`/friendships/${friendship_id}/update`, {
@@ -183,7 +183,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 		)
 	}
 
-	if (userProfile.is_blocked) {
+	if (userProfile.blocked_by_me) {
 		return (
 			<button
 				className="w-full rounded border bg-white py-2 text-black mix-blend-lighten hover:bg-transparent hover:text-white"
@@ -320,9 +320,9 @@ export default function Profile() {
 						since{' '}
 						{hasValues(userProfile)
 							? moment(
-									userProfile?.created_at,
-									moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
-							  ).format('DD/MM/YY')
+								userProfile?.created_at,
+								moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
+							).format('DD/MM/YY')
 							: 'XX/XX/XX'}
 					</div>
 				</div>
@@ -331,33 +331,30 @@ export default function Profile() {
 					<div className="-mb-px flex w-full place-content-center space-x-1 text-2xl ">
 						<button
 							className={`w-1/2 rounded-tl border border-white py-1 hover:border-white hover:text-white
-							${
-								modal === modalPage.HISTORY
+							${modal === modalPage.HISTORY
 									? 'mix-blend-exclusion'
 									: 'border-white/50 text-white/50'
-							}`}
+								}`}
 							onClick={() => setModal(modalPage.HISTORY)}
 						>
 							History
 						</button>
 						<button
 							className={`w-1/2 border border-white py-1 hover:border-white hover:text-white
-							${
-								modal === modalPage.FRIENDS
+							${modal === modalPage.FRIENDS
 									? 'mix-blend-exclusion'
 									: 'border-white/50 text-white/50'
-							}`}
+								}`}
 							onClick={() => setModal(modalPage.FRIENDS)}
 						>
 							Friends
 						</button>
 						<button
 							className={`w-1/2 rounded-tr border border-white py-1 text-lg hover:border-white hover:text-white
-							${
-								modal === modalPage.ACHIEVEMENTS
+							${modal === modalPage.ACHIEVEMENTS
 									? 'mix-blend-exclusion'
 									: 'border-white/50 text-white/50'
-							}`}
+								}`}
 							onClick={() => setModal(modalPage.ACHIEVEMENTS)}
 						>
 							Achievements

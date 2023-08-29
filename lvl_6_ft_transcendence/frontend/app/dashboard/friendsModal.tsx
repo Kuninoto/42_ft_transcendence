@@ -57,7 +57,7 @@ function Buttons({
 		}
 	}
 
-	async function cancel(friendshipId: number) {
+	async function cancel(friendshipId: null | number) {
 		await api
 			.patch(`/friendships/${friendshipId}/update`, {
 				newStatus: FriendshipStatus.UNFRIEND,
@@ -65,7 +65,7 @@ function Buttons({
 			.then(() => refresh())
 	}
 
-	function accept(friendship_id: number) {
+	function accept(friendship_id: null | number) {
 		api
 			.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.ACCEPTED,
@@ -76,7 +76,7 @@ function Buttons({
 			})
 	}
 
-	function decline(friendship_id: number) {
+	function decline(friendship_id: null | number) {
 		api
 			.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.DECLINED,
