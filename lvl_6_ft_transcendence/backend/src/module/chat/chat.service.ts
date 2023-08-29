@@ -382,6 +382,13 @@ export class ChatService {
     room.bans.push(userToBan);
     await this.chatRoomRepository.save(room);
 
+    const userToBanSocketId: string = this.connectionService.findSocketIdByUID(userToBanId.toString());
+
+    this.connectionGateway.server
+      .to(userToBanSocketId)
+      .emit('bannedFromRoom', { id: roomId });
+    await this.leaveRoom(room, userToBanId, false);
+
     const warning: RoomWarningDTO = {
       id: room.id,
       warning: `${userToBan.name} was banned!`,
@@ -389,7 +396,6 @@ export class ChatService {
     this.connectionGateway.server
       .to(`room-${room.id}`)
       .emit('roomWarning', warning);
-    await this.leaveRoom(room, userToBanId, false);
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
     return {
@@ -454,7 +460,11 @@ export class ChatService {
         `User with uid=${userToKickId} doesn't exist`,
       );
     }
+    const userToKickSocketId: string = this.connectionService.findSocketIdByUID(userToKickId.toString());
 
+    this.connectionGateway.server
+      .to(userToKickSocketId)
+      .emit('kickedFromRoom', { id: roomId });
     await this.leaveRoom(room, userToKickId, false);
 
     const warning: RoomWarningDTO = {
