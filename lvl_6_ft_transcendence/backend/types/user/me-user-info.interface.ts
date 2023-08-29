@@ -1,3 +1,5 @@
+import { UserStatsInterface } from "types/user-stats";
+
 export interface MeUserInfo {
   id: number;
   name: string;
@@ -7,5 +9,6 @@ export interface MeUserInfo {
   has_2fa: boolean;
   game_theme: string;
   ladder_level: number;
+  stats: UserStatsInterface;
   created_at: Date;
 }

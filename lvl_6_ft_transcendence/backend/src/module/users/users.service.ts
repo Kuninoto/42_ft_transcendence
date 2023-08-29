@@ -82,6 +82,7 @@ export class UsersService {
       has_2fa: meUser.has_2fa,
       game_theme: meUser.game_theme,
       ladder_level: await this.userStatsService.findLadderLevelByUID(meUID),
+      stats: await this.userStatsService.findUserStatsByUID(meUID),
       created_at: meUser.created_at,
     };
   }
@@ -101,13 +102,13 @@ export class UsersService {
   public async findChatRoomsWhereUserIs(uid: number): Promise<MeChatRoom[]> {
     const rooms: ChatRoom[] | undefined = (
       await this.usersRepository.findOne({
+        where: { id: uid },
         relations: [
           'chat_rooms',
           'chat_rooms.owner',
           'chat_rooms.admins',
           'chat_rooms.users',
         ],
-        where: { id: uid },
       })
     ).chat_rooms;
 
@@ -478,7 +479,7 @@ export class UsersService {
     return user ? true : false;
   }
 
-  private findMyRoleOnChatRoom(
+  public findMyRoleOnChatRoom(
     meUID: number,
     chatRoom: ChatRoom,
   ): ChatRoomRoles {
