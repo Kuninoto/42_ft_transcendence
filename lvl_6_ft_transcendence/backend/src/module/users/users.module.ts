@@ -1,22 +1,13 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GameResult, User } from 'src/entity/index';
-
-import { AchievementModule } from '../achievement/achievement.module';
-import { FriendshipsModule } from '../friendships/friendships.module';
-import { UserStatsModule } from '../user-stats/user-stats.module';
-import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { User, Friendship } from 'src/typeorm';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([User, Friendship])],
   controllers: [UsersController],
-  exports: [UsersService],
-  imports: [
-    TypeOrmModule.forFeature([User, GameResult]),
-    FriendshipsModule,
-    forwardRef(() => AchievementModule),
-    UserStatsModule,
-  ],
   providers: [UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}
