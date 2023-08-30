@@ -379,6 +379,13 @@ export class ChatService {
     room.admins.push(userToAssignRole);
     this.chatRoomRepository.save(room);
 
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userToAssignRoleId,
+      warning: `${userToAssignRole.name} was promoted to admin!`,
+      warningType: RoomWarning.PROMOTED,
+    });
+
     this.logger.log(
       `"${userToAssignRole.name}" is now an admin on room: "${room.name}"`,
     );
@@ -415,13 +422,20 @@ export class ChatService {
     }
 
     room.admins = room.admins.filter(
-      (user: User): boolean => user.id !== userIdToRemoveRole,
+      (user: User): boolean => user.id != userIdToRemoveRole,
     );
     this.chatRoomRepository.save(room);
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userIdToRemoveRole,
+      warning: `${userToRemoveRole.name} was demoted from admin!`,
+      warningType: RoomWarning.DEMOTED,
+    });
+
     this.logger.log(
       `${userToRemoveRole.name} is no longer an admin in room: "${room.name}"`,
     );
-
     return {
       message: `Succesfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
     };
