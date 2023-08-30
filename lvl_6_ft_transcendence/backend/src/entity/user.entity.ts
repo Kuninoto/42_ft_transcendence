@@ -108,15 +108,15 @@ export class User {
   user_stats: UserStats;
 
   @ApiProperty()
-  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users, { cascade: true })
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users)
   chat_rooms: ChatRoom[];
 
   @ApiProperty()
-  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.bans, { cascade: true })
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.bans)
   banned_rooms: ChatRoom[];
 
   @ApiProperty()
-  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.admins, { cascade: true })
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.admins)
   chat_admin: ChatRoom[];
 
   @ApiProperty()
