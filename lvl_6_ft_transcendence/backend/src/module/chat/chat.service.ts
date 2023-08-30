@@ -528,11 +528,7 @@ export class ChatService {
         `User with uid=${userToKickId} doesn't exist`,
       );
     }
-    const userToKickSocketId: string = this.connectionService.findSocketIdByUID(userToKickId.toString());
 
-    this.connectionGateway.server
-      .to(userToKickSocketId)
-      .emit('kickedFromRoom', { id: roomId });
     await this.leaveRoom(room, userToKickId, false);
 
     this.connectionGateway.sendRoomWarning(room.id, {
