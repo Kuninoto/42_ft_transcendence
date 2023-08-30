@@ -281,7 +281,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					return false
 				})
 
-				if ('warning' in data && data.affectedUID === user.id)  {
+				if ('warning' in data && data.affectedUID == user.id)  {
+					console.log("enter")
 					actionBasedOnWarning(data.warningType)
 				}
 
