@@ -1,4 +1,8 @@
+import { RoomWarningType } from "./backend/chat/room-warning.enum";
+
 export interface RoomWarningDTO {
-  id: number;
+  roomId: number;
+  affectedUID: number;
   warning: string;
+  warningType: RoomWarningType;
 }

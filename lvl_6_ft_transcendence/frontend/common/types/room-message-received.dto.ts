@@ -1,8 +1,10 @@
 import { Chatter } from './backend'
+import { ChatRoomRoles } from './backend/chat/chat-room-roles.enum';
 
 export interface RoomMessageReceivedDTO {
-	author: Chatter
-	content: string
-	id: number
-	uniqueId: string
+  uniqueId: string;
+  id: number;
+  author: Chatter;
+  authorRole: ChatRoomRoles;
+  content: string;
 }
