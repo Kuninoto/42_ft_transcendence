@@ -144,7 +144,9 @@ export class ChatService {
     }
 
     if (createRoomDto.type === ChatRoomType.PROTECTED) {
-      this.checkForValidRoomPassword(createRoomDto.password);
+      if (!createRoomDto.password) {
+        throw new BadRequestException(`A protected room must have a password`);
+      }
     }
 
     const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomDto);
@@ -706,23 +708,6 @@ export class ChatService {
     if (!name.match('^[a-zA-Z0-9_]+$')) {
       throw new NotAcceptableException(
         'Room names can only be composed by letters (both cases), numbers and underscore',
-      );
-    }
-  }
-
-  public checkForValidRoomPassword(password: string): void {
-    if (!password) {
-      throw new BadRequestException(`A protected room must have a password`);
-    }
-
-    if (!(password.length >= 4 && password.length <= 20)) {
-      throw new BadRequestException(`Room passwords must be 4-20 chars long`);
-    }
-
-    // Check if password doesn't contain white spaces or special unicode chars
-    if (password.match('^[a-zA-Z0-9!@#$%^&*()_+{}[]:;<>,.?~=/\\|-]+$')) {
-      throw new BadRequestException(
-        `Room passwords must be only composed by letters (both cases), numbers and special characters`,
       );
     }
   }
