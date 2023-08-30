@@ -33,17 +33,29 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		password: string
 		type: ChatRoomType
 	}) {
-		if (type === ChatRoomType.PROTECTED && (password.length < 4 || password.length > 20)) {
-			setError('name', {
-				message: 'Password must be 4-20 characters',
-				type: 'alreadyInUser',
-			})
-			return
-		}
+		if (type === ChatRoomType.PROTECTED ) {
 
-		if (password === '1234') {
-			toast.error('1234? Really?')
-			return
+			if ((password.length < 4 || password.length > 20)) {
+				setError('name', {
+					message: 'Password must be 4-20 characters',
+					type: 'alreadyInUser',
+				})
+				return
+			}
+
+			if (!password.match('^[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~=\/\\|-]+$')) {
+				setError('name', {
+					message: 'Invalid character',
+					type: 'invalid',
+				})
+				return
+			}
+		
+			if (password === '1234') {
+				toast.error('1234? Really?')
+				return
+			}
+
 		}
 
 		const newRoom: CreateRoomDTO = {
@@ -90,7 +102,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 											value: 10,
 										},
 										minLength: {
-											message: 'Room names must at least 4 characters long',
+											message: 'Room names must be at least 4 characters long',
 											value: 4,
 										},
 										pattern: {
