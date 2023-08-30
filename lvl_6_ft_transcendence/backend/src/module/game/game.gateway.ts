@@ -39,7 +39,6 @@ export class GameGateway implements OnGatewayInit {
     private readonly connectionService: ConnectionService,
   ) {}
 
-
   /******************************
    *          MESSAGES          *
    ******************************/
@@ -272,5 +271,4 @@ export class GameGateway implements OnGatewayInit {
       typeof messageBody.recipientUID === 'string'
     );
   }
-
 }

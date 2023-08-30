@@ -60,7 +60,7 @@ export class ConnectionGateway
 
       await this.chatService.joinUserRooms(client);
       await this.joinFriendsRooms(client, user.id),
-      await this.chatService.sendMissedDirectMessages(client.id, user.id);
+        await this.chatService.sendMissedDirectMessages(client.id, user.id);
 
       this.logger.log(`${user.name} is online`);
     } catch (error: any) {

@@ -62,32 +62,32 @@ async function bootstrap(): Promise<void> {
   // Only enable Swagger on dev mode
   // TODO
   // if (process.env.NODE_ENV === 'dev') {
-    const swaggerConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
-      .setTitle('ft_transcendence API')
-      .setDescription('API for the ft_transcendence project')
-      .setVersion('1.0')
-      .addTag('ft_transcendence')
-      .addBasicAuth(
-        {
-          type: 'http',
-          description: 'Enter password',
-          name: 'swagger-basic-auth',
-          scheme: 'basic',
-        } as SecuritySchemeObject,
-        'swagger-basic-auth',
-      )
-      .addSecurityRequirements('swagger-basic-auth')
-      .build();
+  const swaggerConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
+    .setTitle('ft_transcendence API')
+    .setDescription('API for the ft_transcendence project')
+    .setVersion('1.0')
+    .addTag('ft_transcendence')
+    .addBasicAuth(
+      {
+        type: 'http',
+        description: 'Enter password',
+        name: 'swagger-basic-auth',
+        scheme: 'basic',
+      } as SecuritySchemeObject,
+      'swagger-basic-auth',
+    )
+    .addSecurityRequirements('swagger-basic-auth')
+    .build();
 
-    const document: OpenAPIObject = SwaggerModule.createDocument(
-      app,
-      swaggerConfig,
-    );
-    SwaggerModule.setup('help', app, document, {
-      swaggerOptions: {
-        persistAuthorization: true,
-      },
-    });
+  const document: OpenAPIObject = SwaggerModule.createDocument(
+    app,
+    swaggerConfig,
+  );
+  SwaggerModule.setup('help', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
   // }
 
   const oneDayInMs: number = 60 * 60 * 24 * 1000;
@@ -107,8 +107,8 @@ async function bootstrap(): Promise<void> {
 
   app.use(passport.initialize());
   app.use(passport.session());
-  
-  app.use(helmet({ crossOriginResourcePolicy: { policy: "same-site" } }));
+
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }));
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
@@ -118,7 +118,9 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new Passport42ExceptionFilter());
   app.setGlobalPrefix('api');
 
-  await app.listen(3000, () => logger.log('Listening at http://localhost:3000/api'));
+  await app.listen(3000, () =>
+    logger.log('Listening at http://localhost:3000/api'),
+  );
 }
 
 bootstrap();

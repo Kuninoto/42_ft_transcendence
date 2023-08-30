@@ -81,7 +81,10 @@ export class ChatGateway implements OnGatewayInit {
       id: room.id,
       uniqueId: messageBody.uniqueId,
       author: messageAuthor,
-      authorRole: this.usersService.findMyRoleOnChatRoom(messageAuthor.id, room),
+      authorRole: this.usersService.findMyRoleOnChatRoom(
+        messageAuthor.id,
+        room,
+      ),
       content: messageBody.content,
     };
 

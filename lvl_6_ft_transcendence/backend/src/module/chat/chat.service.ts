@@ -290,7 +290,10 @@ export class ChatService {
       .to(socketIdOfJoiningUser)
       .socketsJoin(`room-${room.id}`);
 
-    this.connectionGateway.sendRefreshUser(joiningUser.id, socketIdOfJoiningUser);
+    this.connectionGateway.sendRefreshUser(
+      joiningUser.id,
+      socketIdOfJoiningUser,
+    );
 
     return { message: `Successfully joined room "${room.name}"` };
   }
@@ -377,7 +380,6 @@ export class ChatService {
       throw new ConflictException('User already has admin privileges');
     }
 
-    
     room.admins.push(userToAssignRole);
     this.chatRoomRepository.save(room);
 
@@ -544,7 +546,7 @@ export class ChatService {
       roomId: room.id,
       affectedUID: userToKick.id,
       warningType: RoomWarning.KICK,
-      warning: `${userToKick.name} was kicked!`
+      warning: `${userToKick.name} was kicked!`,
     });
 
     await this.leaveRoom(room, userToKickId, false);
@@ -573,7 +575,9 @@ export class ChatService {
         warning: 'Owner has left the room',
       });
 
-      this.connectionGateway.server.to(`room-${room.id}`).socketsLeave(`room-${room.id}`);
+      this.connectionGateway.server
+        .to(`room-${room.id}`)
+        .socketsLeave(`room-${room.id}`);
 
       await this.chatRoomRepository.remove(room);
     } else {
@@ -585,7 +589,9 @@ export class ChatService {
       /* In case this function is being used by kickFromRoom or banFromRoom
       emitUserHasLeftTheRoom will be false (they will have their own events) */
       if (emitUserHasLeftTheRoom) {
-        const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
+        const leavingUser: User = await this.usersService.findUserByUID(
+          userLeavingId,
+        );
         this.connectionGateway.sendRoomWarning(room.id, {
           roomId: room.id,
           affectedUID: leavingUser.id,
@@ -593,7 +599,7 @@ export class ChatService {
           warning: `${leavingUser.name} has left the room`,
         });
       }
-  
+
       // Kick userLeaving from chat room
       this.connectionGateway.server
         .to(socketIdOfLeavingUser)
@@ -714,28 +720,21 @@ export class ChatService {
   }
 
   public isUserAnAdmin(room: ChatRoom, userId: number): boolean {
-    return room.admins.find((admin: User) => admin.id == userId)
-      ? true
-      : false;
+    return room.admins.find((admin: User) => admin.id == userId) ? true : false;
   }
 
-  public isUserBannedFromRoom(
-    room: ChatRoom,
-    userId: number,
-  ): boolean {
-    return room.bans.find((user: User) => user.id == userId)
-      ? true
-      : false;
+  public isUserBannedFromRoom(room: ChatRoom, userId: number): boolean {
+    return room.bans.find((user: User) => user.id == userId) ? true : false;
   }
 
   public isUserInRoom(room: ChatRoom, userId: number): boolean {
-    return room.users.find((user: User) => user.id == userId)
-      ? true
-      : false;
+    return room.users.find((user: User) => user.id == userId) ? true : false;
   }
 
   public isUserMuted(userId: number, roomId: number): boolean {
-    return this.mutedUsers.findIndex((entry) => entry.userId === userId && entry.roomId === roomId) !== -1
+    return this.mutedUsers.findIndex(
+      (entry) => entry.userId === userId && entry.roomId === roomId,
+    ) !== -1
       ? true
       : false;
   }
