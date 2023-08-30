@@ -1,4 +1,4 @@
-import { RoomWarning } from "types";
+import { RoomWarning } from 'types';
 
 export interface RoomWarningDTO {
   roomId: number;
