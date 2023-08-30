@@ -39,17 +39,17 @@ export class ChatRoom {
   owner: User;
 
   @ApiProperty()
-  @ManyToMany(() => User, (users: User) => users.chat_admin)
+  @ManyToMany(() => User, (users: User) => users.chat_admin, { cascade: true })
   @JoinTable()
   admins: User[];
 
   @ApiProperty()
-  @ManyToMany(() => User, (users: User) => users.banned_rooms)
+  @ManyToMany(() => User, (users: User) => users.banned_rooms, { cascade: true })
   @JoinTable()
   bans: User[];
 
   @ApiProperty()
-  @ManyToMany(() => User, (users: User) => users.chat_rooms)
+  @ManyToMany(() => User, (users: User) => users.chat_rooms, { cascade: true })
   @JoinTable()
   users: User[];
 }
