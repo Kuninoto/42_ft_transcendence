@@ -29,10 +29,10 @@ import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { ChatRoom, User } from 'src/entity';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import {
-	ChatRoomSearchInfo,
-	ErrorResponse,
-	MuteDuration,
-	SuccessResponse,
+  ChatRoomSearchInfo,
+  ErrorResponse,
+  MuteDuration,
+  SuccessResponse,
 } from 'types';
 import { ChatService } from './chat.service';
 import { CreateRoomDTO } from './dto/create-room.dto';
@@ -127,7 +127,6 @@ export class ChatController {
 	public async findRoomBans(
 		@Query('room-id') query: number,
 	): Promise<number[]> {
-		console.log(query)
 		const room: ChatRoom | null = await this.chatService.findRoomById(query);
 		if (!room) {
 			throw new NotFoundException(`Room with id=${query} doesn't exist`);
