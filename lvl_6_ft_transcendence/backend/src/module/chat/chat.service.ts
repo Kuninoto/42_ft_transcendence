@@ -176,6 +176,73 @@ export class ChatService {
     };
   }
 
+  public async findRoomById(roomId: number): Promise<ChatRoom | null> {
+    return await this.chatRoomRepository.findOne({
+      relations: {
+        admins: true,
+        bans: true,
+        owner: true,
+        users: true,
+      },
+      where: { id: roomId },
+    });
+  }
+
+  public async findRoomByName(name: string): Promise<ChatRoom | null> {
+    return await this.chatRoomRepository.findOne({
+      relations: {
+        admins: true,
+        bans: true,
+        owner: true,
+        users: true,
+      },
+      where: { name: name },
+    });
+  }
+
+  public async findRoomsByNameProximity(
+    meUID: number,
+    chatRoomNameQuery: string,
+  ): Promise<ChatRoomSearchInfo[]> {
+    const chatRooms: ChatRoom[] = await this.chatRoomRepository
+      .createQueryBuilder('chat_room')
+      .leftJoin('chat_room.owner', 'owner')
+      .where('chat_room.name LIKE :roomNameProximity', {
+        roomNameProximity: chatRoomNameQuery + '%',
+      })
+      .andWhere("chat_room.type != 'private'")
+      .andWhere((qb): string => {
+        const subqueryUserRooms: string = qb
+          .subQuery()
+          .select('user_room.id')
+          .from(ChatRoom, 'user_room')
+          .leftJoin('user_room.users', 'user')
+          .where('user.id = :meUID', { meUID })
+          .getQuery();
+        return `chat_room.id NOT IN ${subqueryUserRooms}`;
+      })
+      .andWhere((qb): string => {
+        const subqueryBannedRooms: string = qb
+          .subQuery()
+          .select('banned_room.id')
+          .from(ChatRoom, 'banned_room')
+          .leftJoin('banned_room.bans', 'banned_user')
+          .where('banned_user.id = :meUID', { meUID })
+          .getQuery();
+        return `chat_room.id NOT IN ${subqueryBannedRooms}`;
+      })
+      .getMany();
+
+    const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
+      (room: ChatRoom): ChatRoomSearchInfo => ({
+        id: room.id,
+        name: room.name,
+        protected: room.type === ChatRoomType.PROTECTED ? true : false,
+      }),
+    );
+    return chatRoomSearchInfos;
+  }
+
   public async joinRoom(
     joiningUser: User,
     roomId: number,
@@ -199,13 +266,17 @@ export class ChatService {
 
     if (room.type === ChatRoomType.PROTECTED) {
       if (password !== room.password) {
-        console.log(password, room.password);
         throw new UnauthorizedException(`Wrong password`);
       }
     }
 
     room.users.push(joiningUser);
     this.chatRoomRepository.save(room);
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      id: room.id,
+      warning: `${joiningUser.name} joined the room!`,
+    });
 
     const socketIdOfJoiningUser: string =
       this.connectionService.findSocketIdByUID(joiningUser.id.toString());
@@ -216,11 +287,6 @@ export class ChatService {
 
     this.connectionGateway.sendRefreshUser(joiningUser.id, socketIdOfJoiningUser);
 
-    this.connectionGateway.sendRoomWarning(room.id, {
-      id: room.id,
-      warning: `${joiningUser.name} joined the room!`,
-    });
-
     return { message: `Successfully joined room "${room.name}"` };
   }
 
@@ -229,7 +295,6 @@ export class ChatService {
       await this.usersService.findChatRoomsWhereUserIs(client.data.userId);
 
     if (!roomsToJoin) {
-      this.logger.debug('No rooms to join');
       return;
     }
 
@@ -474,73 +539,6 @@ export class ChatService {
     };
   }
 
-  public async findRoomById(roomId: number): Promise<ChatRoom | null> {
-    return await this.chatRoomRepository.findOne({
-      relations: {
-        admins: true,
-        bans: true,
-        owner: true,
-        users: true,
-      },
-      where: { id: roomId },
-    });
-  }
-
-  public async findRoomByName(name: string): Promise<ChatRoom | null> {
-    return await this.chatRoomRepository.findOne({
-      relations: {
-        admins: true,
-        bans: true,
-        owner: true,
-        users: true,
-      },
-      where: { name: name },
-    });
-  }
-
-  public async findRoomsByNameProximity(
-    meUID: number,
-    chatRoomNameQuery: string,
-  ): Promise<ChatRoomSearchInfo[]> {
-    const chatRooms: ChatRoom[] = await this.chatRoomRepository
-      .createQueryBuilder('chat_room')
-      .leftJoin('chat_room.owner', 'owner')
-      .where('chat_room.name LIKE :roomNameProximity', {
-        roomNameProximity: chatRoomNameQuery + '%',
-      })
-      .andWhere("chat_room.type != 'private'")
-      .andWhere((qb): string => {
-        const subqueryUserRooms: string = qb
-          .subQuery()
-          .select('user_room.id')
-          .from(ChatRoom, 'user_room')
-          .leftJoin('user_room.users', 'user')
-          .where('user.id = :meUID', { meUID })
-          .getQuery();
-        return `chat_room.id NOT IN ${subqueryUserRooms}`;
-      })
-      .andWhere((qb): string => {
-        const subqueryBannedRooms: string = qb
-          .subQuery()
-          .select('banned_room.id')
-          .from(ChatRoom, 'banned_room')
-          .leftJoin('banned_room.bans', 'banned_user')
-          .where('banned_user.id = :meUID', { meUID })
-          .getQuery();
-        return `chat_room.id NOT IN ${subqueryBannedRooms}`;
-      })
-      .getMany();
-
-    const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
-      (room: ChatRoom): ChatRoomSearchInfo => ({
-        id: room.id,
-        name: room.name,
-        protected: room.type === ChatRoomType.PROTECTED ? true : false,
-      }),
-    );
-    return chatRoomSearchInfos;
-  }
-
   public async leaveRoom(
     room: ChatRoom,
     userLeavingId: number,
@@ -575,7 +573,6 @@ export class ChatService {
       if (!emitUserHasLeftTheRoom) return;
 
       const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
-      
       this.connectionGateway.sendRoomWarning(room.id, {
         id: room.id,
         warning: `${leavingUser.name} has left the room`,
