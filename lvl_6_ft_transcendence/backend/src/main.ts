@@ -35,7 +35,7 @@ function checkRequiredEnvVariables(): void {
   ];
 
   const missingVariables: string[] = requiredEnvVariables.filter(
-    (variable: string) => !process.env[variable],
+    (variable: string): boolean => !process.env[variable],
   );
 
   if (missingVariables.length > 0) {
