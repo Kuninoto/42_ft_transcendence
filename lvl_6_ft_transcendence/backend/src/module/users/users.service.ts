@@ -1,39 +1,39 @@
 import {
-  BadRequestException,
-  ConflictException,
-  forwardRef,
-  Inject,
-  Injectable,
-  Logger,
+	BadRequestException,
+	ConflictException,
+	forwardRef,
+	Inject,
+	Injectable,
+	Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Repository } from 'typeorm';
 import {
-  BlockedUserInterface,
-  Chatter,
-  ErrorResponse,
-  Friend,
-  FriendRequest,
-  FriendshipStatus,
-  GameResultInterface,
-  GameThemes,
-  MeChatRoom,
-  MeUserInfo,
-  OpponentInfo,
-  SuccessResponse,
-  UserProfile,
-  UserSearchInfo,
-  UserStatus,
+	BlockedUserInterface,
+	Chatter,
+	ErrorResponse,
+	Friend,
+	FriendRequest,
+	FriendshipStatus,
+	GameResultInterface,
+	GameThemes,
+	MeChatRoom,
+	MeUserInfo,
+	OpponentInfo,
+	SuccessResponse,
+	UserProfile,
+	UserSearchInfo,
+	UserStatus,
 } from 'types';
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import {
-  BlockedUser,
-  ChatRoom,
-  Friendship,
-  GameResult,
-  User,
+	BlockedUser,
+	ChatRoom,
+	Friendship,
+	GameResult,
+	User,
 } from '../../entity/index';
 import { AchievementService } from '../achievement/achievement.service';
 import { FriendshipsService } from '../friendships/friendships.service';
@@ -496,3 +496,5 @@ export class UsersService {
     return ChatRoomRoles.CHATTER;
   }
 }
+
+

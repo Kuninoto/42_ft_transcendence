@@ -24,7 +24,6 @@ function HorizontalCard({ player, score, side }: card) {
 		<div className="my-4 flex gap-4">
 			<div className={`my-auto ${textOrientation}`}>
 				<h3 className="text-2xl">{player?.name}</h3>
-				<h4 className="text-md">140 w</h4>
 				{score}
 			</div>
 			<div className="relative aspect-square w-20 overflow-hidden rounded">
@@ -49,7 +48,13 @@ function FinalModal() {
 	return (
 		<div className="absolute flex h-full w-full flex-col place-content-center items-center space-y-12 bg-black/50">
 			<h1 className="text-6xl">
-				{gameEndInfo?.winner?.userId == user?.id ? 'You win!' : 'Game over!'}
+				{gameEndInfo?.winner?.userId == user?.id ? (
+					<div>
+						You <span className="animate-blink">win!</span>
+					</div>
+				) : (
+					<div>Game over!</div>
+				)}
 			</h1>
 			<Link
 				className="rounded border border-white px-16 py-3 text-center text-white mix-blend-lighten hover:bg-white hover:text-black"
@@ -82,9 +87,13 @@ export default function Game() {
 	}, [])
 
 	useEffect(() => {
-		const handleBeforeUnload = (event) => {
-			event.preventDefault()
-			event.returnValue = 'monkey'
+		const handleBeforeUnload = (e) => {
+			e.preventDefault()
+			e.returnValue = '' // This is needed for some browsers to show a confirmation message
+			// Your function to trigger goes here
+			if (window.confirm('You sure, you want to forfeit?')) {
+				// Perform any cleanup or actions here if needed
+			}
 		}
 
 		window.addEventListener('beforeunload', handleBeforeUnload)

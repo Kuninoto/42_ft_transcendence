@@ -31,7 +31,7 @@ function QRCode() {
 	const [otp, setOtp] = useState('')
 	const [QRCodeEncode, setQRCodeEncode] = useState('')
 
-	const { refreshUser, user } = useAuth()
+	const { user, logout } = useAuth()
 
 	const enable2fa = () => {
 		try {
@@ -41,7 +41,7 @@ function QRCode() {
 				})
 				.then(() => {
 					setOtp('')
-					refreshUser()
+					logout()
 				})
 				.catch(() => {
 					throw 'Network error'
@@ -56,7 +56,7 @@ function QRCode() {
 			api
 				.patch('/auth/2fa/disable')
 				.then(() => {
-					refreshUser()
+					logout()
 				})
 				.catch(() => {
 					throw 'Network error'

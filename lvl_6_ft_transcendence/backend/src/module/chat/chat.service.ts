@@ -20,6 +20,7 @@ import {
   ChatRoomType,
   Chatter,
   ErrorResponse,
+  RoomWarning,
   SuccessResponse,
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -274,8 +275,10 @@ export class ChatService {
     this.chatRoomRepository.save(room);
 
     this.connectionGateway.sendRoomWarning(room.id, {
-      id: room.id,
+      roomId: room.id,
+      affectedUID: joiningUser.id,
       warning: `${joiningUser.name} joined the room!`,
+      warningType: RoomWarning.JOIN,
     });
 
     const socketIdOfJoiningUser: string =
@@ -372,8 +375,10 @@ export class ChatService {
       throw new ConflictException('User already has admin privileges');
     }
 
+    
     room.admins.push(userToAssignRole);
     this.chatRoomRepository.save(room);
+
     this.logger.log(
       `"${userToAssignRole.name}" is now an admin on room: "${room.name}"`,
     );
@@ -454,7 +459,9 @@ export class ChatService {
     await this.leaveRoom(room, userToBanId, false);
 
     this.connectionGateway.sendRoomWarning(room.id, {
-      id: room.id,
+      roomId: room.id,
+      affectedUID: userToBan.id,
+      warningType: RoomWarning.BAN,
       warning: `${userToBan.name} was banned!`,
     });
 
@@ -529,7 +536,9 @@ export class ChatService {
     await this.leaveRoom(room, userToKickId, false);
 
     this.connectionGateway.sendRoomWarning(room.id, {
-      id: room.id,
+      roomId: room.id,
+      affectedUID: userToKick.id,
+      warningType: RoomWarning.KICK,
       warning: `${userToKick.name} was kicked!`
     });
 
@@ -551,7 +560,9 @@ export class ChatService {
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
       this.connectionGateway.sendRoomWarning(room.id, {
-        id: room.id,
+        roomId: room.id,
+        affectedUID: room.owner.id,
+        warningType: RoomWarning.OWNER_LEFT,
         warning: 'Owner has left the room',
       });
 
@@ -574,7 +585,9 @@ export class ChatService {
 
       const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
       this.connectionGateway.sendRoomWarning(room.id, {
-        id: room.id,
+        roomId: room.id,
+        affectedUID: leavingUser.id,
+        warningType: RoomWarning.LEAVE,
         warning: `${leavingUser.name} has left the room`,
       });
     }
