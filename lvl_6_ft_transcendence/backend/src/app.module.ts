@@ -23,7 +23,7 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
       imports: [ConfigModule],
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
+      rootPath: join(__dirname, '..', '..', 'public'),
 
       // The base URL path to serve the images from
       serveRoot: '/api/users/avatars/',
