@@ -485,12 +485,7 @@ export class UsersService {
   ): ChatRoomRoles {
     if (chatRoom.owner.id == meUID) return ChatRoomRoles.OWNER;
 
-    const isAdmin: boolean = chatRoom.admins.find((admin: User) => {
-      return admin.id == meUID;
-    })
-      ? true
-      : false;
-
+    const isAdmin: boolean = chatRoom.admins.find((admin: User) => admin.id == meUID) ? true : false;
     if (isAdmin) return ChatRoomRoles.ADMIN;
 
     return ChatRoomRoles.CHATTER;

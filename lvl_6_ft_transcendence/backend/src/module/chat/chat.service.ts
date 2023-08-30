@@ -379,6 +379,13 @@ export class ChatService {
     room.admins.push(userToAssignRole);
     this.chatRoomRepository.save(room);
 
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userToAssignRoleId,
+      warning: `${userToAssignRole.name} was promoted to admin!`,
+      warningType: RoomWarning.PROMOTED,
+    });
+
     this.logger.log(
       `"${userToAssignRole.name}" is now an admin on room: "${room.name}"`,
     );
@@ -415,13 +422,20 @@ export class ChatService {
     }
 
     room.admins = room.admins.filter(
-      (user: User): boolean => user.id !== userIdToRemoveRole,
+      (user: User): boolean => user.id != userIdToRemoveRole,
     );
     this.chatRoomRepository.save(room);
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userIdToRemoveRole,
+      warning: `${userToRemoveRole.name} was demoted from admin!`,
+      warningType: RoomWarning.DEMOTED,
+    });
+
     this.logger.log(
       `${userToRemoveRole.name} is no longer an admin in room: "${room.name}"`,
     );
-
     return {
       message: `Succesfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
     };
@@ -451,19 +465,14 @@ export class ChatService {
     room.bans.push(userToBan);
     await this.chatRoomRepository.save(room);
 
-    const userToBanSocketId: string = this.connectionService.findSocketIdByUID(userToBanId.toString());
-
-    this.connectionGateway.server
-      .to(userToBanSocketId)
-      .emit('bannedFromRoom', { id: roomId });
-    await this.leaveRoom(room, userToBanId, false);
-
     this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
       affectedUID: userToBan.id,
       warningType: RoomWarning.BAN,
       warning: `${userToBan.name} was banned!`,
     });
+
+    await this.leaveRoom(room, userToBanId, false);
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
     return {
@@ -529,14 +538,14 @@ export class ChatService {
       );
     }
 
-    await this.leaveRoom(room, userToKickId, false);
-
     this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
       affectedUID: userToKick.id,
       warningType: RoomWarning.KICK,
       warning: `${userToKick.name} was kicked!`
     });
+
+    await this.leaveRoom(room, userToKickId, false);
 
     this.logger.log(`${userToKick.name} was kicked from room "${room.name}"`);
     return {
@@ -570,22 +579,22 @@ export class ChatService {
       );
       await this.chatRoomRepository.save(room);
 
+      /* In case this function is being used by kickFromRoom or banFromRoom
+      emitUserHasLeftTheRoom will be false (they will have their own events) */
+      if (emitUserHasLeftTheRoom) {
+        const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
+        this.connectionGateway.sendRoomWarning(room.id, {
+          roomId: room.id,
+          affectedUID: leavingUser.id,
+          warningType: RoomWarning.LEAVE,
+          warning: `${leavingUser.name} has left the room`,
+        });
+      }
+  
       // Kick userLeaving from chat room
       this.connectionGateway.server
         .to(socketIdOfLeavingUser)
         .socketsLeave(`room-${room.id}`);
-
-      /* In case this function is being used by kickFromRoom or banFromRoom
-			(they will have their own events) */
-      if (!emitUserHasLeftTheRoom) return;
-
-      const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
-      this.connectionGateway.sendRoomWarning(room.id, {
-        roomId: room.id,
-        affectedUID: leavingUser.id,
-        warningType: RoomWarning.LEAVE,
-        warning: `${leavingUser.name} has left the room`,
-      });
     }
   }
 
