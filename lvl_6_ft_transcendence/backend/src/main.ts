@@ -107,7 +107,7 @@ async function bootstrap(): Promise<void> {
 
   app.use(passport.initialize());
   app.use(passport.session());
-
+  
   app.use(helmet({ crossOriginResourcePolicy: { policy: "same-site" } }));
   app.useGlobalPipes(
     new ValidationPipe({
