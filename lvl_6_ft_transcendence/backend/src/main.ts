@@ -118,7 +118,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new Passport42ExceptionFilter());
   app.setGlobalPrefix('api');
 
-  await app.listen(3000, () => logger.log('Listening on port 3000'));
+  await app.listen(3000, () => logger.log('Listening at http://localhost:3000/api'));
 }
 
 bootstrap();
