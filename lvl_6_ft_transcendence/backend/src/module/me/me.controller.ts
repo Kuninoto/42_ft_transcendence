@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Logger,
   Patch,
@@ -244,21 +243,5 @@ export class MeController {
     this.logger.log(`${user.name} is updating his game theme`);
 
     return await this.usersService.updateGameThemeByUID(user.id, newGameTheme);
-  }
-
-  /**
-   * DELETE /api/me
-   *
-   * This is the route to visit to delete 'me' user's
-   * account from the database
-   */
-  @ApiOkResponse({ description: "Deletes 'me' user's account" })
-  @Delete()
-  public async deleteMyAccount(
-    @ExtractUser() user: User,
-  ): Promise<SuccessResponse> {
-    this.logger.log(`Deleting ${user.name}'s account`);
-
-    return await this.usersService.deleteUserByUID(user.id);
   }
 }

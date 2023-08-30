@@ -24,10 +24,7 @@ export class ChatRoom {
   name: string;
 
   @ApiProperty()
-  @Column({
-    nullable: false,
-    type: 'varchar',
-  })
+  @Column({ nullable: false, type: 'varchar' })
   type: ChatRoomType;
 
   @ApiProperty()
