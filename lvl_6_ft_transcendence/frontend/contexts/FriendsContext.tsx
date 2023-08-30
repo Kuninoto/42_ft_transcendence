@@ -21,6 +21,8 @@ import { toast } from 'react-toastify'
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
 import { RoomWarningDTO } from '@/common/types/room-warning.dto'
+import { ChatRoomRoles } from '@/common/types/backend/chat/chat-room-roles.enum'
+import { RoomWarningType } from '@/common/types/backend/chat/room-warning.enum'
 
 type FriendsContextType = {
 	changeOpenState: () => void
@@ -47,6 +49,7 @@ type FriendsContextType = {
 
 interface MessageDTO {
 	author?: Chatter
+	authorRole?: ChatRoomRoles | null
 	content: string
 	sendByMe: boolean
 	uniqueID: string
@@ -79,7 +82,7 @@ const FriendsContext = createContext<FriendsContextType>(
 )
 
 export function FriendsProvider({ children }: { children: ReactNode }) {
-	const { isAuth } = useAuth()
+	const { isAuth, user } = useAuth()
 
 	const [friends, setFriends] = useState<[] | Friend[]>([])
 	const [rooms, setRooms] = useState<[] | ChatRoomInterface[]>([])
@@ -257,32 +260,48 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
+	function actionBasedOnWarning(warningType: RoomWarningType) {
+		console.log("asd")
+		getRooms()
+	}
+
 	const onMessageReceived = useCallback(
 		function(data: DirectMessageReceivedDTO | RoomMessageReceivedDTO | RoomWarningDTO) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
 				const index = newChat?.findIndex((chat) => {
-					if ('room' in chat && 'id' in data) return chat.room.id === data.id
-					if ('friend' in chat && !('id' in data))
+					if ('room' in chat) {
+						if ('id' in data) return chat.room.id === data.id
+						if ('roomId' in data) return chat.room.id === data.roomId
+					} 
+					if ('friend' in chat && !('id' in data || 'roomId' in data))
 						return chat.friend.uid === data.author.id
 
 					return false
 				})
+
+				if ('warning' in data && data.affectedUID === user.id)  {
+					actionBasedOnWarning(data.warningType)
+				}
 
 				const newMessage: (MessageDTO | RoomWarning) = 
 					'warning' in data ? {
 						warning: data.warning
 					} : {
 						author: data.author,
+						authorRole: 'authorRole' in data ? data.authorRole: null,
 						content: data.content,
 						sendByMe: false,
 						uniqueID: data.uniqueId,
 					}
 
 				if (index === -1) {
-					if ('id' in data) {
-						const room = rooms.find((room) => room.id === data.id)
+					if ('id' in data || 'roomId' in data) {
+						const room = rooms.find((room) => {
+							if ('id' in data ) return room.id === data.id
+							return room.id === data.roomId
+						})
 						if (!room) throw 'error'
 
 						newChat.push({
@@ -376,12 +395,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 		socket.on('friendRequestReceived', function() {
 			setNewFriendNotification(true)
-		})
-
-
-		socket.on('kickedFromRoom', function({id}: { id : number}) {
-			console.log(id)
-			exitRoom(id)
 		})
 
 		socket.on('refreshUser', function() {

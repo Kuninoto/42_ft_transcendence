@@ -24,6 +24,7 @@ interface IMuteTooltip {
 
 interface ITooltip extends IMuteTooltip {
 	role: ChatRoomRoles
+	authorRole: ChatRoomRoles
 }
 
 function RoomSettings({
@@ -34,6 +35,19 @@ function RoomSettings({
 	id: number
 }) {
 	const [bans, setBans] = useState<>([])
+
+	const { register, handleSubmit } = useForm()
+
+	function onSubmit(data: any) {
+		console.log(data)
+
+	}
+
+	function removePassword() {
+		api.delete('/chat/room-password', {
+			roomId: parseInt(id)
+		})
+	}
 
 	useEffect(() => {
 		try {
@@ -58,7 +72,15 @@ function RoomSettings({
 				<div className="group relative grid items-start justify-center  gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
-						<div></div>
+						<div>
+							<form onSubmit={handleSubmit(onSubmit)}>
+								
+								<input type="password" value="" {...register('password')} />
+								<input type="submit" value="Change password" />
+								</form>							
+						</div>
+
+						<button onClick={removePassword}>Remove password</button>
 					</div>
 				</div>
 			</div>
@@ -89,12 +111,14 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 					<input  {...register('duration')} type="radio" value={MuteDuration.FIVE_MINS} name="duration" id="5m"/>
 					<span htmlFor="5m">5m</span>
 				</fieldset>
+
+				<input type="submit" value="Mute" className="p-1 text-xs mix-blend-lighten hover:bg-white hover:text-black border border-white rounded"/>
 			</form>
 		</div>
 	)
 }
 
-function Tooltip({ id, role, roomId }: ITooltip) {
+function Tooltip({ id, role, roomId, authorRole}: ITooltip) {
 	function promote() {
 		api.post(`/chat/add-admin`, {
 			roomId: parseInt(roomId),
@@ -103,10 +127,11 @@ function Tooltip({ id, role, roomId }: ITooltip) {
 	}
 
 	function demote() {
+		console.log(id, roomId)
 		api.post(`/chat/remove-admin`, {
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
-		})
+		}).then((result) => console.log(result))
 	}
 
 	function kick() {
@@ -123,15 +148,17 @@ function Tooltip({ id, role, roomId }: ITooltip) {
 		})
 	}
 
+	console.log(role, authorRole)
+
 	return (
 		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
 			<Link
-				className="w-full py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+				className="w-full p-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
 				href={`profile?id=${id}`}
 			>
 				Profile
 			</Link>
-			{role === ChatRoomRoles.OWNER && (
+			{role === ChatRoomRoles.OWNER && authorRole !== ChatRoomRoles.ADMIN && (
 				<button
 					className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
 					onClick={promote}
@@ -139,7 +166,15 @@ function Tooltip({ id, role, roomId }: ITooltip) {
 					Promote
 				</button>
 			)}
-			{(role === ChatRoomRoles.OWNER || role === ChatRoomRoles.ADMIN) && (
+			{role === ChatRoomRoles.OWNER && authorRole === ChatRoomRoles.ADMIN && (
+				<button
+					className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+					onClick={demote}
+				>
+					Demote
+				</button>
+			)}
+			{(role === ChatRoomRoles.OWNER || (role === ChatRoomRoles.ADMIN && authorRole !== ChatRoomRoles.ADMIN)) && (
 				<>
 					<Tippy
 						content={<MuteTooltip id={id} roomId={roomId} />}
@@ -317,7 +352,9 @@ export default function Chat() {
 							{currentOpenChat?.messages?.map((message, index) => {
 								if ('warning' in message) {
 									return (
-									<div>
+									<div 
+									key={index}
+									className="w-full text-gray-400 text-center text-[0.6rem] flex items-center place-content-center mb-4">
 										{message.warning}
 									</div>
 									)
@@ -333,7 +370,7 @@ export default function Chat() {
 
 								if (!message.sendByMe) {
 									return (
-										<div className="mb-2 space-y-2" key={message.uniqueID}>
+										<div className="mb-2" key={message.uniqueID}>
 											<div className="w-fit max-w-[60%] break-words rounded border border-white p-2">
 												{message.content}
 											</div>
@@ -344,12 +381,14 @@ export default function Chat() {
 															id={message.author?.id}
 															role={currentOpenChat.room.myRole}
 															roomId={currentOpenChat.room.id}
+															authorRole={message.authorRole}
 														/>
 													}
+													placement={currentOpenChat.room.myRole === ChatRoomRoles.CHATTER ? "right" : "top"}
 													interactive
 													trigger={'click'}
 												>
-													<button className="mb-4 text-xs text-gray-500 hover:underline">
+													<button className="text-[0.5rem] text-gray-500 hover:underline">
 														{message.author?.name}
 													</button>
 												</Tippy>
