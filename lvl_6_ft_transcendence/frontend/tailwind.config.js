@@ -9,14 +9,25 @@ module.exports = {
 	theme: {
 		extend: {
 			animation: {
+				blink: 'blink 1s infinite',
 				ellipsis: 'ellipsis steps(4, end) 900ms infinite',
-				horizontalBounce: 'horizontalBounce 1s infinite',
+				horizontalBounce: 'horizontalBounce 1500ms infinite',
 			},
 			colors: {
 				'primary-fushia': '#FB37FF',
 				'primary-shoque': '#F32E7C',
 			},
 			keyframes: {
+				blink: {
+					'0%, 100%': {
+						opacity: 1,
+						visibility: 'visible',
+					},
+					'50%': {
+						opacity: 0,
+						visibility: 'hidden',
+					},
+				},
 				ellipsis: {
 					to: {
 						width: '64px',

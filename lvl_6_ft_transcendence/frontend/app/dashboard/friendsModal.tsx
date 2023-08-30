@@ -19,6 +19,7 @@ interface InfoOrRequest {
 	sent_by_me: boolean | null
 	status: null | string
 	uid: number
+	blocked_by_me: bool
 }
 
 function Buttons({
@@ -41,6 +42,7 @@ function Buttons({
 			: request.friend_request_sent_by_me,
 		status: isRequest ? request.status : request.friendship_status,
 		uid: isRequest ? request.uid : request.id,
+		blocked_by_me: isRequest ? false: request.blocked_by_me
 	}
 
 	async function basis(
@@ -57,7 +59,7 @@ function Buttons({
 		}
 	}
 
-	async function cancel(friendshipId: number) {
+	async function cancel(friendshipId: null | number) {
 		await api
 			.patch(`/friendships/${friendshipId}/update`, {
 				newStatus: FriendshipStatus.UNFRIEND,
@@ -65,7 +67,7 @@ function Buttons({
 			.then(() => refresh())
 	}
 
-	function accept(friendship_id: number) {
+	function accept(friendship_id: null | number) {
 		api
 			.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.ACCEPTED,
@@ -76,7 +78,7 @@ function Buttons({
 			})
 	}
 
-	function decline(friendship_id: number) {
+	function decline(friendship_id: null | number) {
 		api
 			.patch(`/friendships/${friendship_id}/update`, {
 				newStatus: FriendshipStatus.DECLINED,
@@ -88,11 +90,36 @@ function Buttons({
 		api.post(`/friendships/block/${userId}`).then(() => refresh())
 	}
 
+
+	function unblock(userId: number) {
+		try {
+			api
+				.delete(`/friendships/block/${userId}`)
+				.then(() => refresh())
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
+
 	function sendFriendRequest(userId: number) {
 		api.post(`/friendships/send-request/${userId}`).then(() => {
 			refresh()
 			resetSearch!()
 		})
+	}
+
+	if (friend.blocked_by_me) {
+		return (
+				<button
+					className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+					onClick={(e) => basis(e, unblock(friend?.uid))}
+				>
+					Unblock
+				</button>
+		)
 	}
 
 	if (friend.status === FriendshipStatus.PENDING) {
@@ -194,6 +221,7 @@ function FriendRequests() {
 								<Image
 									alt="profile picture"
 									fill
+									className="object-cover"
 									loader={removeParams}
 									sizes="100%"
 									src={request?.avatar_url || '/placeholder.gif'}
@@ -290,6 +318,7 @@ export default function FriendsModal({
 				.get(`/users/search?username=${search}`)
 				.then((result) => {
 					setUsers(result.data)
+					console.log(result.data)
 				})
 				.catch((error) => console.error(error))
 				.finally(() => setLoading(false))
