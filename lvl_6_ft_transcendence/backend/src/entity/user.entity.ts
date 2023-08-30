@@ -1,38 +1,68 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity, OneToMany } from 'typeorm';
-import { Friendship } from './friendship.entity';
-
-export enum UserStatus {
-  OFFLINE = "offline",
-  ONLINE = "online",
-  IN_MATCH = "in match"
-}
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { UserStatus } from 'types';
+import {
+  Achievement,
+  BlockedUser,
+  ChatRoom,
+  GameResult,
+  UserStats,
+} from './index';
 
 @Entity('user')
 export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 
   @ApiProperty()
   @Column({
-    type: 'varchar',
     length: 10,
+    nullable: false,
+    type: 'varchar',
     unique: true,
-    nullable: false
   })
   name: string;
 
   @ApiProperty()
   @Column({
+    nullable: false,
     type: 'varchar',
+    unique: true,
+  })
+  intra_name: string;
+
+  @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+  })
+  intra_profile_url: string;
+
+  @ApiProperty()
+  @Column({
     default: UserStatus.ONLINE,
-    nullable: false
+    nullable: false,
+    type: 'varchar',
   })
   status: string;
+
+  @ApiProperty()
+  @Column({
+    nullable: false,
+    type: 'varchar',
+  })
+  avatar_url: string;
 
   @ApiProperty()
   @Column({ default: false })
@@ -40,36 +70,66 @@ export class User {
 
   @ApiProperty()
   @Column({
+    nullable: true,
     type: 'varchar',
-    nullable: true
   })
   secret_2fa: string;
 
   @ApiProperty()
-  @Column({
-    type: 'varchar',
-    nullable: false
-  })
-  avatar_url: string;
+  @OneToMany(() => Achievement, (achievement: Achievement) => achievement.user, { cascade: true })
+  achievements: Achievement[];
+
+  @ApiProperty()
+  @OneToMany(
+    () => BlockedUser,
+    (blockedUser: BlockedUser) => blockedUser.user_who_blocked,
+  )
+  @JoinColumn({ name: 'blocked_users' })
+  blocked_users: BlockedUser[];
 
   @ApiProperty()
   @Column({
+    default: 'default',
+    nullable: false,
     type: 'varchar',
-    nullable: false
   })
-  intra_profile_url: string;
+  game_theme: string;
+
+  @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner, { cascade: true })
+  game_results_as_winner: GameResult[];
+
+  @ApiProperty()
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser, { cascade: true })
+  game_results_as_loser: GameResult[];
+
+  @ApiProperty()
+  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user, { cascade: true })
+  user_stats: UserStats;
+
+  @ApiProperty()
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.users)
+  chat_rooms: ChatRoom[];
+
+  @ApiProperty()
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.bans)
+  banned_rooms: ChatRoom[];
+
+  @ApiProperty()
+  @ManyToMany(() => ChatRoom, (room: ChatRoom) => room.admins)
+  chat_admin: ChatRoom[];
 
   @ApiProperty()
   @Column({
+    default: new Date(),
     type: 'timestamp',
-    default: new Date()
   })
   created_at: Date;
 
   @ApiProperty()
   @Column({
+    default: new Date(),
     type: 'timestamp',
-    default: new Date()
   })
   last_updated_at: Date;
 }

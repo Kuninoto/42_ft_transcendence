@@ -1,35 +1,32 @@
-import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from 'src/module/auth/auth.controller';
-import { PassportModule } from '@nestjs/passport';
-import { FortyTwoAuthStrategy } from 'src/module/auth/strategy/fortytwo-auth.strategy';
+import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
+import { PassportModule } from '@nestjs/passport';
+import { JwtOption } from 'src/common/option/jwt.option';
+import { AuthController } from 'src/module/auth/auth.controller';
+import { FortyTwoAuthStrategy } from 'src/module/auth/strategy/fortytwo-auth.strategy';
+import { UsersModule } from '../users/users.module';
+import { AuthService } from './auth.service';
 import { SessionSerializer } from './session.serializer';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersService } from '../users/users.service';
-import { Friendship, User } from 'src/typeorm';
+import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
+import { twoFactorAuthStrategy } from './strategy/two-factor-auth.strategy';
 
-console.log("JWT_SECRET= " + process.env.JWT_SECRET);
-console.log("JWT_EXPIRES_IN= " + process.env.JWT_EXPIRES_IN);
+console.log('JWT_SECRET= ' + process.env.JWT_SECRET);
+console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Friendship]),
-    PassportModule.register({ session: true }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
-    }),
-  ],
   controllers: [AuthController],
+  exports: [AuthService],
+  imports: [
+    PassportModule.register({ session: true }),
+    JwtModule.register(JwtOption),
+    forwardRef(() => UsersModule),
+  ],
   providers: [
     AuthService,
     FortyTwoAuthStrategy,
     JwtAuthStrategy,
+    twoFactorAuthStrategy,
     SessionSerializer,
-    UsersService
   ],
-  exports: [AuthService],
 })
 export class AuthModule {}
