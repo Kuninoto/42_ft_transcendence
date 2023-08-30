@@ -76,7 +76,7 @@ export class User {
   secret_2fa: string;
 
   @ApiProperty()
-  @OneToMany(() => Achievement, (achievement: Achievement) => achievement.user)
+  @OneToMany(() => Achievement, (achievement: Achievement) => achievement.user, { cascade: true })
   achievements: Achievement[];
 
   @ApiProperty()
@@ -96,15 +96,15 @@ export class User {
   game_theme: string;
 
   @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner)
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner, { cascade: true })
   game_results_as_winner: GameResult[];
 
   @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser)
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser, { cascade: true })
   game_results_as_loser: GameResult[];
 
   @ApiProperty()
-  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user)
+  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user, { cascade: true })
   user_stats: UserStats;
 
   @ApiProperty()

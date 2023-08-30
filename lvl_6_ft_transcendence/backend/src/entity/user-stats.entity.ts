@@ -42,7 +42,7 @@ export class UserStats {
   matches_played: number;
 
   @ApiProperty()
-  @OneToOne(() => User, (user) => user.user_stats, { cascade: true })
+  @OneToOne(() => User, (user) => user.user_stats)
   @JoinColumn()
   user: User;
 }
