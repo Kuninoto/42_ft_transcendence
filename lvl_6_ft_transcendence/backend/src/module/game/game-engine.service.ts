@@ -11,7 +11,7 @@ const GAME_LOOP_INTERVAL = 7.5;
 const RESET_GAME_DELAY = 6;
 
 // Hacky way to make js wait
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise(() => setTimeout(() => {}, ms));
 
 /* 
 CANVAS AXIS
@@ -42,7 +42,7 @@ export class GameEngineService {
       this.GameRoomMap.findGameRoomById(roomId);
 
     // If a user disconnects right upon game start
-    // gameRoom will end up undefined
+    // gameRoom will be undefined
     if (!gameRoom) {
       return;
     }
@@ -52,80 +52,6 @@ export class GameEngineService {
       // game-gateway on 'paddle-move' message) and pass it to the gameLoop()
       this.gameLoop(this.GameRoomMap.findGameRoomById(roomId));
     }, GAME_LOOP_INTERVAL);
-  }
-
-  private gameLoop(gameRoom: GameRoom): void {
-    gameRoom.ball.moveBySpeed();
-    this.gameGateway.broadcastGameRoomInfo(gameRoom);
-
-    if (this.ballCollidedWithPaddle(gameRoom)) {
-      this.gameGateway.broadcastGameRoomInfo(gameRoom);
-    }
-
-    if (this.ballCollidedWithWall(gameRoom.ball)) {
-      this.gameGateway.broadcastGameRoomInfo(gameRoom);
-    }
-
-    if (this.somePlayerScored(gameRoom)) {
-      this.gameGateway.broadcastGameRoomInfo(gameRoom);
-
-      // Check if game should end
-      if (
-        gameRoom.rightPlayer.score === MAX_SCORE ||
-        gameRoom.leftPlayer.score === MAX_SCORE
-      ) {
-        this.endGame(gameRoom);
-        return;
-      }
-
-      sleep(RESET_GAME_DELAY);
-    }
-  }
-
-  /* Verifies if the ball is colliding with a paddle and updates
-  its direction if so */
-  private ballCollidedWithPaddle(gameRoom: GameRoom): boolean {
-    const isWithinPaddleHeight = (ballY: number, paddleY: number): boolean => {
-      return (
-        ballY + BALL_RADIUS <= paddleY + PADDLE_HEIGHT / 2 &&
-        ballY - BALL_RADIUS >= paddleY - PADDLE_HEIGHT / 2
-      );
-    };
-
-    let player: Player;
-
-    if (gameRoom.ball.x < CANVAS_WIDTH / 2) {
-      // If ball X position is smaller than canvas'
-      // midpoint it's on the left side
-      player = gameRoom.leftPlayer;
-
-      // Collided with paddle's right side && is within the paddle height
-      if (
-        gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH / 2 &&
-        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
-        gameRoom.ball.speed.x < 0
-      ) {
-        gameRoom.ball.bounceOnCollidePoint(
-          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
-        );
-        return true;
-      }
-    } else {
-      player = gameRoom.rightPlayer;
-
-      // Collided with paddle's left side && is within the paddle height
-      if (
-        gameRoom.ball.x + BALL_RADIUS >= player.paddleX - PADDLE_WIDTH / 2 &&
-        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
-        gameRoom.ball.speed.x > 0
-      ) {
-        gameRoom.ball.bounceOnCollidePoint(
-          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
-        );
-        return true;
-      }
-    }
-    return false;
   }
 
   public async endGame(gameRoom: GameRoom) {
@@ -179,6 +105,34 @@ export class GameEngineService {
     }
   }
 
+  private gameLoop(gameRoom: GameRoom): void {
+    gameRoom.ball.moveBySpeed();
+    this.gameGateway.broadcastGameRoomInfo(gameRoom);
+
+    if (this.ballCollidedWithWall(gameRoom.ball)) {
+      this.gameGateway.broadcastGameRoomInfo(gameRoom);
+    }
+
+    if (this.ballCollidedWithPaddle(gameRoom)) {
+      this.gameGateway.broadcastGameRoomInfo(gameRoom);
+    }
+
+    if (this.somePlayerScored(gameRoom)) {
+      this.gameGateway.broadcastGameRoomInfo(gameRoom);
+
+      // Check if game should end
+      if (
+        gameRoom.rightPlayer.score === MAX_SCORE ||
+        gameRoom.leftPlayer.score === MAX_SCORE
+      ) {
+        this.endGame(gameRoom);
+        return;
+      }
+
+      sleep(RESET_GAME_DELAY);
+    }
+  }
+
   private ballCollidedWithWall(ball: Ball): boolean {
     // TOP || BOTTOM
     if (
@@ -187,6 +141,54 @@ export class GameEngineService {
     ) {
       ball.bounceInY();
       return true;
+    }
+    return false;
+  }
+
+  /* Verifies if the ball is colliding with a paddle and updates
+  its direction if so */
+  private ballCollidedWithPaddle(gameRoom: GameRoom): boolean {
+    const isWithinPaddleHeight = (ballY: number, paddleY: number): boolean => {
+      return (
+        ballY + BALL_RADIUS <= paddleY + PADDLE_HEIGHT / 2 &&
+        ballY - BALL_RADIUS >= paddleY - PADDLE_HEIGHT / 2
+      );
+    };
+
+    let player: Player;
+
+    if (gameRoom.ball.x < CANVAS_WIDTH / 2) {
+      // If ball X position is smaller than canvas'
+      // midpoint it's on the left side
+      player = gameRoom.leftPlayer;
+
+      // Collided with paddle's right side && is within the paddle height
+      if (
+        gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH / 2 &&
+        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
+        gameRoom.ball.x - BALL_RADIUS > player.paddleX - PADDLE_WIDTH / 2 &&
+        gameRoom.ball.speed.x < 0
+      ) {
+        gameRoom.ball.bounceOnCollidePoint(
+          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+        );
+        return true;
+      }
+    } else {
+      player = gameRoom.rightPlayer;
+
+      // Collided with paddle's left side && is within the paddle height
+      if (
+        gameRoom.ball.x + BALL_RADIUS >= player.paddleX - PADDLE_WIDTH / 2 &&
+        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
+        gameRoom.ball.x + BALL_RADIUS < player.paddleX + PADDLE_WIDTH / 2 &&
+        gameRoom.ball.speed.x > 0
+      ) {
+        gameRoom.ball.bounceOnCollidePoint(
+          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+        );
+        return true;
+      }
     }
     return false;
   }
