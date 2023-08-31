@@ -16,8 +16,8 @@ import {
 	PADDLE_WIDTH,
 } from './definitions'
 
-const KEYDOWN = 'ArrowDown'
-const KEYUP = 'ArrowUp'
+const KEYDOWN: string = 'ArrowDown'
+const KEYUP: string = 'ArrowUp'
 
 export default function Pong() {
 	const {

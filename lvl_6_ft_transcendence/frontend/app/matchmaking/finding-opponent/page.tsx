@@ -24,7 +24,7 @@ export default function Loading() {
 				</div>
 				<div className="relative h-72 w-96 overflow-hidden rounded">
 					<Image
-						alt={'cats playing pong(loading screen)'}
+						alt={'cats playing pong (loading screen)'}
 						className="object-cover"
 						fill
 						sizes="100%"

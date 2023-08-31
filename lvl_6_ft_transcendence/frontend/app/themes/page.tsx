@@ -57,7 +57,7 @@ export default function Themes() {
 					<FiChevronLeft size={96} />
 				</button>
 				<div className="relative flex h-2/3 w-2/3 place-content-center items-center border-2 border-white">
-					<button className="z-10" onClick={save}>
+					<button className="z-10" onClick={save} style={{ color: '#FB37FF' }}>
 						{saving ? 'SAVING...' : 'SAVE'}
 					</button>
 					<Image
