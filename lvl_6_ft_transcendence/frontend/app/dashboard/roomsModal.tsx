@@ -132,7 +132,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										value={ChatRoomType.PUBLIC}
 									/>
 									<span className="text-white peer-checked:text-primary-fushia">
-										Public - To everyone
+										Public
 									</span>
 								</label>
 
@@ -145,7 +145,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										value={ChatRoomType.PRIVATE}
 									/>
 									<span className="text-white peer-checked:text-primary-fushia">
-										Private - No one can see
+										Private (Invite only)
 									</span>
 								</label>
 
@@ -280,7 +280,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 							{loading ? (
 								<div> Loading... </div>
 							) : rooms.length === 0 ? (
-								<div> No one </div>
+								<div> No room was found </div>
 							) : (
 								<div className="flex h-full flex-col space-y-2 overflow-auto scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 									{rooms.map((room) => {
