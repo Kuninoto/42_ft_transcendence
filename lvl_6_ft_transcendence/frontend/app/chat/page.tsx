@@ -3,8 +3,11 @@
 import { api } from '@/api/api'
 import { MuteDuration } from '@/common/types/backend'
 import { ChatRoomRoles } from '@/common/types/backend/chat/chat-room-roles.enum'
+import { GetChatterRoleResponseDTO } from '@/common/types/get-chatter-role-response.dto'
+import { GetChatterRoleDTO } from '@/common/types/get-chatter-role.dto'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
+import { socket } from '@/contexts/SocketContext'
 import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -118,7 +121,8 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 	)
 }
 
-function Tooltip({ id, role, roomId, authorRole}: ITooltip) {
+function Tooltip({ id, role, authorRole, roomId }: ITooltip) {
+
 	function promote() {
 		api.post(`/chat/add-admin`, {
 			roomId: parseInt(roomId),
@@ -158,7 +162,7 @@ function Tooltip({ id, role, roomId, authorRole}: ITooltip) {
 			>
 				Profile
 			</Link>
-			{role === ChatRoomRoles.OWNER && authorRole !== ChatRoomRoles.ADMIN && (
+			{role === ChatRoomRoles.OWNER && authorRole === ChatRoomRoles.CHATTER && (
 				<button
 					className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
 					onClick={promote}
@@ -174,7 +178,7 @@ function Tooltip({ id, role, roomId, authorRole}: ITooltip) {
 					Demote
 				</button>
 			)}
-			{(role === ChatRoomRoles.OWNER || (role === ChatRoomRoles.ADMIN && authorRole !== ChatRoomRoles.ADMIN)) && (
+			{((role === ChatRoomRoles.OWNER || (role === ChatRoomRoles.ADMIN && authorRole !== ChatRoomRoles.ADMIN)) && role !== null && authorRole !== null) && (
 				<>
 					<Tippy
 						content={<MuteTooltip id={id} roomId={roomId} />}
@@ -209,6 +213,9 @@ export default function Chat() {
 	const [settings, setSettings] = useState(false)
 	const pathname = usePathname()
 
+	const [ role, setRole ] = useState<ChatRoomRoles>()
+	const [ authorRole, setAuthorRole ] = useState<ChatRoomRoles>()
+
 	const {
 		changeOpenState,
 		close,
@@ -221,6 +228,20 @@ export default function Chat() {
 		rejectChallenge,
 		sendMessage,
 	} = useFriends()
+
+	function openTippy(roomId: number, id: number ) {
+
+		const newGetChatterRole: GetChatterRoleDTO = {
+			roomId: parseInt(roomId),
+			uid: parseInt(id)
+		}
+
+		socket?.emit("getChatterRole", newGetChatterRole, function (data : GetChatterRoleResponseDTO) {
+			console.log(data)
+			setRole(data.myRole)
+			setAuthorRole(data.authorRole)
+		})
+	}
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value
@@ -379,16 +400,19 @@ export default function Chat() {
 													content={
 														<Tooltip
 															id={message.author?.id}
-															role={currentOpenChat.room.myRole}
+															role={role}
+															authorRole={authorRole}
 															roomId={currentOpenChat.room.id}
-															authorRole={message.authorRole}
 														/>
 													}
-													placement={currentOpenChat.room.myRole === ChatRoomRoles.CHATTER ? "right" : "top"}
+													placement={role === ChatRoomRoles.CHATTER || !role || !authorRole ? "right" : "top"}
 													interactive
 													trigger={'click'}
 												>
-													<button className="text-[0.5rem] text-gray-500 hover:underline">
+													<button 
+													
+													onClick={() => openTippy(currentOpenChat.room.id, message.author?.id)}
+													className="text-[0.5rem] text-gray-500 hover:underline">
 														{message.author?.name}
 													</button>
 												</Tippy>
@@ -411,20 +435,25 @@ export default function Chat() {
 											{message.content}
 										</div>
 										{isRoom && isLastOfMe && (
-											<div className="mb-4 text-xs text-gray-500">You</div>
+											<div className="mb-4 text-[0.5rem] text-gray-500">You</div>
 										)}
 									</div>
 								)
 							})}
 						</div>
 
+						{'room' in currentOpenChat && !currentOpenChat.canTalk?
 						<textarea
 							className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
 							cols={2}
 							onChange={handleChange}
 							placeholder="Write something beutiful"
 							value={message}
-						/>
+						/> : 
+						<div>
+							{currentOpenChat.canTalk}
+						</div>
+						}
 					</div>
 				</div>
 			</div>

@@ -70,6 +70,7 @@ type IChat = (
 	}
 	| {
 		room: ChatRoomInterface
+		canTalk: string
 	}
 ) & {
 	display: boolean
@@ -260,9 +261,25 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	function actionBasedOnWarning(warningType: RoomWarningType) {
-		console.log("asd")
+	function actionBasedOnWarning(warningType: RoomWarningType, id: number) {
 		getRooms()
+
+		if (warningType === RoomWarningType.BAN || warningType === RoomWarningType.KICK) {
+			setOpenChats(prevChat => {
+				const newChat = [...prevChat]
+
+				const index = newChat?.findIndex((chat) => {
+					return 'room' in chat && chat.room.id === id
+				})
+
+				newChat[index].canTalk = warningType
+			})
+
+			if ('room' in currentOpenChat && currentOpenChat.room.id === id) {
+				focus(id, true)
+			}
+		}
+		
 	}
 
 	const onMessageReceived = useCallback(
@@ -282,8 +299,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				})
 
 				if ('warning' in data && data.affectedUID == user.id)  {
-					console.log("enter")
-					actionBasedOnWarning(data.warningType)
+					actionBasedOnWarning(data.warningType, data.roomId)
 				}
 
 				const newMessage: (MessageDTO | RoomWarning) = 
@@ -306,6 +322,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 						if (!room) throw 'error'
 
 						newChat.push({
+							canTalk: '',
 							display: true,
 							messages: [newMessage],
 							room,
@@ -429,6 +446,9 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function exitRoom(id: number) {
 
 		setOpenChats((prevChats) => {
+
+			if (!prevChats) return []
+
 			const newChat = [...prevChats]
 
 			const updatedChat = newChat.filter((chat) => {
