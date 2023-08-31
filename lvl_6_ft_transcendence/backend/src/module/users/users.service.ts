@@ -27,7 +27,6 @@ import {
   UserSearchInfo,
   UserStatus,
 } from 'types';
-import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import {
   BlockedUser,
   ChatRoom,
@@ -121,7 +120,6 @@ export class UsersService {
         id: room.id,
         name: room.name,
         ownerName: room.owner.name,
-        myRole: this.findRoleOnChatRoom(uid, room),
         participants: room.users.map(
           (user: User): Chatter => ({
             id: user.id,
@@ -477,21 +475,5 @@ export class UsersService {
       name: newName,
     });
     return user ? true : false;
-  }
-
-  public findRoleOnChatRoom(
-    uid: number,
-    chatRoom: ChatRoom,
-  ): ChatRoomRoles {
-    if (chatRoom.owner.id == uid) return ChatRoomRoles.OWNER;
-
-    const isAdmin: boolean = chatRoom.admins.find(
-      (admin: User) => admin.id == uid,
-    )
-      ? true
-      : false;
-    if (isAdmin) return ChatRoomRoles.ADMIN;
-
-    return ChatRoomRoles.CHATTER;
   }
 }

@@ -23,6 +23,7 @@ import {
   RoomWarning,
   SuccessResponse,
 } from 'types';
+import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
@@ -244,6 +245,22 @@ export class ChatService {
       }),
     );
     return chatRoomSearchInfos;
+  }
+
+  public findRoleOnChatRoom(
+    uid: number,
+    chatRoom: ChatRoom,
+  ): ChatRoomRoles {
+    if (chatRoom.owner.id == uid) return ChatRoomRoles.OWNER;
+
+    const isAdmin: boolean = chatRoom.admins.find(
+      (admin: User) => admin.id == uid,
+    )
+      ? true
+      : false;
+    if (isAdmin) return ChatRoomRoles.ADMIN;
+
+    return ChatRoomRoles.CHATTER;
   }
 
   public async joinRoom(
