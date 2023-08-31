@@ -3,7 +3,7 @@ import { PADDLE_HEIGHT } from './Player';
 
 export const BALL_RADIUS = 4;
 
-const MAX_BOUNCE_SPEED = 10;
+const MAX_BOUNCE_SPEED = 8.5;
 
 // 45 degrees
 const ANGLE: number = Math.PI / 4;

@@ -16,7 +16,7 @@ export const themes: IThemes = {
 		ball: HEX_WHITE,
 	},
 	fortyTwo: {
-		background: 'forty_two.jpg',
+		background: 'forty_two.jpeg',
 		paddle: 'black.jpeg',
 		ball: HEX_BLACK,
 	},
@@ -27,7 +27,7 @@ export const themes: IThemes = {
 	},
 	halloween: {
 		background: 'halloween.jpg',
-		paddle: 'white.jpeg',
+		paddle: 'white.png',
 		ball: HEX_WHITE,
 	},
 	neon: {
