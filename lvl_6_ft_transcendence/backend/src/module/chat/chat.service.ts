@@ -356,6 +356,7 @@ export class ChatService {
   }
 
   public async assignAdminRole(
+    requesterUID: number,
     userToAssignRoleId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
@@ -378,6 +379,15 @@ export class ChatService {
         `Owner of room "${room.name}" tried to add admin privileges to an admin`,
       );
       throw new ConflictException('User already has admin privileges');
+    }
+
+    if (!this.isUserInRoom(room, userToAssignRoleId)) {
+      this.logger.warn(
+        `UID=${requesterUID} tried to add admin privileges to a user that isn't part of the current room`,
+      );
+      throw new BadRequestException(
+        `${userToAssignRole.name} is not part of the room`,
+      );
     }
 
     room.admins.push(userToAssignRole);
@@ -733,9 +743,10 @@ export class ChatService {
 
   public isUserMuted(userId: number, roomId: number): boolean {
     return this.mutedUsers.findIndex(
-      (entry) => entry.userId === userId && entry.roomId === roomId,
-    ) !== -1
-      ? true
-      : false;
+      (entry: {
+        roomId: number;
+        userId: number
+      }) => entry.userId == userId && entry.roomId == roomId,
+    ) !== -1;
   }
 }
