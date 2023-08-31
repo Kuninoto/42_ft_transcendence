@@ -1,6 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PlayerSide } from 'types';
-
 import { Ball, BALL_RADIUS } from './Ball';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
@@ -8,7 +7,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 
-const GAME_LOOP_INTERVAL = 10;
+const GAME_LOOP_INTERVAL = 8;
 const RESET_GAME_DELAY = 6;
 
 // Hacky way to make js wait
