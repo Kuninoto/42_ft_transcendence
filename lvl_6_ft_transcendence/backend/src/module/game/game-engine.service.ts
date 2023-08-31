@@ -7,7 +7,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 
-const GAME_LOOP_INTERVAL = 8;
+const GAME_LOOP_INTERVAL = 7.5;
 const RESET_GAME_DELAY = 6;
 
 // Hacky way to make js wait
