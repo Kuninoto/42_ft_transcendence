@@ -128,9 +128,9 @@ export class ChatGateway implements OnGatewayInit {
     }
 
     const myRole: ChatRoomRoles =
-      this.chatService.findRoleOnChatRoom(client.data.userId, room);
+      this.chatService.findRoleOnChatRoom(room, client.data.userId);
     const chatterRole: ChatRoomRoles =
-      this.chatService.findRoleOnChatRoom(messageBody.uid, room);
+      this.chatService.findRoleOnChatRoom(room, messageBody.uid);
 
     return {
       myRole: myRole,

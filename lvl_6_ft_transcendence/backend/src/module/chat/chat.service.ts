@@ -248,19 +248,13 @@ export class ChatService {
   }
 
   public findRoleOnChatRoom(
+    room: ChatRoom,
     uid: number,
-    chatRoom: ChatRoom,
-  ): ChatRoomRoles {
-    if (chatRoom.owner.id == uid) return ChatRoomRoles.OWNER;
-
-    const isAdmin: boolean = chatRoom.admins.find(
-      (admin: User) => admin.id == uid,
-    )
-      ? true
-      : false;
-    if (isAdmin) return ChatRoomRoles.ADMIN;
-
-    return ChatRoomRoles.CHATTER;
+  ): ChatRoomRoles | null {
+    if (room.owner.id == uid) return ChatRoomRoles.OWNER;
+    if (this.isUserAnAdmin(room, uid)) return ChatRoomRoles.ADMIN;
+    if (this.isUserInRoom(room, uid))return ChatRoomRoles.CHATTER;
+    return null;
   }
 
   public async joinRoom(
@@ -296,7 +290,7 @@ export class ChatService {
     this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
       affectedUID: joiningUser.id,
-      warning: `${joiningUser.name} joined the room!`,
+      warning: `${joiningUser.name} joined the room`,
       warningType: RoomWarning.JOIN,
     });
 

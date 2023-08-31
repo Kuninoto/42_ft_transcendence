@@ -9,6 +9,7 @@ const MAX_BOUNCE_SPEED = 11.5;
 const ANGLE: number = Math.PI / 4;
 
 const BALL_SPEED = 2.5;
+const BALL_SPEED_INCREASE = 0.3;
 
 const randomBallStartingHeight = () => {
   return Math.round(Math.random() * CANVAS_HEIGHT);
@@ -56,8 +57,8 @@ export class Ball {
   }
 
   moveBySpeed() {
-    this.x += this.speed.x + 0.1;
-    this.y += this.speed.y + 0.1;
+    this.x += this.speed.x + BALL_SPEED_INCREASE;
+    this.y += this.speed.y + BALL_SPEED_INCREASE;
   }
 
   reset() {
