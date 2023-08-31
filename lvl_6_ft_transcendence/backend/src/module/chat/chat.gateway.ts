@@ -13,8 +13,11 @@ import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import { Chatter } from 'types';
+import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
+import { GetChatterRoleResponseDTO } from './dto/get-chatter-role-response.dto';
+import { GetChatterRoleDTO } from './dto/get-chatter-role.dto';
 import { RoomMessageReceivedDTO } from './dto/room-message-received.dto';
 import { SendMessageDTO } from './dto/send-message.dto';
 
@@ -39,13 +42,13 @@ export class ChatGateway implements OnGatewayInit {
   }
 
   @SubscribeMessage('sendChatRoomMessage')
-  async onSendChatRoomMessage(
+  async sendChatRoomMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: SendMessageDTO,
   ): Promise<void> {
     if (!this.isValidSendMessageDTO(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong sendChatRoomMessageDTO`,
+        `${client.data.name} tried to send a wrong SendChatRoomMessageDTO`,
       );
       return;
     }
@@ -81,7 +84,7 @@ export class ChatGateway implements OnGatewayInit {
       id: room.id,
       uniqueId: messageBody.uniqueId,
       author: messageAuthor,
-      authorRole: this.usersService.findMyRoleOnChatRoom(
+      authorRole: this.usersService.findRoleOnChatRoom(
         messageAuthor.id,
         room,
       ),
@@ -106,6 +109,39 @@ export class ChatGateway implements OnGatewayInit {
     });
   }
 
+  @SubscribeMessage('getChatterRole')
+  async getChatterRole(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() messageBody: GetChatterRoleDTO,
+  ): Promise<GetChatterRoleResponseDTO> {
+    if (!this.isValidGetChatterRoleDTO(messageBody)) {
+      this.logger.warn(
+        `${client.data.name} tried to send a wrong GetChatterRoleDTO`,
+      );
+      return;
+    }
+
+    const room: ChatRoom | null = await this.chatService.findRoomById(
+      messageBody.roomId,
+    );
+    if (!room) {
+      this.logger.warn(
+        `${client.data.name} tried to send a message to a non-existing room`,
+      );
+      return;
+    }
+
+    const myRole: ChatRoomRoles =
+      this.usersService.findRoleOnChatRoom(client.data.userId, room);
+    const chatterRole: ChatRoomRoles =
+      this.usersService.findRoleOnChatRoom(messageBody.uid, room);
+
+    return {
+      myRole: myRole,
+      authorRole: chatterRole,
+    };
+  }
+
   private isValidSendMessageDTO(
     messageBody: any,
   ): messageBody is SendMessageDTO {
@@ -114,6 +150,16 @@ export class ChatGateway implements OnGatewayInit {
       typeof messageBody.uniqueId === 'string' &&
       typeof messageBody.receiverId === 'number' &&
       typeof messageBody.content === 'string'
+    );
+  }
+
+  private isValidGetChatterRoleDTO(
+    messageBody: any,
+  ): messageBody is GetChatterRoleDTO {
+    return (
+      typeof messageBody === 'object' &&
+      typeof messageBody.roomId === 'number' &&
+      typeof messageBody.uid === 'number'
     );
   }
 }
