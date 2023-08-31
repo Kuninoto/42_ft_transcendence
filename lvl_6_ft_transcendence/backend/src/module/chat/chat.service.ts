@@ -602,9 +602,7 @@ export class ChatService {
 
       await this.chatRoomRepository.remove(room);
     } else {
-      room.users = room.users.filter(
-        (user: User): boolean => user.id != userLeavingId,
-      );
+      this.removeUserFromRoom(room, userLeavingId);
       await this.chatRoomRepository.save(room);
 
       /* In case this function is being used by kickFromRoom or banFromRoom
@@ -726,6 +724,15 @@ export class ChatService {
     return { message: `Succesfully updated room's password` };
   }
 
+  public removeUserFromRoom(room: ChatRoom, uid: number): void {
+    room.users = room.users.filter(
+      (user: User): boolean => user.id != uid,
+    );
+    room.admins = room.users.filter(
+      (user: User): boolean => user.id != uid,
+    );
+  }
+
   public checkForValidRoomName(name: string): void {
     // If room name doesn't respect the boundaries (4-10 chars longs)
     if (!(name.length >= 4 && name.length <= 10)) {
@@ -741,15 +748,15 @@ export class ChatService {
   }
 
   public isUserAnAdmin(room: ChatRoom, userId: number): boolean {
-    return room.admins.find((admin: User) => admin.id == userId) ? true : false;
+    return room.admins.find((admin: User): boolean => admin.id == userId) ? true : false;
   }
 
   public isUserBannedFromRoom(room: ChatRoom, userId: number): boolean {
-    return room.bans.find((user: User) => user.id == userId) ? true : false;
+    return room.bans.find((user: User): boolean => user.id == userId) ? true : false;
   }
 
   public isUserInRoom(room: ChatRoom, userId: number): boolean {
-    return room.users.find((user: User) => user.id == userId) ? true : false;
+    return room.users.find((user: User): boolean => user.id == userId) ? true : false;
   }
 
   public isUserMuted(userId: number, roomId: number): boolean {
