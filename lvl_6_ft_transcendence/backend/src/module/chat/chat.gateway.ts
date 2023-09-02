@@ -15,11 +15,11 @@ import { UsersService } from 'src/module/users/users.service';
 import {
   Chatter,
   ChatRoomRoles,
-  GetChatterRoleRequest,
-  SendMessageRequest,
+  GetChatterRoleMessage,
+  SendMessageSMessage,
+  RoomMessageReceivedEvent,
+  GetChatterRoleEvent,
 } from 'types';
-import { GetChatterRoleResponse } from 'types/chat/socket/response/get-chatter-role-response';
-import { RoomMessageReceivedResponse } from 'types/chat/socket/response/room-message-received-response';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
 
@@ -46,11 +46,11 @@ export class ChatGateway implements OnGatewayInit {
   @SubscribeMessage('sendChatRoomMessage')
   async sendChatRoomMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendMessageRequest,
+    @MessageBody() messageBody: SendMessageSMessage,
   ): Promise<void> {
-    if (!this.isValidSendMessageRequest(messageBody)) {
+    if (!this.isValidSendMessageSMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong SendChatRoomMessageDTO`,
+        `${client.data.name} tried to send a wrong SendMessageSMessage`,
       );
       return;
     }
@@ -82,7 +82,7 @@ export class ChatGateway implements OnGatewayInit {
       name: user.name,
       avatar_url: user.avatar_url,
     };
-    const message: RoomMessageReceivedResponse = {
+    const message: RoomMessageReceivedEvent = {
       id: room.id,
       uniqueId: messageBody.uniqueId,
       author: messageAuthor,
@@ -110,11 +110,11 @@ export class ChatGateway implements OnGatewayInit {
   @SubscribeMessage('getChatterRole')
   async getChatterRole(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: GetChatterRoleRequest,
-  ): Promise<GetChatterRoleResponse> {
-    if (!this.isValidGetChatterRoleRequest(messageBody)) {
+    @MessageBody() messageBody: GetChatterRoleMessage,
+  ): Promise<GetChatterRoleEvent> {
+    if (!this.isValidGetChatterRoleMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong GetChatterRoleRequest`,
+        `${client.data.name} tried to send a wrong GetChatterRoleMessage`,
       );
       return;
     }
@@ -144,9 +144,9 @@ export class ChatGateway implements OnGatewayInit {
     };
   }
 
-  private isValidSendMessageRequest(
+  private isValidSendMessageSMessage(
     messageBody: any,
-  ): messageBody is SendMessageRequest {
+  ): messageBody is SendMessageSMessage {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.uniqueId === 'string' &&
@@ -155,9 +155,9 @@ export class ChatGateway implements OnGatewayInit {
     );
   }
 
-  private isValidGetChatterRoleRequest(
+  private isValidGetChatterRoleMessage(
     messageBody: any,
-  ): messageBody is GetChatterRoleRequest {
+  ): messageBody is GetChatterRoleMessage {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.roomId === 'number' &&

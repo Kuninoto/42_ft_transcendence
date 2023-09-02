@@ -15,9 +15,9 @@ export default function Themes() {
 	const [selected, setSelected] = useState<number>(0)
 	const [ball, setBall] = useState({
 		left: 50,
-		leftDirection: 1,
+		leftDirection: 0.75,
 		top: 30,
-		topDirection: 1,
+		topDirection: 0.75,
 	})
 
 	useEffect(() => {
@@ -25,16 +25,16 @@ export default function Themes() {
 			setBall((prevBall) => {
 				const nextLeft =
 					prevBall.left >= 98 && prevBall.leftDirection > 0
-						? -1
+						? -0.75
 						: prevBall.left <= 0 && prevBall.leftDirection < 0
-						? 1
+						? 0.75
 						: null
 
 				const nextTop =
 					prevBall.top >= 98 && prevBall.topDirection > 0
-						? -1
+						? -0.75
 						: prevBall.top <= 0 && prevBall.topDirection < 0
-						? 1
+						? 0.75
 						: null
 
 				return {
@@ -44,7 +44,7 @@ export default function Themes() {
 					topDirection: nextTop ? nextTop : prevBall.topDirection,
 				}
 			})
-		}, 25)
+		}, 10)
 
 		return () => clearTimeout(loop)
 	})
@@ -81,10 +81,16 @@ export default function Themes() {
 	return (
 		<>
 			<Link
-				className="fixed left-12 top-12 hover:underline"
+				className="fixed  top-0 h-28 w-40 hover:underline"
 				href={'/dashboard'}
 			>
-				GO BACK
+				<Image
+					alt="logo picture"
+					fill
+					priority
+					sizes="100%"
+					src={'/logo.png'}
+				/>
 			</Link>
 
 			<div className="flex h-full w-full place-content-center items-center space-x-6 overflow-hidden">

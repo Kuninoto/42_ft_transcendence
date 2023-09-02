@@ -8,8 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
-import { SendMessageRequest } from 'types';
-import { DirectMessageReceivedResponse } from 'types/friendship/socket';
+import { DirectMessageReceivedEvent, SendMessageSMessage } from 'types';
 import { ChatService } from '../chat/chat.service';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
@@ -42,11 +41,11 @@ export class FriendshipsGateway implements OnGatewayInit {
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendMessageRequest,
+    @MessageBody() messageBody: SendMessageSMessage,
   ): Promise<void> {
-    if (!this.isValidSendMessageRequest(messageBody)) {
+    if (!this.isValidSendMessageSMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong SendMessageRequest`,
+        `${client.data.name} tried to send a wrong SendMessageSMessage`,
       );
       return;
     }
@@ -71,7 +70,7 @@ export class FriendshipsGateway implements OnGatewayInit {
         messageBody.receiverId.toString(),
       );
 
-    const directMessageReceived: DirectMessageReceivedResponse = {
+    const directMessageReceived: DirectMessageReceivedEvent = {
       uniqueId: messageBody.uniqueId,
       author: await this.chatService.findChatterInfoByUID(client.data.userId),
       content: messageBody.content,
@@ -93,9 +92,9 @@ export class FriendshipsGateway implements OnGatewayInit {
     }
   }
 
-  private isValidSendMessageRequest(
+  private isValidSendMessageSMessage(
     messageBody: any,
-  ): messageBody is SendMessageRequest {
+  ): messageBody is SendMessageSMessage {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.uniqueId === 'string' &&

@@ -1,9 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
-import { CreateRoomRequest } from '@/common/types/create-room.dto'
-import { JoinRoomRequest } from '@/common/types/join-room.dto'
+import { ChatRoomSearchInfo, ChatRoomType, CreateRoomRequest, JoinRoomRequest } from '@/common/types'
 import { useFriends } from '@/contexts/FriendsContext'
 import md5 from 'md5'
 import { useEffect, useState } from 'react'
