@@ -195,8 +195,6 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 	const [showPasswordField, setShowPassowordField] = useState(-1)
 	const [password, setPassword] = useState('')
 
-	const { handleSubmit, register } = useForm()
-
 	const { refreshRooms } = useFriends()
 
 	function searchRoom(search: string) {
@@ -228,8 +226,10 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 			api
 				.post('/chat/join-room', roomInfo)
 				.then((data) => {
-					searchRoom('')
-					refreshRooms()
+					api.get(`/chat/rooms/search`).then((result) => {
+						refreshRooms()
+						setRooms(result.data)
+					})
 				})
 				.catch((e) => {
 					toast.error('Wrong password')
