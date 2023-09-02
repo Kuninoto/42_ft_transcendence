@@ -14,7 +14,6 @@ import { ConnectionService } from './connection.service';
 import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
 
 @Module({
-  exports: [ConnectionGateway, ConnectionService],
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.register(JwtOption),
@@ -30,5 +29,6 @@ import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
     ConnectionGateway,
     AuthService,
   ],
+  exports: [ConnectionGateway, ConnectionService],
 })
 export class ConnectionModule {}

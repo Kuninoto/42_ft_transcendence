@@ -11,7 +11,7 @@ import { ErrorResponse } from 'types';
 
 @Catch(TokenError)
 export class Passport42ExceptionFilter implements ExceptionFilter {
-  private readonly logger: Logger = new Logger();
+  private readonly logger: Logger = new Logger('Passport42');
 
   catch(exception: TokenError, host: ArgumentsHost) {
     const ctx: HttpArgumentsHost = host.switchToHttp();

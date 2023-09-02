@@ -39,8 +39,8 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: TokenPayload): Promise<ErrorResponse | User> {
-    const user: null | User = await this.usersService.findUserByUID(payload.id);
+  async validate(payload: TokenPayload): Promise<User | ErrorResponse> {
+    const user: User | null = await this.usersService.findUserByUID(payload.id);
 
     if (!user) {
       this.logger.warn(

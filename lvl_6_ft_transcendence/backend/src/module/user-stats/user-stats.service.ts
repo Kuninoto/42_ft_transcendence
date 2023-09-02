@@ -71,12 +71,12 @@ export class UserStatsService {
         .addOrderBy('win_rate', 'DESC')
         .getRawMany();
 
-    return leaderboardData.map((leaderboardRow) => ({
-      avatar_url: leaderboardRow.avatar_url,
-      name: leaderboardRow.name,
+    return leaderboardData.map((leaderboardRow: UserStatsForLeaderboard): UserStatsForLeaderboard => ({
       uid: leaderboardRow.uid,
-      win_rate: leaderboardRow.win_rate === null ? 0 : leaderboardRow.win_rate,
+      name: leaderboardRow.name,
+      avatar_url: leaderboardRow.avatar_url,
       wins: leaderboardRow.wins,
+      win_rate: leaderboardRow.win_rate === null ? 0 : leaderboardRow.win_rate,
     }));
   }
 

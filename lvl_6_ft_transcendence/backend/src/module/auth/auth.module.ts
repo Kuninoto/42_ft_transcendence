@@ -14,13 +14,12 @@ console.log('JWT_SECRET= ' + process.env.JWT_SECRET);
 console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);
 
 @Module({
-  controllers: [AuthController],
-  exports: [AuthService],
   imports: [
     PassportModule.register({ session: true }),
     JwtModule.register(JwtOption),
     forwardRef(() => UsersModule),
   ],
+  controllers: [AuthController],
   providers: [
     AuthService,
     FortyTwoAuthStrategy,
@@ -28,5 +27,6 @@ console.log('JWT_EXPIRES_IN= ' + process.env.JWT_EXPIRES_IN);
     twoFactorAuthStrategy,
     SessionSerializer,
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}

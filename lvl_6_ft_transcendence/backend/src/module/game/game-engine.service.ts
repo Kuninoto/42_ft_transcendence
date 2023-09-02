@@ -54,7 +54,7 @@ export class GameEngineService {
     }, GAME_LOOP_INTERVAL);
   }
 
-  public async endGame(gameRoom: GameRoom) {
+  public async endGame(gameRoom: GameRoom): Promise<void> {
     clearInterval(gameRoom.gameLoopIntervalId);
 
     if (gameRoom.leftPlayer.score === MAX_SCORE) {
@@ -81,7 +81,7 @@ export class GameEngineService {
   public async endGameDueToDisconnection(
     gameRoom: GameRoom,
     winnerSide: PlayerSide,
-  ) {
+  ): Promise<void> {
     clearInterval(gameRoom.gameLoopIntervalId);
 
     if (winnerSide === PlayerSide.LEFT) {

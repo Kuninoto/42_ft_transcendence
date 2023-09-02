@@ -5,6 +5,7 @@ export interface GameResultInterface {
     avatar_url: string;
     score: number;
   };
+
   loser: {
     userId: number;
     name: string;
