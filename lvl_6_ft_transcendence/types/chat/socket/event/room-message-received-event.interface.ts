@@ -1,6 +1,6 @@
-import { Chatter } from 'types';
+import { Chatter } from '../../chatter.interface';
 
-export interface RoomMessageReceivedResponse {
+export interface RoomMessageReceivedEvent {
   readonly uniqueId: string;
   readonly id: number;
   readonly author: Chatter;

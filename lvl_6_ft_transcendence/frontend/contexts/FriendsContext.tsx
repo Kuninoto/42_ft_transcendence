@@ -1,5 +1,5 @@
 import { api } from '@/api/api'
-import { ChatRoomInterface, ChatRoomRoles, Chatter, DirectMessageReceivedResponse, Friend, InvitedToGameResponse, OpponentFoundResponse, RespondToGameInviteRequest, RoomMessageReceivedResponse, RoomWarning, RoomWarningResponse, SendGameInviteRequest, SendMessageRequest } from '@/common/types'
+import { ChatRoomInterface, ChatRoomRoles, Chatter, Friend, InvitedToGameResponse, OpponentFoundResponse, RespondToGameInviteRequest, RoomWarning, SendGameInviteRequest } from '@/common/types'
 import {
 	createContext,
 	ReactNode,
@@ -12,6 +12,10 @@ import { toast } from 'react-toastify'
 
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
+import { DirectMessageReceivedEvent } from '@/common/types/friendship/socket/event'
+import { RoomMessageReceivedEvent, RoomWarningEvent } from '@/common/types/chat/socket/event'
+import { NewUserStatusEvent } from '@/common/types/connection/socket/event'
+import { SendMessageSMessage } from '@/common/types/chat/socket/message'
 
 type FriendsContextType = {
 	changeOpenState: () => void
@@ -270,7 +274,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	const onMessageReceived = useCallback(
 		function (
-			data: DirectMessageReceivedResponse | RoomMessageReceivedResponse | RoomWarningResponse
+			data: DirectMessageReceivedEvent | RoomMessageReceivedEvent | RoomWarningEvent
 		) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
@@ -350,7 +354,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		[friends, rooms]
 	)
 
-	function updateFriendStatus(data: NewUserStatusResponse) {
+	function updateFriendStatus(data: NewUserStatusEvent) {
 		setFriends((prevFriends) => {
 			const newFriends = [...prevFriends]
 			const index = newFriends.findIndex((friend) => friend.uid === data.uid)
@@ -368,22 +372,22 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				? currentOpenChat?.room?.id
 				: currentOpenChat?.friend?.uid
 
-		const SendMessageRequest: SendMessageRequest = {
+		const SendMessageSMessage: SendMessageSMessage = {
 			content: message,
 			receiverId: parseInt(id),
 			uniqueId: crypto.randomUUID(),
 		}
 
 		if ('room' in currentOpenChat) {
-			socket.emit('sendChatRoomMessage', SendMessageRequest)
+			socket.emit('sendChatRoomMessage', SendMessageSMessage)
 		} else {
-			socket.emit('sendDirectMessage', SendMessageRequest)
+			socket.emit('sendDirectMessage', SendMessageSMessage)
 		}
 
 		const newMessage: Message = {
 			content: message,
 			sendByMe: true,
-			uniqueID: SendMessageRequest.uniqueId,
+			uniqueID: SendMessageSMessage.uniqueId,
 		}
 
 		setOpenChats((prevChat) => {

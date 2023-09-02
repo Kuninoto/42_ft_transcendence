@@ -10,13 +10,18 @@ import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
-import { Achievements, Friend, UserStatus } from 'types';
+import {
+  Achievements,
+  Friend,
+  UserStatus,
+  RoomWarningEvent,
+  AchievementUnlockedEvent,
+  NewUserStatusEvent
+} from 'types';
 import { ChatService } from '../chat/chat.service';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { GameService } from '../game/game.service';
 import { ConnectionService } from './connection.service';
-import { AchievementUnlockedResponse, NewUserStatusResponse } from 'types/connection';
-import { RoomWarningResponse } from 'types/chat/socket/response/room-warning-response';
 
 @WebSocketGateway({
   cors: GatewayCorsOption,
@@ -87,7 +92,7 @@ export class ConnectionGateway
       userId.toString(),
     );
 
-    const achievementUnlocked: AchievementUnlockedResponse = {
+    const achievementUnlocked: AchievementUnlockedEvent = {
       achievement: achievement,
     };
     this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
@@ -146,7 +151,7 @@ export class ConnectionGateway
     await this.usersService.updateUserStatusByUID(userId, newStatus);
 
     // Broadcast new user status to all users in the friend room (his friends)
-    const newUserStatus: NewUserStatusResponse = {
+    const newUserStatus: NewUserStatusEvent = {
       newStatus: newStatus,
       uid: userId,
     };
@@ -167,7 +172,7 @@ export class ConnectionGateway
     }
   }
 
-  sendRoomWarning(roomId: number, warning: RoomWarningResponse): void {
+  sendRoomWarning(roomId: number, warning: RoomWarningEvent): void {
     this.server.to(`room-${roomId}`).emit('roomWarning', warning);
   }
 }

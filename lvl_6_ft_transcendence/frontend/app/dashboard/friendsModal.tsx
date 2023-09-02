@@ -5,7 +5,7 @@ import {
 	FriendRequest,
 	FriendshipStatus,
 	UserSearchInfo,
-} from '@/common/types/backend'
+} from '@/common/types'
 import { removeParams } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'

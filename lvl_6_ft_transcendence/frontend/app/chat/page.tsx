@@ -1,7 +1,8 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomRoles, GetChatterRoleRequest, GetChatterRoleResponse, MuteDuration } from '@/common/types'
+import { ChatRoomRoles, MuteDuration } from '@/common/types'
+import { GetChatterRoleMessage } from '@/common/types/chat/socket/message'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
@@ -244,7 +245,7 @@ export default function Chat() {
 	} = useFriends()
 
 	function openTippy(roomId: number, id: number | undefined) {
-		const newGetChatterRole: GetChatterRoleRequest = {
+		const newGetChatterRole: GetChatterRoleMessage = {
 			roomId: parseInt(roomId),
 			uid: parseInt(id),
 		}
@@ -252,7 +253,7 @@ export default function Chat() {
 		socket?.emit(
 			'getChatterRole',
 			newGetChatterRole,
-			function (data: GetChatterRoleResponse) {
+			function (data: GetChatterRoleMessage) {
 				console.log(data)
 				setRole(data.myRole)
 				setAuthorRole(data.authorRole)

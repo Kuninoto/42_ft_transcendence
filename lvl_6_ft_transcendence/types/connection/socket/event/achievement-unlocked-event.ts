@@ -1,5 +1,5 @@
 import { Achievements } from '../../../achievement';
 
-export interface AchievementUnlockedResponse {
+export interface AchievementUnlockedEvent {
   achievement: Achievements;
 }
