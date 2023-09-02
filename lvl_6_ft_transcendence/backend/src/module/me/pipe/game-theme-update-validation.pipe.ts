@@ -8,7 +8,9 @@ import { GameThemeUpdationRequest, GameThemes } from 'types';
 
 @Injectable()
 export class GameThemeUpdateValidationPipe implements PipeTransform<any> {
-  private readonly logger: Logger = new Logger(GameThemeUpdateValidationPipe.name);
+  private readonly logger: Logger = new Logger(
+    GameThemeUpdateValidationPipe.name,
+  );
 
   transform(value: GameThemeUpdationRequest): GameThemes {
     const response: GameThemes = value.newGameTheme;
