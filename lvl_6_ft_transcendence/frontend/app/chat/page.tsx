@@ -1,10 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { MuteDuration } from '@/common/types/backend'
-import { ChatRoomRoles } from '@/common/types/backend/chat/chat-room-roles.enum'
-import { GetChatterRoleEvent } from '@/common/types/get-chatter-role-response.dto'
-import { GetChatterRoleMessage } from '@/common/types/get-chatter-role.dto'
+import { ChatRoomRoles, GetChatterRoleEvent, GetChatterRoleMessage, MuteDuration } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
