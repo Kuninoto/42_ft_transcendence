@@ -12,12 +12,11 @@ import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { Achievements, Friend, UserStatus } from 'types';
 import { ChatService } from '../chat/chat.service';
-import { RoomWarningDTO } from '../chat/dto/room-warning.dto';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { GameService } from '../game/game.service';
 import { ConnectionService } from './connection.service';
-import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
-import { NewUserStatusDTO } from './dto/new-user-status.dto';
+import { AchievementUnlockedResponse, NewUserStatusResponse } from 'types/connection';
+import { RoomWarningResponse } from 'types/chat/socket/response/room-warning-response';
 
 @WebSocketGateway({
   cors: GatewayCorsOption,
@@ -88,7 +87,7 @@ export class ConnectionGateway
       userId.toString(),
     );
 
-    const achievementUnlocked: AchievementUnlockedDTO = {
+    const achievementUnlocked: AchievementUnlockedResponse = {
       achievement: achievement,
     };
     this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
@@ -147,7 +146,7 @@ export class ConnectionGateway
     await this.usersService.updateUserStatusByUID(userId, newStatus);
 
     // Broadcast new user status to all users in the friend room (his friends)
-    const newUserStatus: NewUserStatusDTO = {
+    const newUserStatus: NewUserStatusResponse = {
       newStatus: newStatus,
       uid: userId,
     };
@@ -168,7 +167,7 @@ export class ConnectionGateway
     }
   }
 
-  sendRoomWarning(roomId: number, warning: RoomWarningDTO): void {
+  sendRoomWarning(roomId: number, warning: RoomWarningResponse): void {
     this.server.to(`room-${roomId}`).emit('roomWarning', warning);
   }
 }

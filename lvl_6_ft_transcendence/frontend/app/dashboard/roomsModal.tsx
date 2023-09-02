@@ -2,8 +2,8 @@
 
 import { api } from '@/api/api'
 import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
-import { CreateRoomDTO } from '@/common/types/create-room.dto'
-import { JoinRoomDTO } from '@/common/types/join-room.dto'
+import { CreateRoomRequest } from '@/common/types/create-room.dto'
+import { JoinRoomRequest } from '@/common/types/join-room.dto'
 import { useFriends } from '@/contexts/FriendsContext'
 import md5 from 'md5'
 import { useEffect, useState } from 'react'
@@ -58,7 +58,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 
 		}
 
-		const newRoom: CreateRoomDTO = {
+		const newRoom: CreateRoomRequest = {
 			name,
 			password: type === ChatRoomType.PROTECTED ? md5(password) : undefined,
 			type,
@@ -219,7 +219,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 
 		if (needPassword && !password.length) return
 
-		const roomInfo: JoinRoomDTO = {
+		const roomInfo: JoinRoomRequest = {
 			password: needPassword ? md5(password) : null,
 			roomId: parseInt(id),
 		}

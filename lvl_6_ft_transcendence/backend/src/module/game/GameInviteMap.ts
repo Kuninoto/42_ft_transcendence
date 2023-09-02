@@ -10,7 +10,7 @@ export class GameInviteMap {
     string,
     GameInvite
   >();
-  private inviteIdCounter = 0;
+  private inviteIdCounter: number = 0;
 
   public createGameInvite(createGameInviteDto: CreateGameInviteDTO): number {
     this.gameInviteMap.set(this.inviteIdCounter.toString(), {
