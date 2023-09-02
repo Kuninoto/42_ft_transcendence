@@ -1,4 +1,4 @@
-export interface InvitedToGameResponse {
+export interface InvitedToGameEvent {
   inviteId: number;
   senderUID: number;
 }

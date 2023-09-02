@@ -1,5 +1,5 @@
 import { themes } from '@/common/themes'
-import { PlayerSide } from '@/common/types/backend'
+import { PlayerSide } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'

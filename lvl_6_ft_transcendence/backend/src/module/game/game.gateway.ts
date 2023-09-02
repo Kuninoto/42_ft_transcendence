@@ -8,7 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
-import { GameEndResponse, GameRoomInfoResponse, InvitedToGameResponse, PaddleMoveRequest, PlayerReadyRequest, PlayerScoredResponse, PlayerSide, RespondToGameInviteRequest, SendGameInviteRequest } from 'types';
+import { GameEndEvent, GameRoomInfoEvent, InvitedToGameEvent, PaddleMoveMessage, PlayerReadyMessage, PlayerScoredEvent, PlayerSide, RespondToGameInviteMessage, SendGameInviteMessage } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { GameService } from './game.service';
@@ -59,11 +59,11 @@ export class GameGateway implements OnGatewayInit {
   @SubscribeMessage('sendGameInvite')
   async sendGameInvite(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendGameInviteRequest,
+    @MessageBody() messageBody: SendGameInviteMessage,
   ): Promise<void> {
-    if (!this.isValidSendGameInviteRequest(messageBody)) {
+    if (!this.isValidSendGameInviteMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong SendGameInviteRequest`,
+        `${client.data.name} tried to send a wrong SendGameInviteMessage`,
       );
       return;
     }
@@ -90,7 +90,7 @@ export class GameGateway implements OnGatewayInit {
       messageBody.recipientUID.toString(),
     );
 
-    const invitedToGame: InvitedToGameResponse = {
+    const invitedToGame: InvitedToGameEvent = {
       inviteId: inviteId,
       senderUID: client.data.userId,
     };
@@ -109,11 +109,11 @@ export class GameGateway implements OnGatewayInit {
   @SubscribeMessage('respondToGameInvite')
   async respondToGameInvite(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: RespondToGameInviteRequest,
+    @MessageBody() messageBody: RespondToGameInviteMessage,
   ): Promise<void> {
-    if (!this.isValidRespondToGameInviteRequest(messageBody)) {
+    if (!this.isValidRespondToGameInviteMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong RespondToGameInviteRequest`,
+        `${client.data.name} tried to send a wrong RespondToGameInviteMessage`,
       );
       return;
     }
@@ -134,11 +134,11 @@ export class GameGateway implements OnGatewayInit {
   @SubscribeMessage('playerReady')
   playerReady(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: PlayerReadyRequest,
+    @MessageBody() messageBody: PlayerReadyMessage,
   ): void {
-    if (!this.isValidPlayerReadyRequest(messageBody)) {
+    if (!this.isValidPlayerReadyMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong PlayerReadyRequest`,
+        `${client.data.name} tried to send a wrong PlayerReadyMessage`,
       );
       return;
     }
@@ -152,11 +152,11 @@ export class GameGateway implements OnGatewayInit {
   @SubscribeMessage('paddleMove')
   paddleMove(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: PaddleMoveRequest,
+    @MessageBody() messageBody: PaddleMoveMessage,
   ): void {
-    if (!this.isValidPaddleMoveRequest(messageBody)) {
+    if (!this.isValidPaddleMoveMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong PaddleMoveRequest`,
+        `${client.data.name} tried to send a wrong PaddleMoveMessage`,
       );
       return;
     }
@@ -175,7 +175,7 @@ export class GameGateway implements OnGatewayInit {
   public broadcastGameRoomInfo(gameRoom: GameRoom): void {
     const { ball, leftPlayer, rightPlayer } = gameRoom;
 
-    const gameRoomInfo: GameRoomInfoResponse = {
+    const gameRoomInfo: GameRoomInfoEvent = {
       ball: { x: ball.x, y: ball.y },
       leftPlayer: { paddleY: leftPlayer.paddleY },
       rightPlayer: { paddleY: rightPlayer.paddleY },
@@ -190,7 +190,7 @@ export class GameGateway implements OnGatewayInit {
     winner: Player,
     loser: Player,
   ): void {
-    const gameEnd: GameEndResponse = {
+    const gameEnd: GameEndEvent = {
       loser: { score: loser.score, userId: loser.userId },
       winner: { score: winner.score, userId: winner.userId },
     };
@@ -202,19 +202,19 @@ export class GameGateway implements OnGatewayInit {
     leftPlayerScore: number,
     rightPlayerScore: number,
   ) {
-    const playerScoredResponse: PlayerScoredResponse = {
+    const playerScoredEvent: PlayerScoredEvent = {
       leftPlayerScore: leftPlayerScore,
       rightPlayerScore: rightPlayerScore,
     };
 
     this.connectionGateway.server
       .to(gameRoomId)
-      .emit('playerScored', playerScoredResponse);
+      .emit('playerScored', playerScoredEvent);
   }
 
-  private isValidPaddleMoveRequest(
+  private isValidPaddleMoveMessage(
     messageBody: any,
-  ): messageBody is PaddleMoveRequest {
+  ): messageBody is PaddleMoveMessage {
     if (
       !(
         typeof messageBody === 'object' &&
@@ -225,7 +225,7 @@ export class GameGateway implements OnGatewayInit {
       return false;
     }
 
-    const message: PaddleMoveRequest = messageBody;
+    const message: PaddleMoveMessage = messageBody;
     if (
       message.newY - PADDLE_HEIGHT / 2 < 0 ||
       message.newY + PADDLE_HEIGHT / 2 > CANVAS_HEIGHT
@@ -236,18 +236,18 @@ export class GameGateway implements OnGatewayInit {
     return true;
   }
 
-  private isValidPlayerReadyRequest(
+  private isValidPlayerReadyMessage(
     messageBody: any,
-  ): messageBody is PlayerReadyRequest {
+  ): messageBody is PlayerReadyMessage {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.gameRoomId === 'string'
     );
   }
 
-  private isValidRespondToGameInviteRequest(
+  private isValidRespondToGameInviteMessage(
     messageBody: any,
-  ): messageBody is RespondToGameInviteRequest {
+  ): messageBody is RespondToGameInviteMessage {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.inviteId === 'number' &&
@@ -255,9 +255,9 @@ export class GameGateway implements OnGatewayInit {
     );
   }
 
-  private isValidSendGameInviteRequest(
+  private isValidSendGameInviteMessage(
     messageBody: any,
-  ): messageBody is SendGameInviteRequest {
+  ): messageBody is SendGameInviteMessage {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.recipientUID === 'string'

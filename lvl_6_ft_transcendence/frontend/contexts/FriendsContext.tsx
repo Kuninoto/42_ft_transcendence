@@ -1,5 +1,5 @@
 import { api } from '@/api/api'
-import { ChatRoomInterface, ChatRoomRoles, Chatter, Friend, InvitedToGameResponse, OpponentFoundResponse, RespondToGameInviteRequest, RoomWarning, SendGameInviteRequest } from '@/common/types'
+import { ChatRoomInterface, ChatRoomRoles, Chatter, Friend, RoomWarning } from '@/common/types'
 import {
 	createContext,
 	ReactNode,
@@ -16,6 +16,8 @@ import { DirectMessageReceivedEvent } from '@/common/types/friendship/socket/eve
 import { RoomMessageReceivedEvent, RoomWarningEvent } from '@/common/types/chat/socket/event'
 import { NewUserStatusEvent } from '@/common/types/connection/socket/event'
 import { SendMessageSMessage } from '@/common/types/chat/socket/message'
+import { RespondToGameInviteMessage, SendGameInviteMessage } from '@/common/types/game/socket/message'
+import { InvitedToGameEvent, OpponentFoundEvent } from '@/common/types/game/socket/event'
 
 type FriendsContextType = {
 	changeOpenState: () => void
@@ -470,7 +472,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function sendGameInvite(id: number) {
 		if (!socket) return
 
-		const gameInviteDTO: SendGameInviteRequest = {
+		const gameInviteDTO: SendGameInviteMessage = {
 			recipientUID: id,
 		}
 		socket.emit('sendGameInvite', gameInviteDTO)
@@ -480,20 +482,20 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		if (!socket) return
 
 		// parameter in user
-		const response: RespondToGameInviteRequest = {
+		const response: RespondToGameInviteMessage = {
 			accepted,
 			inviteId: 2,
 		}
 		socket.emit(
 			'respondToGameInvite',
 			response,
-			(response: OpponentFoundResponse) => {
+			(response: OpponentFoundEvent) => {
 				console.log(response)
 			}
 		)
 	}
 
-	function onInvitedToGame(data: InvitedToGameResponse) {
+	function onInvitedToGame(data: InvitedToGameEvent) {
 		focus(data.senderUID, false)
 
 		setOpenChats((prevChat) => {

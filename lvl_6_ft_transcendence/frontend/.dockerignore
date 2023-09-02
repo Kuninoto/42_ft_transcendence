@@ -10,4 +10,7 @@ node_modules
 public
 app
 contexts
+<<<<<<< HEAD
 common
+=======
+>>>>>>> origin/backend
