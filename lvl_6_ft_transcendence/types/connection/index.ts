@@ -1,1 +1,1 @@
-export * from './socket/response';
+export * from './socket/event';
