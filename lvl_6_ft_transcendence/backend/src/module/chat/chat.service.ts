@@ -20,12 +20,12 @@ import {
   ChatRoomType,
   Chatter,
   CreateRoomRequest,
+  DirectMessageReceivedEvent,
   ErrorResponse,
   RoomWarning,
   SuccessResponse,
 } from 'types';
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
-import { DirectMessageReceivedResponse } from 'types/friendship/socket';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
@@ -91,7 +91,7 @@ export class ChatService {
 
     // Send every missed DM
     missedDMs.forEach(async (dm: DirectMessage) => {
-      const directMessageReceived: DirectMessageReceivedResponse = {
+      const directMessageReceived: DirectMessageReceivedEvent = {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),
         content: dm.content,
