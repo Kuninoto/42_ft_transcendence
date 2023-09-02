@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { ChatRoom, User } from 'src/entity';
 import { ChatService } from '../chat.service';
-import { MuteUserDTO } from '../dto/mute-user.dto';
-import { RoomOperationDTO } from '../dto/room-operation.dto';
+import { MuteUserRequest } from '../../../../types/chat/request/mute-user-request.interface';
+import { RoomOperationRequest } from '../../../../types/chat/request/room-operation-request.interface';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -21,7 +21,7 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: any = context.switchToHttp().getRequest();
-    const body: RoomOperationDTO | MuteUserDTO = request.body;
+    const body: RoomOperationRequest | MuteUserRequest = request.body;
     const requestingUser: User = request.user;
 
     if (!body.roomId || !body.userId) {

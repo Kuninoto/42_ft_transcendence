@@ -3,8 +3,8 @@
 import { api } from '@/api/api'
 import { MuteDuration } from '@/common/types/backend'
 import { ChatRoomRoles } from '@/common/types/backend/chat/chat-room-roles.enum'
-import { GetChatterRoleResponseDTO } from '@/common/types/get-chatter-role-response.dto'
-import { GetChatterRoleDTO } from '@/common/types/get-chatter-role.dto'
+import { GetChatterRoleResponse } from '@/common/types/get-chatter-role-response.dto'
+import { GetChatterRoleRequest } from '@/common/types/get-chatter-role.dto'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
@@ -249,7 +249,7 @@ export default function Chat() {
 	} = useFriends()
 
 	function openTippy(roomId: number, id: number | undefined) {
-		const newGetChatterRole: GetChatterRoleDTO = {
+		const newGetChatterRole: GetChatterRoleRequest = {
 			roomId: parseInt(roomId),
 			uid: parseInt(id),
 		}
@@ -257,7 +257,7 @@ export default function Chat() {
 		socket?.emit(
 			'getChatterRole',
 			newGetChatterRole,
-			function (data: GetChatterRoleResponseDTO) {
+			function (data: GetChatterRoleResponse) {
 				console.log(data)
 				setRole(data.myRole)
 				setAuthorRole(data.authorRole)

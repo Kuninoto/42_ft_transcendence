@@ -1,11 +1,11 @@
 import { Ball } from '@/app/matchmaking/definitions'
 import { PlayerSide } from '@/common/types/backend'
-import { GameEndDTO } from '@/common/types/game-end.dto'
+import { GameEndResponse } from '@/common/types/game-end.dto'
 import { GameRoomDTO } from '@/common/types/game-room-info'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
-import { PaddleMoveDTO } from '@/common/types/paddle-move.dto'
-import { PlayerReadyDTO } from '@/common/types/player-ready.dto'
-import { PlayerScoredDTO } from '@/common/types/player-scored.dto'
+import { PaddleMoveRequest } from '@/common/types/paddle-move.dto'
+import { PlayerReadyRequest } from '@/common/types/player-ready.dto'
+import { PlayerScoredResponse } from '@/common/types/player-scored.dto'
 import { hasValues } from '@/common/utils/hasValues'
 import { useRouter } from 'next/navigation'
 import { usePathname } from 'next/navigation'
@@ -25,7 +25,7 @@ type GameContextType = {
 	cancel: () => void
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
-	gameEndInfo: GameEndDTO
+	gameEndInfo: GameEndResponse
 	leftPlayerScore: number
 	opponentFound: OponentFoundDTO
 	opponentPosition: number
@@ -45,7 +45,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
-	const [gameEndInfo, setGameEndInfo] = useState<GameEndDTO>({} as GameEndDTO)
+	const [gameEndInfo, setGameEndInfo] = useState<GameEndResponse>({} as GameEndResponse)
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -109,11 +109,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			setBallPosition(data.ball)
 		})
 
-		socket?.on('gameEnd', function (data: GameEndDTO) {
+		socket?.on('gameEnd', function (data: GameEndResponse) {
 			setGameEndInfo(data)
 		})
 
-		socket?.on('playerScored', function (data: PlayerScoredDTO) {
+		socket?.on('playerScored', function (data: PlayerScoredResponse) {
 			setLeftPlayerScore(data.leftPlayerScore)
 			setRightPlayerScore(data.rightPlayerScore)
 		})
@@ -122,22 +122,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	function emitPaddleMovement(newY: number) {
 		if (!socket) return
 
-		const paddleMoveDTO: PaddleMoveDTO = {
+		const PaddleMoveRequest: PaddleMoveRequest = {
 			gameRoomId: opponentFound.roomId,
 			newY: newY,
 		}
 
-		socket.emit('paddleMove', paddleMoveDTO)
+		socket.emit('paddleMove', PaddleMoveRequest)
 	}
 
 	function emitOnReady() {
 		if (!socket) return
 
-		const playerReadyDTO: PlayerReadyDTO = {
+		const PlayerReadyRequest: PlayerReadyRequest = {
 			gameRoomId: opponentFound.roomId,
 		}
 
-		socket.emit('playerReady', playerReadyDTO)
+		socket.emit('playerReady', PlayerReadyRequest)
 	}
 
 	const value: GameContextType = {
