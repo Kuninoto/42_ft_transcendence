@@ -1,7 +1,7 @@
 import { OpponentInfo, PlayerSide } from 'types';
 
-export interface OpponentFoundResponse {
-  opponentInfo: OpponentInfo;
+export interface OpponentFoundEvent {
   roomId: string;
   side: PlayerSide;
+  opponentInfo: OpponentInfo;
 }

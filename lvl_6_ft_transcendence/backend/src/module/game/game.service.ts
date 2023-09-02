@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import {
   GameInvite,
   GameType,
-  OpponentFoundResponse,
+  OpponentFoundEvent,
   OpponentInfo,
   PlayerSide,
   UserStatus,
@@ -53,7 +53,7 @@ export class GameService {
     const opponentInfo: OpponentInfo =
       await this.usersService.findOpponentInfoByUID(opponentUID);
 
-    const opponentFound: OpponentFoundResponse = {
+    const opponentFound: OpponentFoundEvent = {
       opponentInfo: opponentInfo,
       roomId: roomId,
       side: player.side,
