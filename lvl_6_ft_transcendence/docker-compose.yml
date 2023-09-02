@@ -22,7 +22,6 @@ services:
       - 3001:3000
     volumes:
       - ./frontend/common:/app/common
-      - ./types:/app/common/types
       - ./frontend/app:/app/app
       - ./frontend/public:/app/public
       - ./frontend/contexts:/app/contexts

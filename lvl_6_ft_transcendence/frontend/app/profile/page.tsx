@@ -4,7 +4,7 @@ import { api } from '@/api/api'
 import {
 	FriendshipStatus,
 	UserProfile as IUserProfile,
-} from '@/common/types/backend'
+} from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import moment from 'moment'
