@@ -32,7 +32,7 @@ export class AchievementService {
       await this.achievementRepository.findBy({ user: { id: userId } });
 
     const achievementsInterface: AchievementInterface[] = userAchievements.map(
-      (achievement: Achievement) => {
+      (achievement: Achievement): AchievementInterface => {
         return {
           achievement: achievement.achievement,
           description: AchievementDescriptions[achievement.achievement],

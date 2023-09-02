@@ -146,16 +146,16 @@ export class UsersService {
       (gameResult: GameResult): GameResultInterface => {
         return {
           loser: {
-            avatar_url: gameResult.loser.avatar_url,
-            name: gameResult.loser.name,
-            score: gameResult.loser_score,
             userId: gameResult.loser.id,
+            name: gameResult.loser.name,
+            avatar_url: gameResult.loser.avatar_url,
+            score: gameResult.loser_score,
           },
           winner: {
-            avatar_url: gameResult.winner.avatar_url,
-            name: gameResult.winner.name,
-            score: gameResult.winner_score,
             userId: gameResult.winner.id,
+            name: gameResult.winner.name,
+            avatar_url: gameResult.winner.avatar_url,
+            score: gameResult.winner_score,
           },
         };
       },

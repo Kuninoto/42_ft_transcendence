@@ -41,7 +41,7 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy, '42') {
     refreshToken: string,
     profile: User42Info,
   ): Promise<User> {
-    const user: null | User = await this.usersService.findUserByIntraName(
+    const user: User | null = await this.usersService.findUserByIntraName(
       profile.username,
     );
 

@@ -69,7 +69,7 @@ export class FriendshipsService {
     sender: User,
     userToBlockUID: number,
   ): Promise<ErrorResponse | SuccessResponse> {
-    const userToBlock: null | User = await this.usersRepository.findOneBy({
+    const userToBlock: User | null = await this.usersRepository.findOneBy({
       id: userToBlockUID,
     });
 
@@ -93,7 +93,7 @@ export class FriendshipsService {
     });
 
     const myFriendsInterfaces: Friend[] = await Promise.all(
-      myFriendships.map(async (friendship: Friendship) => {
+      myFriendships.map(async (friendship: Friendship): Promise<Friend> => {
         let friend: User;
         if (meUID === friendship.sender.id) {
           friend = friendship.receiver;
@@ -143,10 +143,10 @@ export class FriendshipsService {
     ).blocked_users;
 
     const myBlockedUsersInterfaces: BlockedUserInterface[] = myBlockedUsers.map(
-      (blockedUser) => {
+      (blockedUser: BlockedUser): BlockedUserInterface => {
         return {
-          avatar_url: blockedUser.blocked_user.avatar_url,
           blocked_uid: blockedUser.blocked_user.id,
+          avatar_url: blockedUser.blocked_user.avatar_url,
           name: blockedUser.blocked_user.name,
         };
       },
@@ -171,21 +171,21 @@ export class FriendshipsService {
       ]);
 
     const myFriendRequestsInterfaces: FriendRequest[] = [
-      ...myFriendRequestsAsReceiver.map((friendrequest: Friendship) => ({
-        avatar_url: friendrequest.sender.avatar_url,
+      ...myFriendRequestsAsReceiver.map((friendrequest: Friendship): FriendRequest => ({
         friendship_id: friendrequest.id,
-        name: friendrequest.sender.name,
-        sent_by_me: false,
-        status: friendrequest.status,
         uid: friendrequest.sender.id,
-      })),
-      ...myFriendRequestsAsSender.map((friendrequest: Friendship) => ({
-        avatar_url: friendrequest.receiver.avatar_url,
-        friendship_id: friendrequest.id,
-        name: friendrequest.receiver.name,
-        sent_by_me: true,
+        name: friendrequest.sender.name,
+        avatar_url: friendrequest.sender.avatar_url,
         status: friendrequest.status,
+        sent_by_me: false,
+      })),
+      ...myFriendRequestsAsSender.map((friendrequest: Friendship): FriendRequest => ({
+        friendship_id: friendrequest.id,
         uid: friendrequest.receiver.id,
+        name: friendrequest.receiver.name,
+        avatar_url: friendrequest.receiver.avatar_url,
+        status: friendrequest.status,
+        sent_by_me: true,
       })),
     ];
 
@@ -206,7 +206,7 @@ export class FriendshipsService {
     sender: User,
     receiverUID: number,
   ): Promise<ErrorResponse | SuccessResponse> {
-    const receiver: null | User = await this.usersRepository.findOneBy({
+    const receiver: User | null = await this.usersRepository.findOneBy({
       id: receiverUID,
     });
 
@@ -235,7 +235,7 @@ export class FriendshipsService {
       throw new ConflictException('You cannot unblock yourself');
     }
 
-    const userToUnblock: null | User = await this.usersRepository.findOneBy({
+    const userToUnblock: User | null = await this.usersRepository.findOneBy({
       id: userToUnblockId,
     });
 

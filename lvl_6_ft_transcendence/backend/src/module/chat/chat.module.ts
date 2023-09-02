@@ -10,7 +10,6 @@ import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 
 @Module({
-  exports: [ChatGateway, ChatService],
   imports: [
     TypeOrmModule.forFeature([ChatRoom, DirectMessage]),
     forwardRef(() => UsersModule),
@@ -20,5 +19,6 @@ import { ChatService } from './chat.service';
   ],
   controllers: [ChatController],
   providers: [ChatGateway, ChatService],
+  exports: [ChatGateway, ChatService],
 })
 export class ChatModule {}

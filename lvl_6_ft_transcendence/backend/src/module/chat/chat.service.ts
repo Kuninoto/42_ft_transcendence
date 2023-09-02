@@ -90,7 +90,7 @@ export class ChatService {
     if (!missedDMs) return;
 
     // Send every missed DM
-    missedDMs.forEach(async (dm: DirectMessage) => {
+    missedDMs.forEach(async (dm: DirectMessage): Promise<void> => {
       const directMessageReceived: DirectMessageReceivedEvent = {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),

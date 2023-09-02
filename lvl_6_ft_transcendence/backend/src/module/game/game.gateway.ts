@@ -100,12 +100,6 @@ export class GameGateway implements OnGatewayInit {
       .emit('invitedToGame', invitedToGame);
   }
 
-  /**
-   * Listen to 'respondToGameInvite' messages
-   *
-   * @param client client's socket
-   * @param messageBody body of the received message
-   */
   @SubscribeMessage('respondToGameInvite')
   async respondToGameInvite(
     @ConnectedSocket() client: Socket,
@@ -125,12 +119,6 @@ export class GameGateway implements OnGatewayInit {
     }
   }
 
-  /**
-   * Listen to 'playerReady' messages
-   *
-   * @param client client's socket
-   * @param messageBody body of the received message
-   */
   @SubscribeMessage('playerReady')
   playerReady(
     @ConnectedSocket() client: Socket,
@@ -146,9 +134,6 @@ export class GameGateway implements OnGatewayInit {
     this.gameService.playerReady(messageBody.gameRoomId, client.id);
   }
 
-  /*
-   * Listen to 'paddleMove' messages
-   */
   @SubscribeMessage('paddleMove')
   paddleMove(
     @ConnectedSocket() client: Socket,
@@ -201,7 +186,7 @@ export class GameGateway implements OnGatewayInit {
     gameRoomId: string,
     leftPlayerScore: number,
     rightPlayerScore: number,
-  ) {
+  ): void {
     const playerScoredEvent: PlayerScoredEvent = {
       leftPlayerScore: leftPlayerScore,
       rightPlayerScore: rightPlayerScore,

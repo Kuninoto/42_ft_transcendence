@@ -16,7 +16,6 @@ import { MeModule } from './module/me/me.module';
 import { UserStatsModule } from './module/user-stats/user-stats.module';
 
 @Module({
-  controllers: [],
   imports: [
     TypeOrmModule.forRootAsync({
       useClass: PostgresConfigService,
@@ -45,6 +44,5 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
     UserStatsModule,
     UsersModule,
   ],
-  providers: [],
 })
 export class AppModule {}

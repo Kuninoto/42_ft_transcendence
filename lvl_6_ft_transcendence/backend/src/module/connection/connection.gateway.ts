@@ -113,7 +113,7 @@ export class ConnectionGateway
     );
 
     const friendRoomNames: string[] = friends.map(
-      (friend: Friend) => 'friend-' + friend.uid,
+      (friend: Friend): string => 'friend-' + friend.uid,
     );
 
     client.join(friendRoomNames);
