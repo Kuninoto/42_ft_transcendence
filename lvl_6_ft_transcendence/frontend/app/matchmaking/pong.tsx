@@ -117,7 +117,7 @@ export default function Pong() {
 						CANVAS_HEIGHT
 					)
 
-					context.fillStyle = '#FFF'
+					context.fillStyle = themes[user.game_theme].ball
 					context.drawImage(
 						paddleImageRef.current,
 						playerPaddleRef.current.x - PADDLE_WIDTH / 2,
