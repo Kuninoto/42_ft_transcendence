@@ -1,3 +1,4 @@
+export * from './socket';
 export * from './game-invite.interface';
 export * from './game-result-interface.interface';
 export * from './game-themes.enum';

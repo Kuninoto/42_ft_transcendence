@@ -8,10 +8,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChatRoom, User } from 'src/entity';
+import {
+  RemoveRoomPasswordRequest,
+  RoomOperationRequest,
+  UpdateRoomPasswordRequest
+} from 'types';
 import { ChatService } from '../chat.service';
-import { RemoveRoomPasswordDTO } from '../dto/remove-room-password.dto';
-import { RoomOperationDTO } from '../dto/room-operation.dto';
-import { UpdateRoomPasswordDTO } from '../dto/update-room-password.dto';
 
 @Injectable()
 export class OwnerGuard implements CanActivate {
@@ -22,9 +24,9 @@ export class OwnerGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: any = context.switchToHttp().getRequest();
     const body:
-      | RoomOperationDTO
-      | UpdateRoomPasswordDTO
-      | RemoveRoomPasswordDTO = request.body;
+      | RoomOperationRequest
+      | UpdateRoomPasswordRequest
+      | RemoveRoomPasswordRequest = request.body;
     const requestingUser: User = request.user;
 
     if (!body.roomId) {

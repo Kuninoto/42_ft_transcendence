@@ -3,7 +3,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtOption } from 'src/common/option/jwt.option';
 import { User } from 'src/entity';
-
 import { AuthService } from '../auth/auth.service';
 import { JwtAuthStrategy } from '../auth/strategy/jwt-auth.strategy';
 import { ChatModule } from '../chat/chat.module';

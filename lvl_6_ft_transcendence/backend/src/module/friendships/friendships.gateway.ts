@@ -8,9 +8,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
+import { SendMessageRequest } from 'types';
+import { DirectMessageReceivedResponse } from 'types/friendship/socket';
 import { ChatService } from '../chat/chat.service';
-import { DirectMessageReceivedDTO } from '../chat/dto/direct-message-received.dto';
-import { SendMessageDTO } from '../chat/dto/send-message.dto';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { FriendshipsService } from './friendships.service';
@@ -42,11 +42,11 @@ export class FriendshipsGateway implements OnGatewayInit {
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendMessageDTO,
+    @MessageBody() messageBody: SendMessageRequest,
   ): Promise<void> {
-    if (!this.isValidSendMessageDTO(messageBody)) {
+    if (!this.isValidSendMessageRequest(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong SendMessageDTO`,
+        `${client.data.name} tried to send a wrong SendMessageRequest`,
       );
       return;
     }
@@ -71,7 +71,7 @@ export class FriendshipsGateway implements OnGatewayInit {
         messageBody.receiverId.toString(),
       );
 
-    const directMessageReceived: DirectMessageReceivedDTO = {
+    const directMessageReceived: DirectMessageReceivedResponse = {
       uniqueId: messageBody.uniqueId,
       author: await this.chatService.findChatterInfoByUID(client.data.userId),
       content: messageBody.content,
@@ -93,9 +93,9 @@ export class FriendshipsGateway implements OnGatewayInit {
     }
   }
 
-  private isValidSendMessageDTO(
+  private isValidSendMessageRequest(
     messageBody: any,
-  ): messageBody is SendMessageDTO {
+  ): messageBody is SendMessageRequest {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.uniqueId === 'string' &&
