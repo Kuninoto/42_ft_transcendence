@@ -1,3 +1,5 @@
+import { UserStatsInterface } from '../user-stats'
+
 export interface MeUserInfo {
 	avatar_url: string
 	created_at: Date
@@ -8,4 +10,5 @@ export interface MeUserInfo {
 	intra_profile_url: string
 	ladder_level: number
 	name: string
+	stats: UserStatsInterface
 }

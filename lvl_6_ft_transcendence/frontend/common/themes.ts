@@ -1,49 +1,49 @@
 interface IThemes {
 	[name: string]: {
 		background: string
-		paddle: string
 		ball: string
+		paddle: string
 	}
 }
 
-const HEX_WHITE: string = '#FFFFFF';
-const HEX_BLACK: string = '#000000';
+const HEX_WHITE: string = '#FFFFFF'
+const HEX_BLACK: string = '#000000'
 
 export const themes: IThemes = {
+	candyland: {
+		background: 'candyland.jpg',
+		ball: HEX_BLACK,
+		paddle: 'black.jpeg',
+	},
 	default: {
 		background: 'default.png',
-		paddle: 'white.png',
 		ball: HEX_WHITE,
+		paddle: 'white.png',
 	},
 	fortyTwo: {
 		background: 'forty_two.jpeg',
-		paddle: 'black.jpeg',
 		ball: HEX_BLACK,
-	},
-	candyland: {
-		background: 'candyland.jpg',
 		paddle: 'black.jpeg',
-		ball: HEX_BLACK,
 	},
 	halloween: {
 		background: 'halloween.jpg',
-		paddle: 'white.png',
 		ball: HEX_WHITE,
+		paddle: 'white.png',
 	},
 	neon: {
 		background: 'neon_city.jpg',
-		paddle: 'white.jpeg',
 		ball: HEX_WHITE,
-	},
-	underwater: {
-		background: 'underwater.jpg',
-		paddle: 'white.jpeg',
-		ball: HEX_WHITE,
+		paddle: 'white.png',
 	},
 	space: {
 		background: 'space.jpg',
-		paddle: 'white.jpeg',
 		ball: HEX_WHITE,
+		paddle: 'white.png',
+	},
+	underwater: {
+		background: 'underwater.jpg',
+		ball: HEX_WHITE,
+		paddle: 'white.png',
 	},
 	//safari: {
 	//	background: 'safari.png',

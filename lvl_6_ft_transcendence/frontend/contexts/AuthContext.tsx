@@ -1,7 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { UserProfile } from '@/common/types/backend'
+import { MeUserInfo } from '@/common/types/backend'
 import { hasValues } from '@/common/utils/hasValues'
 import axios from 'axios'
 import Cookies from 'js-cookie'
@@ -28,7 +28,7 @@ export interface AuthContextExports {
 	login2fa: (otp: string) => Promise<void>
 	logout: () => void
 	refreshUser: () => void
-	user: UserProfile
+	user: MeUserInfo
 }
 
 const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
@@ -36,7 +36,7 @@ const AuthContext = createContext<AuthContextExports>({} as AuthContextExports)
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
 	const pathname = usePathname()
-	const [user, setUser] = useState<UserProfile>({} as UserProfile)
+	const [user, setUser] = useState<MeUserInfo>({} as MeUserInfo)
 
 	const [tempToken, setTempToken] = useState('')
 	const isAuth = hasValues(user)
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			if (pathname === '/') router.push('/dashboard')
 
 			api
-				.get<UserProfile>('/me')
+				.get<MeUserInfo>('/me')
 				.then((result) => {
 					console.log(result.data)
 					if (hasValues(result.data)) setUser(result.data)
@@ -73,10 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	function logout() {
 		if (socket) socket.disconnect()
 
-		router.push('/')
-		setUser({} as UserProfile)
-
+		setUser({} as MeUserInfo)
 		Cookies.remove('pong.token')
+		router.push('/')
 	}
 
 	async function login2fa(otp: string) {

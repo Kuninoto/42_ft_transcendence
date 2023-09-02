@@ -26,8 +26,8 @@ interface IMuteTooltip {
 }
 
 interface ITooltip extends IMuteTooltip {
-	role: ChatRoomRoles
-	authorRole: ChatRoomRoles
+	authorRole: ChatRoomRoles | undefined
+	role: ChatRoomRoles | undefined
 }
 
 function RoomSettings({
@@ -39,16 +39,15 @@ function RoomSettings({
 }) {
 	const [bans, setBans] = useState<>([])
 
-	const { register, handleSubmit } = useForm()
+	const { handleSubmit, register } = useForm()
 
 	function onSubmit(data: any) {
 		console.log(data)
-
 	}
 
 	function removePassword() {
 		api.delete('/chat/room-password', {
-			roomId: parseInt(id)
+			roomId: parseInt(id),
 		})
 	}
 
@@ -77,10 +76,9 @@ function RoomSettings({
 					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
 						<div>
 							<form onSubmit={handleSubmit(onSubmit)}>
-								
 								<input type="password" value="" {...register('password')} />
 								<input type="submit" value="Change password" />
-								</form>							
+							</form>
 						</div>
 
 						<button onClick={removePassword}>Remove password</button>
@@ -96,7 +94,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 
 	function mute({ duration }: { duration: MuteDuration }) {
 		api.post(`/chat/mute`, {
-			duration, 
+			duration,
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
 		})
@@ -106,23 +104,39 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 		<div className="rounded border border-t-0 border-white bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-2">
 			<form className="flex flex-col space-y-1" onSubmit={handleSubmit(mute)}>
 				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
-					<input  {...register('duration')} checked type="radio" value={MuteDuration.THIRTEEN_SEGS} name="duration" id="30s" />
+					<input
+						{...register('duration')}
+						checked
+						id="30s"
+						name="duration"
+						type="radio"
+						value={MuteDuration.THIRTEEN_SEGS}
+					/>
 					<span htmlFor="30s">30s</span>
 				</fieldset>
 
 				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
-					<input  {...register('duration')} type="radio" value={MuteDuration.FIVE_MINS} name="duration" id="5m"/>
+					<input
+						{...register('duration')}
+						id="5m"
+						name="duration"
+						type="radio"
+						value={MuteDuration.FIVE_MINS}
+					/>
 					<span htmlFor="5m">5m</span>
 				</fieldset>
 
-				<input type="submit" value="Mute" className="p-1 text-xs mix-blend-lighten hover:bg-white hover:text-black border border-white rounded"/>
+				<input
+					className="rounded border border-white p-1 text-xs mix-blend-lighten hover:bg-white hover:text-black"
+					type="submit"
+					value="Mute"
+				/>
 			</form>
 		</div>
 	)
 }
 
-function Tooltip({ id, role, authorRole, roomId }: ITooltip) {
-
+function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	function promote() {
 		api.post(`/chat/add-admin`, {
 			roomId: parseInt(roomId),
@@ -132,10 +146,12 @@ function Tooltip({ id, role, authorRole, roomId }: ITooltip) {
 
 	function demote() {
 		console.log(id, roomId)
-		api.post(`/chat/remove-admin`, {
-			roomId: parseInt(roomId),
-			userId: parseInt(id),
-		}).then((result) => console.log(result))
+		api
+			.post(`/chat/remove-admin`, {
+				roomId: parseInt(roomId),
+				userId: parseInt(id),
+			})
+			.then((result) => console.log(result))
 	}
 
 	function kick() {
@@ -178,32 +194,35 @@ function Tooltip({ id, role, authorRole, roomId }: ITooltip) {
 					Demote
 				</button>
 			)}
-			{((role === ChatRoomRoles.OWNER || (role === ChatRoomRoles.ADMIN && authorRole !== ChatRoomRoles.ADMIN)) && role !== null && authorRole !== null) && (
-				<>
-					<Tippy
-						content={<MuteTooltip id={id} roomId={roomId} />}
-						interactive
-						placement={'right'}
-						trigger={'click'}
-					>
-						<button className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black">
-							Mute
+			{(role === ChatRoomRoles.OWNER ||
+				(role === ChatRoomRoles.ADMIN && authorRole !== ChatRoomRoles.ADMIN)) &&
+				role !== null &&
+				authorRole !== null && (
+					<>
+						<Tippy
+							content={<MuteTooltip id={id} roomId={roomId} />}
+							interactive
+							placement={'right'}
+							trigger={'click'}
+						>
+							<button className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black">
+								Mute
+							</button>
+						</Tippy>
+						<button
+							className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+							onClick={kick}
+						>
+							Kick
 						</button>
-					</Tippy>
-					<button
-						className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
-						onClick={kick}
-					>
-						Kick
-					</button>
-					<button
-						className="py-2 text-center text-red-600 hover:bg-white "
-						onClick={ban}
-					>
-						Ban
-					</button>
-				</>
-			)}
+						<button
+							className="py-2 text-center text-red-600 hover:bg-white "
+							onClick={ban}
+						>
+							Ban
+						</button>
+					</>
+				)}
 		</div>
 	)
 }
@@ -213,8 +232,8 @@ export default function Chat() {
 	const [settings, setSettings] = useState(false)
 	const pathname = usePathname()
 
-	const [ role, setRole ] = useState<ChatRoomRoles>()
-	const [ authorRole, setAuthorRole ] = useState<ChatRoomRoles>()
+	const [role, setRole] = useState<ChatRoomRoles>()
+	const [authorRole, setAuthorRole] = useState<ChatRoomRoles>()
 
 	const {
 		changeOpenState,
@@ -229,18 +248,21 @@ export default function Chat() {
 		sendMessage,
 	} = useFriends()
 
-	function openTippy(roomId: number, id: number ) {
-
+	function openTippy(roomId: number, id: number | undefined) {
 		const newGetChatterRole: GetChatterRoleDTO = {
 			roomId: parseInt(roomId),
-			uid: parseInt(id)
+			uid: parseInt(id),
 		}
 
-		socket?.emit("getChatterRole", newGetChatterRole, function (data : GetChatterRoleResponseDTO) {
-			console.log(data)
-			setRole(data.myRole)
-			setAuthorRole(data.authorRole)
-		})
+		socket?.emit(
+			'getChatterRole',
+			newGetChatterRole,
+			function (data: GetChatterRoleResponseDTO) {
+				console.log(data)
+				setRole(data.myRole)
+				setAuthorRole(data.authorRole)
+			}
+		)
 	}
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
@@ -280,8 +302,7 @@ export default function Chat() {
 					<button className="w-full" onClick={changeOpenState}>
 						{'friend' in currentOpenChat
 							? currentOpenChat.friend?.name
-							: currentOpenChat.room?.name
-						}
+							: currentOpenChat.room?.name}
 					</button>
 					<button onClick={closeAll}>
 						<IoIosClose size={32} />
@@ -373,11 +394,12 @@ export default function Chat() {
 							{currentOpenChat?.messages?.map((message, index) => {
 								if ('warning' in message) {
 									return (
-									<div 
-									key={index}
-									className="w-full text-gray-400 text-center text-[0.6rem] flex items-center place-content-center mb-4">
-										{message.warning}
-									</div>
+										<div
+											className="mb-4 flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
+											key={index}
+										>
+											{message.warning}
+										</div>
 									)
 								}
 
@@ -387,7 +409,7 @@ export default function Chat() {
 									!currentOpenChat.messages[index - 1] ||
 									!('author' in currentOpenChat.messages[index - 1]) ||
 									currentOpenChat.messages[index - 1]!.author?.id !==
-									message.author?.id
+										message.author?.id
 
 								if (!message.sendByMe) {
 									return (
@@ -399,20 +421,31 @@ export default function Chat() {
 												<Tippy
 													content={
 														<Tooltip
+															authorRole={authorRole}
 															id={message.author?.id}
 															role={role}
-															authorRole={authorRole}
 															roomId={currentOpenChat.room.id}
 														/>
 													}
-													placement={role === ChatRoomRoles.CHATTER || !role || !authorRole ? "right" : "top"}
+													placement={
+														role === ChatRoomRoles.CHATTER ||
+														!role ||
+														!authorRole
+															? 'right'
+															: 'top'
+													}
 													interactive
 													trigger={'click'}
 												>
-													<button 
-													
-													onClick={() => openTippy(currentOpenChat.room.id, message.author?.id)}
-													className="text-[0.5rem] text-gray-500 hover:underline">
+													<button
+														onClick={() =>
+															openTippy(
+																currentOpenChat.room.id,
+																message.author?.id
+															)
+														}
+														className="text-[0.5rem] text-gray-500 hover:underline"
+													>
 														{message.author?.name}
 													</button>
 												</Tippy>
@@ -435,25 +468,33 @@ export default function Chat() {
 											{message.content}
 										</div>
 										{isRoom && isLastOfMe && (
-											<div className="mb-4 text-[0.5rem] text-gray-500">You</div>
+											<div className="mb-4 text-[0.5rem] text-gray-500">
+												You
+											</div>
 										)}
 									</div>
 								)
 							})}
 						</div>
 
-						{'room' in currentOpenChat && !currentOpenChat.canTalk?
-						<textarea
-							className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
-							cols={2}
-							onChange={handleChange}
-							placeholder="Write something beutiful"
-							value={message}
-						/> : 
-						<div>
-							{currentOpenChat.canTalk}
-						</div>
-						}
+						{console.log(openChats)}
+
+						{('room' in currentOpenChat &&
+							!currentOpenChat.forbiddenChatReason) ||
+						'friends' in currentOpenChat ? (
+							<textarea
+								className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
+								cols={2}
+								onChange={handleChange}
+								placeholder="Write something beutiful"
+								value={message}
+							/>
+						) : (
+							<div>
+								{'room' in currentOpenChat &&
+									currentOpenChat.forbiddenChatReason}
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

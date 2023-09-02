@@ -53,7 +53,9 @@ function FinalModal() {
 						You <span className="animate-blink">win!</span>
 					</div>
 				) : (
-					<div>Game over!</div>
+					<div>
+						Game <span className="animate-blink"> over</span>!
+					</div>
 				)}
 			</h1>
 			<Link
