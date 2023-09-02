@@ -1,8 +1,8 @@
 import { Chatter } from './chatter.interface';
 
-export interface MeChatRoom {
+export interface ChatRoomInterface {
   id: number;
   name: string;
-  ownerName: string;
+  ownerId: number;
   participants: Chatter[];
 }

@@ -1,4 +1,3 @@
-README.md
 .env.example
 .gitignore
 package-lock.json
@@ -11,3 +10,4 @@ node_modules
 public
 app
 contexts
+common/types
