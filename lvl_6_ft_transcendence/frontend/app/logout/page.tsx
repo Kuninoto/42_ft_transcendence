@@ -7,7 +7,9 @@ export default function Logout() {
 	const { logout } = useAuth()
 
 	useEffect(() => {
-		logout()
+		setTimeout(() => {
+			logout()
+		}, 1000)
 	}, [])
 
 	return (

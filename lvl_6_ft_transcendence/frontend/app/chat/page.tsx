@@ -165,8 +165,6 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 		})
 	}
 
-	console.log(role, authorRole)
-
 	return (
 		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
 			<Link

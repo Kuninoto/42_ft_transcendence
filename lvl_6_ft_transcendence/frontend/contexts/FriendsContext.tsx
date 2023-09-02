@@ -1,19 +1,5 @@
 import { api } from '@/api/api'
-import {
-	ChatRoomInterface,
-	ChatRoomRoles,
-	Chatter,
-	DirectMessageReceivedResponse,
-	Friend,
-	InvitedToGameResponse,
-	NewUserStatusEvent,
-	OpponentFoundResponse,
-	RespondToGameInviteMessage,
-	RoomMessageReceivedEvent,
-	RoomWarning,
-	RoomWarningEvent,
-	SendGameInviteMessage
-} from '@/common/types'
+import { ChatRoomInterface, ChatRoomRoles, Chatter, Friend, RoomWarning } from '@/common/types'
 import {
 	createContext,
 	ReactNode,
@@ -26,6 +12,12 @@ import { toast } from 'react-toastify'
 
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
+import { DirectMessageReceivedEvent } from '@/common/types/friendship/socket/event'
+import { RoomMessageReceivedEvent, RoomWarningEvent } from '@/common/types/chat/socket/event'
+import { NewUserStatusEvent } from '@/common/types/connection/socket/event'
+import { SendMessageSMessage } from '@/common/types/chat/socket/message'
+import { RespondToGameInviteMessage, SendGameInviteMessage } from '@/common/types/game/socket/message'
+import { InvitedToGameEvent, OpponentFoundEvent } from '@/common/types/game/socket/event'
 
 type FriendsContextType = {
 	changeOpenState: () => void
@@ -50,15 +42,15 @@ type FriendsContextType = {
 	sendMessage: (message: string) => void
 }
 
-interface MessageDTO {
+interface Message {
 	author?: Chatter
-	authorRole?: ChatRoomRoles | null
+	authorRole?: ChatRoomRoles 
 	content: string
 	sendByMe: boolean
 	uniqueID: string
 }
 
-interface RoomWarning {
+interface Warning {
 	warning: string
 }
 
@@ -77,7 +69,7 @@ type IChat = (
 	  }
 ) & {
 	display: boolean
-	messages: (MessageDTO | RoomWarning)[]
+	messages: (Message | Warning)[]
 	unread: boolean
 }
 
@@ -188,7 +180,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			setOpenChats([newRoom, ...openChats])
 			setCurrentOpenChat(newRoom)
 		} else {
-			const friend = friends.find((friend) => friend.uid === id)
+			const friend = friends.find((friend: Friend) => friend.uid === id)
 			if (!friend) return
 
 			const newChat: IChat = {
@@ -284,7 +276,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	const onMessageReceived = useCallback(
 		function (
-			data: DirectMessageReceivedResponse | RoomMessageReceivedEvent | RoomWarningEvent
+			data: DirectMessageReceivedEvent | RoomMessageReceivedEvent | RoomWarningEvent
 		) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
@@ -292,7 +284,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				const index = newChat?.findIndex((chat) => {
 					if ('room' in chat) {
 						if ('id' in data) return chat.room.id === data.id
-						if ('roomId' in data) return chat.room.id === data.roomId
 					}
 					if ('friend' in chat && !('id' in data || 'roomId' in data))
 						return chat.friend.uid === data.author.id
@@ -303,12 +294,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				if (
 					'warning' in data &&
 					(data.affectedUID == user.id ||
-						data.warningType === RoomWarningType.OWNER_LEFT)
+						data.warningType === RoomWarning.OWNER_LEFT)
 				) {
 					actionBasedOnWarning(data.warningType, data.roomId)
 				}
 
-				const newMessage: MessageDTO | RoomWarning =
+				const newMessage: Message | Warning =
 					'warning' in data
 						? {
 								warning: data.warning,
@@ -317,7 +308,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 								author: data.author,
 								authorRole: 'authorRole' in data ? data.authorRole : null,
 								content: data.content,
-								sendByMe: false,
 								uniqueID: data.uniqueId,
 						  }
 
@@ -396,7 +386,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			socket.emit('sendDirectMessage', SendMessageSMessage)
 		}
 
-		const newMessage: MessageDTO = {
+		const newMessage: Message = {
 			content: message,
 			sendByMe: true,
 			uniqueID: SendMessageSMessage.uniqueId,
@@ -499,13 +489,13 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		socket.emit(
 			'respondToGameInvite',
 			response,
-			(response: OpponentFoundResponse) => {
+			(response: OpponentFoundEvent) => {
 				console.log(response)
 			}
 		)
 	}
 
-	function onInvitedToGame(data: InvitedToGameResponse) {
+	function onInvitedToGame(data: InvitedToGameEvent) {
 		focus(data.senderUID, false)
 
 		setOpenChats((prevChat) => {
