@@ -12,14 +12,16 @@ import { ChatRoom } from 'src/entity';
 import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
-import { Chatter } from 'types';
-import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
+import {
+  Chatter,
+  ChatRoomRoles,
+  GetChatterRoleRequest,
+  SendMessageRequest,
+} from 'types';
+import { GetChatterRoleResponse } from 'types/chat/socket/response/get-chatter-role-response';
+import { RoomMessageReceivedResponse } from 'types/chat/socket/response/room-message-received-response';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
-import { GetChatterRoleResponseDTO } from './dto/get-chatter-role-response.dto';
-import { GetChatterRoleDTO } from './dto/get-chatter-role.dto';
-import { RoomMessageReceivedDTO } from './dto/room-message-received.dto';
-import { SendMessageDTO } from './dto/send-message.dto';
 
 @WebSocketGateway({
   cors: GatewayCorsOption,
@@ -44,9 +46,9 @@ export class ChatGateway implements OnGatewayInit {
   @SubscribeMessage('sendChatRoomMessage')
   async sendChatRoomMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendMessageDTO,
+    @MessageBody() messageBody: SendMessageRequest,
   ): Promise<void> {
-    if (!this.isValidSendMessageDTO(messageBody)) {
+    if (!this.isValidSendMessageRequest(messageBody)) {
       this.logger.warn(
         `${client.data.name} tried to send a wrong SendChatRoomMessageDTO`,
       );
@@ -80,7 +82,7 @@ export class ChatGateway implements OnGatewayInit {
       name: user.name,
       avatar_url: user.avatar_url,
     };
-    const message: RoomMessageReceivedDTO = {
+    const message: RoomMessageReceivedResponse = {
       id: room.id,
       uniqueId: messageBody.uniqueId,
       author: messageAuthor,
@@ -108,11 +110,11 @@ export class ChatGateway implements OnGatewayInit {
   @SubscribeMessage('getChatterRole')
   async getChatterRole(
     @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: GetChatterRoleDTO,
-  ): Promise<GetChatterRoleResponseDTO> {
-    if (!this.isValidGetChatterRoleDTO(messageBody)) {
+    @MessageBody() messageBody: GetChatterRoleRequest,
+  ): Promise<GetChatterRoleResponse> {
+    if (!this.isValidGetChatterRoleRequest(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong GetChatterRoleDTO`,
+        `${client.data.name} tried to send a wrong GetChatterRoleRequest`,
       );
       return;
     }
@@ -142,9 +144,9 @@ export class ChatGateway implements OnGatewayInit {
     };
   }
 
-  private isValidSendMessageDTO(
+  private isValidSendMessageRequest(
     messageBody: any,
-  ): messageBody is SendMessageDTO {
+  ): messageBody is SendMessageRequest {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.uniqueId === 'string' &&
@@ -153,9 +155,9 @@ export class ChatGateway implements OnGatewayInit {
     );
   }
 
-  private isValidGetChatterRoleDTO(
+  private isValidGetChatterRoleRequest(
     messageBody: any,
-  ): messageBody is GetChatterRoleDTO {
+  ): messageBody is GetChatterRoleRequest {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.roomId === 'number' &&

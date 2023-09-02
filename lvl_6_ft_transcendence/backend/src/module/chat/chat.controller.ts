@@ -35,13 +35,13 @@ import {
   SuccessResponse,
 } from 'types';
 import { ChatService } from './chat.service';
-import { CreateRoomDTO } from './dto/create-room.dto';
-import { InviteToRoomDTO } from './dto/invite-to-room.dto';
-import { JoinRoomDTO } from './dto/join-room.dto';
-import { MuteUserDTO } from './dto/mute-user.dto';
-import { RemoveRoomPasswordDTO } from './dto/remove-room-password.dto';
-import { RoomOperationDTO } from './dto/room-operation.dto';
-import { UpdateRoomPasswordDTO } from './dto/update-room-password.dto';
+import { CreateRoomRequestDTO } from './dto/create-room-request.dto';
+import { InviteToRoomRequestDTO } from './dto/invite-to-room-request.dto';
+import { JoinRoomRequestDTO } from './dto/join-room-request.dto';
+import { MuteUserRequestDTO } from './dto/mute-user-request.dto';
+import { RemoveRoomPasswordRequestDTO } from './dto/remove-room-password-request.dto';
+import { RoomOperationRequestDTO } from './dto/room-operation-request.dto';
+import { UpdateRoomPasswordRequestDTO } from './dto/update-room-password-request.dto';
 import { AdminGuard } from './guard/admin.guard';
 import { OwnerGuard } from './guard/owner.guard';
 
@@ -64,13 +64,13 @@ export class ChatController {
       "If room is protected and there's no password or if it is not composed only by letters (both case), digits and special chars or if room name is not 4-10 chars long or room is protected and password is not 4-20 chars long",
   })
   @ApiOkResponse({
-    description: 'Successfully created a room named createRoomDto.name',
+    description: 'Successfully created a room named CreateRoomRequest.name',
   })
   @HttpCode(HttpStatus.OK)
   @Post('/create-room')
   public async createRoom(
     @ExtractUser() user: User,
-    @Body() body: CreateRoomDTO,
+    @Body() body: CreateRoomRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     await this.chatService.createRoom(body, user);
 
@@ -178,7 +178,7 @@ export class ChatController {
   @Post('/join-room')
   public async joinRoom(
     @ExtractUser() user: User,
-    @Body() body: JoinRoomDTO,
+    @Body() body: JoinRoomRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.joinRoom(user, body.roomId, body.password);
   }
@@ -188,7 +188,7 @@ export class ChatController {
   @Post('/leave-room')
   public async leaveRoom(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationDTO,
+    @Body() body: RoomOperationRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.chatService.findRoomById(
       body.roomId,
@@ -210,7 +210,7 @@ export class ChatController {
   @Post('/invite')
   public async inviteToRoom(
     @ExtractUser() user: User,
-    @Body() body: InviteToRoomDTO,
+    @Body() body: InviteToRoomRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.inviteToRoom(
       user.id,
@@ -226,7 +226,7 @@ export class ChatController {
   @Post('/kick')
   public async kickFromRoom(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationDTO,
+    @Body() body: RoomOperationRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.kickFromRoom(
       user.id,
@@ -244,7 +244,7 @@ export class ChatController {
   @Post('/ban')
   public async banFromRoom(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationDTO,
+    @Body() body: RoomOperationRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.banFromRoom(
       user.id,
@@ -260,7 +260,7 @@ export class ChatController {
   @UseGuards(AdminGuard)
   @Delete('/ban')
   public async unbanFromRoom(
-    @Body() body: RoomOperationDTO,
+    @Body() body: RoomOperationRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.unbanFromRoom(body.userId, body.roomId);
   }
@@ -276,7 +276,7 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   @Post('/mute')
   public async muteUser(
-    @Body() body: MuteUserDTO,
+    @Body() body: MuteUserRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     // Calculate the mute duration in ms to later use on setTimeout()
     let muteDuration: number;
@@ -303,7 +303,7 @@ export class ChatController {
   @UseGuards(AdminGuard)
   @Delete('/mute')
   public async unmuteUser(
-    @Body() body: RoomOperationDTO,
+    @Body() body: RoomOperationRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.unmuteUser(body.userId, body.roomId);
   }
@@ -320,7 +320,7 @@ export class ChatController {
   @Post('/add-admin')
   public async addAdmin(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationDTO,
+    @Body() body: RoomOperationRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.assignAdminRole(
       user.id,
@@ -343,7 +343,7 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   @Post('/remove-admin')
   public async removeAdmin(
-    @Body() body: RoomOperationDTO,
+    @Body() body: RoomOperationRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.removeAdminRole(body.userId, body.roomId);
   }
@@ -355,7 +355,7 @@ export class ChatController {
   @UseGuards(OwnerGuard)
   @Patch('/room-password')
   public async updateRoomPassword(
-    @Body() body: UpdateRoomPasswordDTO,
+    @Body() body: UpdateRoomPasswordRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.updateRoomPassword(
       body.newPassword,
@@ -370,7 +370,7 @@ export class ChatController {
   @UseGuards(OwnerGuard)
   @Delete('/room-password')
   public async removeRoomPassword(
-    @Body() body: RemoveRoomPasswordDTO,
+    @Body() body: RemoveRoomPasswordRequestDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.removeRoomPassword(body.roomId);
   }

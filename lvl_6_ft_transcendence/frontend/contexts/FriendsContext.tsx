@@ -2,15 +2,15 @@ import { api } from '@/api/api'
 import { ChatRoomInterface, Chatter, Friend } from '@/common/types/backend'
 import { ChatRoomRoles } from '@/common/types/backend/chat/chat-room-roles.enum'
 import { RoomWarningType } from '@/common/types/backend/chat/room-warning.enum'
-import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
-import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
-import { NewUserStatusDTO } from '@/common/types/new-user-status.dto'
+import { DirectMessageReceivedResponse } from '@/common/types/direct-message-received.dto'
+import { InvitedToGameResponse } from '@/common/types/invited-to-game.dto'
+import { NewUserStatusResponse } from '@/common/types/new-user-status.dto'
 import { OponentFoundDTO } from '@/common/types/oponent-found'
-import { RespondToGameInviteDTO } from '@/common/types/respond-to-game-invite.dto'
-import { RoomMessageReceivedDTO } from '@/common/types/room-message-received.dto'
-import { RoomWarningDTO } from '@/common/types/room-warning.dto'
-import { SendGameInviteDTO } from '@/common/types/send-game-invite.dto'
-import { SendMessageDTO } from '@/common/types/send-message.dto'
+import { RespondToGameInviteMessage } from '@/common/types/respond-to-game-invite.dto'
+import { RoomMessageReceivedResponse } from '@/common/types/room-message-received.dto'
+import { RoomWarningResponse } from '@/common/types/room-warning.dto'
+import { SendGameInviteRequest } from '@/common/types/send-game-invite.dto'
+import { SendMessageRequest } from '@/common/types/send-message.dto'
 import {
 	createContext,
 	ReactNode,
@@ -286,7 +286,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	const onMessageReceived = useCallback(
 		function (
-			data: DirectMessageReceivedDTO | RoomMessageReceivedDTO | RoomWarningDTO
+			data: DirectMessageReceivedResponse | RoomMessageReceivedResponse | RoomWarningResponse
 		) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
@@ -368,7 +368,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		[friends, rooms]
 	)
 
-	function updateFriendStatus(data: NewUserStatusDTO) {
+	function updateFriendStatus(data: NewUserStatusResponse) {
 		setFriends((prevFriends) => {
 			const newFriends = [...prevFriends]
 			const index = newFriends.findIndex((friend) => friend.uid === data.uid)
@@ -386,22 +386,22 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				? currentOpenChat?.room?.id
 				: currentOpenChat?.friend?.uid
 
-		const sendMessageDTO: SendMessageDTO = {
+		const SendMessageRequest: SendMessageRequest = {
 			content: message,
 			receiverId: parseInt(id),
 			uniqueId: crypto.randomUUID(),
 		}
 
 		if ('room' in currentOpenChat) {
-			socket.emit('sendChatRoomMessage', sendMessageDTO)
+			socket.emit('sendChatRoomMessage', SendMessageRequest)
 		} else {
-			socket.emit('sendDirectMessage', sendMessageDTO)
+			socket.emit('sendDirectMessage', SendMessageRequest)
 		}
 
 		const newMessage: MessageDTO = {
 			content: message,
 			sendByMe: true,
-			uniqueID: sendMessageDTO.uniqueId,
+			uniqueID: SendMessageRequest.uniqueId,
 		}
 
 		setOpenChats((prevChat) => {
@@ -484,7 +484,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function sendGameInvite(id: number) {
 		if (!socket) return
 
-		const gameInviteDTO: SendGameInviteDTO = {
+		const gameInviteDTO: SendGameInviteRequest = {
 			recipientUID: id,
 		}
 		socket.emit('sendGameInvite', gameInviteDTO)
@@ -494,7 +494,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		if (!socket) return
 
 		// parameter in user
-		const response: RespondToGameInviteDTO = {
+		const response: RespondToGameInviteMessage = {
 			accepted,
 			inviteId: 2,
 		}
@@ -507,7 +507,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		)
 	}
 
-	function onInvitedToGame(data: InvitedToGameDTO) {
+	function onInvitedToGame(data: InvitedToGameResponse) {
 		focus(data.senderUID, false)
 
 		setOpenChats((prevChat) => {

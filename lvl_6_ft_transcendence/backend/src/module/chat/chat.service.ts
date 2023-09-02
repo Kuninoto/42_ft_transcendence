@@ -19,16 +19,16 @@ import {
   ChatRoomSearchInfo,
   ChatRoomType,
   Chatter,
+  CreateRoomRequest,
   ErrorResponse,
   RoomWarning,
   SuccessResponse,
 } from 'types';
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
+import { DirectMessageReceivedResponse } from 'types/friendship/socket';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
-import { CreateRoomDTO } from './dto/create-room.dto';
-import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
 
 @Injectable()
 export class ChatService {
@@ -91,7 +91,7 @@ export class ChatService {
 
     // Send every missed DM
     missedDMs.forEach(async (dm: DirectMessage) => {
-      const directMessageReceived: DirectMessageReceivedDTO = {
+      const directMessageReceived: DirectMessageReceivedResponse = {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),
         content: dm.content,
@@ -118,39 +118,39 @@ export class ChatService {
 			Composed only by a-z, A-Z, 0-9 and  _
 	*/
   public async createRoom(
-    createRoomDto: CreateRoomDTO,
+    createRoomRequest: CreateRoomRequest,
     owner: User,
   ): Promise<ChatRoom> {
     // If room name's already taken
-    const room: ChatRoom | null = await this.findRoomByName(createRoomDto.name);
+    const room: ChatRoom | null = await this.findRoomByName(createRoomRequest.name);
     if (room) {
       this.logger.warn(
-        `${owner.name} tried to create a room with already taken name: "${createRoomDto.name}"`,
+        `${owner.name} tried to create a room with already taken name: "${createRoomRequest.name}"`,
       );
       throw new ConflictException('Room name is already taken');
     }
 
-    this.checkForValidRoomName(createRoomDto.name);
+    this.checkForValidRoomName(createRoomRequest.name);
 
     if (
-      createRoomDto.type !== ChatRoomType.PROTECTED &&
-      createRoomDto.password
+      createRoomRequest.type !== ChatRoomType.PROTECTED &&
+      createRoomRequest.password
     ) {
       this.logger.warn(
-        `${owner.name} tried to create a ${createRoomDto.type} createRoomDto with password`,
+        `${owner.name} tried to create a ${createRoomRequest.type} CreateRoomRequest with password`,
       );
       throw new BadRequestException(
-        `A ${createRoomDto.type} room cannot have a password`,
+        `A ${createRoomRequest.type} room cannot have a password`,
       );
     }
 
-    if (createRoomDto.type === ChatRoomType.PROTECTED) {
-      if (!createRoomDto.password) {
+    if (createRoomRequest.type === ChatRoomType.PROTECTED) {
+      if (!createRoomRequest.password) {
         throw new BadRequestException(`A protected room must have a password`);
       }
     }
 
-    const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomDto);
+    const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomRequest);
 
     /* Add the owner to the users in the room,
 			to the list of admins,
@@ -165,7 +165,7 @@ export class ChatService {
     if (ownerSocketId) {
       this.connectionGateway.server
         .to(ownerSocketId)
-        .socketsJoin(createRoomDto.name);
+        .socketsJoin(createRoomRequest.name);
     }
     return this.chatRoomRepository.save(newRoom);
   }
@@ -364,7 +364,7 @@ export class ChatService {
   }
 
   public async assignAdminRole(
-    requesterUID: number,
+    createRoomRequesterUID: number,
     userToAssignRoleId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
@@ -391,7 +391,7 @@ export class ChatService {
 
     if (!this.isUserInRoom(room, userToAssignRoleId)) {
       this.logger.warn(
-        `UID=${requesterUID} tried to add admin privileges to a user that isn't part of the current room`,
+        `UID=${createRoomRequesterUID} tried to add admin privileges to a user that isn't part of the current room`,
       );
       throw new BadRequestException(
         `${userToAssignRole.name} is not part of the room`,
@@ -544,7 +544,7 @@ export class ChatService {
 
     if (!this.isUserInRoom(room, userToKickId)) {
       this.logger.warn(
-        `UID= ${senderId} tried to kick a user that isn't part of the requesting room`,
+        `UID= ${senderId} tried to kick a user that isn't part of the createRoomRequesting room`,
       );
       throw new NotFoundException(
         `User with uid=${userToKickId} isn't on that room`,
