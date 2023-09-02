@@ -8,11 +8,11 @@ import {
 	InvitedToGameResponse,
 	NewUserStatusEvent,
 	OpponentFoundResponse,
-	RespondToGameInviteRequest,
+	RespondToGameInviteMessage,
 	RoomMessageReceivedEvent,
 	RoomWarning,
 	RoomWarningEvent,
-	SendGameInviteRequest
+	SendGameInviteMessage
 } from '@/common/types'
 import {
 	createContext,
@@ -482,7 +482,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function sendGameInvite(id: number) {
 		if (!socket) return
 
-		const gameInviteDTO: SendGameInviteRequest = {
+		const gameInviteDTO: SendGameInviteMessage = {
 			recipientUID: id,
 		}
 		socket.emit('sendGameInvite', gameInviteDTO)
@@ -492,7 +492,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		if (!socket) return
 
 		// parameter in user
-		const response: RespondToGameInviteRequest = {
+		const response: RespondToGameInviteMessage = {
 			accepted,
 			inviteId: 2,
 		}
