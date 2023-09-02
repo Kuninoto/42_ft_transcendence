@@ -206,15 +206,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			const newChat = [...prevChat]
 
 			return newChat?.map((chat) => {
-				if (isRoom && 'room' in chat) {
-					return chat.room.id === id
-						? { ...chat, display: true, unread: false }
-						: chat
+				if (isRoom && 'room' in chat && chat.room.id === id) {
+					return { ...chat, display: true, unread: false }
 				}
-				if (!isRoom && 'friend' in chat) {
-					return chat.friend.uid === id
-						? { ...chat, display: true, unread: false }
-						: chat
+				if (!isRoom && 'friend' in chat && chat.friend.uid === id) {
+					return { ...chat, display: true, unread: false }
 				}
 				return chat
 			})
@@ -274,7 +270,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					}
 					return chat
 				})
-
 				return newChat
 			})
 
