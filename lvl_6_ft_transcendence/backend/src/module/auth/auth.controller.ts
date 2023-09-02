@@ -41,12 +41,13 @@ import { JwtAuthGuard } from './guard/jwt-auth.guard';
 @ApiBearerAuth('swagger-basic-auth')
 @Controller('auth')
 export class AuthController {
-  private readonly logger: Logger = new Logger(AuthController.name);
-
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
   ) {}
+
+  private readonly logger: Logger = new Logger(AuthController.name);
+
 
   /**
    * GET /api/auth/login/callback
@@ -62,7 +63,6 @@ export class AuthController {
   @Get('login/callback')
   public async loginCallback(
     @ExtractUser() user: User,
-    // @Res() res: Response,
   ): Promise<LoginResponse> {
     return this.authService.login(user);
   }
@@ -157,7 +157,7 @@ export class AuthController {
     @ExtractUser() user: User,
     @Body() body: OtpVerificationRequest,
   ): Promise<AccessTokenResponse | ErrorResponse> {
-    const is2faCodeValid = this.authService.is2faCodeValid(
+    const is2faCodeValid: boolean = this.authService.is2faCodeValid(
       body.otp,
       user.secret_2fa,
     );
@@ -169,10 +169,7 @@ export class AuthController {
     this.logger.log(`Enabling 2FA for "${user.name}"`);
     await this.usersService.enable2fa(user.id, user.secret_2fa);
 
-    const accessToken: AccessTokenResponse =
-      this.authService.authenticate2fa(user);
-
-    return accessToken;
+    return this.authService.authenticate2fa(user);
   }
 
   /**

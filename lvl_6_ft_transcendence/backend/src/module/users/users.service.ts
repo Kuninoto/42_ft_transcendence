@@ -119,7 +119,7 @@ export class UsersService {
       (room: ChatRoom): MeChatRoom => ({
         id: room.id,
         name: room.name,
-        ownerName: room.owner.name,
+        ownerId: room.owner.id,
         participants: room.users.map(
           (user: User): Chatter => ({
             id: user.id,
