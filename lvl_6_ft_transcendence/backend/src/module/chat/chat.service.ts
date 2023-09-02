@@ -247,13 +247,10 @@ export class ChatService {
     return chatRoomSearchInfos;
   }
 
-  public findRoleOnChatRoom(
-    room: ChatRoom,
-    uid: number,
-  ): ChatRoomRoles | null {
+  public findRoleOnChatRoom(room: ChatRoom, uid: number): ChatRoomRoles | null {
     if (room.owner.id == uid) return ChatRoomRoles.OWNER;
     if (this.isUserAnAdmin(room, uid)) return ChatRoomRoles.ADMIN;
-    if (this.isUserInRoom(room, uid))return ChatRoomRoles.CHATTER;
+    if (this.isUserInRoom(room, uid)) return ChatRoomRoles.CHATTER;
     return null;
   }
 
@@ -725,12 +722,8 @@ export class ChatService {
   }
 
   public removeUserFromRoom(room: ChatRoom, uid: number): void {
-    room.users = room.users.filter(
-      (user: User): boolean => user.id != uid,
-    );
-    room.admins = room.users.filter(
-      (user: User): boolean => user.id != uid,
-    );
+    room.users = room.users.filter((user: User): boolean => user.id != uid);
+    room.admins = room.users.filter((user: User): boolean => user.id != uid);
   }
 
   public checkForValidRoomName(name: string): void {
@@ -748,23 +741,29 @@ export class ChatService {
   }
 
   public isUserAnAdmin(room: ChatRoom, userId: number): boolean {
-    return room.admins.find((admin: User): boolean => admin.id == userId) ? true : false;
+    return room.admins.find((admin: User): boolean => admin.id == userId)
+      ? true
+      : false;
   }
 
   public isUserBannedFromRoom(room: ChatRoom, userId: number): boolean {
-    return room.bans.find((user: User): boolean => user.id == userId) ? true : false;
+    return room.bans.find((user: User): boolean => user.id == userId)
+      ? true
+      : false;
   }
 
   public isUserInRoom(room: ChatRoom, userId: number): boolean {
-    return room.users.find((user: User): boolean => user.id == userId) ? true : false;
+    return room.users.find((user: User): boolean => user.id == userId)
+      ? true
+      : false;
   }
 
   public isUserMuted(userId: number, roomId: number): boolean {
-    return this.mutedUsers.findIndex(
-      (entry: {
-        roomId: number;
-        userId: number
-      }) => entry.userId == userId && entry.roomId == roomId,
-    ) !== -1;
+    return (
+      this.mutedUsers.findIndex(
+        (entry: { roomId: number; userId: number }) =>
+          entry.userId == userId && entry.roomId == roomId,
+      ) !== -1
+    );
   }
 }

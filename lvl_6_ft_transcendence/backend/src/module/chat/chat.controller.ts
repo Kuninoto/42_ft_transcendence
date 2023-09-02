@@ -322,7 +322,11 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: RoomOperationDTO,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.assignAdminRole(user.id, body.userId, body.roomId);
+    return await this.chatService.assignAdminRole(
+      user.id,
+      body.userId,
+      body.roomId,
+    );
   }
 
   @ApiOperation({
