@@ -1,8 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomRoles, MuteDuration } from '@/common/types'
-import { GetChatterRoleMessage } from '@/common/types/chat/socket/message'
+import { ChatRoomRoles, GetChatterRoleEvent, GetChatterRoleMessage, MuteDuration } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
@@ -253,7 +252,7 @@ export default function Chat() {
 		socket?.emit(
 			'getChatterRole',
 			newGetChatterRole,
-			function (data: GetChatterRoleMessage) {
+			function (data: GetChatterRoleEvent) {
 				console.log(data)
 				setRole(data.myRole)
 				setAuthorRole(data.authorRole)

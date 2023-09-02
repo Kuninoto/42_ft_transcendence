@@ -1,4 +1,4 @@
-export interface PlayerScoredResponse {
+export interface PlayerScoredEvent {
   leftPlayerScore: number;
   rightPlayerScore: number;
 }

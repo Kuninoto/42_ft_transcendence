@@ -11,7 +11,9 @@ import {
 } from 'react'
 
 import { socket } from './SocketContext'
-import { GameEndResponse, GameRoomInfoResponse, OpponentFoundResponse, PaddleMoveRequest, PlayerReadyRequest, PlayerScoredResponse, PlayerSide } from '@/common/types'
+import { PlayerSide } from '@/common/types'
+import { GameEndEvent, GameRoomInfoEvent, OpponentFoundEvent, PlayerScoredEvent } from '@/common/types/game/socket/event'
+import { PaddleMoveMessage, PlayerReadyMessage } from '@/common/types/game/socket/message'
 
 type GameContextType = {
 	ballPosition: Ball
@@ -19,9 +21,9 @@ type GameContextType = {
 	cancel: () => void
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
-	gameEndInfo: GameEndResponse
+	gameEndInfo: GameEndEvent
 	leftPlayerScore: number
-	opponentFound: OpponentFoundResponse
+	opponentFound: OpponentFoundEvent
 	opponentPosition: number
 	queue: () => void
 	rightPlayerScore: number
@@ -30,8 +32,8 @@ type GameContextType = {
 const GameContext = createContext<GameContextType>({} as GameContextType)
 
 export function GameProvider({ children }: { children: ReactNode }) {
-	const [opponentFound, setOpponentFound] = useState<OpponentFoundResponse>(
-		{} as OpponentFoundResponse
+	const [opponentFound, setOpponentFound] = useState<OpponentFoundEvent>(
+		{} as OpponentFoundEvent
 	)
 	const [opponentPosition, setOpponentPosition] = useState(0)
 	const [ballPosition, setBallPosition] = useState<Ball>({} as Ball)
@@ -39,7 +41,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
-	const [gameEndInfo, setGameEndInfo] = useState<GameEndResponse>({} as GameEndResponse)
+	const [gameEndInfo, setGameEndInfo] = useState<GameEndEvent>({} as GameEndEvent)
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -61,7 +63,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))
 			router.push('/dashboard')
 		else {
-			socket?.on('opponentFound', function (data: OpponentFoundResponse) {
+			socket?.on('opponentFound', function (data: OpponentFoundEvent) {
 				setOpponentFound(data)
 				setTimeout(() => {
 					router.push('/matchmaking')
@@ -81,19 +83,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		) {
 			socket?.emit('leaveQueueOrGame')
 			history.go(2)
-			setOpponentFound({} as OpponentFoundResponse)
+			setOpponentFound({} as OpponentFoundEvent)
 		}
 
 		return () => {
 			if (pathname === '/matchmaking') {
 				socket?.emit('leaveQueueOrGame')
-				setOpponentFound({} as OpponentFoundResponse)
+				setOpponentFound({} as OpponentFoundEvent)
 			}
 		}
 	}, [pathname])
 
 	useEffect(() => {
-		socket?.on('gameRoomInfo', function (data: GameRoomInfoResponse) {
+		socket?.on('gameRoomInfo', function (data: GameRoomInfoEvent) {
 			if (opponentFound.side === PlayerSide.LEFT) {
 				setOpponentPosition(data.rightPlayer.paddleY)
 			} else {
@@ -103,11 +105,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			setBallPosition(data.ball)
 		})
 
-		socket?.on('gameEnd', function (data: GameEndResponse) {
+		socket?.on('gameEnd', function (data: GameEndEvent) {
 			setGameEndInfo(data)
 		})
 
-		socket?.on('playerScored', function (data: PlayerScoredResponse) {
+		socket?.on('playerScored', function (data: PlayerScoredEvent) {
 			setLeftPlayerScore(data.leftPlayerScore)
 			setRightPlayerScore(data.rightPlayerScore)
 		})
@@ -116,22 +118,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	function emitPaddleMovement(newY: number) {
 		if (!socket) return
 
-		const PaddleMoveRequest: PaddleMoveRequest = {
+		const PaddleMoveMessage: PaddleMoveMessage = {
 			gameRoomId: opponentFound.roomId,
 			newY: newY,
 		}
 
-		socket.emit('paddleMove', PaddleMoveRequest)
+		socket.emit('paddleMove', PaddleMoveMessage)
 	}
 
 	function emitOnReady() {
 		if (!socket) return
 
-		const PlayerReadyRequest: PlayerReadyRequest = {
+		const PlayerReadyMessage: PlayerReadyMessage = {
 			gameRoomId: opponentFound.roomId,
 		}
 
-		socket.emit('playerReady', PlayerReadyRequest)
+		socket.emit('playerReady', PlayerReadyMessage)
 	}
 
 	const value: GameContextType = {
