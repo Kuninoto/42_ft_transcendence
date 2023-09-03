@@ -171,22 +171,26 @@ export class FriendshipsService {
       ]);
 
     const myFriendRequestsInterfaces: FriendRequest[] = [
-      ...myFriendRequestsAsReceiver.map((friendrequest: Friendship): FriendRequest => ({
-        friendship_id: friendrequest.id,
-        uid: friendrequest.sender.id,
-        name: friendrequest.sender.name,
-        avatar_url: friendrequest.sender.avatar_url,
-        status: friendrequest.status,
-        sent_by_me: false,
-      })),
-      ...myFriendRequestsAsSender.map((friendrequest: Friendship): FriendRequest => ({
-        friendship_id: friendrequest.id,
-        uid: friendrequest.receiver.id,
-        name: friendrequest.receiver.name,
-        avatar_url: friendrequest.receiver.avatar_url,
-        status: friendrequest.status,
-        sent_by_me: true,
-      })),
+      ...myFriendRequestsAsReceiver.map(
+        (friendrequest: Friendship): FriendRequest => ({
+          friendship_id: friendrequest.id,
+          uid: friendrequest.sender.id,
+          name: friendrequest.sender.name,
+          avatar_url: friendrequest.sender.avatar_url,
+          status: friendrequest.status,
+          sent_by_me: false,
+        }),
+      ),
+      ...myFriendRequestsAsSender.map(
+        (friendrequest: Friendship): FriendRequest => ({
+          friendship_id: friendrequest.id,
+          uid: friendrequest.receiver.id,
+          name: friendrequest.receiver.name,
+          avatar_url: friendrequest.receiver.avatar_url,
+          status: friendrequest.status,
+          sent_by_me: true,
+        }),
+      ),
     ];
 
     return myFriendRequestsInterfaces;

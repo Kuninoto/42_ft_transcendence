@@ -8,7 +8,17 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
-import { GameEndEvent, GameRoomInfoEvent, InvitedToGameEvent, PaddleMoveMessage, PlayerReadyMessage, PlayerScoredEvent, PlayerSide, RespondToGameInviteMessage, SendGameInviteMessage } from 'types';
+import {
+  GameEndEvent,
+  GameRoomInfoEvent,
+  InvitedToGameEvent,
+  PaddleMoveMessage,
+  PlayerReadyMessage,
+  PlayerScoredEvent,
+  PlayerSide,
+  RespondToGameInviteMessage,
+  SendGameInviteMessage,
+} from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { GameService } from './game.service';

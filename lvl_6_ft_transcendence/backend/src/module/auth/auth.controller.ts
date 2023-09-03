@@ -48,7 +48,6 @@ export class AuthController {
 
   private readonly logger: Logger = new Logger(AuthController.name);
 
-
   /**
    * GET /api/auth/login/callback
    *
@@ -74,7 +73,7 @@ export class AuthController {
    * Validates the Google Authenticator's OTP
    * and if it is valid, signs a JWT and returns it
    * else throws.
-   * @returns JWT access_token
+   * @returns Access token (signed JWT)
    */
   @ApiOkResponse({
     description:

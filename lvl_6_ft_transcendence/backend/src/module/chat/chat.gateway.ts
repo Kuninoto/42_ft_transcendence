@@ -89,7 +89,9 @@ export class ChatGateway implements OnGatewayInit {
       content: messageBody.content,
     };
 
-    const idsOfUsersInRoom: number[] = room.users.map((user: User): number => user.id);
+    const idsOfUsersInRoom: number[] = room.users.map(
+      (user: User): number => user.id,
+    );
     idsOfUsersInRoom.forEach(async (uid: number): Promise<void> => {
       const blockRelationship: boolean =
         await this.friendshipService.isThereABlockRelationship(

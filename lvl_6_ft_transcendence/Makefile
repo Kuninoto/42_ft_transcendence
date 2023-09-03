@@ -19,19 +19,19 @@ build:
 
 up_detached:
 	docker-compose -f $(COMPOSE_FILE_PATH) up -d
-#	sudo bash ./srcs/requirements/tools/manage_hosts.sh
+#	sudo bash ./manage_hosts.sh
 
 down:
 	docker-compose -f $(COMPOSE_FILE_PATH) down
-#	sudo bash ./srcs/requirements/tools/manage_hosts.sh --delete
+#	sudo bash ./manage_hosts.sh --delete
 
 start:
 	docker-compose -f $(COMPOSE_FILE_PATH) start
-#	sudo bash ./srcs/requirements/tools/manage_hosts.sh
+#	sudo bash ./manage_hosts.sh
 
 stop:
 	docker-compose -f $(COMPOSE_FILE_PATH) stop
-#	sudo bash ./srcs/requirements/tools/manage_hosts.sh --delete
+#	sudo bash ./manage_hosts.sh --delete
 
 ps:
 	docker-compose -f $(COMPOSE_FILE_PATH) ps

@@ -11,7 +11,7 @@ import { ChatRoom, User } from 'src/entity';
 import {
   RemoveRoomPasswordRequest,
   RoomOperationRequest,
-  UpdateRoomPasswordRequest
+  UpdateRoomPasswordRequest,
 } from 'types';
 import { ChatService } from '../chat.service';
 

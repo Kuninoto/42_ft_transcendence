@@ -11,12 +11,10 @@ import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import {
-  Achievements,
   Friend,
-  UserStatus,
+  NewUserStatusEvent,
   RoomWarningEvent,
-  AchievementUnlockedEvent,
-  NewUserStatusEvent
+  UserStatus,
 } from 'types';
 import { ChatService } from '../chat/chat.service';
 import { FriendshipsService } from '../friendships/friendships.service';
@@ -84,27 +82,21 @@ export class ConnectionGateway
     this.logger.log(`${client.data.name} is now offline`);
   }
 
-  async achievementUnlocked(
-    userId: number,
-    achievement: Achievements,
-  ): Promise<void> {
-    const socketId: string = this.connectionService.findSocketIdByUID(
-      userId.toString(),
-    );
+  async achievementUnlocked(userId: number): Promise<void> {
+    const socketId: string | undefined =
+      this.connectionService.findSocketIdByUID(userId.toString());
 
-    const achievementUnlocked: AchievementUnlockedEvent = {
-      achievement: achievement,
-    };
-    this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
+    // If user is online send the 'notification' that an achievement
+    // was unlocked
+    if (socketId) this.server.to(socketId).emit('achievementUnlocked');
   }
 
   friendRequestReceived(receiverUID: number) {
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-    if (receiverSocketId) {
+    if (receiverSocketId)
       this.server.to(receiverSocketId).emit('friendRequestReceived');
-    }
   }
 
   async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
@@ -138,10 +130,11 @@ export class ConnectionGateway
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-    // If both users are online
-    if (senderSocketId && receiverSocketId) {
-      this.sendRefreshUser(senderUID, senderSocketId);
+    // If sender is online
+    if (senderSocketId) this.sendRefreshUser(senderUID, senderSocketId);
 
+    // If both users are online
+    if (receiverSocketId) {
       this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
       this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
     }
