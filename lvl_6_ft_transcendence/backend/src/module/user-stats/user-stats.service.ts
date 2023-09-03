@@ -71,13 +71,16 @@ export class UserStatsService {
         .addOrderBy('win_rate', 'DESC')
         .getRawMany();
 
-    return leaderboardData.map((leaderboardRow: UserStatsForLeaderboard): UserStatsForLeaderboard => ({
-      uid: leaderboardRow.uid,
-      name: leaderboardRow.name,
-      avatar_url: leaderboardRow.avatar_url,
-      wins: leaderboardRow.wins,
-      win_rate: leaderboardRow.win_rate === null ? 0 : leaderboardRow.win_rate,
-    }));
+    return leaderboardData.map(
+      (leaderboardRow: UserStatsForLeaderboard): UserStatsForLeaderboard => ({
+        uid: leaderboardRow.uid,
+        name: leaderboardRow.name,
+        avatar_url: leaderboardRow.avatar_url,
+        wins: leaderboardRow.wins,
+        win_rate:
+          leaderboardRow.win_rate === null ? 0 : leaderboardRow.win_rate,
+      }),
+    );
   }
 
   public async updateUserStatsUponGameEnd(

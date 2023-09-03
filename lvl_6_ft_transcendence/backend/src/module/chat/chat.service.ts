@@ -122,7 +122,9 @@ export class ChatService {
     owner: User,
   ): Promise<ChatRoom> {
     // If room name's already taken
-    const room: ChatRoom | null = await this.findRoomByName(createRoomRequest.name);
+    const room: ChatRoom | null = await this.findRoomByName(
+      createRoomRequest.name,
+    );
     if (room) {
       this.logger.warn(
         `${owner.name} tried to create a room with already taken name: "${createRoomRequest.name}"`,

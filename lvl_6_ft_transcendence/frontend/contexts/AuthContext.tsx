@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				throw e.response.data.message
 			})
 
-		Cookies.set('pong.token', data.access_token, {
+		Cookies.set('pong.token', data.accessToken, {
 			expires: 1,
 		})
 

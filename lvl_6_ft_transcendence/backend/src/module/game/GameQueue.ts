@@ -26,17 +26,21 @@ export class GameQueue {
   }
 
   public isPlayerInQueue(playerUID: number): boolean {
-    const playerIndex: number = this.players.findIndex((player: Player): boolean => {
-      return player.userId === playerUID;
-    });
+    const playerIndex: number = this.players.findIndex(
+      (player: Player): boolean => {
+        return player.userId === playerUID;
+      },
+    );
 
     return playerIndex !== -1;
   }
 
   public removePlayerFromQueueByUID(playerUID: number): Player | null {
-    const playerIndex: number = this.players.findIndex((player: Player): boolean => {
-      return player.userId === playerUID;
-    });
+    const playerIndex: number = this.players.findIndex(
+      (player: Player): boolean => {
+        return player.userId === playerUID;
+      },
+    );
 
     return playerIndex === -1 ? null : this.players.splice(playerIndex, 1)[0];
   }
