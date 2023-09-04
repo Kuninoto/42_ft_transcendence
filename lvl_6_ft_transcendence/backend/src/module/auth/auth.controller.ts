@@ -131,7 +131,9 @@ export class AuthController {
    * for the user to get the OTPs that he'll need, inclusively here.
    */
   @ApiBody({ type: OtpVerificationRequest })
-  @ApiBadRequestResponse({ description: "If request's body is malformed or if the OTP is invalid" })
+  @ApiBadRequestResponse({
+    description: "If request's body is malformed or if the OTP is invalid",
+  })
   @ApiOkResponse({
     description:
       "Enables two factor authentication.\

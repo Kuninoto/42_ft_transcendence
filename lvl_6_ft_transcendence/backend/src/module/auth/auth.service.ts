@@ -79,7 +79,7 @@ export class AuthService {
 
   public logout(userId: number): SuccessResponse {
     this.tokenWhitelist.delete(userId.toString());
-    
+
     return { message: 'Successfully logged out' };
   }
 }

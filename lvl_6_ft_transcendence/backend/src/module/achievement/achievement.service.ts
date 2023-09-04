@@ -132,7 +132,8 @@ export class AchievementService {
       await this.achievementRepository.findBy({ user: { id: userId } });
 
     return userAchievements.some(
-      (achievement: Achievement): boolean => achievement.achievement === achievementToCheck,
+      (achievement: Achievement): boolean =>
+        achievement.achievement === achievementToCheck,
     );
   }
 }
