@@ -100,9 +100,8 @@ export class ChatGateway implements OnGatewayInit {
         );
 
       // Retrieve the clientId of the user
-      const userSocketId: string | undefined = this.connectionService.findSocketIdByUID(
-        uid.toString(),
-      );
+      const userSocketId: string | undefined =
+        this.connectionService.findSocketIdByUID(uid.toString());
       if (userSocketId && !blockRelationship) {
         client.to(userSocketId).emit('newChatRoomMessage', message);
       }
