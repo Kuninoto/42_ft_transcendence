@@ -20,6 +20,7 @@ export class UserStats {
   @Column({
     type: 'bigint',
     default: 0,
+    nullable: false,
   })
   wins: number;
 
@@ -27,6 +28,7 @@ export class UserStats {
   @Column({
     type: 'bigint',
     default: 0,
+    nullable: false,
   })
   losses: number;
 
