@@ -1,7 +1,7 @@
-import { OpponentInfo, PlayerSide } from 'types';
+import { PlayerSide, UserBasicProfile } from 'types';
 
 export interface OpponentFoundEvent {
   roomId: string;
   side: PlayerSide;
-  opponentInfo: OpponentInfo;
+  opponentInfo: UserBasicProfile;
 }

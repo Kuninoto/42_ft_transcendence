@@ -27,40 +27,38 @@ export class User {
 
   @ApiProperty()
   @Column({
-    length: 10,
-    nullable: false,
     type: 'varchar',
-    unique: true,
+    nullable: false,
+    length: 10,
   })
   name: string;
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
-    unique: true,
+    nullable: false,
   })
   intra_name: string;
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
+    nullable: false,
   })
   intra_profile_url: string;
 
   @ApiProperty()
   @Column({
-    default: UserStatus.ONLINE,
-    nullable: false,
     type: 'varchar',
+    nullable: false,
+    default: UserStatus.ONLINE,
   })
   status: string;
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
+    nullable: false,
   })
   avatar_url: string;
 
@@ -70,8 +68,8 @@ export class User {
 
   @ApiProperty()
   @Column({
-    nullable: true,
     type: 'varchar',
+    nullable: true,
   })
   secret_2fa: string;
 
@@ -131,15 +129,17 @@ export class User {
 
   @ApiProperty()
   @Column({
-    default: new Date(),
     type: 'timestamp',
+    nullable: false,
+    default: new Date(),
   })
   created_at: Date;
 
   @ApiProperty()
   @Column({
-    default: new Date(),
     type: 'timestamp',
+    nullable: false,
+    default: new Date(),
   })
   last_updated_at: Date;
 }

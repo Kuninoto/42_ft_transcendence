@@ -9,9 +9,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChatRoom, User } from 'src/entity';
+import { MuteUserRequest } from '../../../../types/chat/request/mute-user-request';
+import { RoomOperationRequest } from '../../../../types/chat/request/room-operation-request';
 import { ChatService } from '../chat.service';
-import { MuteUserRequest } from '../../../../types/chat/request/mute-user-request.interface';
-import { RoomOperationRequest } from '../../../../types/chat/request/room-operation-request.interface';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
