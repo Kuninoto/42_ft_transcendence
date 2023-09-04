@@ -21,16 +21,10 @@ export const themes: IThemes = {
 		paddle: 'white.png',
 	},
 	fortyTwo: {
-		background: 'conhecesA42Porto.jpeg',
+		background: 'school_42.jpeg',
 		ball: HEX_WHITE,
 		paddle: 'white.jpeg',
 	},
-	//TODO just uncomment this for the actual background
-	// fortyTwo: {
-	// 	background: 'school_42.jpeg',
-	// 	ball: HEX_WHITE,
-	// 	paddle: 'white.jpeg',
-	// },
 	halloween: {
 		background: 'halloween.jpg',
 		ball: HEX_WHITE,
