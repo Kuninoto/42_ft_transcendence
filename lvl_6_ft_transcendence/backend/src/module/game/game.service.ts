@@ -6,18 +6,17 @@ import { Repository } from 'typeorm';
 import {
   GameInvite,
   GameType,
-  OpponentInfo,
+  OpponentFoundEvent,
   PlayerSide,
+  UserBasicProfile,
   UserStatus,
 } from 'types';
-
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { UsersService } from '../users/users.service';
 import { Ball } from './Ball';
 import { CreateGameInviteDTO } from './dto/create-game-invite.dto';
 import { InviteDeclinedDTO } from './dto/invite-declined.dto';
-import { OpponentFoundDTO } from './dto/opponent-found.dto';
 import { GameEngineService } from './game-engine.service';
 import { GameGateway } from './game.gateway';
 import { GameInviteMap } from './GameInviteMap';
@@ -51,10 +50,10 @@ export class GameService {
     roomId: string,
     opponentUID: number,
   ): Promise<void> {
-    const opponentInfo: OpponentInfo =
-      await this.usersService.findOpponentInfoByUID(opponentUID);
+    const opponentInfo: UserBasicProfile =
+      await this.usersService.findUserBasicProfileByUID(opponentUID);
 
-    const opponentFound: OpponentFoundDTO = {
+    const opponentFound: OpponentFoundEvent = {
       opponentInfo: opponentInfo,
       roomId: roomId,
       side: player.side,
@@ -86,6 +85,36 @@ export class GameService {
     return this.gameInviteMap.createGameInvite(createGameInviteDto);
   }
 
+  public async gameInviteAccepted(
+    inviteId: string,
+    recipient: Socket,
+  ): Promise<void> {
+    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
+
+    const recipientPlayer: Player = new Player(
+      recipient,
+      recipient.data.userId,
+    );
+    recipientPlayer.setPlayerSide(PlayerSide.RIGHT);
+
+    this.joinPlayersToRoom(
+      gameInvite.sender,
+      recipientPlayer,
+      GameType.ONEVSONE,
+    );
+
+    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+  }
+
+  public gameInviteDeclined(inviteId: string) {
+    const inviteDeclined: InviteDeclinedDTO = {
+      inviteId: inviteId,
+    };
+
+    this.connectionGateway.server.emit('inviteDeclined', inviteDeclined);
+    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+  }
+
   /**
    * Disconnects a player from the game mechanism.
    *
@@ -114,6 +143,10 @@ export class GameService {
     } else {
       // Remove player from queue if he was there
       this.gameQueue.removePlayerFromQueueByUID(playerUserId);
+      await this.connectionGateway.updateUserStatus(
+        playerUserId,
+        UserStatus.ONLINE,
+      );
     }
   }
 
@@ -157,36 +190,6 @@ export class GameService {
       loser.userId,
       wonByDisconnection,
     );
-  }
-
-  public async gameInviteAccepted(
-    inviteId: string,
-    recipient: Socket,
-  ): Promise<void> {
-    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
-
-    const recipientPlayer: Player = new Player(
-      recipient,
-      recipient.data.userId,
-    );
-    recipientPlayer.setPlayerSide(PlayerSide.RIGHT);
-
-    this.joinPlayersToRoom(
-      gameInvite.sender,
-      recipientPlayer,
-      GameType.ONEVSONE,
-    );
-
-    this.gameInviteMap.deleteInviteByInviteId(inviteId);
-  }
-
-  public gameInviteDeclined(inviteId: string) {
-    const inviteDeclined: InviteDeclinedDTO = {
-      inviteId: inviteId,
-    };
-
-    this.connectionGateway.server.emit('inviteDeclined', inviteDeclined);
-    this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
   public isPlayerInQueueOrGame(playerUID: number): boolean {

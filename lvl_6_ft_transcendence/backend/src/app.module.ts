@@ -16,14 +16,13 @@ import { MeModule } from './module/me/me.module';
 import { UserStatsModule } from './module/user-stats/user-stats.module';
 
 @Module({
-  controllers: [],
   imports: [
     TypeOrmModule.forRootAsync({
       useClass: PostgresConfigService,
       imports: [ConfigModule],
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
+      rootPath: join(__dirname, '..', '..', 'public'),
 
       // The base URL path to serve the images from
       serveRoot: '/api/users/avatars/',
@@ -45,6 +44,5 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
     UserStatsModule,
     UsersModule,
   ],
-  providers: [],
 })
 export class AppModule {}

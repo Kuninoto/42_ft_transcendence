@@ -20,18 +20,15 @@ export class ChatRoom {
   id: number;
 
   @ApiProperty()
-  @Column({ nullable: false, type: 'varchar' })
+  @Column({ type: 'varchar', nullable: false })
   name: string;
 
   @ApiProperty()
-  @Column({
-    nullable: false,
-    type: 'varchar',
-  })
+  @Column({ type: 'varchar', nullable: false })
   type: ChatRoomType;
 
   @ApiProperty()
-  @Column({ nullable: true, type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   password: string;
 
   @ManyToOne(() => User)
@@ -39,17 +36,19 @@ export class ChatRoom {
   owner: User;
 
   @ApiProperty()
-  @ManyToMany(() => User, (users: User) => users.chat_admin)
+  @ManyToMany(() => User, (users: User) => users.chat_admin, { cascade: true })
   @JoinTable()
   admins: User[];
 
   @ApiProperty()
-  @ManyToMany(() => User, (users: User) => users.banned_rooms)
+  @ManyToMany(() => User, (users: User) => users.banned_rooms, {
+    cascade: true,
+  })
   @JoinTable()
   bans: User[];
 
   @ApiProperty()
-  @ManyToMany(() => User, (users: User) => users.chat_rooms)
+  @ManyToMany(() => User, (users: User) => users.chat_rooms, { cascade: true })
   @JoinTable()
   users: User[];
 }

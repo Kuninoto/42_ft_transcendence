@@ -63,7 +63,7 @@ export class ConnectionService {
     this.userIdToSocketId.deleteSocketIdByUID(userId);
   }
 
-  private async authClientFromAuthToken(token: string): Promise<null | User> {
+  private async authClientFromAuthToken(token: string): Promise<User | null> {
     // verify() throws if JWT's signature is not valid
     try {
       const payload: TokenPayload = await this.jwtService.verify(token, {

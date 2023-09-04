@@ -1,11 +1,9 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomSearchInfo, ChatRoomType } from '@/common/types/backend'
-import { CreateRoomDTO } from '@/common/types/create-room.dto'
-import { JoinRoomDTO } from '@/common/types/join-room.dto'
+import { ChatRoomSearchInfo, ChatRoomType, CreateRoomRequest, JoinRoomRequest } from '@/common/types'
 import { useFriends } from '@/contexts/FriendsContext'
-import bycrypt from 'bcryptjs'
+import md5 from 'md5'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AiOutlinePlus } from 'react-icons/ai'
@@ -33,9 +31,34 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		password: string
 		type: ChatRoomType
 	}) {
-		const newRoom: CreateRoomDTO = {
+		if (type === ChatRoomType.PROTECTED ) {
+
+			if (password.length < 4 || password.length > 20) {
+				setError('name', {
+					message: 'Password must be 4-20 characters',
+					type: 'alreadyInUser',
+				})
+				return
+			}
+
+			if (!password.match('^[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~=\/\\|-]+$')) {
+				setError('name', {
+					message: 'Invalid character',
+					type: 'invalid',
+				})
+				return
+			}
+		
+			if (password === '1234') {
+				toast.error('1234? Really?')
+				return
+			}
+
+		}
+
+		const newRoom: CreateRoomRequest = {
 			name,
-			password: type === ChatRoomType.PROTECTED ? password : undefined,
+			password: type === ChatRoomType.PROTECTED ? md5(password) : undefined,
 			type,
 		}
 
@@ -53,8 +76,6 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 					})
 				)
 		} catch (error: any) {}
-
-		console.log(name, type)
 	}
 
 	return (
@@ -71,7 +92,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 							className="flex flex-col space-y-8"
 							onSubmit={handleSubmit(createRoom)}
 						>
-							<fieldset className="flex w-full flex-col space-y-2">
+							<fieldset className="flex w-full flex-col">
 								<input
 									{...register('name', {
 										maxLength: {
@@ -79,7 +100,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 											value: 10,
 										},
 										minLength: {
-											message: 'Room names must at least 4 characters long',
+											message: 'Room names must be at least 4 characters long',
 											value: 4,
 										},
 										pattern: {
@@ -109,7 +130,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										value={ChatRoomType.PUBLIC}
 									/>
 									<span className="text-white peer-checked:text-primary-fushia">
-										Public - To everyone
+										Public
 									</span>
 								</label>
 
@@ -122,7 +143,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										value={ChatRoomType.PRIVATE}
 									/>
 									<span className="text-white peer-checked:text-primary-fushia">
-										Private - No one can see
+										Private (Invite only)
 									</span>
 								</label>
 
@@ -142,6 +163,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 												required: roomType === ChatRoomType.PROTECTED,
 											})}
 											className=" w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
+											placeholder="Password"
 											type="password"
 										/>
 									</div>
@@ -169,8 +191,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 	const [createRoom, setCreateRoom] = useState(false)
 
 	const [showPasswordField, setShowPassowordField] = useState(-1)
-
-	const { handleSubmit, register } = useForm()
+	const [password, setPassword] = useState('')
 
 	const { refreshRooms } = useFriends()
 
@@ -186,18 +207,16 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 		searchRoom(search)
 	}, [search])
 
-	function onSubmit(data: any) {
-		console.log('asdasd')
-		console.log(data)
-		joinRoom(data.roomId, data.password)
-		setShowPassowordField(-1)
-	}
+	function joinRoom(id: number, needPassword: boolean) {
+		if (password) {
+			setShowPassowordField(-1)
+			setPassword('')
+		}
 
-	function joinRoom(id: number, password: string | undefined) {
-		console.log(password)
+		if (needPassword && !password.length) return
 
-		const roomInfo: JoinRoomDTO = {
-			password,
+		const roomInfo: JoinRoomRequest = {
+			password: needPassword ? md5(password) : null,
 			roomId: parseInt(id),
 		}
 
@@ -205,12 +224,13 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 			api
 				.post('/chat/join-room', roomInfo)
 				.then((data) => {
-					console.log(data)
-					searchRoom('')
-					refreshRooms()
+					api.get(`/chat/rooms/search`).then((result) => {
+						refreshRooms()
+						setRooms(result.data)
+					})
 				})
 				.catch((e) => {
-					console.log(e)
+					toast.error('Wrong password')
 					throw 'Network error'
 				})
 		} catch (error: any) {
@@ -258,7 +278,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 							{loading ? (
 								<div> Loading... </div>
 							) : rooms.length === 0 ? (
-								<div> No one </div>
+								<div> No room was found </div>
 							) : (
 								<div className="flex h-full flex-col space-y-2 overflow-auto scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 									{rooms.map((room) => {
@@ -276,47 +296,35 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 															<div>
 																<BiLockAlt size={24} />
 															</div>
-															<form
-																className="space-x-2"
-																onSubmit={handleSubmit(onSubmit)}
+															<input
+																className={`${
+																	showPasswordField === room.id
+																		? 'w-40 border border-white px-3 py-1'
+																		: 'w-0'
+																} rounded bg-transparent text-white transition-all duration-300 `}
+																onChange={(e) => setPassword(e.target.value)}
+																placeholder="Password"
+																required
+																type="password"
+																value={password}
+															/>
+															<button
+																onClick={() => {
+																	if (showPasswordField === room.id) {
+																		joinRoom(room.id, true)
+																	} else {
+																		setShowPassowordField(room.id)
+																	}
+																}}
+																className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
 															>
-																<input
-																	className={`${
-																		showPasswordField === room.id
-																			? 'w-40 border border-white px-3 py-1'
-																			: 'w-0'
-																	} rounded  bg-transparent text-white transition-all duration-300 `}
-																	{...register('password', { required: true })}
-																	placeholder="Password"
-																	type="password"
-																/>
-																<input
-																	className="hidden"
-																	type="number"
-																	value={room.id}
-																	{...register('roomId')}
-																/>
-																{showPasswordField === room.id && (
-																	<input
-																		className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
-																		type="submit"
-																		value={'Join'}
-																	></input>
-																)}
-															</form>
-															{showPasswordField !== room.id && (
-																<button
-																	className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
-																	onClick={() => setShowPassowordField(room.id)}
-																>
-																	Join
-																</button>
-															)}
+																Join
+															</button>
 														</>
 													) : (
 														<button
 															className="rounded border border-white p-1 px-4 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
-															onClick={() => joinRoom(room.id, undefined)}
+															onClick={() => joinRoom(room.id, false)}
 														>
 															Join
 														</button>

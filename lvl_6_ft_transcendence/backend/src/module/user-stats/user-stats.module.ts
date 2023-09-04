@@ -6,11 +6,11 @@ import { AchievementModule } from '../achievement/achievement.module';
 import { UserStatsService } from './user-stats.service';
 
 @Module({
-  exports: [UserStatsService],
   imports: [
     TypeOrmModule.forFeature([UserStats]),
     forwardRef(() => AchievementModule),
   ],
   providers: [UserStatsService],
+  exports: [UserStatsService],
 })
 export class UserStatsModule {}

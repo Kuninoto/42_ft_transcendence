@@ -6,6 +6,7 @@ declare namespace NodeJS {
     POSTGRES_PASSWORD: string;
     POSTGRES_DB: string;
     FRONTEND_URL: string;
+    BACKEND_URL: string;
     INTRA_CLIENT_UID: string;
     INTRA_CLIENT_SECRET: string;
     INTRA_REDIRECT_URI: string;

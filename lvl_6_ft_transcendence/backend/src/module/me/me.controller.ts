@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Logger,
   Patch,
@@ -71,9 +70,7 @@ export class MeController {
   public async findMyFriends(@ExtractUser() user: User): Promise<Friend[]> {
     this.logger.log(`"${user.name}" requested his friends info`);
 
-    const friendList: Friend[] = await this.usersService.findMyFriends(user.id);
-
-    return friendList;
+    return await this.usersService.findMyFriends(user.id);
   }
 
   /**
@@ -133,6 +130,7 @@ export class MeController {
    * user's username.
    *
    */
+  @ApiBody({ type: UsernameUpdationRequest })
   @ApiOkResponse({
     description: "Updates 'me' user's username",
   })
@@ -142,13 +140,6 @@ export class MeController {
   })
   @ApiConflictResponse({
     description: 'If the new username is already taken',
-  })
-  @ApiBody({
-    schema: {
-      properties: { newUsername: { type: 'string' } },
-      required: ['newUsername'],
-      type: 'object',
-    },
   })
   @Patch('username')
   public async updateMyUsername(
@@ -244,21 +235,5 @@ export class MeController {
     this.logger.log(`${user.name} is updating his game theme`);
 
     return await this.usersService.updateGameThemeByUID(user.id, newGameTheme);
-  }
-
-  /**
-   * DELETE /api/me
-   *
-   * This is the route to visit to delete 'me' user's
-   * account from the database
-   */
-  @ApiOkResponse({ description: "Deletes 'me' user's account" })
-  @Delete()
-  public async deleteMyAccount(
-    @ExtractUser() user: User,
-  ): Promise<SuccessResponse> {
-    this.logger.log(`Deleting ${user.name}'s account`);
-
-    return await this.usersService.deleteUserByUID(user.id);
   }
 }

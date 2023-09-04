@@ -12,7 +12,7 @@ import { Passport42ExceptionFilter } from './module/auth/filter/passport42-excep
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
-function checkRequiredEnvVariables(): void {
+function ensureRequiredEnvVariables(): void {
   const RED: string = '\x1b[31m';
   const RESET: string = '\x1b[0m';
 
@@ -35,7 +35,7 @@ function checkRequiredEnvVariables(): void {
   ];
 
   const missingVariables: string[] = requiredEnvVariables.filter(
-    (variable: string) => !process.env[variable],
+    (variable: string): boolean => !process.env[variable],
   );
 
   if (missingVariables.length > 0) {
@@ -49,7 +49,7 @@ function checkRequiredEnvVariables(): void {
 }
 
 async function bootstrap(): Promise<void> {
-  checkRequiredEnvVariables();
+  ensureRequiredEnvVariables();
 
   const logger: Logger = new Logger('NestApplication');
 
@@ -61,7 +61,7 @@ async function bootstrap(): Promise<void> {
 
   // Only enable Swagger on dev mode
   // TODO
-  // if (process.env.NODE_ENV === 'dev') {
+  if (process.env.NODE_ENV === 'dev') {
     const swaggerConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
       .setTitle('ft_transcendence API')
       .setDescription('API for the ft_transcendence project')
@@ -88,7 +88,7 @@ async function bootstrap(): Promise<void> {
         persistAuthorization: true,
       },
     });
-  // }
+  }
 
   const oneDayInMs: number = 60 * 60 * 24 * 1000;
   app.use(
@@ -108,7 +108,7 @@ async function bootstrap(): Promise<void> {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }));
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
@@ -118,7 +118,9 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new Passport42ExceptionFilter());
   app.setGlobalPrefix('api');
 
-  await app.listen(3000, () => logger.log('Listening on port 3000'));
+  await app.listen(3000, () =>
+    logger.log('Listening at http://localhost:3000/api'),
+  );
 }
 
 bootstrap();

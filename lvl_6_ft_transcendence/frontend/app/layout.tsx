@@ -21,7 +21,6 @@ const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
 function FixedPanel({ handle }: { handle: any }) {
 	const path = usePathname()
-	const { logout } = useAuth()
 
 	return (
 		<div className="fixed bottom-4 left-4 flex items-center rounded border-2 border-white p-2">
@@ -36,9 +35,9 @@ function FixedPanel({ handle }: { handle: any }) {
 			)}
 
 			{path !== '/' && path !== '/game' && (
-				<button onClick={logout}>
+				<Link href={'/logout'}>
 					<MdOutlineExitToApp size={48} />
-				</button>
+				</Link>
 			)}
 		</div>
 	)

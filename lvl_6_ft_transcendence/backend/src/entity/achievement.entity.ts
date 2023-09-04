@@ -23,8 +23,8 @@ export class Achievement {
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
+    nullable: false,
   })
   achievement: Achievements;
 }

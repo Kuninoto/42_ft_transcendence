@@ -1,13 +1,5 @@
 import { api } from '@/api/api'
-import { ChatRoomInterface, Chatter, Friend } from '@/common/types/backend'
-import { DirectMessageReceivedDTO } from '@/common/types/direct-message-received.dto'
-import { InvitedToGameDTO } from '@/common/types/invited-to-game.dto'
-import { NewUserStatusDTO } from '@/common/types/new-user-status.dto'
-import { OponentFoundDTO } from '@/common/types/oponent-found'
-import { RespondToGameInviteDTO } from '@/common/types/respond-to-game-invite.dto'
-import { RoomMessageReceivedDTO } from '@/common/types/room-message-received.dto'
-import { SendGameInviteDTO } from '@/common/types/send-game-invite.dto'
-import { SendMessageDTO } from '@/common/types/send-message.dto'
+import { ChatRoomInterface, ChatRoomRoles, Friend, RoomWarning, UserBasicProfile } from '@/common/types'
 import {
 	createContext,
 	ReactNode,
@@ -20,6 +12,12 @@ import { toast } from 'react-toastify'
 
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
+import { DirectMessageReceivedEvent } from '@/common/types/friendship/socket/event'
+import { RoomMessageReceivedEvent, RoomWarningEvent } from '@/common/types/chat/socket/event'
+import { NewUserStatusEvent } from '@/common/types/connection/socket/event'
+import { SendMessageSMessage } from '@/common/types/chat/socket/message'
+import { RespondToGameInviteMessage, SendGameInviteMessage } from '@/common/types/game/socket/message'
+import { InvitedToGameEvent, OpponentFoundEvent } from '@/common/types/game/socket/event'
 
 type FriendsContextType = {
 	changeOpenState: () => void
@@ -27,6 +25,7 @@ type FriendsContextType = {
 	closeAll: () => void
 	currentOpenChat: IChat
 	exists: boolean
+	exitRoom: (id: number) => void
 	focus: (id: number, isRoom: boolean) => void
 	friends: Friend[]
 	isOpen: boolean
@@ -43,15 +42,16 @@ type FriendsContextType = {
 	sendMessage: (message: string) => void
 }
 
-interface MessageDTO {
-	author?: Chatter
+interface Message {
+	author?: UserBasicProfile
+	authorRole?: ChatRoomRoles 
 	content: string
 	sendByMe: boolean
 	uniqueID: string
 }
 
-interface InfoMessage {
-	information: string
+interface Warning {
+	warning: string
 }
 
 interface InviteMessage {
@@ -64,11 +64,12 @@ type IChat = (
 			friend: Friend
 	  }
 	| {
+			forbiddenChatReason: null | string
 			room: ChatRoomInterface
 	  }
 ) & {
 	display: boolean
-	messages: (InfoMessage | MessageDTO)[]
+	messages: (Message | Warning)[]
 	unread: boolean
 }
 
@@ -77,7 +78,7 @@ const FriendsContext = createContext<FriendsContextType>(
 )
 
 export function FriendsProvider({ children }: { children: ReactNode }) {
-	const { isAuth } = useAuth()
+	const { isAuth, user } = useAuth()
 
 	const [friends, setFriends] = useState<[] | Friend[]>([])
 	const [rooms, setRooms] = useState<[] | ChatRoomInterface[]>([])
@@ -118,6 +119,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					api
 						.get('/me/rooms')
 						.then((result) => {
+							console.log(result)
 							setRooms(result.data)
 						})
 						.catch((e) => {
@@ -169,6 +171,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 			const newRoom: IChat = {
 				display: true,
+				forbiddenChatReason: null,
 				messages: [],
 				room,
 				unread: false,
@@ -177,7 +180,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			setOpenChats([newRoom, ...openChats])
 			setCurrentOpenChat(newRoom)
 		} else {
-			const friend = friends.find((friend) => friend.uid === id)
+			const friend = friends.find((friend: Friend) => friend.uid === id)
 			if (!friend) return
 
 			const newChat: IChat = {
@@ -198,15 +201,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			const newChat = [...prevChat]
 
 			return newChat?.map((chat) => {
-				if (isRoom && 'room' in chat) {
-					return chat.room.id === id
-						? { ...chat, display: true, unread: false }
-						: { ...chat, display: true }
+				if (isRoom && 'room' in chat && chat.room.id === id) {
+					return { ...chat, display: true, unread: false }
 				}
-				if (!isRoom && 'friend' in chat) {
-					return chat.friend.uid === id
-						? { ...chat, display: true, unread: false }
-						: { ...chat, display: true }
+				if (!isRoom && 'friend' in chat && chat.friend.uid === id) {
+					return { ...chat, display: true, unread: false }
 				}
 				return chat
 			})
@@ -233,10 +232,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					? currentOpenChat.room.id
 					: currentOpenChat.friend.uid
 
-			if (newChat.length > 1 && currentId === id) {
-				setCurrentOpenChat(prevChats[1])
-			}
-
 			const index = newChat?.findIndex((chat) => {
 				if (isRoom && 'room' in chat) return chat.room.id === id
 				if (!isRoom && 'friend' in chat) return chat.friend.uid === id
@@ -245,39 +240,88 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			})
 
 			newChat[index].display = false
-			setExists(newChat.some((chat) => chat.display))
+
+			const oneDisplay: IChat | undefined = newChat.find((chat) => chat.display)
+			setExists(!!oneDisplay)
+
+			if (oneDisplay && currentId === id) {
+				setCurrentOpenChat(oneDisplay)
+			}
 			return newChat
 		})
 	}
 
+	function actionBasedOnWarning(warningType: RoomWarning, id: number) {
+		getRooms()
+
+		if (
+			warningType === RoomWarning.BAN ||
+			warningType === RoomWarning.KICK
+		) {
+			setOpenChats((prevChat) => {
+				const newChat = prevChat?.map((chat) => {
+					if ('room' in chat && chat.room.id === id) {
+						return { ...chat, forbiddenChatReason: warningType }
+					}
+					return chat
+				})
+				return newChat
+			})
+
+			if ('room' in currentOpenChat && currentOpenChat.room.id === id) {
+				focus(id, true)
+			}
+		}
+	}
+
 	const onMessageReceived = useCallback(
-		function (data: DirectMessageReceivedDTO | RoomMessageReceivedDTO) {
+		function (
+			data: DirectMessageReceivedEvent | RoomMessageReceivedEvent | RoomWarningEvent
+		) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
-				console.log(newChat)
 				const index = newChat?.findIndex((chat) => {
-					if ('room' in chat && 'id' in data) return chat.room.id === data.id
-					if ('friend' in chat && !('id' in data))
+					if ('room' in chat) {
+						if ('id' in data) return chat.room.id === data.id
+					}
+					if ('friend' in chat && !('id' in data || 'roomId' in data))
 						return chat.friend.uid === data.author.id
 
 					return false
 				})
 
-				const newMessage: MessageDTO = {
-					author: data.author,
-					content: data.content,
-					sendByMe: false,
-					uniqueID: data.uniqueId,
+				if (
+					'warning' in data &&
+					(data.affectedUID == user.id ||
+						data.warningType === RoomWarning.OWNER_LEFT)
+				) {
+					actionBasedOnWarning(data.warningType, data.roomId)
 				}
 
+				const newMessage: Message | Warning =
+					'warning' in data
+						? {
+								warning: data.warning,
+						  }
+						: {
+								author: data.author,
+								authorRole: 'authorRole' in data ? data.authorRole : null,
+								content: data.content,
+								uniqueID: data.uniqueId,
+						  }
+
 				if (index === -1) {
-					if ('id' in data) {
-						const room = rooms.find((room) => room.id === data.id)
+					if ('id' in data || 'roomId' in data) {
+						const room = rooms.find((room) => {
+							if ('id' in data) return room.id === data.id
+							return room.id === data.roomId
+						})
 						if (!room) throw 'error'
 
 						newChat.push({
 							display: true,
+							forbiddenChatReason: null,
 							messages: [newMessage],
 							room,
 							unread: true,
@@ -312,7 +356,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		[friends, rooms]
 	)
 
-	function updateFriendStatus(data: NewUserStatusDTO) {
+	function updateFriendStatus(data: NewUserStatusEvent) {
 		setFriends((prevFriends) => {
 			const newFriends = [...prevFriends]
 			const index = newFriends.findIndex((friend) => friend.uid === data.uid)
@@ -327,25 +371,25 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 		const id =
 			'room' in currentOpenChat
-				? currentOpenChat.room.id
-				: currentOpenChat.friend.uid
+				? currentOpenChat?.room?.id
+				: currentOpenChat?.friend?.uid
 
-		const sendMessageDTO: SendMessageDTO = {
+		const SendMessageSMessage: SendMessageSMessage = {
 			content: message,
 			receiverId: parseInt(id),
 			uniqueId: crypto.randomUUID(),
 		}
 
 		if ('room' in currentOpenChat) {
-			socket.emit('sendChatRoomMessage', sendMessageDTO)
+			socket.emit('sendChatRoomMessage', SendMessageSMessage)
 		} else {
-			socket.emit('sendDirectMessage', sendMessageDTO)
+			socket.emit('sendDirectMessage', SendMessageSMessage)
 		}
 
-		const newMessage: MessageDTO = {
+		const newMessage: Message = {
 			content: message,
 			sendByMe: true,
-			uniqueID: sendMessageDTO.uniqueId,
+			uniqueID: SendMessageSMessage.uniqueId,
 		}
 
 		setOpenChats((prevChat) => {
@@ -362,38 +406,73 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
-		socket?.on('friendRequestReceived', function () {
-			setNewFriendNotification(true)
-		})
+		if (socket) {
+			socket.on('friendRequestReceived', function () {
+				setNewFriendNotification(true)
+			})
 
-		socket?.on('refreshUser', function () {
-			getFriends()
-		})
+			socket.on('refreshUser', function () {
+				getFriends()
+			})
 
-		socket?.on('newUserStatus', function (data: NewUserStatusDTO) {
-			console.log('here')
-			console.log(data)
-		})
+			socket.on('newUserStatus', updateFriendStatus)
 
-		socket?.on('invitedToGame', onInvitedToGame)
+			socket.on('invitedToGame', onInvitedToGame)
+		}
 	}, [socket])
 
 	useEffect(() => {
-		socket?.on('directMessageReceived', onMessageReceived)
-		socket?.on('newChatRoomMessage', onMessageReceived)
+		if (socket) {
+			socket.on('directMessageReceived', onMessageReceived)
+			socket.on('newChatRoomMessage', onMessageReceived)
+			socket.on('roomWarning', onMessageReceived)
 
-		return () => {
-			socket?.off('directMessageReceived', onMessageReceived)
-			socket?.off('newChatRoomMessage', onMessageReceived)
+			return () => {
+				socket.off('directMessageReceived', onMessageReceived)
+				socket.off('newChatRoomMessage', onMessageReceived)
+				socket.off('roomWarning', onMessageReceived)
+			}
 		}
 	}, [onMessageReceived])
+
+	// ======================== Room messages ========================
+
+	function exitRoom(id: number) {
+		setOpenChats((prevChats) => {
+			if (!prevChats) return []
+
+			const newChat = [...prevChats]
+
+			const updatedChat = newChat.filter((chat) => {
+				if (!('room' in chat)) return true
+				return chat.room.id !== id
+			})
+
+			if (currentOpenChat?.room?.id === id) {
+				const oneDisplay: IChat | undefined = updatedChat.find(
+					(chat) => chat.display
+				)
+
+				if (oneDisplay) {
+					setCurrentOpenChat(oneDisplay)
+				}
+
+				if (exists) {
+					setExists(!!oneDisplay)
+				}
+			}
+			return updatedChat
+		})
+
+		getRooms()
+	}
 
 	// ======================== Direct messages ========================
 
 	function sendGameInvite(id: number) {
 		if (!socket) return
 
-		const gameInviteDTO: SendGameInviteDTO = {
+		const gameInviteDTO: SendGameInviteMessage = {
 			recipientUID: id,
 		}
 		socket.emit('sendGameInvite', gameInviteDTO)
@@ -403,20 +482,20 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		if (!socket) return
 
 		// parameter in user
-		const response: RespondToGameInviteDTO = {
+		const response: RespondToGameInviteMessage = {
 			accepted,
 			inviteId: 2,
 		}
 		socket.emit(
 			'respondToGameInvite',
 			response,
-			(response: OponentFoundDTO) => {
+			(response: OpponentFoundEvent) => {
 				console.log(response)
 			}
 		)
 	}
 
-	function onInvitedToGame(data: InvitedToGameDTO) {
+	function onInvitedToGame(data: InvitedToGameEvent) {
 		focus(data.senderUID, false)
 
 		setOpenChats((prevChat) => {
@@ -449,6 +528,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		closeAll,
 		currentOpenChat,
 		exists,
+		exitRoom,
 		focus,
 		friends,
 		isOpen,

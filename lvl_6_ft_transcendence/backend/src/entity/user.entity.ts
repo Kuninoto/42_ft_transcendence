@@ -27,40 +27,38 @@ export class User {
 
   @ApiProperty()
   @Column({
-    length: 10,
-    nullable: false,
     type: 'varchar',
-    unique: true,
+    nullable: false,
+    length: 10,
   })
   name: string;
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
-    unique: true,
+    nullable: false,
   })
   intra_name: string;
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
+    nullable: false,
   })
   intra_profile_url: string;
 
   @ApiProperty()
   @Column({
-    default: UserStatus.ONLINE,
-    nullable: false,
     type: 'varchar',
+    nullable: false,
+    default: UserStatus.ONLINE,
   })
   status: string;
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
+    nullable: false,
   })
   avatar_url: string;
 
@@ -70,13 +68,17 @@ export class User {
 
   @ApiProperty()
   @Column({
-    nullable: true,
     type: 'varchar',
+    nullable: true,
   })
   secret_2fa: string;
 
   @ApiProperty()
-  @OneToMany(() => Achievement, (achievement: Achievement) => achievement.user)
+  @OneToMany(
+    () => Achievement,
+    (achievement: Achievement) => achievement.user,
+    { cascade: true },
+  )
   achievements: Achievement[];
 
   @ApiProperty()
@@ -96,15 +98,21 @@ export class User {
   game_theme: string;
 
   @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner)
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.winner, {
+    cascade: true,
+  })
   game_results_as_winner: GameResult[];
 
   @ApiProperty()
-  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser)
+  @OneToMany(() => GameResult, (gameResult: GameResult) => gameResult.loser, {
+    cascade: true,
+  })
   game_results_as_loser: GameResult[];
 
   @ApiProperty()
-  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user)
+  @OneToOne(() => UserStats, (userStats: UserStats) => userStats.user, {
+    cascade: true,
+  })
   user_stats: UserStats;
 
   @ApiProperty()
@@ -121,15 +129,17 @@ export class User {
 
   @ApiProperty()
   @Column({
-    default: new Date(),
     type: 'timestamp',
+    nullable: false,
+    default: new Date(),
   })
   created_at: Date;
 
   @ApiProperty()
   @Column({
-    default: new Date(),
     type: 'timestamp',
+    nullable: false,
+    default: new Date(),
   })
   last_updated_at: Date;
 }
