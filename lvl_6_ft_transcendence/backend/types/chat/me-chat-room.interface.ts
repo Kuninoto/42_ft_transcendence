@@ -1,10 +1,8 @@
-import { ChatRoomRoles } from './chat-room-roles.enum';
-import { Chatter } from './chatter.interface';
+import { UserBasicProfile } from 'types/user';
 
 export interface MeChatRoom {
   id: number;
   name: string;
-  ownerName: string;
-  myRole: ChatRoomRoles;
-  participants: Chatter[];
+  ownerId: number;
+  participants: UserBasicProfile[];
 }

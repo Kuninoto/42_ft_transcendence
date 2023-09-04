@@ -1,4 +1,6 @@
+import { Achievements } from "./achievements.enum";
+
 export interface AchievementInterface {
-  achievement: string;
-  description: string;
+  readonly achievement: Achievements;
+  readonly description: string;
 }

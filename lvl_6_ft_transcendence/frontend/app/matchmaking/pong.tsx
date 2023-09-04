@@ -1,5 +1,5 @@
 import { themes } from '@/common/themes'
-import { PlayerSide } from '@/common/types/backend'
+import { PlayerSide } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'
@@ -16,8 +16,8 @@ import {
 	PADDLE_WIDTH,
 } from './definitions'
 
-const KEYDOWN = 'ArrowDown'
-const KEYUP = 'ArrowUp'
+const KEYDOWN: string = 'ArrowDown'
+const KEYUP: string = 'ArrowUp'
 
 export default function Pong() {
 	const {
@@ -117,7 +117,7 @@ export default function Pong() {
 						CANVAS_HEIGHT
 					)
 
-					context.fillStyle = '#FFF'
+					context.fillStyle = themes[user.game_theme].ball
 					context.drawImage(
 						paddleImageRef.current,
 						playerPaddleRef.current.x - PADDLE_WIDTH / 2,

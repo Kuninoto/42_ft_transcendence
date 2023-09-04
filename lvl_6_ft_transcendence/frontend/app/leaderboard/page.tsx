@@ -79,8 +79,17 @@ export default function Leaderboard() {
 
 	return (
 		<div className="flex h-full flex-col py-8">
-			<Link className="fixed left-12 top-12" href="/dashboard">
-				GO BACK
+			<Link
+				className="fixed  top-0 h-28 w-40 hover:underline"
+				href={'/dashboard'}
+			>
+				<Image
+					alt="logo picture"
+					fill
+					priority
+					sizes="100%"
+					src={'/logo.png'}
+				/>
 			</Link>
 			<div className="mx-auto flex items-end space-x-10 text-center">
 				<Podium top={'2'} user={second} width={'w-28'} />

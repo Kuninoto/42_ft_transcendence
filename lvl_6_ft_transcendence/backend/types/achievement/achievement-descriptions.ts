@@ -1,4 +1,4 @@
-import { Achievements } from "./achievements.enum";
+import { Achievements } from './achievements.enum';
 
 export const AchievementDescriptions: Record<Achievements, string> = {
   [Achievements.PONGFIGHT_MAESTRO]:

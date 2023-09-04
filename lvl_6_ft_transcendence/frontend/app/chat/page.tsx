@@ -1,25 +1,66 @@
 'use client'
 
 import { api } from '@/api/api'
+import { ChatRoomRoles, GetChatterRoleEvent, GetChatterRoleMessage, MuteDuration } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
+import { socket } from '@/contexts/SocketContext'
 import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChangeEventHandler, useState } from 'react'
+import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
 import { LuSwords } from 'react-icons/lu'
 import { MdOutlineBlock } from 'react-icons/md'
+import { toast } from 'react-toastify'
 
-interface ITooltip {
+interface IMuteTooltip {
 	id: number | undefined
 	roomId: number
 }
 
-function RoomSettings({ closeModal }: { closeModal: () => void }) {
+interface ITooltip extends IMuteTooltip {
+	authorRole: ChatRoomRoles | undefined
+	role: ChatRoomRoles | undefined
+}
+
+function RoomSettings({
+	closeModal,
+	id,
+}: {
+	closeModal: () => void
+	id: number
+}) {
+	const [bans, setBans] = useState<>([])
+
+	const { handleSubmit, register } = useForm()
+
+	function onSubmit(data: any) {
+		console.log(data)
+	}
+
+	function removePassword() {
+		api.delete('/chat/room-password', {
+			roomId: parseInt(id),
+		})
+	}
+
+	useEffect(() => {
+		try {
+			api
+				.get(`/chat/rooms/bans?room-id=${id}`)
+				.then((result) => setBans(result.data))
+				.catch(() => {
+					throw 'Network Error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}, [])
+
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
 			<button
@@ -29,47 +70,70 @@ function RoomSettings({ closeModal }: { closeModal: () => void }) {
 			<div className="px-8 py-32">
 				<div className="group relative grid items-start justify-center  gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
-					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none"></div>
+					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
+						<div>
+							<form onSubmit={handleSubmit(onSubmit)}>
+								<input type="password" value="" {...register('password')} />
+								<input type="submit" value="Change password" />
+							</form>
+						</div>
+
+						<button onClick={removePassword}>Remove password</button>
+					</div>
 				</div>
 			</div>
 		</div>
 	)
 }
 
-function MuteTooltip({ id, roomId }: ITooltip) {
+function MuteTooltip({ id, roomId }: IMuteTooltip) {
 	const { handleSubmit, register } = useForm()
 
-	function mute({ duration, span }: { duration: number; span: string }) {
+	function mute({ duration }: { duration: MuteDuration }) {
 		api.post(`/chat/mute`, {
+			duration,
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
-			duration: `${duration}${span}`,
 		})
 	}
 
 	return (
 		<div className="rounded border border-t-0 border-white bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-2">
-			<form className="flex space-x-1" onSubmit={handleSubmit(mute)}>
+			<form className="flex flex-col space-y-1" onSubmit={handleSubmit(mute)}>
+				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
+					<input
+						{...register('duration')}
+						checked
+						id="30s"
+						name="duration"
+						type="radio"
+						value={MuteDuration.THIRTEEN_SECS}
+					/>
+					<span htmlFor="30s">30s</span>
+				</fieldset>
+
+				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
+					<input
+						{...register('duration')}
+						id="5m"
+						name="duration"
+						type="radio"
+						value={MuteDuration.FIVE_MINS}
+					/>
+					<span htmlFor="5m">5m</span>
+				</fieldset>
+
 				<input
-					onKeyDown={(evt) =>
-						['-', '.', '+', 'e', 'E'].includes(evt.key) && evt.preventDefault()
-					}
-					{...register('duration')}
-					className="w-16 appearance-none rounded-l border border-white bg-transparent py-1 text-white"
-					type="number"
+					className="rounded border border-white p-1 text-xs mix-blend-lighten hover:bg-white hover:text-black"
+					type="submit"
+					value="Mute"
 				/>
-				<select {...register('span')} className="rounded-r text-[#170317]">
-					<option value={'s'}>s</option>
-					<option value={'m'}>m</option>
-					<option value={'h'}>h</option>
-					<option value={'d'}>d</option>
-				</select>
 			</form>
 		</div>
 	)
 }
 
-function Tooltip({ id, roomId }: ITooltip) {
+function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	function promote() {
 		api.post(`/chat/add-admin`, {
 			roomId: parseInt(roomId),
@@ -78,10 +142,13 @@ function Tooltip({ id, roomId }: ITooltip) {
 	}
 
 	function demote() {
-		api.post(`/chat/remove-admin`, {
-			roomId: parseInt(roomId),
-			userId: parseInt(id),
-		})
+		console.log(id, roomId)
+		api
+			.post(`/chat/remove-admin`, {
+				roomId: parseInt(roomId),
+				userId: parseInt(id),
+			})
+			.then((result) => console.log(result))
 	}
 
 	function kick() {
@@ -101,39 +168,56 @@ function Tooltip({ id, roomId }: ITooltip) {
 	return (
 		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
 			<Link
-				className="w-full py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+				className="w-full p-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
 				href={`profile?id=${id}`}
 			>
 				Profile
 			</Link>
-			<button
-				className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
-				onClick={promote}
-			>
-				Promote
-			</button>
-			<Tippy
-				content={<MuteTooltip id={id} roomId={roomId} />}
-				interactive
-				placement={'right'}
-				trigger={'click'}
-			>
-				<button className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black">
-					Mute
+			{role === ChatRoomRoles.OWNER && authorRole === ChatRoomRoles.CHATTER && (
+				<button
+					className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+					onClick={promote}
+				>
+					Promote
 				</button>
-			</Tippy>
-			<button
-				className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
-				onClick={kick}
-			>
-				Kick
-			</button>
-			<button
-				className="py-2 text-center text-red-600 hover:bg-white "
-				onClick={ban}
-			>
-				Ban
-			</button>
+			)}
+			{role === ChatRoomRoles.OWNER && authorRole === ChatRoomRoles.ADMIN && (
+				<button
+					className="px-2 py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+					onClick={demote}
+				>
+					Demote
+				</button>
+			)}
+			{(role === ChatRoomRoles.OWNER ||
+				(role === ChatRoomRoles.ADMIN && authorRole !== ChatRoomRoles.ADMIN)) &&
+				role !== null &&
+				authorRole !== null && (
+					<>
+						<Tippy
+							content={<MuteTooltip id={id} roomId={roomId} />}
+							interactive
+							placement={'right'}
+							trigger={'click'}
+						>
+							<button className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black">
+								Mute
+							</button>
+						</Tippy>
+						<button
+							className="py-2 text-center mix-blend-lighten hover:bg-white hover:text-black"
+							onClick={kick}
+						>
+							Kick
+						</button>
+						<button
+							className="py-2 text-center text-red-600 hover:bg-white "
+							onClick={ban}
+						>
+							Ban
+						</button>
+					</>
+				)}
 		</div>
 	)
 }
@@ -142,6 +226,9 @@ export default function Chat() {
 	const [message, setMessage] = useState('')
 	const [settings, setSettings] = useState(false)
 	const pathname = usePathname()
+
+	const [role, setRole] = useState<ChatRoomRoles>()
+	const [authorRole, setAuthorRole] = useState<ChatRoomRoles>()
 
 	const {
 		changeOpenState,
@@ -155,6 +242,23 @@ export default function Chat() {
 		rejectChallenge,
 		sendMessage,
 	} = useFriends()
+
+	function openTippy(roomId: number, id: number | undefined) {
+		const newGetChatterRole: GetChatterRoleMessage = {
+			roomId: parseInt(roomId),
+			uid: parseInt(id),
+		}
+
+		socket?.emit(
+			'getChatterRole',
+			newGetChatterRole,
+			function (data: GetChatterRoleEvent) {
+				console.log(data)
+				setRole(data.myRole)
+				setAuthorRole(data.authorRole)
+			}
+		)
+	}
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value
@@ -173,21 +277,27 @@ export default function Chat() {
 
 	return (
 		<>
-			{settings && <RoomSettings closeModal={() => setSettings(false)} />}
+			{settings && 'room' in currentOpenChat && (
+				<RoomSettings
+					closeModal={() => setSettings(false)}
+					id={currentOpenChat.room.id}
+				/>
+			)}
 			<div
 				className={`${isOpen ? 'bottom-0' : '-bottom-[22rem]'} 
 			absolute right-28 flex h-96 w-[38rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% transition-all`}
 			>
 				<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
-					{'room' in currentOpenChat && (
-						<button className="" onClick={() => setSettings(true)}>
-							<FiSettings size={24} />
-						</button>
-					)}
+					{'room' in currentOpenChat &&
+						currentOpenChat.room.myRole === ChatRoomRoles.OWNER && (
+							<button className="" onClick={() => setSettings(true)}>
+								<FiSettings size={24} />
+							</button>
+						)}
 					<button className="w-full" onClick={changeOpenState}>
 						{'friend' in currentOpenChat
 							? currentOpenChat.friend?.name
-							: currentOpenChat.room.name}
+							: currentOpenChat.room?.name}
 					</button>
 					<button onClick={closeAll}>
 						<IoIosClose size={32} />
@@ -277,7 +387,16 @@ export default function Chat() {
 						)}
 						<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 							{currentOpenChat?.messages?.map((message, index) => {
-								if ('information' in message) return <></>
+								if ('warning' in message) {
+									return (
+										<div
+											className="mb-4 flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
+											key={index}
+										>
+											{message.warning}
+										</div>
+									)
+								}
 
 								const isRoom = 'room' in currentOpenChat
 
@@ -289,7 +408,7 @@ export default function Chat() {
 
 								if (!message.sendByMe) {
 									return (
-										<div className="mb-2 space-y-2" key={message.uniqueID}>
+										<div className="mb-2" key={message.uniqueID}>
 											<div className="w-fit max-w-[60%] break-words rounded border border-white p-2">
 												{message.content}
 											</div>
@@ -297,14 +416,31 @@ export default function Chat() {
 												<Tippy
 													content={
 														<Tooltip
+															authorRole={authorRole}
 															id={message.author?.id}
+															role={role}
 															roomId={currentOpenChat.room.id}
 														/>
+													}
+													placement={
+														role === ChatRoomRoles.CHATTER ||
+														!role ||
+														!authorRole
+															? 'right'
+															: 'top'
 													}
 													interactive
 													trigger={'click'}
 												>
-													<button className="mb-4 text-xs text-gray-500 hover:underline">
+													<button
+														onClick={() =>
+															openTippy(
+																currentOpenChat.room.id,
+																message.author?.id
+															)
+														}
+														className="text-[0.5rem] text-gray-500 hover:underline"
+													>
 														{message.author?.name}
 													</button>
 												</Tippy>
@@ -327,20 +463,33 @@ export default function Chat() {
 											{message.content}
 										</div>
 										{isRoom && isLastOfMe && (
-											<div className="mb-4 text-xs text-gray-500">You</div>
+											<div className="mb-4 text-[0.5rem] text-gray-500">
+												You
+											</div>
 										)}
 									</div>
 								)
 							})}
 						</div>
 
-						<textarea
-							className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
-							cols={2}
-							onChange={handleChange}
-							placeholder="Write something beutiful"
-							value={message}
-						/>
+						{console.log(openChats)}
+
+						{('room' in currentOpenChat &&
+							!currentOpenChat.forbiddenChatReason) ||
+						'friends' in currentOpenChat ? (
+							<textarea
+								className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
+								cols={2}
+								onChange={handleChange}
+								placeholder="Write something beutiful"
+								value={message}
+							/>
+						) : (
+							<div>
+								{'room' in currentOpenChat &&
+									currentOpenChat.forbiddenChatReason}
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

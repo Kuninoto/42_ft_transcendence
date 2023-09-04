@@ -10,13 +10,16 @@ import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
-import { Achievements, Friend, UserStatus } from 'types';
+import {
+  Friend,
+  NewUserStatusEvent,
+  RoomWarningEvent,
+  UserStatus,
+} from 'types';
 import { ChatService } from '../chat/chat.service';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { GameService } from '../game/game.service';
 import { ConnectionService } from './connection.service';
-import { AchievementUnlockedDTO } from './dto/achievement-unlocked.dto';
-import { NewUserStatusDTO } from './dto/new-user-status.dto';
 
 @WebSocketGateway({
   cors: GatewayCorsOption,
@@ -53,13 +56,13 @@ export class ConnectionGateway
       client.data.userId = user.id;
       client.data.name = user.name;
 
-      await this.updateUserStatus(user.id, UserStatus.ONLINE);
-
       this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
-      this.chatService.joinUserRooms(client);
+      await this.updateUserStatus(user.id, UserStatus.ONLINE);
 
-      this.chatService.sendMissedDirectMessages(client.id, user.id);
+      await this.chatService.joinUserRooms(client);
+      await this.joinFriendsRooms(client, user.id),
+        await this.chatService.sendMissedDirectMessages(client.id, user.id);
 
       this.logger.log(`${user.name} is online`);
     } catch (error: any) {
@@ -79,27 +82,21 @@ export class ConnectionGateway
     this.logger.log(`${client.data.name} is now offline`);
   }
 
-  async achievementUnlocked(
-    userId: number,
-    achievement: Achievements,
-  ): Promise<void> {
-    const socketId: string = this.connectionService.findSocketIdByUID(
-      userId.toString(),
-    );
+  async achievementUnlocked(userId: number): Promise<void> {
+    const socketId: string | undefined =
+      this.connectionService.findSocketIdByUID(userId.toString());
 
-    const achievementUnlocked: AchievementUnlockedDTO = {
-      achievement: achievement,
-    };
-    this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
+    // If user is online send the 'notification' that an achievement
+    // was unlocked
+    if (socketId) this.server.to(socketId).emit('achievementUnlocked');
   }
 
   friendRequestReceived(receiverUID: number) {
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-    if (receiverSocketId) {
+    if (receiverSocketId)
       this.server.to(receiverSocketId).emit('friendRequestReceived');
-    }
   }
 
   async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
@@ -108,7 +105,7 @@ export class ConnectionGateway
     );
 
     const friendRoomNames: string[] = friends.map(
-      (friend: Friend) => 'friend-' + friend.uid,
+      (friend: Friend): string => 'friend-' + friend.uid,
     );
 
     client.join(friendRoomNames);
@@ -133,10 +130,11 @@ export class ConnectionGateway
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-    // If both users are online
-    if (senderSocketId && receiverSocketId) {
-      this.sendRefreshUser(senderUID, senderSocketId);
+    // If sender is online
+    if (senderSocketId) this.sendRefreshUser(senderUID, senderSocketId);
 
+    // If both users are online
+    if (receiverSocketId) {
       this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
       this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
     }
@@ -146,7 +144,7 @@ export class ConnectionGateway
     await this.usersService.updateUserStatusByUID(userId, newStatus);
 
     // Broadcast new user status to all users in the friend room (his friends)
-    const newUserStatus: NewUserStatusDTO = {
+    const newUserStatus: NewUserStatusEvent = {
       newStatus: newStatus,
       uid: userId,
     };
@@ -165,5 +163,9 @@ export class ConnectionGateway
         this.server.to(socketIdOfUser).emit('refreshUser');
       }
     }
+  }
+
+  sendRoomWarning(roomId: number, warning: RoomWarningEvent): void {
+    this.server.to(`room-${roomId}`).emit('roomWarning', warning);
   }
 }

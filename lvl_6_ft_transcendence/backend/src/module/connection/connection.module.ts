@@ -1,9 +1,8 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtOption } from 'src/common/option/jwt.option';
+import { JwtOptions } from 'src/common/option/jwt.option';
 import { User } from 'src/entity';
-
 import { AuthService } from '../auth/auth.service';
 import { JwtAuthStrategy } from '../auth/strategy/jwt-auth.strategy';
 import { ChatModule } from '../chat/chat.module';
@@ -15,10 +14,9 @@ import { ConnectionService } from './connection.service';
 import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
 
 @Module({
-  exports: [ConnectionGateway, ConnectionService],
   imports: [
     TypeOrmModule.forFeature([User]),
-    JwtModule.register(JwtOption),
+    JwtModule.register(JwtOptions),
     forwardRef(() => UsersModule),
     GameModule,
     ChatModule,
@@ -31,5 +29,6 @@ import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
     ConnectionGateway,
     AuthService,
   ],
+  exports: [ConnectionGateway, ConnectionService],
 })
 export class ConnectionModule {}

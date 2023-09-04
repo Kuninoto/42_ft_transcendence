@@ -69,7 +69,7 @@ export default function Dashboard() {
 						<div className="text-2xl">Profile</div>
 						<HiOutlineUserCircle size={128} />
 						<div>
-							GET A NEW <br /> PICTURE PLEASE
+							WHAT A FINE <br/>PICTURE
 						</div>
 					</Card>
 				</div>

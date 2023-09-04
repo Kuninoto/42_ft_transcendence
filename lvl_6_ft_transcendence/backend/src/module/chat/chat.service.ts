@@ -18,16 +18,17 @@ import {
   ChatRoomInterface,
   ChatRoomSearchInfo,
   ChatRoomType,
-  Chatter,
+  CreateRoomRequest,
+  DirectMessageReceivedEvent,
   ErrorResponse,
+  RoomWarning,
   SuccessResponse,
+  UserBasicProfile,
 } from 'types';
+import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { UsersService } from '../users/users.service';
-import { CreateRoomDTO } from './dto/create-room.dto';
-import { DirectMessageReceivedDTO } from './dto/direct-message-received.dto';
-import { RoomWarningDTO } from './dto/room-warning.dto';
 
 @Injectable()
 export class ChatService {
@@ -89,8 +90,8 @@ export class ChatService {
     if (!missedDMs) return;
 
     // Send every missed DM
-    missedDMs.forEach(async (dm: DirectMessage) => {
-      const directMessageReceived: DirectMessageReceivedDTO = {
+    missedDMs.forEach(async (dm: DirectMessage): Promise<void> => {
+      const directMessageReceived: DirectMessageReceivedEvent = {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),
         content: dm.content,
@@ -117,37 +118,41 @@ export class ChatService {
 			Composed only by a-z, A-Z, 0-9 and  _
 	*/
   public async createRoom(
-    createRoomDto: CreateRoomDTO,
+    createRoomRequest: CreateRoomRequest,
     owner: User,
-  ): Promise<ChatRoom> {
+  ): Promise<ChatRoom | ErrorResponse> {
     // If room name's already taken
-    const room: ChatRoom | null = await this.findRoomByName(createRoomDto.name);
+    const room: ChatRoom | null = await this.findRoomByName(
+      createRoomRequest.name,
+    );
     if (room) {
       this.logger.warn(
-        `${owner.name} tried to create a room with already taken name: "${createRoomDto.name}"`,
+        `${owner.name} tried to create a room with already taken name: "${createRoomRequest.name}"`,
       );
       throw new ConflictException('Room name is already taken');
     }
 
-    this.checkForValidRoomName(createRoomDto.name);
+    this.checkForValidRoomName(createRoomRequest.name);
 
     if (
-      createRoomDto.type !== ChatRoomType.PROTECTED &&
-      createRoomDto.password
+      createRoomRequest.type !== ChatRoomType.PROTECTED &&
+      createRoomRequest.password
     ) {
       this.logger.warn(
-        `${owner.name} tried to create a ${createRoomDto.type} createRoomDto with password`,
+        `${owner.name} tried to create a ${createRoomRequest.type} CreateRoomRequest with password`,
       );
       throw new BadRequestException(
-        `A ${createRoomDto.type} room cannot have a password`,
+        `A ${createRoomRequest.type} room cannot have a password`,
       );
     }
 
-    if (createRoomDto.type === ChatRoomType.PROTECTED) {
-      this.checkForValidRoomPassword(createRoomDto.password);
+    if (createRoomRequest.type === ChatRoomType.PROTECTED) {
+      if (!createRoomRequest.password) {
+        throw new BadRequestException(`A protected room must have a password`);
+      }
     }
 
-    const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomDto);
+    const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomRequest);
 
     /* Add the owner to the users in the room,
 			to the list of admins,
@@ -162,23 +167,91 @@ export class ChatService {
     if (ownerSocketId) {
       this.connectionGateway.server
         .to(ownerSocketId)
-        .socketsJoin(createRoomDto.name);
+        .socketsJoin(createRoomRequest.name);
     }
     return this.chatRoomRepository.save(newRoom);
   }
 
-  public async findChatterInfoByUID(userId: number): Promise<Chatter> {
-    const user: User = await this.usersService.findUserByUID(userId);
+  public async findChatterInfoByUID(userId: number): Promise<UserBasicProfile> {
+    return await this.usersService.findUserBasicProfileByUID(userId);
+  }
 
-    return {
-      id: user.id,
-      name: user.name,
-      avatar_url: user.avatar_url,
-    };
+  public async findRoomById(roomId: number): Promise<ChatRoom | null> {
+    return await this.chatRoomRepository.findOne({
+      where: { id: roomId },
+      relations: {
+        admins: true,
+        bans: true,
+        owner: true,
+        users: true,
+      },
+    });
+  }
+
+  public async findRoomByName(name: string): Promise<ChatRoom | null> {
+    return await this.chatRoomRepository.findOne({
+      where: { name: name },
+      relations: {
+        admins: true,
+        bans: true,
+        owner: true,
+        users: true,
+      },
+    });
+  }
+
+  public async findRoomsByNameProximity(
+    meUID: number,
+    chatRoomNameQuery: string,
+  ): Promise<ChatRoomSearchInfo[]> {
+    const chatRooms: ChatRoom[] = await this.chatRoomRepository
+      .createQueryBuilder('chat_room')
+      .leftJoin('chat_room.owner', 'owner')
+      .where('chat_room.name LIKE :roomNameProximity', {
+        roomNameProximity: chatRoomNameQuery + '%',
+      })
+      .andWhere("chat_room.type != 'private'")
+      .andWhere((qb): string => {
+        const subqueryUserRooms: string = qb
+          .subQuery()
+          .select('user_room.id')
+          .from(ChatRoom, 'user_room')
+          .leftJoin('user_room.users', 'user')
+          .where('user.id = :meUID', { meUID })
+          .getQuery();
+        return `chat_room.id NOT IN ${subqueryUserRooms}`;
+      })
+      .andWhere((qb): string => {
+        const subqueryBannedRooms: string = qb
+          .subQuery()
+          .select('banned_room.id')
+          .from(ChatRoom, 'banned_room')
+          .leftJoin('banned_room.bans', 'banned_user')
+          .where('banned_user.id = :meUID', { meUID })
+          .getQuery();
+        return `chat_room.id NOT IN ${subqueryBannedRooms}`;
+      })
+      .getMany();
+
+    const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
+      (room: ChatRoom): ChatRoomSearchInfo => ({
+        id: room.id,
+        name: room.name,
+        protected: room.type === ChatRoomType.PROTECTED ? true : false,
+      }),
+    );
+    return chatRoomSearchInfos;
+  }
+
+  public findRoleOnChatRoom(room: ChatRoom, uid: number): ChatRoomRoles | null {
+    if (room.owner.id == uid) return ChatRoomRoles.OWNER;
+    if (this.isUserAnAdmin(room, uid)) return ChatRoomRoles.ADMIN;
+    if (this.isUserInRoom(room, uid)) return ChatRoomRoles.CHATTER;
+    return null;
   }
 
   public async joinRoom(
-    user: User,
+    joiningUser: User,
     roomId: number,
     password?: string,
   ): Promise<SuccessResponse | ErrorResponse> {
@@ -187,41 +260,45 @@ export class ChatService {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
-    if (await this.isUserBannedFromRoom(room, user.id)) {
+    if (this.isUserBannedFromRoom(room, joiningUser.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
     }
 
-    if (await this.isUserInRoom(room, user.id)) {
+    if (this.isUserInRoom(room, joiningUser.id)) {
       this.logger.warn(
-        `${user.name} tried to join a room where he's already in (room: "${room.name}")`,
+        `${joiningUser.name} tried to join a room where he's already in (room: "${room.name}")`,
       );
-      throw new ConflictException(`You\'re already in room "${room.name}"`);
+      throw new ConflictException(`You're already in room "${room.name}"`);
     }
 
     if (room.type === ChatRoomType.PROTECTED) {
       if (password !== room.password) {
-        console.log(password, room.password);
         throw new UnauthorizedException(`Wrong password`);
       }
     }
 
-    room.users.push(user);
+    room.users.push(joiningUser);
     this.chatRoomRepository.save(room);
 
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: joiningUser.id,
+      warning: `${joiningUser.name} joined the room`,
+      warningType: RoomWarning.JOIN,
+    });
+
     const socketIdOfJoiningUser: string =
-      this.connectionService.findSocketIdByUID(user.id.toString());
+      this.connectionService.findSocketIdByUID(joiningUser.id.toString());
 
     this.connectionGateway.server
       .to(socketIdOfJoiningUser)
-      .socketsJoin(room.name);
+      .socketsJoin(`room-${room.id}`);
 
-    this.connectionGateway.sendRefreshUser(user.id, socketIdOfJoiningUser);
+    this.connectionGateway.sendRefreshUser(
+      joiningUser.id,
+      socketIdOfJoiningUser,
+    );
 
-    const username: string = user.name;
-
-    this.connectionGateway.server
-      .to(socketIdOfJoiningUser)
-      .emit('userJoinedRoom', { username: username });
     return { message: `Successfully joined room "${room.name}"` };
   }
 
@@ -230,15 +307,14 @@ export class ChatService {
       await this.usersService.findChatRoomsWhereUserIs(client.data.userId);
 
     if (!roomsToJoin) {
-      this.logger.debug('No rooms to join');
       return;
     }
 
-    const roomNames: string[] = roomsToJoin.map(
-      (room: ChatRoomInterface): string => room.name,
+    const roomSocketIds: string[] = roomsToJoin.map(
+      (room: ChatRoomInterface): string => 'room-' + room.id,
     );
 
-    client.join(roomNames);
+    client.join(roomSocketIds);
   }
 
   public async inviteToRoom(
@@ -284,6 +360,7 @@ export class ChatService {
   }
 
   public async assignAdminRole(
+    createRoomRequesterUID: number,
     userToAssignRoleId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
@@ -308,8 +385,25 @@ export class ChatService {
       throw new ConflictException('User already has admin privileges');
     }
 
+    if (!this.isUserInRoom(room, userToAssignRoleId)) {
+      this.logger.warn(
+        `UID=${createRoomRequesterUID} tried to add admin privileges to a user that isn't part of the current room`,
+      );
+      throw new BadRequestException(
+        `${userToAssignRole.name} is not part of the room`,
+      );
+    }
+
     room.admins.push(userToAssignRole);
     this.chatRoomRepository.save(room);
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userToAssignRoleId,
+      warning: `${userToAssignRole.name} was promoted to admin!`,
+      warningType: RoomWarning.PROMOTED,
+    });
+
     this.logger.log(
       `"${userToAssignRole.name}" is now an admin on room: "${room.name}"`,
     );
@@ -346,13 +440,20 @@ export class ChatService {
     }
 
     room.admins = room.admins.filter(
-      (user: User): boolean => user.id !== userIdToRemoveRole,
+      (user: User): boolean => user.id != userIdToRemoveRole,
     );
     this.chatRoomRepository.save(room);
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userIdToRemoveRole,
+      warning: `${userToRemoveRole.name} was demoted from admin!`,
+      warningType: RoomWarning.DEMOTED,
+    });
+
     this.logger.log(
       `${userToRemoveRole.name} is no longer an admin in room: "${room.name}"`,
     );
-
     return {
       message: `Succesfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
     };
@@ -382,13 +483,13 @@ export class ChatService {
     room.bans.push(userToBan);
     await this.chatRoomRepository.save(room);
 
-    const warning: RoomWarningDTO = {
+    this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
+      affectedUID: userToBan.id,
+      warningType: RoomWarning.BAN,
       warning: `${userToBan.name} was banned!`,
-    }
-    this.connectionGateway.server
-      .to(room.name)
-      .emit('roomWarning', warning);
+    });
+
     await this.leaveRoom(room, userToBanId, false);
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
@@ -437,9 +538,9 @@ export class ChatService {
       throw new ConflictException('You cannot kick yourself');
     }
 
-    if (!(await this.isUserInRoom(room, userToKickId))) {
+    if (!this.isUserInRoom(room, userToKickId)) {
       this.logger.warn(
-        `UID= ${senderId} tried to kick a user that isn't part of the requesting room`,
+        `UID= ${senderId} tried to kick a user that isn't part of the createRoomRequesting room`,
       );
       throw new NotFoundException(
         `User with uid=${userToKickId} isn't on that room`,
@@ -455,87 +556,19 @@ export class ChatService {
       );
     }
 
-    await this.leaveRoom(room, userToKickId, false);
-
-    const warning: RoomWarningDTO = {
+    this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
-      warning: `${userToKick.name} was kicked!`
-    }
-    this.connectionGateway.server
-      .to(room.name)
-      .emit('roomWarning', warning);
+      affectedUID: userToKick.id,
+      warningType: RoomWarning.KICK,
+      warning: `${userToKick.name} was kicked!`,
+    });
+
+    await this.leaveRoom(room, userToKickId, false);
 
     this.logger.log(`${userToKick.name} was kicked from room "${room.name}"`);
     return {
       message: `Successfully kicked "${userToKick.name}" from room "${room.name}"`,
     };
-  }
-
-  public async findRoomById(roomId: number): Promise<ChatRoom | null> {
-    return await this.chatRoomRepository.findOne({
-      relations: {
-        admins: true,
-        bans: true,
-        owner: true,
-        users: true,
-      },
-      where: { id: roomId },
-    });
-  }
-
-  public async findRoomByName(name: string): Promise<ChatRoom | null> {
-    return await this.chatRoomRepository.findOne({
-      relations: {
-        admins: true,
-        bans: true,
-        owner: true,
-        users: true,
-      },
-      where: { name: name },
-    });
-  }
-
-  public async findRoomsByNameProximity(
-    meUID: number,
-    chatRoomNameQuery: string,
-  ): Promise<ChatRoomSearchInfo[]> {
-    const chatRooms: ChatRoom[] = await this.chatRoomRepository
-      .createQueryBuilder('chat_room')
-      .leftJoin('chat_room.owner', 'owner')
-      .where('chat_room.name LIKE :roomNameProximity', {
-        roomNameProximity: chatRoomNameQuery + '%',
-      })
-      .andWhere("chat_room.type != 'private'")
-      .andWhere((qb) => {
-        const subqueryUserRooms: string = qb
-          .subQuery()
-          .select('user_room.id')
-          .from(ChatRoom, 'user_room')
-          .leftJoin('user_room.users', 'user')
-          .where('user.id = :meUID', { meUID })
-          .getQuery();
-        return `chat_room.id NOT IN ${subqueryUserRooms}`;
-      })
-      .andWhere((qb) => {
-        const subqueryBannedRooms: string = qb
-          .subQuery()
-          .select('banned_room.id')
-          .from(ChatRoom, 'banned_room')
-          .leftJoin('banned_room.bans', 'banned_user')
-          .where('banned_user.id = :meUID', { meUID })
-          .getQuery();
-        return `chat_room.id NOT IN ${subqueryBannedRooms}`;
-      })
-      .getMany();
-
-    const chatRoomSearchInfos: ChatRoomSearchInfo[] = chatRooms.map(
-      (room: ChatRoom): ChatRoomSearchInfo => ({
-        id: room.id,
-        name: room.name,
-        protected: room.type === ChatRoomType.PROTECTED ? true : false,
-      }),
-    );
-    return chatRoomSearchInfos;
   }
 
   public async leaveRoom(
@@ -549,38 +582,40 @@ export class ChatService {
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
-      const warning: RoomWarningDTO = {
+      this.connectionGateway.sendRoomWarning(room.id, {
         roomId: room.id,
+        affectedUID: room.owner.id,
+        warningType: RoomWarning.OWNER_LEFT,
         warning: 'Owner has left the room',
-      };
-      this.connectionGateway.server
-        .to(room.name)
-        .emit('roomWarning', warning);
+      });
 
-      this.connectionGateway.server.to(room.name).socketsLeave(room.name);
-      await this.chatRoomRepository.delete(room);
+      this.connectionGateway.server
+        .to(`room-${room.id}`)
+        .socketsLeave(`room-${room.id}`);
+
+      await this.chatRoomRepository.remove(room);
     } else {
-      room.users = room.users.filter(
-        (user: User): boolean => user.id != userLeavingId,
-      );
+      this.removeUserFromRoom(room, userLeavingId);
       await this.chatRoomRepository.save(room);
+
+      /* In case this function is being used by kickFromRoom or banFromRoom
+      emitUserHasLeftTheRoom will be false (they will have their own events) */
+      if (emitUserHasLeftTheRoom) {
+        const leavingUser: User = await this.usersService.findUserByUID(
+          userLeavingId,
+        );
+        this.connectionGateway.sendRoomWarning(room.id, {
+          roomId: room.id,
+          affectedUID: leavingUser.id,
+          warningType: RoomWarning.LEAVE,
+          warning: `${leavingUser.name} has left the room`,
+        });
+      }
 
       // Kick userLeaving from chat room
       this.connectionGateway.server
         .to(socketIdOfLeavingUser)
-        .socketsLeave(room.name);
-
-      /* In case this function is being used by kickFromRoom or banFromRoom
-			(they will have their own events) */
-      if (!emitUserHasLeftTheRoom) return;
-
-      const leavingUser: User = await this.usersService.findUserByUID(userLeavingId);
-      const warning: RoomWarningDTO = {
-        roomId: room.id,
-        warning: `${leavingUser.name} has left the room`,
-      };
-
-      this.connectionGateway.server.to(room.name).emit('roomWarning', warning);
+        .socketsLeave(`room-${room.id}`);
     }
   }
 
@@ -679,7 +714,12 @@ export class ChatService {
     room.password = null;
 
     await this.chatRoomRepository.save(room);
-    return { message: `Succesfully updated room's password` };
+    return { message: `Succesfully removed room's password` };
+  }
+
+  public removeUserFromRoom(room: ChatRoom, uid: number): void {
+    room.users = room.users.filter((user: User): boolean => user.id != uid);
+    room.admins = room.users.filter((user: User): boolean => user.id != uid);
   }
 
   public checkForValidRoomName(name: string): void {
@@ -696,55 +736,30 @@ export class ChatService {
     }
   }
 
-  public checkForValidRoomPassword(password: string): void {
-    if (!password) {
-      throw new BadRequestException(`A protected room must have a password`);
-    }
-
-    if (!(password.length >= 4 && password.length <= 20)) {
-      throw new BadRequestException(`Room passwords must be 4-20 chars long`);
-    }
-
-    // Check if password doesn't contain white spaces or special unicode chars
-    if (password.match('^[a-zA-Z0-9!@#$%^&*()_+{}[]:;<>,.?~=/\\|-]+$')) {
-      throw new BadRequestException(
-        `Room passwords must be only composed by letters (both cases), numbers and special characters`,
-      );
-    }
-  }
-
-  public async isUserAnAdmin(room: ChatRoom, userId: number): Promise<boolean> {
-    return room.admins.find((admin: User) => {
-      admin.id == userId;
-    })
+  public isUserAnAdmin(room: ChatRoom, userId: number): boolean {
+    return room.admins.find((admin: User): boolean => admin.id == userId)
       ? true
       : false;
   }
 
-  public async isUserBannedFromRoom(
-    room: ChatRoom,
-    userId: number,
-  ): Promise<boolean> {
-    return room.bans.find((user: User) => {
-      return user.id == userId;
-    })
+  public isUserBannedFromRoom(room: ChatRoom, userId: number): boolean {
+    return room.bans.find((user: User): boolean => user.id == userId)
       ? true
       : false;
   }
 
   public isUserInRoom(room: ChatRoom, userId: number): boolean {
-    return room.users.find((user: User) => {
-      return user.id == userId;
-    })
+    return room.users.find((user: User): boolean => user.id == userId)
       ? true
       : false;
   }
 
   public isUserMuted(userId: number, roomId: number): boolean {
-    return this.mutedUsers.findIndex((entry) => {
-      return entry.userId === userId && entry.roomId === roomId;
-    }) !== -1
-      ? true
-      : false;
+    return (
+      this.mutedUsers.findIndex(
+        (entry: { roomId: number; userId: number }) =>
+          entry.userId == userId && entry.roomId == roomId,
+      ) !== -1
+    );
   }
 }
