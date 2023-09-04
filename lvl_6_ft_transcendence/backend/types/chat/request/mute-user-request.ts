@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsPositive } from 'class-validator';
-import { MuteDuration } from 'types';
+import { MuteDuration } from 'types/chat/mute-duration.enum';
 
-export class MuteUserRequestDTO {
+export class MuteUserRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
@@ -13,7 +13,7 @@ export class MuteUserRequestDTO {
   @IsPositive()
   readonly userId: number;
 
-  @ApiProperty()
+  @ApiProperty({ enum: MuteDuration })
   @IsEnum(MuteDuration)
   readonly duration: MuteDuration;
 }

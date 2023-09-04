@@ -17,6 +17,7 @@ import {
   Friend,
   FriendRequest,
   FriendshipStatus,
+  NewFriendshipStatus,
   SuccessResponse,
 } from 'types';
 import { AchievementService } from '../achievement/achievement.service';
@@ -137,8 +138,8 @@ export class FriendshipsService {
   ): Promise<BlockedUserInterface[]> {
     const myBlockedUsers: BlockedUser[] = (
       await this.usersRepository.findOne({
-        relations: ['blocked_users', 'blocked_users.blocked_user'],
         where: { id: userId },
+        relations: ['blocked_users', 'blocked_users.blocked_user'],
       })
     ).blocked_users;
 
@@ -262,15 +263,16 @@ export class FriendshipsService {
   public async updateFriendshipStatus(
     user: User,
     friendshipId: number,
-    newFriendshipStatus: FriendshipStatus,
+    newStatus: NewFriendshipStatus,
   ): Promise<ErrorResponse | SuccessResponse> {
-    const friendship: Friendship = await this.friendshipRepository.findOne({
-      relations: {
-        receiver: true,
-        sender: true,
-      },
-      where: { id: friendshipId },
-    });
+    const friendship: Friendship | null =
+      await this.friendshipRepository.findOne({
+        where: { id: friendshipId },
+        relations: {
+          receiver: true,
+          sender: true,
+        },
+      });
 
     if (!friendship) {
       this.logger.warn(
@@ -282,8 +284,8 @@ export class FriendshipsService {
     // Sender trying to answer the friend request he sent
     if (
       user.id === friendship.sender.id &&
-      (newFriendshipStatus == FriendshipStatus.ACCEPTED ||
-        newFriendshipStatus == FriendshipStatus.DECLINED)
+      (newStatus == NewFriendshipStatus.ACCEPTED ||
+        newStatus == NewFriendshipStatus.DECLINED)
     ) {
       this.logger.warn(
         `"${user.name}" tried to answer a friend request that he has sent`,
@@ -293,26 +295,24 @@ export class FriendshipsService {
       );
     }
 
-    switch (newFriendshipStatus) {
-      case FriendshipStatus.ACCEPTED:
+    switch (newStatus) {
+      case NewFriendshipStatus.ACCEPTED:
         await this.acceptFriendRequest(friendship);
         break;
 
-      case FriendshipStatus.DECLINED:
+      case NewFriendshipStatus.DECLINED:
         await this.declineFriendRequest(friendship);
         break;
 
-      case FriendshipStatus.UNFRIEND:
+      case NewFriendshipStatus.UNFRIEND:
         await this.unfriendOrDeleteFriendRequest(user.id, friendship);
         break;
     }
 
     this.logger.log(
-      `"${user.name}" ${newFriendshipStatus} the friendship with ${friendship.sender.name}`,
+      `"${user.name}" ${newStatus} the friendship with ${friendship.sender.name}`,
     );
-    return {
-      message: `Successfully ${newFriendshipStatus} friendship`,
-    };
+    return { message: `Successfully ${newStatus} friendship` };
   }
 
   /* Searches for an entry on the blocked_user table
@@ -400,7 +400,7 @@ export class FriendshipsService {
     });
   }
 
-  private async declineFriendRequest(friendship: Friendship) {
+  private async declineFriendRequest(friendship: Friendship): Promise<void> {
     await this.achievementsService.grantDeclinedTomorrowBuddies(
       friendship.sender.id,
     );
@@ -436,7 +436,7 @@ export class FriendshipsService {
   private async ensureNotBlocked(
     user: User,
     target: User,
-    userType: 'receiver' | 'sender',
+    userType: 'sender' | 'receiver',
   ): Promise<void> {
     const isBlocked: boolean =
       userType === 'sender'
@@ -561,7 +561,7 @@ export class FriendshipsService {
   private async unfriendOrDeleteFriendRequest(
     userId: number,
     friendship: Friendship,
-  ) {
+  ): Promise<void> {
     this.connectionGateway.leaveFriendRooms(
       friendship.sender.id,
       friendship.receiver.id,

@@ -12,7 +12,7 @@ import { Passport42ExceptionFilter } from './module/auth/filter/passport42-excep
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
-function checkRequiredEnvVariables(): void {
+function ensureRequiredEnvVariables(): void {
   const RED: string = '\x1b[31m';
   const RESET: string = '\x1b[0m';
 
@@ -49,7 +49,7 @@ function checkRequiredEnvVariables(): void {
 }
 
 async function bootstrap(): Promise<void> {
-  checkRequiredEnvVariables();
+  ensureRequiredEnvVariables();
 
   const logger: Logger = new Logger('NestApplication');
 

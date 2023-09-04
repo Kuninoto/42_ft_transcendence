@@ -20,15 +20,15 @@ export class ChatRoom {
   id: number;
 
   @ApiProperty()
-  @Column({ nullable: false, type: 'varchar' })
+  @Column({ type: 'varchar', nullable: false })
   name: string;
 
   @ApiProperty()
-  @Column({ nullable: false, type: 'varchar' })
+  @Column({ type: 'varchar', nullable: false })
   type: ChatRoomType;
 
   @ApiProperty()
-  @Column({ nullable: true, type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   password: string;
 
   @ManyToOne(() => User)

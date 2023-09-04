@@ -19,15 +19,16 @@ export class DirectMessage {
   // Id sent by the frontend
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
+    unique: true,
+    nullable: false,
   })
   unique_id: string;
 
   @ApiProperty()
   @Column({
-    nullable: false,
     type: 'varchar',
+    nullable: false,
   })
   content: string;
 
@@ -42,6 +43,10 @@ export class DirectMessage {
   receiver: User;
 
   @ApiProperty()
-  @Column({ default: new Date(), type: 'timestamp' })
+  @Column({
+    type: 'timestamp',
+    nullable: false,
+    default: new Date(),
+  })
   sent_at: Date;
 }

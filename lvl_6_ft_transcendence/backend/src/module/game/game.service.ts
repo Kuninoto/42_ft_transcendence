@@ -7,8 +7,8 @@ import {
   GameInvite,
   GameType,
   OpponentFoundEvent,
-  OpponentInfo,
   PlayerSide,
+  UserBasicProfile,
   UserStatus,
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -50,8 +50,8 @@ export class GameService {
     roomId: string,
     opponentUID: number,
   ): Promise<void> {
-    const opponentInfo: OpponentInfo =
-      await this.usersService.findOpponentInfoByUID(opponentUID);
+    const opponentInfo: UserBasicProfile =
+      await this.usersService.findUserBasicProfileByUID(opponentUID);
 
     const opponentFound: OpponentFoundEvent = {
       opponentInfo: opponentInfo,

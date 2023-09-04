@@ -107,7 +107,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 						id="30s"
 						name="duration"
 						type="radio"
-						value={MuteDuration.THIRTEEN_SEGS}
+						value={MuteDuration.THIRTEEN_SECS}
 					/>
 					<span htmlFor="30s">30s</span>
 				</fieldset>

@@ -18,11 +18,9 @@ export class PostgresConfigService implements TypeOrmOptionsFactory {
       password: process.env.POSTGRES_PASSWORD,
       entities: entities,
       autoLoadEntities: true,
-
-      // Set to true when needed
       logging: false,
       namingStrategy: new SnakeNamingStrategy(),
-      synchronize: process.env.NODE_ENV === 'dev' ? true : false,
+      synchronize: process.env.NODE_ENV === 'dev',
     };
   }
 }

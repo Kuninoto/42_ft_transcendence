@@ -33,7 +33,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 	}) {
 		if (type === ChatRoomType.PROTECTED ) {
 
-			if ((password.length < 4 || password.length > 20)) {
+			if (password.length < 4 || password.length > 20) {
 				setError('name', {
 					message: 'Password must be 4-20 characters',
 					type: 'alreadyInUser',

@@ -18,12 +18,12 @@ import {
   ChatRoomInterface,
   ChatRoomSearchInfo,
   ChatRoomType,
-  Chatter,
   CreateRoomRequest,
   DirectMessageReceivedEvent,
   ErrorResponse,
   RoomWarning,
   SuccessResponse,
+  UserBasicProfile,
 } from 'types';
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -120,7 +120,7 @@ export class ChatService {
   public async createRoom(
     createRoomRequest: CreateRoomRequest,
     owner: User,
-  ): Promise<ChatRoom> {
+  ): Promise<ChatRoom | ErrorResponse> {
     // If room name's already taken
     const room: ChatRoom | null = await this.findRoomByName(
       createRoomRequest.name,
@@ -172,14 +172,8 @@ export class ChatService {
     return this.chatRoomRepository.save(newRoom);
   }
 
-  public async findChatterInfoByUID(userId: number): Promise<Chatter> {
-    const user: User = await this.usersService.findUserByUID(userId);
-
-    return {
-      id: user.id,
-      name: user.name,
-      avatar_url: user.avatar_url,
-    };
+  public async findChatterInfoByUID(userId: number): Promise<UserBasicProfile> {
+    return await this.usersService.findUserBasicProfileByUID(userId);
   }
 
   public async findRoomById(roomId: number): Promise<ChatRoom | null> {
@@ -720,7 +714,7 @@ export class ChatService {
     room.password = null;
 
     await this.chatRoomRepository.save(room);
-    return { message: `Succesfully updated room's password` };
+    return { message: `Succesfully removed room's password` };
   }
 
   public removeUserFromRoom(room: ChatRoom, uid: number): void {

@@ -1,5 +1,5 @@
 import { api } from '@/api/api'
-import { ChatRoomInterface, ChatRoomRoles, Chatter, Friend, RoomWarning } from '@/common/types'
+import { ChatRoomInterface, ChatRoomRoles, Friend, RoomWarning, UserBasicProfile } from '@/common/types'
 import {
 	createContext,
 	ReactNode,
@@ -43,7 +43,7 @@ type FriendsContextType = {
 }
 
 interface Message {
-	author?: Chatter
+	author?: UserBasicProfile
 	authorRole?: ChatRoomRoles 
 	content: string
 	sendByMe: boolean

@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsPositive } from 'class-validator';
 
-export class RoomOperationRequestDTO {
+export class InviteToRoomRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly roomId: number;
+  readonly receiverUID: number;
 
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly userId: number;
+  readonly roomId: number;
 }

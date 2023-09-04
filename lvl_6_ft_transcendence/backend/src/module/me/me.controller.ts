@@ -70,9 +70,7 @@ export class MeController {
   public async findMyFriends(@ExtractUser() user: User): Promise<Friend[]> {
     this.logger.log(`"${user.name}" requested his friends info`);
 
-    const friendList: Friend[] = await this.usersService.findMyFriends(user.id);
-
-    return friendList;
+    return await this.usersService.findMyFriends(user.id);
   }
 
   /**
@@ -132,6 +130,7 @@ export class MeController {
    * user's username.
    *
    */
+  @ApiBody({ type: UsernameUpdationRequest })
   @ApiOkResponse({
     description: "Updates 'me' user's username",
   })
@@ -141,13 +140,6 @@ export class MeController {
   })
   @ApiConflictResponse({
     description: 'If the new username is already taken',
-  })
-  @ApiBody({
-    schema: {
-      properties: { newUsername: { type: 'string' } },
-      required: ['newUsername'],
-      type: 'object',
-    },
   })
   @Patch('username')
   public async updateMyUsername(

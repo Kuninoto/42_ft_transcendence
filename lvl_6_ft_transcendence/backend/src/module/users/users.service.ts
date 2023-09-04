@@ -12,7 +12,6 @@ import * as path from 'path';
 import { Repository } from 'typeorm';
 import {
   BlockedUserInterface,
-  Chatter,
   ErrorResponse,
   Friend,
   FriendRequest,
@@ -21,8 +20,8 @@ import {
   GameThemes,
   MeChatRoom,
   MeUserInfo,
-  OpponentInfo,
   SuccessResponse,
+  UserBasicProfile,
   UserProfile,
   UserSearchInfo,
   UserStatus,
@@ -41,8 +40,6 @@ import { CreateUserDTO } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  private readonly logger: Logger = new Logger(UsersService.name);
-
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -53,6 +50,8 @@ export class UsersService {
     private readonly gameResultRepository: Repository<GameResult>,
     private readonly achievementService: AchievementService,
   ) {}
+
+  private readonly logger: Logger = new Logger(UsersService.name);
 
   public async createUser(newUserInfo: CreateUserDTO): Promise<User> {
     const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
@@ -121,7 +120,7 @@ export class UsersService {
         name: room.name,
         ownerId: room.owner.id,
         participants: room.users.map(
-          (user: User): Chatter => ({
+          (user: User): UserBasicProfile => ({
             id: user.id,
             name: user.name,
             avatar_url: user.avatar_url,
@@ -163,13 +162,15 @@ export class UsersService {
     return matchHistory;
   }
 
-  public async findOpponentInfoByUID(userId: number): Promise<OpponentInfo> {
+  public async findUserBasicProfileByUID(
+    userId: number,
+  ): Promise<UserBasicProfile> {
     const user: User = await this.findUserByUID(userId);
 
     return {
-      avatar_url: user.avatar_url,
       id: user.id,
       name: user.name,
+      avatar_url: user.avatar_url,
     };
   }
 
@@ -325,8 +326,8 @@ export class UsersService {
     newSecret: string,
   ): Promise<SuccessResponse> {
     await this.usersRepository.update(userId, {
-      last_updated_at: new Date(),
       secret_2fa: newSecret,
+      last_updated_at: new Date(),
     });
     return { message: 'Successfully updated 2fa secret' };
   }
@@ -409,8 +410,8 @@ export class UsersService {
     }
 
     await this.usersRepository.update(userId, {
-      last_updated_at: new Date(),
       name: newName,
+      last_updated_at: new Date(),
     });
     return { message: 'Successfully updated username' };
   }
@@ -420,15 +421,10 @@ export class UsersService {
     newStatus: UserStatus,
   ): Promise<SuccessResponse> {
     await this.usersRepository.update(userId, {
-      last_updated_at: new Date(),
       status: newStatus,
+      last_updated_at: new Date(),
     });
     return { message: 'Successfully updated user status' };
-  }
-
-  public async deleteUserByUID(userId: number): Promise<SuccessResponse> {
-    await this.usersRepository.delete(userId);
-    return { message: 'Successfully deleted user' };
   }
 
   /**********************************
@@ -441,8 +437,8 @@ export class UsersService {
   ): Promise<SuccessResponse> {
     await this.usersRepository.update(userId, {
       has_2fa: true,
-      last_updated_at: new Date(),
       secret_2fa: secret_2fa,
+      last_updated_at: new Date(),
     });
     return { message: 'Successfully enabled two factor authentication' };
   }
@@ -450,8 +446,8 @@ export class UsersService {
   public async disable2fa(userId: number): Promise<SuccessResponse> {
     await this.usersRepository.update(userId, {
       has_2fa: false,
-      last_updated_at: new Date(),
       secret_2fa: null,
+      last_updated_at: new Date(),
     });
     return { message: 'Successfully disabled two factor authentication' };
   }
