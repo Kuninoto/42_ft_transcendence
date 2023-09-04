@@ -12,9 +12,13 @@ export const themes: IThemes = {
 		paddle: 'white.png',
 	},
 	fortyTwo: {
-		background: 'forty_two.jpg',
-		paddle: 'black.jpeg',
+		background: 'conhecesA42Porto.jpeg',
+		paddle: 'white.jpeg',
 	},
+	// fortyTwo: {
+	// 	background: 'school_42.jpeg',
+	// 	paddle: 'black.jpeg',
+	// },
 	candyland: {
 		background: 'candyland.jpg',
 		paddle: 'black.jpeg',
