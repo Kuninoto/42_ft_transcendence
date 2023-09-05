@@ -68,14 +68,14 @@ export class UsersController {
    * Returns up to 5 users info that match that "piece" of username
    * If no <username> is provided returns an empty array
    */
+  @ApiQuery({
+    name: 'username',
+    type: 'string',
+    description: 'A piece of the username(s) to match',
+  })
   @ApiOkResponse({
     description:
       'Finds users by username proximity and returns a UserProfile[] with up to 5 elements, if no <username> is provided returns an empty array\nIgnores blocked users and friends',
-  })
-  @ApiQuery({
-    description: 'A piece of the username(s) to match',
-    name: 'username',
-    type: 'string',
   })
   @Get('/search')
   public async findUsersByUsernameProximity(
