@@ -11,12 +11,12 @@ import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
 import Tippy from '@tippyjs/react'
+import md5 from 'md5'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { AiOutlineUserAdd } from 'react-icons/ai'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
 import { toast } from 'react-toastify'
@@ -42,8 +42,11 @@ function RoomSettings({
 
 	const { handleSubmit, register } = useForm()
 
-	function onSubmit(data: any) {
-		console.log(data)
+	function changePassword({ password }: { password: string }) {
+		api.delete('/chat/room-password', {
+			newPassword: md5(password),
+			roomId: parseInt(id),
+		})
 	}
 
 	function removePassword() {
@@ -76,7 +79,7 @@ function RoomSettings({
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
 						<div>
-							<form onSubmit={handleSubmit(onSubmit)}>
+							<form onSubmit={handleSubmit(changePassword)}>
 								<input type="password" value="" {...register('password')} />
 								<input type="submit" value="Change password" />
 							</form>
@@ -226,14 +229,6 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	)
 }
 
-function InviteFriend() {
-	return (
-		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs text-white">
-			<div>Invite to room</div>
-		</div>
-	)
-}
-
 export default function Chat() {
 	const [message, setMessage] = useState('')
 	const [settings, setSettings] = useState(false)
@@ -301,27 +296,15 @@ export default function Chat() {
 			absolute right-28 flex h-96 w-[38rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% transition-all`}
 			>
 				<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
-					<div className="flex space-x-2">
-						{'room' in currentOpenChat &&
-							currentOpenChat.room.ownerId === user.id && (
-								<button
-									className="hover:text-primary-fushia"
-									onClick={() => setSettings(true)}
-								>
-									<FiSettings size={24} />
-								</button>
-							)}
-						<Tippy
-							content={<InviteFriend />}
-							interactive
-							placement={'top'}
-							trigger={'click'}
-						>
-							<button className="hover:text-primary-fushia">
-								<AiOutlineUserAdd size={24} />
+					{'room' in currentOpenChat &&
+						currentOpenChat.room.ownerId === user.id && (
+							<button
+								className="hover:text-primary-fushia"
+								onClick={() => setSettings(true)}
+							>
+								<FiSettings size={24} />
 							</button>
-						</Tippy>
-					</div>
+						)}
 					<button className="w-full" onClick={changeOpenState}>
 						{'friend' in currentOpenChat
 							? currentOpenChat.friend?.name
