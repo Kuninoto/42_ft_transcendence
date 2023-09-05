@@ -160,11 +160,10 @@ export class GameService {
   public async findGameResultsWhereUserPlayed(
     userId: number,
   ): Promise<GameResult[]> {
-    const gameResults: GameResult[] = await this.gameResultRepository.find({
-      relations: { loser: true, winner: true },
+    return await this.gameResultRepository.find({
       where: [{ winner: { id: userId } }, { loser: { id: userId } }],
+      relations: { winner: true, loser: true },
     });
-    return gameResults;
   }
 
   public async gameEnded(
@@ -319,12 +318,10 @@ export class GameService {
     }
   }
 
-  public isUserTheCorrectReceiverOfInvite(
-    userId: number,
-    inviteId: number,
-  ): boolean {
+  public correctInviteUsage(userId: number, inviteId: number): boolean {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId.toString());
-    return gameInvite?.recipientUID == userId;
+    
+    return gameInvite?.recipientUID === userId;
   }
 }

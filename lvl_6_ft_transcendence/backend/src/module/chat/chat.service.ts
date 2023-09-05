@@ -305,11 +305,15 @@ export class ChatService {
     joiningUser: User,
     roomId: number,
     password?: string,
+    inviteId?: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
+
+    if (inviteId && !this.correctInviteUsage(inviteId, joiningUser.id, roomId))
+      return;
 
     if (this.isUserBannedFromRoom(room, joiningUser.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
@@ -322,7 +326,7 @@ export class ChatService {
       throw new ConflictException(`You're already in room "${room.name}"`);
     }
 
-    if (room.type === ChatRoomType.PROTECTED) {
+    if (room.type === ChatRoomType.PROTECTED && !inviteId) {
       if (password !== room.password) {
         throw new UnauthorizedException(`Wrong password`);
       }
@@ -822,10 +826,10 @@ export class ChatService {
     userId: number,
     roomId: number,
   ): boolean {
-    const invite: RoomInvite = this.roomInviteMap.findInviteById(
+    const invite: RoomInvite | undefined = this.roomInviteMap.findInviteById(
       inviteId.toString(),
     );
 
-    return invite.receiverUID == userId && invite.roomId == roomId;
+    return invite?.receiverUID === userId && invite?.roomId === roomId;
   }
 }
