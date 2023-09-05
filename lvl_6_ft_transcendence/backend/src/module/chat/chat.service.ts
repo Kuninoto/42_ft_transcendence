@@ -249,6 +249,43 @@ export class ChatService {
     return chatRoomSearchInfos;
   }
 
+  public async findPossibleInvites(
+    meUID: number,
+    friendUID: number,
+  ): Promise<ChatRoomInterface[] | ErrorResponse> {
+    const friend: User | null = await this.usersService.findUserByUID(
+      friendUID,
+    );
+    if (!friend) {
+      throw new NotFoundException(
+        `Friend (user) with id=${friendUID} not found`,
+      );
+    }
+
+    const meUser: User = await this.usersService.findUserByUID(meUID);
+
+    const possibleRoomsToInvite: ChatRoom[] = meUser.chat_rooms.filter(
+      (room: ChatRoom): boolean =>
+        !friend.chat_rooms.includes(room) &&
+        !friend.banned_rooms.includes(room),
+    );
+
+    return possibleRoomsToInvite.map(
+      (room: ChatRoom): ChatRoomInterface => ({
+        id: room.id,
+        name: room.name,
+        ownerId: room.owner.id,
+        participants: room.users.map(
+          (user: User): UserBasicProfile => ({
+            id: user.id,
+            name: user.name,
+            avatar_url: user.avatar_url,
+          }),
+        ),
+      }),
+    );
+  }
+
   public findRoleOnChatRoom(room: ChatRoom, uid: number): ChatRoomRoles | null {
     if (room.owner.id == uid) return ChatRoomRoles.OWNER;
     if (this.isUserAnAdmin(room, uid)) return ChatRoomRoles.ADMIN;

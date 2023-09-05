@@ -24,11 +24,11 @@ import { User } from 'src/entity/index';
 import {
   AvatarUpdationRequest,
   BlockedUserInterface,
+  ChatRoomInterface,
   ErrorResponse,
   Friend,
   FriendRequest,
   GameThemeUpdationRequest,
-  MeChatRoom,
   MeUserInfo,
   SuccessResponse,
   UsernameUpdationRequest,
@@ -113,12 +113,12 @@ export class MeController {
    */
   @ApiOkResponse({
     description:
-      "Finds and returns the rooms where 'me' user is (MeChatRoom[])",
+      "Finds and returns the rooms where 'me' user is (ChatRoomInterface[])",
   })
   @Get('rooms')
   public async findMyChatRooms(
     @ExtractUser() user: User,
-  ): Promise<MeChatRoom[]> {
+  ): Promise<ChatRoomInterface[]> {
     this.logger.log(`"${user.name}" requested his rooms`);
     return await this.usersService.findChatRoomsWhereUserIs(user.id);
   }
@@ -210,7 +210,7 @@ export class MeController {
    */
   @ApiBody({ type: GameThemeUpdationRequest })
   @ApiBadRequestResponse({
-    description: "If the game theme is invalid",
+    description: 'If the game theme is invalid',
   })
   @ApiOkResponse({
     description: "Updates 'me' user's game theme",
