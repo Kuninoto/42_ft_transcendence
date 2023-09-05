@@ -100,17 +100,7 @@ export class UsersService {
   public async findChatRoomsWhereUserIs(
     uid: number,
   ): Promise<ChatRoomInterface[]> {
-    const rooms: ChatRoom[] | undefined = (
-      await this.usersRepository.findOne({
-        where: { id: uid },
-        relations: [
-          'chat_rooms',
-          'chat_rooms.owner',
-          'chat_rooms.admins',
-          'chat_rooms.users',
-        ],
-      })
-    ).chat_rooms;
+    const rooms: ChatRoom[] = (await this.findUserByUID(uid)).chat_rooms;
 
     if (!rooms) {
       return [];
@@ -139,8 +129,8 @@ export class UsersService {
   ): Promise<GameResultInterface[]> {
     // Find game results where winner or loser id = userId
     const gameResults: GameResult[] = await this.gameResultRepository.find({
-      relations: { loser: true, winner: true },
       where: [{ winner: { id: userId } }, { loser: { id: userId } }],
+      relations: { winner: true, loser: true },
     });
 
     const matchHistory: GameResultInterface[] = gameResults.map(
@@ -179,42 +169,37 @@ export class UsersService {
   public async findUserByIntraName(intraName: string): Promise<User | null> {
     return await this.usersRepository.findOne({
       where: { intra_name: intraName },
-      relations: {
-        achievements: true,
-        blocked_users: true,
-        user_stats: true,
-        chat_rooms: true,
-        banned_rooms: true,
-        chat_admin: true,
-      },
+      relations: [
+        'chat_rooms',
+        'chat_rooms.admins',
+        'chat_rooms.owner',
+        'chat_rooms.users',
+      ],
     });
   }
 
   public async findUserByName(name: string): Promise<User | null> {
     return await this.usersRepository.findOne({
       where: { name: name },
-      relations: {
-        achievements: true,
-        blocked_users: true,
-        user_stats: true,
-        chat_rooms: true,
-        banned_rooms: true,
-        chat_admin: true,
-      },
+      relations: [
+        'chat_rooms',
+        'chat_rooms.admins',
+        'chat_rooms.owner',
+        'chat_rooms.users',
+      ],
     });
   }
 
   public async findUserByUID(userId: number): Promise<User | null> {
     return await this.usersRepository.findOne({
       where: { id: userId },
-      relations: {
-        achievements: true,
-        blocked_users: true,
-        user_stats: true,
-        chat_rooms: true,
-        banned_rooms: true,
-        chat_admin: true,
-      },
+      relations: [
+        'chat_rooms',
+        'chat_rooms.admins',
+        'chat_rooms.owner',
+        'chat_rooms.users',
+        'banned_rooms',
+      ],
     });
   }
 
@@ -230,15 +215,14 @@ export class UsersService {
       id: userId,
     });
 
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
     const friendship: Friendship | null =
       await this.friendshipsService.findFriendshipBetween2Users(
         meUser.id,
         user.id,
       );
+
     return {
       id: user.id,
       name: user.name,

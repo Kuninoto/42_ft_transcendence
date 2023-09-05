@@ -313,7 +313,6 @@ export default function FriendsModal({
 				.get(`/users/search?username=${search}`)
 				.then((result) => {
 					setUsers(result.data)
-					console.log(result.data)
 				})
 				.catch((error) => console.error(error))
 				.finally(() => setLoading(false))

@@ -1,15 +1,19 @@
 'use client'
 
 import { api } from '@/api/api'
+import { ChatRoomInterface, PossibleInvitesRequest } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
+import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
+import { HiOutlineChatAlt2 } from 'react-icons/hi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
+import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'
 import RoomsModal from './roomsModal'
@@ -18,6 +22,26 @@ enum openModalType {
 	FRIENDS = 'friends',
 	GROUPS = 'groups',
 	NULL = '',
+}
+
+function RoomsInvite({
+	id,
+	rooms,
+}: {
+	id: number
+	rooms: ChatRoomInterface[]
+}) {
+	useEffect(() => {})
+
+	if (rooms.length === 0) return <></>
+
+	return (
+		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
+			{rooms.map((room) => {
+				return <div key={room.id}>{room.name}</div>
+			})}
+		</div>
+	)
 }
 
 export default function FriendsList(): JSX.Element {
@@ -33,8 +57,24 @@ export default function FriendsList(): JSX.Element {
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
+	const [inviteRooms, setInviteRooms] = useState<ChatRoomInterface[]>([])
 
 	const { open, sendGameInvite } = useFriends()
+
+	function openInviteRooms(id: number) {
+		try {
+			api
+				.get(`/chat/possible-invites?friendId=${id}`)
+				.then((result) => {
+					setInviteRooms(result.data)
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
 
 	function leaveRoom(roomId: number) {
 		api
@@ -160,9 +200,25 @@ export default function FriendsList(): JSX.Element {
 										>
 											<BiUser size={24} />
 										</Link>
+										<Tippy
+											content={
+												<RoomsInvite id={friend.uid} rooms={inviteRooms} />
+											}
+											hideOnClick
+											interactive
+											placement={'left'}
+											trigger={'click'}
+										>
+											<button
+												className="hover:text-[#F32E7C]"
+												onClick={() => openInviteRooms(friend.uid)}
+											>
+												<HiOutlineChatAlt2 size={24} />
+											</button>
+										</Tippy>
 										<button
 											className="hover:text-[#F32E7C]"
-											onClick={() => sendGameInvite(friend.uid)}
+											onClick={() => sendGameInvite(friend.uid.toString())}
 										>
 											<LuSwords size={24} />
 										</button>

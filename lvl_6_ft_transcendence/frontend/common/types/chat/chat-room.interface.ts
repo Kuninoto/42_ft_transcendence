@@ -1,8 +1,8 @@
-import { UserBasicProfile } from "../user";
+import { UserBasicProfile } from '../user'
 
 export interface ChatRoomInterface {
-  id: number;
-  name: string;
-  ownerId: number;
-  participants: UserBasicProfile[];
+	id: number
+	name: string
+	ownerId: number
+	participants: UserBasicProfile[]
 }

@@ -35,132 +35,132 @@ import { RoomInviteMap } from './RoomInviteMap';
 
 @Injectable()
 export class ChatService {
-  constructor(
-    @InjectRepository(ChatRoom)
-    private readonly chatRoomRepository: Repository<ChatRoom>,
-    @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
-    @Inject(forwardRef(() => ConnectionService))
-    private readonly connectionService: ConnectionService,
-    @Inject(forwardRef(() => ConnectionGateway))
-    private readonly connectionGateway: ConnectionGateway,
-    @InjectRepository(DirectMessage)
-    private readonly directMessageRepository: Repository<DirectMessage>,
-    private readonly friendshipsService: FriendshipsService,
-  ) {}
+	constructor(
+		@InjectRepository(ChatRoom)
+		private readonly chatRoomRepository: Repository<ChatRoom>,
+		@Inject(forwardRef(() => UsersService))
+		private readonly usersService: UsersService,
+		@Inject(forwardRef(() => ConnectionService))
+		private readonly connectionService: ConnectionService,
+		@Inject(forwardRef(() => ConnectionGateway))
+		private readonly connectionGateway: ConnectionGateway,
+		@InjectRepository(DirectMessage)
+		private readonly directMessageRepository: Repository<DirectMessage>,
+		private readonly friendshipsService: FriendshipsService,
+	) { }
 
-  private readonly logger: Logger = new Logger(ChatService.name);
+	private readonly logger: Logger = new Logger(ChatService.name);
 
-  private readonly roomInviteMap: RoomInviteMap = new RoomInviteMap();
+	private readonly roomInviteMap: RoomInviteMap = new RoomInviteMap();
 
-  private mutedUsers: { roomId: number; userId: number }[] = [];
+	private mutedUsers: { roomId: number; userId: number }[] = [];
 
-  /****************************
-   *           DMs            *
-   *****************************/
+	/****************************
+	 *           DMs            *
+	 *****************************/
 
-  async createDirectMessage(
-    senderUID: number,
-    receiverUID: number,
-    uniqueId: string,
-    content: string,
-  ): Promise<DirectMessage> {
-    const newMessage: DirectMessage = this.directMessageRepository.create({
-      unique_id: uniqueId,
-      content: content,
-      receiver: { id: receiverUID },
-      sender: { id: senderUID },
-    });
+	async createDirectMessage(
+		senderUID: number,
+		receiverUID: number,
+		uniqueId: string,
+		content: string,
+	): Promise<DirectMessage> {
+		const newMessage: DirectMessage = this.directMessageRepository.create({
+			unique_id: uniqueId,
+			content: content,
+			receiver: { id: receiverUID },
+			sender: { id: senderUID },
+		});
 
-    return await this.directMessageRepository.save(newMessage);
-  }
+		return await this.directMessageRepository.save(newMessage);
+	}
 
-  async sendMissedDirectMessages(
-    receiverSocketId: string,
-    receiverUID: number,
-  ): Promise<void> {
-    // We only keep the unsent direct messages on the db
-    // thus all the messages on the db are unsent
+	async sendMissedDirectMessages(
+		receiverSocketId: string,
+		receiverUID: number,
+	): Promise<void> {
+		// We only keep the unsent direct messages on the db
+		// thus all the messages on the db are unsent
 
-    /* Left join sender, select every message where receiverId = receiverUID
+		/* Left join sender, select every message where receiverId = receiverUID
 		and because on the db the message with the biggest id will be the newest
 		we must sort in ascending order by id (oldest at [0]) to emit them
 		from the oldest to the newest */
-    const missedDMs: DirectMessage[] = await this.directMessageRepository
-      .createQueryBuilder('direct_message')
-      .leftJoinAndSelect('direct_message.sender', 'sender')
-      .where('direct_message.receiver_id = :receiverUID', { receiverUID })
-      .orderBy('direct_message.id', 'ASC')
-      .getMany();
+		const missedDMs: DirectMessage[] = await this.directMessageRepository
+			.createQueryBuilder('direct_message')
+			.leftJoinAndSelect('direct_message.sender', 'sender')
+			.where('direct_message.receiver_id = :receiverUID', { receiverUID })
+			.orderBy('direct_message.id', 'ASC')
+			.getMany();
 
-    if (!missedDMs) return;
+		if (!missedDMs) return;
 
-    // Send every missed DM
-    missedDMs.forEach(async (dm: DirectMessage): Promise<void> => {
-      const directMessageReceived: DirectMessageReceivedEvent = {
-        uniqueId: dm.unique_id,
-        author: await this.findChatterInfoByUID(dm.sender.id),
-        content: dm.content,
-      };
+		// Send every missed DM
+		missedDMs.forEach(async (dm: DirectMessage): Promise<void> => {
+			const directMessageReceived: DirectMessageReceivedEvent = {
+				uniqueId: dm.unique_id,
+				author: await this.findChatterInfoByUID(dm.sender.id),
+				content: dm.content,
+			};
 
-      this.connectionGateway.server
-        .to(receiverSocketId)
-        .emit('directMessageReceived', directMessageReceived);
-    });
+			this.connectionGateway.server
+				.to(receiverSocketId)
+				.emit('directMessageReceived', directMessageReceived);
+		});
 
-    // After sending all missed direct messages we can delete them from db
-    await this.directMessageRepository.delete({
-      receiver: { id: receiverUID },
-    });
-  }
+		// After sending all missed direct messages we can delete them from db
+		await this.directMessageRepository.delete({
+			receiver: { id: receiverUID },
+		});
+	}
 
-  /****************************
-   *          ROOMS           *
-   *****************************/
+	/****************************
+	 *          ROOMS           *
+	 *****************************/
 
-  /* Check room name for:
+	/* Check room name for:
 			Unique
 			Length boundaries (4-10)
 			Composed only by a-z, A-Z, 0-9 and  _
 	*/
-  public async createRoom(
-    createRoomRequest: CreateRoomRequest,
-    owner: User,
-  ): Promise<ChatRoom | ErrorResponse> {
-    // If room name's already taken
-    const room: ChatRoom | null = await this.findRoomByName(
-      createRoomRequest.name,
-    );
-    if (room) {
-      this.logger.warn(
-        `${owner.name} tried to create a room with already taken name: "${createRoomRequest.name}"`,
-      );
-      throw new ConflictException('Room name is already taken');
-    }
+	public async createRoom(
+		createRoomRequest: CreateRoomRequest,
+		owner: User,
+	): Promise<ChatRoom | ErrorResponse> {
+		// If room name's already taken
+		const room: ChatRoom | null = await this.findRoomByName(
+			createRoomRequest.name,
+		);
+		if (room) {
+			this.logger.warn(
+				`${owner.name} tried to create a room with already taken name: "${createRoomRequest.name}"`,
+			);
+			throw new ConflictException('Room name is already taken');
+		}
 
-    this.checkForValidRoomName(createRoomRequest.name);
+		this.checkForValidRoomName(createRoomRequest.name);
 
-    if (
-      createRoomRequest.type !== ChatRoomType.PROTECTED &&
-      createRoomRequest.password
-    ) {
-      this.logger.warn(
-        `${owner.name} tried to create a ${createRoomRequest.type} CreateRoomRequest with password`,
-      );
-      throw new BadRequestException(
-        `A ${createRoomRequest.type} room cannot have a password`,
-      );
-    }
+		if (
+			createRoomRequest.type !== ChatRoomType.PROTECTED &&
+			createRoomRequest.password
+		) {
+			this.logger.warn(
+				`${owner.name} tried to create a ${createRoomRequest.type} CreateRoomRequest with password`,
+			);
+			throw new BadRequestException(
+				`A ${createRoomRequest.type} room cannot have a password`,
+			);
+		}
 
-    if (createRoomRequest.type === ChatRoomType.PROTECTED) {
-      if (!createRoomRequest.password) {
-        throw new BadRequestException(`A protected room must have a password`);
-      }
-    }
+		if (createRoomRequest.type === ChatRoomType.PROTECTED) {
+			if (!createRoomRequest.password) {
+				throw new BadRequestException(`A protected room must have a password`);
+			}
+		}
 
-    const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomRequest);
+		const newRoom: ChatRoom = this.chatRoomRepository.create(createRoomRequest);
 
-    /* Add the owner to the users in the room,
+		/* Add the owner to the users in the room,
 			to the list of admins,
 			and as the owner */
     newRoom.users = [owner];
@@ -641,8 +641,8 @@ export class ChatService {
       await this.chatRoomRepository.remove(room);
     } else {
       this.removeUserFromRoom(room, userLeavingId);
-      await this.chatRoomRepository.save(room);
-
+			await this.chatRoomRepository.save(room); 
+			
       /* In case this function is being used by kickFromRoom or banFromRoom
       emitUserHasLeftTheRoom will be false (they will have their own events) */
       if (emitUserHasLeftTheRoom) {

@@ -19,10 +19,31 @@ function Podium({
 	user: undefined | UserStatsForLeaderboard
 	width: string
 }) {
+	if (!hasValues(user)) {
+		return (
+			<div className="flex h-full flex-col place-content-center items-center space-y-4">
+				<div
+					className={`relative ${width} aspect-square overflow-hidden rounded`}
+				>
+					<Image
+						alt="second place picture"
+						className="object-cover"
+						fill
+						loader={removeParams}
+						priority
+						sizes="100%"
+						src={'/placeholder.gif'}
+						unoptimized
+					/>
+				</div>
+				<div className="text-xl">{'NOT FOUND'}</div>
+			</div>
+		)
+	}
 	return (
 		<Link
 			className="flex flex-col items-center space-y-2"
-			href={`profile?id=${user?.uid}`}
+			href={`profile?id=${user.uid}`}
 		>
 			<div
 				className={`relative ${width} aspect-square overflow-hidden rounded`}
@@ -34,16 +55,14 @@ function Podium({
 					loader={removeParams}
 					priority
 					sizes="100%"
-					src={user?.avatar_url || '/placeholder.gif'}
+					src={user.avatar_url}
 					unoptimized
 				/>
 			</div>
-			<div className="text-xl">{user?.name || 'NOT FOUND'}</div>
-			{hasValues(user) && (
-				<div className="flex items-center text-sm">
-					#{top} • {user?.wins} <CgTrophy className="-mt-0.5" size={20} />
-				</div>
-			)}
+			<div className="text-xl">{user.name}</div>
+			<div className="flex items-center text-sm">
+				#{top} • {user.wins} <CgTrophy className="-mt-0.5" size={20} />
+			</div>
 		</Link>
 	)
 }
@@ -66,7 +85,6 @@ export default function Leaderboard() {
 				.get('/game/leaderboard')
 				.then((result) => {
 					setUsers(result.data)
-					console.log(result.data)
 					isLoading(false)
 				})
 				.catch((e) => {

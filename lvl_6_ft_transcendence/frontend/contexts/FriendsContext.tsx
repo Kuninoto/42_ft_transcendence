@@ -5,12 +5,14 @@ import {
 	DirectMessageReceivedEvent,
 	Friend,
 	InvitedToGameEvent,
+	InviteToRoomRequest,
 	NewUserStatusEvent,
 	OpponentFoundEvent,
 	RespondToGameInviteMessage,
 	RoomMessageReceivedEvent,
 	RoomWarning,
 	RoomWarningEvent,
+	SendGameInviteMessage,
 	SendMessageSMessage,
 } from '@/common/types'
 import {
@@ -83,7 +85,7 @@ const FriendsContext = createContext<FriendsContextType>(
 )
 
 export function FriendsProvider({ children }: { children: ReactNode }) {
-	const { isAuth, user } = useAuth()
+	const { isAuth, refreshUser, user } = useAuth()
 
 	const [friends, setFriends] = useState<[] | Friend[]>([])
 	const [rooms, setRooms] = useState<[] | ChatRoomInterface[]>([])
@@ -124,7 +126,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					api
 						.get('/me/rooms')
 						.then((result) => {
-							console.log(result)
 							setRooms(result.data)
 						})
 						.catch((e) => {
@@ -287,8 +288,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
-				console.log(data)
-
 				const index = newChat?.findIndex((chat) => {
 					if ('room' in chat) {
 						if ('id' in data) return chat.room.id === data.id
@@ -328,8 +327,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 				if (index === -1) {
 					if ('id' in data || 'roomId' in data) {
-						console.log(data)
-						console.log('adssd:')
 						const room = rooms.find((room) => {
 							if ('id' in data) return room.id === data.id
 							return room.id === data.roomId
@@ -431,7 +428,9 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			})
 
 			socket.on('refreshUser', function () {
+				refreshUser()
 				getFriends()
+				getRooms()
 			})
 
 			socket.on('newUserStatus', updateFriendStatus)
@@ -491,11 +490,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function sendGameInvite(id: string) {
 		if (!socket) return
 
-		const gameInviteDTO: SendGameInviteMessage = {
+		const newGameInvite: SendGameInviteMessage = {
 			recipientUID: id,
 		}
 
-		socket.emit('sendGameInvite', gameInviteDTO)
+		socket.emit('sendGameInvite', newGameInvite)
 
 		const newMessage: Warning = {
 			warning: 'Invite sent',
@@ -513,6 +512,16 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			newChat[index]?.messages.unshift(newMessage)
 			return newChat
 		})
+	}
+
+	function sendRoomInvite(id: string) {
+		if (!socket) return
+
+		const newRoomInvite: InviteToRoomRequest = {
+			roomId,
+		}
+
+		api.post()
 	}
 
 	function respondGameInvite(accepted: boolean) {

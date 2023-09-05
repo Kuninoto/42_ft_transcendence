@@ -140,6 +140,7 @@ export class ChatController {
   ): Promise<UserBasicProfile[]> {
     const room: ChatRoom = await this.chatService.findRoomById(roomId);
 
+    console.log(room);
     return room.bans.map(
       (bannedUser: User): UserBasicProfile => ({
         id: bannedUser.id,
@@ -210,9 +211,8 @@ export class ChatController {
     return await this.chatService.joinRoom(user, body.roomId, body.password);
   }
 
-  
   // @Patch(':inviteId/status')
-  // public async 
+  // public async
 
   @ApiBody({ type: RoomOperationRequest })
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
@@ -236,8 +236,6 @@ export class ChatController {
     await this.chatService.leaveRoom(room, body.userId, true);
     return { message: `Successfully left room "${room.name}"` };
   }
-
-
 
   @ApiBody({ type: InviteToRoomRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
