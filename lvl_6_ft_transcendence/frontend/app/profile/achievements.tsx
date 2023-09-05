@@ -1,5 +1,5 @@
 import { AchievementsList } from '@/common/achievements'
-import { AchievementInterface } from '@/common/types/backend'
+import { AchievementInterface } from '@/common/types'
 import Image from 'next/image'
 
 export default function Achievements({
@@ -8,7 +8,7 @@ export default function Achievements({
 	achievements: AchievementInterface[] | undefined
 }) {
 	return (
-		<div className="h-full w-full space-y-4">
+		<div className="h-full w-full space-y-4 overflow-auto scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 			{achievements?.map((achievement) => (
 				<div
 					className="flex w-full place-content-around items-center space-x-4 rounded-sm border border-white px-4 py-3 text-xl"
@@ -21,8 +21,8 @@ export default function Achievements({
 									?.image}` || '/placeholder.gif'
 							}
 							alt={`${achievement?.achievement} achievement image`}
+							className="object-cover"
 							fill
-							objectFit="cover"
 							sizes="100vw"
 						/>
 					</div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { api } from '@/api/api'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
@@ -12,7 +13,6 @@ import { RxTriangleUp } from 'react-icons/rx'
 
 import FriendsModal from './friendsModal'
 import RoomsModal from './roomsModal'
-import { api } from '@/api/api'
 
 enum openModalType {
 	FRIENDS = 'friends',
@@ -22,8 +22,13 @@ enum openModalType {
 
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
-	const { friends, newFriendNotification, rooms, seeNewFriendNotification, exitRoom } =
-		useFriends()
+	const {
+		exitRoom,
+		friends,
+		newFriendNotification,
+		rooms,
+		seeNewFriendNotification,
+	} = useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
@@ -32,12 +37,14 @@ export default function FriendsList(): JSX.Element {
 	const { open, sendGameInvite } = useFriends()
 
 	function leaveRoom(roomId: number) {
-		api.post('/chat/leave-room', {
-			roomId: parseInt(roomId),
-			userId: parseInt(user.id),
-		}).then(() => {
-			exitRoom(roomId)
-		})
+		api
+			.post('/chat/leave-room', {
+				roomId: parseInt(roomId),
+				userId: parseInt(user.id),
+			})
+			.then(() => {
+				exitRoom(roomId)
+			})
 	}
 
 	return (
@@ -66,7 +73,13 @@ export default function FriendsList(): JSX.Element {
 						</div>
 						<div className="mx-4 my-auto">
 							<div className="text-xl">{user?.name}</div>
-							<a className="text-sm text-gray-400 hover:underline" target="_blank" href={user?.intra_profile_url}>{user?.intra_name}</a>
+							<a
+								className="text-sm text-gray-400 hover:underline"
+								href={user?.intra_profile_url}
+								target="_blank"
+							>
+								{user?.intra_name}
+							</a>
 						</div>
 					</div>
 					<div className="text-2xl">#{user.ladder_level} </div>
@@ -190,9 +203,7 @@ export default function FriendsList(): JSX.Element {
 						>
 							{rooms?.map((room) => {
 								return (
-									<div 
-										key={room.id}
-										className="relative w-full peer">
+									<div className="peer relative w-full" key={room.id}>
 										<button
 											className="w-full "
 											onClick={() => open(room.id, true)}
@@ -201,8 +212,13 @@ export default function FriendsList(): JSX.Element {
 												<div>{room.name}</div>
 											</div>
 										</button>
-										<div className="absolute top-2 right-4 visible">
-											<button onClick={() => leaveRoom(room.id)} className="text-xs text-gray-400 hover:text-red-500">Exit room</button>
+										<div className="visible absolute right-4 top-2">
+											<button
+												className="text-xs text-gray-400 hover:text-red-500"
+												onClick={() => leaveRoom(room.id)}
+											>
+												Exit room
+											</button>
 										</div>
 									</div>
 								)
