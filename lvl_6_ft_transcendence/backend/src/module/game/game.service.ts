@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import {
   GameInvite,
   GameType,
+  InviteDeclinedEvent,
   OpponentFoundEvent,
   PlayerSide,
   UserBasicProfile,
@@ -16,7 +17,6 @@ import { UserStatsService } from '../user-stats/user-stats.service';
 import { UsersService } from '../users/users.service';
 import { Ball } from './Ball';
 import { CreateGameInviteDTO } from './dto/create-game-invite.dto';
-import { InviteDeclinedDTO } from './dto/invite-declined.dto';
 import { GameEngineService } from './game-engine.service';
 import { GameGateway } from './game.gateway';
 import { GameInviteMap } from './GameInviteMap';
@@ -86,10 +86,12 @@ export class GameService {
   }
 
   public async gameInviteAccepted(
-    inviteId: string,
+    inviteId: number,
     recipient: Socket,
   ): Promise<void> {
-    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
+    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(
+      inviteId.toString(),
+    );
 
     const recipientPlayer: Player = new Player(
       recipient,
@@ -103,16 +105,16 @@ export class GameService {
       GameType.ONEVSONE,
     );
 
-    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+    this.gameInviteMap.deleteInviteByInviteId(inviteId.toString());
   }
 
-  public gameInviteDeclined(inviteId: string) {
-    const inviteDeclined: InviteDeclinedDTO = {
+  public gameInviteDeclined(inviteId: number) {
+    const inviteDeclined: InviteDeclinedEvent = {
       inviteId: inviteId,
     };
 
     this.connectionGateway.server.emit('inviteDeclined', inviteDeclined);
-    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+    this.gameInviteMap.deleteInviteByInviteId(inviteId.toString());
   }
 
   /**
@@ -124,6 +126,7 @@ export class GameService {
    * @param playerUserId userId of the disconnecting player
    */
   public async disconnectPlayer(playerUserId: number): Promise<void> {
+    this.gameInviteMap.deleteAllInvitesToUser(playerUserId);
     const playerRoom: GameRoom | null =
       this.gameRoomMap.findRoomWithPlayerByUID(playerUserId);
 
@@ -190,6 +193,9 @@ export class GameService {
       loser.userId,
       wonByDisconnection,
     );
+
+    this.connectionGateway.sendRefreshUser(winner.userId, winner.client.id);
+    this.connectionGateway.sendRefreshUser(loser.userId, loser.client.id);
   }
 
   public isPlayerInQueueOrGame(playerUID: number): boolean {
@@ -311,5 +317,14 @@ export class GameService {
 
       this.joinPlayersToRoom(playerOne, playerTwo, GameType.LADDER);
     }
+  }
+
+  public isUserTheCorrectReceiverOfInvite(
+    userId: number,
+    inviteId: number,
+  ): boolean {
+    const gameInvite: GameInvite | undefined =
+      this.gameInviteMap.findInviteById(inviteId.toString());
+    return gameInvite?.recipientUID == userId;
   }
 }

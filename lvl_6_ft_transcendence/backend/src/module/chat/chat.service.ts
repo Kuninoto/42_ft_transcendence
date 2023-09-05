@@ -21,6 +21,7 @@ import {
   CreateRoomRequest,
   DirectMessageReceivedEvent,
   ErrorResponse,
+  RoomInvite,
   RoomWarning,
   SuccessResponse,
   UserBasicProfile,
@@ -28,7 +29,9 @@ import {
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
+import { FriendshipsService } from '../friendships/friendships.service';
 import { UsersService } from '../users/users.service';
+import { RoomInviteMap } from './RoomInviteMap';
 
 @Injectable()
 export class ChatService {
@@ -43,9 +46,12 @@ export class ChatService {
     private readonly connectionGateway: ConnectionGateway,
     @InjectRepository(DirectMessage)
     private readonly directMessageRepository: Repository<DirectMessage>,
+    private readonly friendshipsService: FriendshipsService,
   ) {}
 
   private readonly logger: Logger = new Logger(ChatService.name);
+
+  private readonly roomInviteMap: RoomInviteMap = new RoomInviteMap();
 
   private mutedUsers: { roomId: number; userId: number }[] = [];
 
@@ -243,6 +249,43 @@ export class ChatService {
     return chatRoomSearchInfos;
   }
 
+  public async findPossibleInvites(
+    meUID: number,
+    friendUID: number,
+  ): Promise<ChatRoomInterface[] | ErrorResponse> {
+    const friend: User | null = await this.usersService.findUserByUID(
+      friendUID,
+    );
+    if (!friend) {
+      throw new NotFoundException(
+        `Friend (user) with id=${friendUID} not found`,
+      );
+    }
+
+    const meUser: User = await this.usersService.findUserByUID(meUID);
+
+    const possibleRoomsToInvite: ChatRoom[] = meUser.chat_rooms.filter(
+      (room: ChatRoom): boolean =>
+        !friend.chat_rooms.includes(room) &&
+        !friend.banned_rooms.includes(room),
+    );
+
+    return possibleRoomsToInvite.map(
+      (room: ChatRoom): ChatRoomInterface => ({
+        id: room.id,
+        name: room.name,
+        ownerId: room.owner.id,
+        participants: room.users.map(
+          (user: User): UserBasicProfile => ({
+            id: user.id,
+            name: user.name,
+            avatar_url: user.avatar_url,
+          }),
+        ),
+      }),
+    );
+  }
+
   public findRoleOnChatRoom(room: ChatRoom, uid: number): ChatRoomRoles | null {
     if (room.owner.id == uid) return ChatRoomRoles.OWNER;
     if (this.isUserAnAdmin(room, uid)) return ChatRoomRoles.ADMIN;
@@ -254,11 +297,16 @@ export class ChatService {
     joiningUser: User,
     roomId: number,
     password?: string,
+    inviteId?: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
+
+    // Is joining by invitation but he's not the receiver of the invite
+    if (inviteId && !this.isUserTheCorrectReceiver(inviteId, joiningUser.id))
+      return;
 
     if (this.isUserBannedFromRoom(room, joiningUser.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
@@ -271,7 +319,8 @@ export class ChatService {
       throw new ConflictException(`You're already in room "${room.name}"`);
     }
 
-    if (room.type === ChatRoomType.PROTECTED) {
+    // If room is protected and user is NOT joining by invitation
+    if (room.type === ChatRoomType.PROTECTED && !inviteId) {
       if (password !== room.password) {
         throw new UnauthorizedException(`Wrong password`);
       }
@@ -306,9 +355,7 @@ export class ChatService {
     const roomsToJoin: ChatRoomInterface[] | null =
       await this.usersService.findChatRoomsWhereUserIs(client.data.userId);
 
-    if (!roomsToJoin) {
-      return;
-    }
+    if (!roomsToJoin) return;
 
     const roomSocketIds: string[] = roomsToJoin.map(
       (room: ChatRoomInterface): string => 'room-' + room.id,
@@ -327,6 +374,12 @@ export class ChatService {
     );
     if (!receiver) {
       throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
+    }
+
+    if (
+      !(await this.friendshipsService.areTheyFriends(inviterUID, receiverUID))
+    ) {
+      throw new ForbiddenException('You cannot invite non-friends to rooms');
     }
 
     const room: ChatRoom | null = await this.findRoomById(roomId);
@@ -712,6 +765,10 @@ export class ChatService {
     return { message: `Successfully removed room's password` };
   }
 
+  public disconnectChatter(userId: number): void {
+    this.roomInviteMap.deleteAllInvitesToUser(userId);
+  }
+
   public removeUserFromRoom(room: ChatRoom, uid: number): void {
     room.users = room.users.filter((user: User): boolean => user.id != uid);
     room.admins = room.users.filter((user: User): boolean => user.id != uid);
@@ -756,5 +813,13 @@ export class ChatService {
           entry.userId == userId && entry.roomId == roomId,
       ) !== -1
     );
+  }
+
+  public isUserTheCorrectReceiver(inviteId: number, userId: number): boolean {
+    const invite: RoomInvite = this.roomInviteMap.findInviteById(
+      inviteId.toString(),
+    );
+
+    return invite.receiverUID == userId;
   }
 }

@@ -5,5 +5,5 @@ export class OtpVerificationRequest {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  otp: string;
+  readonly otp: string;
 }

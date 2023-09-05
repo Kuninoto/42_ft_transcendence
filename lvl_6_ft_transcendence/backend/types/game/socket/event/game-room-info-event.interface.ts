@@ -1,5 +1,4 @@
-import { IBall } from "src/module/game/Ball";
-import { IPlayer } from "src/module/game/Player";
+import { IBall, IPlayer } from 'types';
 
 export interface GameRoomInfoEvent {
   ball: IBall;

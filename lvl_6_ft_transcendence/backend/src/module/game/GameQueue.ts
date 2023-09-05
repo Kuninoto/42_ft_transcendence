@@ -1,15 +1,14 @@
 import { Logger } from '@nestjs/common';
-
 import { Player } from './Player';
 
 export class GameQueue {
-  private readonly logger: Logger = new Logger(GameQueue.name);
-
   private players: Player[];
 
   constructor() {
     this.players = [];
   }
+
+  private readonly logger: Logger = new Logger(GameQueue.name);
 
   public enqueue(player: Player): void {
     this.players.push(player);
@@ -19,6 +18,10 @@ export class GameQueue {
   public dequeue(): Player | undefined {
     this.logger.log(`${this.size()} players in queue`);
     return this.players.shift();
+  }
+
+  public size(): number {
+    return this.players.length;
   }
 
   public isEmpty(): boolean {
@@ -43,9 +46,5 @@ export class GameQueue {
     );
 
     return playerIndex === -1 ? null : this.players.splice(playerIndex, 1)[0];
-  }
-
-  public size(): number {
-    return this.players.length;
   }
 }

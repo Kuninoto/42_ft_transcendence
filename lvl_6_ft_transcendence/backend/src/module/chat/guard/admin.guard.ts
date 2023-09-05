@@ -9,8 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChatRoom, User } from 'src/entity';
-import { MuteUserRequest } from '../../../../types/chat/request/mute-user-request';
-import { RoomOperationRequest } from '../../../../types/chat/request/room-operation-request';
+import { MuteUserRequest, RoomOperationRequest } from 'types';
 import { ChatService } from '../chat.service';
 
 @Injectable()

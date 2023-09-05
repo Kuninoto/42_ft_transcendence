@@ -1,4 +1,4 @@
-import { MuteDuration } from 'types';
+import { MuteDuration } from "../mute-duration.enum";
 
 export interface MuteUserRequest {
   readonly roomId: number;
