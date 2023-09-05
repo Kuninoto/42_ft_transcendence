@@ -2,12 +2,14 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
   HealthCheck,
+  HealthCheckResult,
   HealthCheckService,
   HttpHealthIndicator,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
 
 @Controller('app')
+@ApiTags('app')
 export class AppController {
   constructor(
     private readonly health: HealthCheckService,
@@ -16,10 +18,9 @@ export class AppController {
   ) {}
 
   @ApiOkResponse({ description: 'Returns the health check' })
-  @ApiTags('health')
   @Get('/health')
   @HealthCheck()
-  async getHello() {
+  async getHello(): Promise<HealthCheckResult> {
     return await this.health.check([
       // DB
       async () => this.db.pingCheck('typeorm'),

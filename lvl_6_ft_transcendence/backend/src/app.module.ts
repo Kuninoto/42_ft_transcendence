@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
@@ -45,6 +46,7 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
     MeModule,
     UserStatsModule,
     UsersModule,
+    HttpModule,
     TerminusModule.forRoot({
       logger: true,
       errorLogStyle: 'pretty',
