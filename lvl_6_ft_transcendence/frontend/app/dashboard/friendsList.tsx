@@ -1,6 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
+import { ChatRoomInterface, PossibleInvitesRequest } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Tippy from '@tippyjs/react'
@@ -22,7 +23,13 @@ enum openModalType {
 	NULL = '',
 }
 
-function RoomsInvite({ id }: { id: number }) {
+function RoomsInvite({
+	id,
+	rooms,
+}: {
+	id: number
+	rooms: ChatRoomInterface[]
+}) {
 	useEffect(() => {})
 
 	return (
@@ -45,8 +52,17 @@ export default function FriendsList(): JSX.Element {
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
+	const [inviteRooms, setInviteRooms] = useState<ChatRoomInterface[]>([])
 
 	const { open, sendGameInvite } = useFriends()
+
+	function openInviteRooms(id: number) {
+		const possibleInvites: PossibleInvitesRequest = {
+			friendUID: id,
+		}
+
+		api.get(`/chat/possible-invites`, {})
+	}
 
 	function leaveRoom(roomId: number) {
 		api
