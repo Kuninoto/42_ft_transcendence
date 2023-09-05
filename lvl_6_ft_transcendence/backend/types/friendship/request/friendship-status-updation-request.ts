@@ -3,7 +3,7 @@ import { IsEnum } from 'class-validator';
 import { NewFriendshipStatus } from 'types/friendship/new-friendship-status.enum';
 
 export class FriendshipStatusUpdationRequest {
-  @ApiProperty()
+  @ApiProperty({ enum: NewFriendshipStatus })
   @IsEnum({ enum: NewFriendshipStatus })
   readonly newStatus: NewFriendshipStatus;
 }

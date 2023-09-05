@@ -52,7 +52,7 @@ import { AdminGuard } from './guard/admin.guard';
 import { OwnerGuard } from './guard/owner.guard';
 
 @ApiTags('chat')
-@ApiBearerAuth('swagger-basic-auth')
+@ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
 @Controller('chat')
 export class ChatController {
@@ -118,7 +118,7 @@ export class ChatController {
    * of the banned users on the room which id=roomId
    */
   @ApiOperation({
-    description: 'Get the ids of the banned users on room which id=roomId',
+    description: 'Get the ids of the banned users of a room',
   })
   @ApiParam({
     description: 'The room id',
@@ -207,7 +207,12 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: JoinRoomRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.joinRoom(user, body.roomId, body.password, body.inviteId);
+    return await this.chatService.joinRoom(
+      user,
+      body.roomId,
+      body.password,
+      body.inviteId,
+    );
   }
 
   @ApiBody({ type: RoomOperationRequest })

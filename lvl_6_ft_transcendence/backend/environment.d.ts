@@ -15,7 +15,5 @@ declare namespace NodeJS {
     JWT_SECRET: string;
     JWT_EXPIRES_IN: string;
     EXPRESS_SESSION_SECRET: string;
-    SWAGGER_USER: string;
-    SWAGGER_PASSWORD: string;
   }
 }
