@@ -175,7 +175,7 @@ export class ChatService {
         .to(ownerSocketId)
         .socketsJoin(createRoomRequest.name);
     }
-    return this.chatRoomRepository.save(newRoom);
+    return await this.chatRoomRepository.save(newRoom);
   }
 
   public async findChatterInfoByUID(userId: number): Promise<UserBasicProfile> {
@@ -327,7 +327,7 @@ export class ChatService {
     }
 
     room.users.push(joiningUser);
-    this.chatRoomRepository.save(room);
+    await this.chatRoomRepository.save(room);
 
     this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
@@ -443,7 +443,7 @@ export class ChatService {
     }
 
     room.admins.push(userToAssignRole);
-    this.chatRoomRepository.save(room);
+    await this.chatRoomRepository.save(room);
 
     this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
@@ -490,7 +490,7 @@ export class ChatService {
     room.admins = room.admins.filter(
       (user: User): boolean => user.id != userIdToRemoveRole,
     );
-    this.chatRoomRepository.save(room);
+    await this.chatRoomRepository.save(room);
 
     this.connectionGateway.sendRoomWarning(room.id, {
       roomId: room.id,
@@ -562,7 +562,7 @@ export class ChatService {
     }
 
     room.bans = room.bans.filter((user) => user.id !== userToUnbanId);
-    this.chatRoomRepository.save(room);
+    await this.chatRoomRepository.save(room);
 
     this.logger.log(
       `${userToUnban.name} was unbanned from room "${room.name}"`,
