@@ -405,7 +405,7 @@ export class ChatService {
       );
     }
 
-    this.connectionGateway.sendRoomInvite(receiverUID, {
+    this.connectionGateway.sendRoomInviteReceived(receiverUID, {
       inviterUID: inviterUID,
       roomId: roomId,
     });
