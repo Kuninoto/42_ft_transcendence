@@ -273,6 +273,9 @@ export class ChatController {
   }
 
   @ApiBody({ type: RoomOperationRequest })
+  @ApiUnauthorizedResponse({
+    description: "If sender doesn't have admin privileges",
+  })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
   @ApiConflictResponse({ description: 'If sender tries to kick himself' })
   @ApiOkResponse({
@@ -294,10 +297,10 @@ export class ChatController {
   }
 
   @ApiBody({ type: RoomOperationRequest })
-  @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
   @Post('/ban')
@@ -330,10 +333,10 @@ export class ChatController {
   }
 
   @ApiBody({ type: MuteUserRequest })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiForbiddenResponse({
     description: 'If sender (admin) tries to ban another admin',
   })
@@ -366,10 +369,10 @@ export class ChatController {
   }
 
   @ApiBody({ type: RoomOperationRequest })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiOkResponse({
     description:
       'Successfully unmuted user with id=body.userId from room with id=body.roomId',
@@ -383,10 +386,10 @@ export class ChatController {
   }
 
   @ApiBody({ type: RoomOperationRequest })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiConflictResponse({
     description: 'If recipient already have admin privileges',
   })
@@ -412,10 +415,10 @@ export class ChatController {
   @ApiOperation({
     description: 'Remove admin privileges of a participant of a room',
   })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiBadRequestResponse({
     description:
       "If request's body is malformed or if recipient doesn't have admin privileges",
@@ -434,10 +437,10 @@ export class ChatController {
   }
 
   @ApiBody({ type: UpdateRoomPasswordRequest })
-  @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiUnauthorizedResponse({
-    description: "If sender isn't the room owner",
+    description: "If sender doesn't have owner privileges",
   })
+  @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiOkResponse({
     description:
       "Successfully updated room with id=body.roomId's password to body.newPassword",
@@ -455,7 +458,7 @@ export class ChatController {
 
   @ApiBody({ type: RemoveRoomPasswordRequest })
   @ApiUnauthorizedResponse({
-    description: "If sender isn't the room owner",
+    description: "If sender doesn't have owner privileges",
   })
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiBadRequestResponse({

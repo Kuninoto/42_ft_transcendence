@@ -49,7 +49,7 @@ export default function History({
 							>
 								<div className="relative aspect-square w-12 overflow-hidden rounded">
 									<Image
-										alt={'player profile picutre'}
+										alt={'player profile picture'}
 										className="object-cover"
 										fill
 										loader={removeParams}

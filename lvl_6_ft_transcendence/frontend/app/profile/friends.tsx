@@ -35,7 +35,7 @@ export default function Friends({ friends }: { friends: Friend[] }) {
 					<div className="flex w-full place-content-around items-center border border-white py-3 text-xl">
 						<div className="relative aspect-square w-12 overflow-hidden rounded">
 							<Image
-								alt={'player profile picutre'}
+								alt={'player profile picture'}
 								className="object-cover"
 								fill
 								loader={removeParams}

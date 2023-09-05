@@ -1,4 +1,4 @@
-import { ChatRoomType } from 'types';
+import { ChatRoomType } from "../chat-room-type.enum";
 
 export interface CreateRoomRequest {
   readonly name: string;
