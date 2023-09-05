@@ -4,23 +4,22 @@ import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
 import { User } from 'src/entity';
 import { AccessTokenResponse, LoginResponse, SuccessResponse } from 'types';
-
 import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 @Injectable()
 export class AuthService {
+  constructor(private readonly jwtService: JwtService) {}
+
   private readonly logger: Logger = new Logger(AuthService.name);
 
   public tokenWhitelist: Map<string, string> = new Map<string, string>();
 
-  constructor(private readonly jwtService: JwtService) {}
-
   // Return the signed JWT
   public login(user: User): LoginResponse {
-    const payload: TokenPayload = {
-      has_2fa: user.has_2fa,
+    const payload: Partial<TokenPayload> = {
       id: user.id,
+      has_2fa: user.has_2fa,
     };
 
     const accessToken: string = this.jwtService.sign(payload);
@@ -37,9 +36,9 @@ export class AuthService {
 
   // Return the signed JWT
   public authenticate2fa(user: User): AccessTokenResponse {
-    const payload: TokenPayload = {
-      has_2fa: true,
+    const payload: Partial<TokenPayload> = {
       id: user.id,
+      has_2fa: true,
       is_2fa_authed: true,
     };
 
