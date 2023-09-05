@@ -57,7 +57,7 @@ export class UsersService {
     const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
 
     const newUser: User = await this.usersRepository.save(newUserInfo);
-    this.userStatsService.createUserStats(newUser);
+    await this.userStatsService.createUserStats(newUser);
 
     if (developersIntraName.includes(newUser.intra_name)) {
       this.achievementService.grantPongFightMaestro(newUser.id);

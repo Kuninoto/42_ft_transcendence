@@ -36,9 +36,14 @@ export class UserStatsService {
   }
 
   public async findUserStatsByUID(userId: number): Promise<UserStatsInterface> {
-    const userStats: UserStats = await this.userStatsRepository.findOneBy({
+    const userStats: UserStats | null = await this.userStatsRepository.findOneBy({
       user: { id: userId },
     });
+
+    if (!userStats) {
+      console.log('userId = ' + userId);
+      console.log('WTF');
+    }
 
     const userStatsInterfaces: UserStatsInterface = {
       losses: userStats.losses,
