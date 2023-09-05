@@ -262,6 +262,10 @@ export class ChatController {
     );
   }
 
+  // TODO
+  // @Patch('/:inviteId/status')
+  // public async respondToRoomInvite
+
   @ApiQuery({
     name: 'friendId',
     type: 'number',
