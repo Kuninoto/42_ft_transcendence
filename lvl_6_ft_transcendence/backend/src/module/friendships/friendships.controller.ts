@@ -99,7 +99,7 @@ export class FriendshipsController {
     description:
       "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body. Possible values: 'declined' | 'accepted' | 'unfriend' ",
   })
-  @Patch(':friendshipId/update')
+  @Patch(':friendshipId/status')
   public async updateFriendshipStatus(
     @ExtractUser() user: User,
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,

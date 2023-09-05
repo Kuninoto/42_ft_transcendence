@@ -74,14 +74,14 @@ export class MeController {
   }
 
   /**
-   * GET /api/me/friend-request
+   * GET /api/me/friend-requests
    *
    * Finds and returns the 'me' user's friend-requests
    */
   @ApiOkResponse({
     description: "Finds and returns the 'me' user's friend-requests",
   })
-  @Get('friend-request')
+  @Get('friend-requests')
   public async findMyFriendRequests(
     @ExtractUser() user: User,
   ): Promise<FriendRequest[]> {

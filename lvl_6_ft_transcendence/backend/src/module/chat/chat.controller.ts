@@ -210,6 +210,10 @@ export class ChatController {
     return await this.chatService.joinRoom(user, body.roomId, body.password);
   }
 
+  
+  // @Patch(':inviteId/status')
+  // public async 
+
   @ApiBody({ type: RoomOperationRequest })
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiOkResponse({
@@ -232,6 +236,8 @@ export class ChatController {
     await this.chatService.leaveRoom(room, body.userId, true);
     return { message: `Successfully left room "${room.name}"` };
   }
+
+
 
   @ApiBody({ type: InviteToRoomRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })

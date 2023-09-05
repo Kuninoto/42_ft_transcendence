@@ -57,15 +57,15 @@ function Buttons({
 
 	async function cancel(friendshipId: null | number) {
 		await api
-			.patch(`/friendships/${friendshipId}/update`, {
+			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.UNFRIEND,
 			})
 			.then(() => refresh())
 	}
 
-	function accept(friendship_id: null | number) {
+	function accept(friendshipId: null | number) {
 		api
-			.patch(`/friendships/${friendship_id}/update`, {
+			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.ACCEPTED,
 			})
 			.then(() => {
@@ -74,9 +74,9 @@ function Buttons({
 			})
 	}
 
-	function decline(friendship_id: null | number) {
+	function decline(friendshipId: null | number) {
 		api
-			.patch(`/friendships/${friendship_id}/update`, {
+			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.DECLINED,
 			})
 			.then(() => refresh())
@@ -173,7 +173,7 @@ function FriendRequests() {
 	async function getFriendRequests() {
 		try {
 			await api
-				.get(`/me/friend-request`)
+				.get(`/me/friend-requests`)
 				.then((result) => {
 					setRequests(result.data)
 				})
