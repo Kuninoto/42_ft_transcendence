@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
+import { TerminusModule } from '@nestjs/terminus';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import 'dotenv/config';
 import { join } from 'path';
 import { AuthModule } from 'src/module/auth/auth.module';
 import { UsersModule } from 'src/module/users/users.module';
+import { AppController } from './app.controller';
 import { PostgresConfigService } from './config/database/postgres-config.service';
 import { AchievementModule } from './module/achievement/achievement.module';
 import { ChatModule } from './module/chat/chat.module';
@@ -43,6 +45,11 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
     MeModule,
     UserStatsModule,
     UsersModule,
+    TerminusModule.forRoot({
+      logger: true,
+      errorLogStyle: 'pretty',
+    }),
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
