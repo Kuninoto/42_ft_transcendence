@@ -167,15 +167,18 @@ export class ChatService {
     newRoom.admins = [owner];
     newRoom.owner = owner;
 
+    const savedRoom: ChatRoom = await this.chatRoomRepository.save(newRoom);
+
     const ownerSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(owner.id.toString());
 
     if (ownerSocketId) {
       this.connectionGateway.server
         .to(ownerSocketId)
-        .socketsJoin(createRoomRequest.name);
+        .socketsJoin(`room-${savedRoom.id}`);
     }
-    return await this.chatRoomRepository.save(newRoom);
+
+    return savedRoom;
   }
 
   public async findChatterInfoByUID(userId: number): Promise<UserBasicProfile> {
