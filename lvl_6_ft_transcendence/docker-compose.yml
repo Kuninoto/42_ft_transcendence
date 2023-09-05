@@ -15,18 +15,6 @@ services:
       - ./backend/.env
     restart: always
 
-  frontend:
-    container_name: frontend
-    build: ./frontend
-    ports:
-      - 3001:3000
-    volumes:
-      - ./frontend/common:/app/common
-      - ./frontend/app:/app/app
-      - ./frontend/public:/app/public
-      - ./frontend/contexts:/app/contexts
-    restart: always
-
   adminer:
     container_name: adminer
     image: adminer:latest
@@ -39,6 +27,18 @@ services:
       - app-net
     depends_on:
       - postgres
+    restart: always
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - 3001:3000
+    volumes:
+      - ./frontend/common:/app/common
+      - ./frontend/app:/app/app
+      - ./frontend/public:/app/public
+      - ./frontend/contexts:/app/contexts
     restart: always
 
   nest:

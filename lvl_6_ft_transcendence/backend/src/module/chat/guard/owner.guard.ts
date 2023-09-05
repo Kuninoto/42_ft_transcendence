@@ -29,7 +29,7 @@ export class OwnerGuard implements CanActivate {
       | RemoveRoomPasswordRequest = request.body;
     const requestingUser: User = request.user;
 
-    const roomId = body.roomId || request.params.roomId;
+    const roomId: number = body.roomId || request.params.roomId;
     if (!roomId) {
       this.logger.warn(
         `${requestingUser.name} sent an invalid request for a chat room action`,
@@ -40,7 +40,7 @@ export class OwnerGuard implements CanActivate {
     }
 
     const room: ChatRoom | null = await this.chatService.findRoomById(
-      body.roomId,
+      roomId,
     );
 
     if (!room) {

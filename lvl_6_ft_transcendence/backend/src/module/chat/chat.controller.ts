@@ -46,7 +46,6 @@ import {
   UpdateRoomPasswordRequest,
   UserBasicProfile,
 } from 'types';
-import { PossibleInvitesRequest } from 'types/chat/request/possible-invites-request';
 import { ChatService } from './chat.service';
 import { AdminGuard } from './guard/admin.guard';
 import { OwnerGuard } from './guard/owner.guard';
@@ -99,9 +98,9 @@ export class ChatController {
       'This is the route to visit to search for ChatRoomSearchInfo, by room-name proximity.\nReturns the rooms that match that "piece" of name, If no <name> is provided returns all rooms',
   })
   @ApiQuery({
-    description: 'A piece of the room name(s) to match',
     name: 'room-name',
     type: 'string',
+    description: 'A piece of the room name(s) to match',
   })
   @Get('/rooms/search')
   public async findRoomsByNameProximity(
@@ -138,10 +137,7 @@ export class ChatController {
   public async findRoomBans(
     @Param('roomId') roomId: number,
   ): Promise<UserBasicProfile[]> {
-    const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
-    }
+    const room: ChatRoom = await this.chatService.findRoomById(roomId);
 
     return room.bans.map(
       (bannedUser: User): UserBasicProfile => ({
@@ -261,7 +257,11 @@ export class ChatController {
     );
   }
 
-  @ApiBody({ type: PossibleInvitesRequest })
+  @ApiQuery({
+    name: 'friendId',
+    type: 'number',
+    description: 'The user id of the friend',
+  })
   @ApiNotFoundResponse({
     description: "If user with id=body.friendUID doesn't exist",
   })
@@ -272,9 +272,9 @@ export class ChatController {
   @Get('/possible-invites')
   public async possibleInvites(
     @ExtractUser() user: User,
-    @Body() body: PossibleInvitesRequest,
+    @Query('friendId') friendID: number,
   ): Promise<ChatRoomInterface[] | ErrorResponse> {
-    return await this.chatService.findPossibleInvites(user.id, body.friendUID);
+    return await this.chatService.findPossibleInvites(user.id, friendID);
   }
 
   @ApiBody({ type: RoomOperationRequest })
