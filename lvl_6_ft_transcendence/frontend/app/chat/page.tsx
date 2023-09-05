@@ -6,6 +6,7 @@ import {
 	GetChatterRoleEvent,
 	GetChatterRoleMessage,
 	MuteDuration,
+	UserBasicProfile,
 } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
@@ -38,7 +39,7 @@ function RoomSettings({
 	closeModal: () => void
 	id: number
 }) {
-	const [bans, setBans] = useState<>([])
+	const [bans, setBans] = useState<UserBasicProfile[]>([])
 
 	const { handleSubmit, register } = useForm()
 
@@ -87,6 +88,7 @@ function RoomSettings({
 
 						<button onClick={removePassword}>Remove password</button>
 					</div>
+					{console.log(bans)}
 				</div>
 			</div>
 		</div>
