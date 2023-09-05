@@ -405,9 +405,17 @@ export class ChatService {
       );
     }
 
+    const inviteId: number = this.roomInviteMap.createRoomInvite({
+      roomId: roomId,
+      inviterUID: inviterUID,
+      receiverUID: receiverUID,
+    });
+
     this.connectionGateway.sendRoomInviteReceived(receiverUID, {
+      inviteId: inviteId,
       inviterUID: inviterUID,
       roomId: roomId,
+      roomName: room.name,
     });
 
     return { message: 'Successfully sent room invite' };
