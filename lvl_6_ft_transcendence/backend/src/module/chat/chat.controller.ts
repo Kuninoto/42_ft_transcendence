@@ -226,7 +226,7 @@ export class ChatController {
     }
 
     await this.chatService.leaveRoom(room, body.userId, true);
-    return { message: `Succesfully left room "${room.name}"` };
+    return { message: `Successfully left room "${room.name}"` };
   }
 
   @ApiBody({ type: InviteToRoomRequest })
@@ -236,7 +236,7 @@ export class ChatController {
   })
   @ApiOkResponse({
     description:
-      'Succesfully invited user with uid=body.receiverUID to room with id=body.roomId',
+      'Successfully invited user with uid=body.receiverUID to room with id=body.roomId',
   })
   @HttpCode(HttpStatus.OK)
   @Post('/invite')
@@ -256,7 +256,7 @@ export class ChatController {
   @ApiConflictResponse({ description: 'If sender tries to kick himself' })
   @ApiOkResponse({
     description:
-      'Succesfully kicked user with uid=body.userId from room with id=body.roomId',
+      'Successfully kicked user with uid=body.userId from room with id=body.roomId',
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -318,7 +318,7 @@ export class ChatController {
   })
   @ApiOkResponse({
     description:
-      'Succesfully muted user with id=body.userId on room with id=body.roomId',
+      'Successfully muted user with id=body.userId on room with id=body.roomId',
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -371,7 +371,7 @@ export class ChatController {
   })
   @ApiOkResponse({
     description:
-      'Succesfully granted admin privileges to user with id=body.userId on room with id=body.roomId',
+      'Successfully granted admin privileges to user with id=body.userId on room with id=body.roomId',
   })
   @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
@@ -401,7 +401,7 @@ export class ChatController {
   })
   @ApiOkResponse({
     description:
-      'Succesfully removed admin privileges of user with id=body.userId on room with id=body.roomId',
+      'Successfully removed admin privileges of user with id=body.userId on room with id=body.roomId',
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -419,7 +419,7 @@ export class ChatController {
   })
   @ApiOkResponse({
     description:
-      "Succesfully updated room with id=body.roomId's password to body.newPassword",
+      "Successfully updated room with id=body.roomId's password to body.newPassword",
   })
   @UseGuards(OwnerGuard)
   @Patch('/room-password')
@@ -441,7 +441,7 @@ export class ChatController {
     description: "If request's body is malformed or if room is not protected",
   })
   @ApiOkResponse({
-    description: "Succesfully removed room with id=body.roomId's password",
+    description: "Successfully removed room with id=body.roomId's password",
   })
   @UseGuards(OwnerGuard)
   @Delete('/room-password')

@@ -115,10 +115,10 @@ export class AchievementService {
 
     if (timeout) {
       setTimeout((): void => {
-        this.connectionGateway.achievementUnlocked(userId);
+        this.connectionGateway.sendAchievementUnlocked(userId);
       }, timeout);
     } else {
-      this.connectionGateway.achievementUnlocked(userId);
+      this.connectionGateway.sendAchievementUnlocked(userId);
     }
 
     this.logger.log(`User with id= ${userId} just received ${achievement}!`);
