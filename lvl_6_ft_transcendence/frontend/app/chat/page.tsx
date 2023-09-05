@@ -1,7 +1,12 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomRoles, GetChatterRoleEvent, GetChatterRoleMessage, MuteDuration } from '@/common/types'
+import {
+	ChatRoomRoles,
+	GetChatterRoleEvent,
+	GetChatterRoleMessage,
+	MuteDuration,
+} from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
@@ -11,10 +16,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { AiOutlineUserAdd } from 'react-icons/ai'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
-import { LuSwords } from 'react-icons/lu'
-import { MdOutlineBlock } from 'react-icons/md'
 import { toast } from 'react-toastify'
 
 interface IMuteTooltip {
@@ -109,7 +113,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 						type="radio"
 						value={MuteDuration.THIRTEEN_SECS}
 					/>
-					<span htmlFor="30s">30s</span>
+					<label htmlFor="30s">30s</label>
 				</fieldset>
 
 				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
@@ -120,7 +124,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 						type="radio"
 						value={MuteDuration.FIVE_MINS}
 					/>
-					<span htmlFor="5m">5m</span>
+					<label htmlFor="5m">5m</label>
 				</fieldset>
 
 				<input
@@ -222,10 +226,20 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	)
 }
 
+function InviteFriend() {
+	return (
+		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs text-white">
+			<div>Invite to room</div>
+		</div>
+	)
+}
+
 export default function Chat() {
 	const [message, setMessage] = useState('')
 	const [settings, setSettings] = useState(false)
 	const pathname = usePathname()
+
+	const { user } = useAuth()
 
 	const [role, setRole] = useState<ChatRoomRoles>()
 	const [authorRole, setAuthorRole] = useState<ChatRoomRoles>()
@@ -239,7 +253,6 @@ export default function Chat() {
 		focus,
 		isOpen,
 		openChats,
-		rejectChallenge,
 		sendMessage,
 	} = useFriends()
 
@@ -288,12 +301,27 @@ export default function Chat() {
 			absolute right-28 flex h-96 w-[38rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% transition-all`}
 			>
 				<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
-					{'room' in currentOpenChat &&
-						currentOpenChat.room.myRole === ChatRoomRoles.OWNER && (
-							<button className="" onClick={() => setSettings(true)}>
-								<FiSettings size={24} />
+					<div className="flex space-x-2">
+						{'room' in currentOpenChat &&
+							currentOpenChat.room.ownerId === user.id && (
+								<button
+									className="hover:text-primary-fushia"
+									onClick={() => setSettings(true)}
+								>
+									<FiSettings size={24} />
+								</button>
+							)}
+						<Tippy
+							content={<InviteFriend />}
+							interactive
+							placement={'top'}
+							trigger={'click'}
+						>
+							<button className="hover:text-primary-fushia">
+								<AiOutlineUserAdd size={24} />
 							</button>
-						)}
+						</Tippy>
+					</div>
 					<button className="w-full" onClick={changeOpenState}>
 						{'friend' in currentOpenChat
 							? currentOpenChat.friend?.name
@@ -369,31 +397,40 @@ export default function Chat() {
 					</div>
 
 					<div className="relative flex h-full w-8/12 flex-col place-content-between">
-						{'friend' in currentOpenChat && !!currentOpenChat.challengeId && (
-							<div className="absolute top-0 flex h-[49px] w-full place-content-between items-center border-b border-white bg-[#170317] px-4">
-								<div>Challenged you</div>
-								<div className="flex space-x-2">
-									<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-										<LuSwords />
-									</button>
-									<button
-										className="rounded border border-red-600 p-2 text-red-600 hover:bg-red-600 hover:text-white"
-										onClick={() => rejectChallenge(currentOpenChat.friend?.uid)}
-									>
-										<MdOutlineBlock />
-									</button>
-								</div>
-							</div>
-						)}
-						<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+						<div className="flex h-[17.5rem] flex-col-reverse space-y-8 overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 							{currentOpenChat?.messages?.map((message, index) => {
 								if ('warning' in message) {
 									return (
 										<div
-											className="mb-4 flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
+											className="flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
 											key={index}
 										>
 											{message.warning}
+										</div>
+									)
+								}
+
+								if ('game' in message) {
+									if (message.game) {
+										return (
+											<div
+												className="mx-auto flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
+												key={index}
+											>
+												<span>Challange you</span>
+												<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+													Accept
+												</button>
+											</div>
+										)
+									}
+
+									return (
+										<div
+											className="mx-auto flex w-5/6 rounded border border-white p-2"
+											key={index}
+										>
+											Invite
 										</div>
 									)
 								}
@@ -408,7 +445,7 @@ export default function Chat() {
 
 								if (!message.sendByMe) {
 									return (
-										<div className="mb-2" key={message.uniqueID}>
+										<div className="" key={message.uniqueID}>
 											<div className="w-fit max-w-[60%] break-words rounded border border-white p-2">
 												{message.content}
 											</div>
@@ -456,27 +493,23 @@ export default function Chat() {
 
 								return (
 									<div
-										className="mb-2 flex w-full flex-col place-content-end items-end space-y-1 "
+										className="flex w-full flex-col place-content-end items-end"
 										key={message.uniqueID}
 									>
 										<div className="max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
 											{message.content}
 										</div>
 										{isRoom && isLastOfMe && (
-											<div className="mb-4 text-[0.5rem] text-gray-500">
-												You
-											</div>
+											<div className="text-[0.5rem] text-gray-500">You</div>
 										)}
 									</div>
 								)
 							})}
 						</div>
 
-						{console.log(openChats)}
-
 						{('room' in currentOpenChat &&
 							!currentOpenChat.forbiddenChatReason) ||
-						'friends' in currentOpenChat ? (
+						'friend' in currentOpenChat ? (
 							<textarea
 								className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
 								cols={2}

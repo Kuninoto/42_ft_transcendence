@@ -1,11 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import {
-	FriendRequest,
-	FriendshipStatus,
-	UserSearchInfo,
-} from '@/common/types'
+import { FriendRequest, FriendshipStatus, UserSearchInfo } from '@/common/types'
 import { removeParams } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
@@ -15,11 +11,11 @@ import { MdOutlineBlock, MdOutlineClear, MdOutlineDone } from 'react-icons/md'
 import { toast } from 'react-toastify'
 
 interface InfoOrRequest {
+	blocked_by_me: bool
 	friendship_id: null | number
 	sent_by_me: boolean | null
 	status: null | string
 	uid: number
-	blocked_by_me: bool
 }
 
 function Buttons({
@@ -36,13 +32,13 @@ function Buttons({
 	const { refreshFriends } = useFriends()
 
 	const friend: InfoOrRequest = {
+		blocked_by_me: isRequest ? false : request.blocked_by_me,
 		friendship_id: isRequest ? request.friendship_id : null,
 		sent_by_me: isRequest
 			? request.sent_by_me
 			: request.friend_request_sent_by_me,
 		status: isRequest ? request.status : request.friendship_status,
 		uid: isRequest ? request.uid : request.id,
-		blocked_by_me: isRequest ? false: request.blocked_by_me
 	}
 
 	async function basis(
@@ -90,7 +86,6 @@ function Buttons({
 		api.post(`/friendships/block/${userId}`).then(() => refresh())
 	}
 
-
 	function unblock(userId: number) {
 		try {
 			api
@@ -113,12 +108,12 @@ function Buttons({
 
 	if (friend.blocked_by_me) {
 		return (
-				<button
-					className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-					onClick={(e) => basis(e, unblock(friend?.uid))}
-				>
-					Unblock
-				</button>
+			<button
+				className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+				onClick={(e) => basis(e, unblock(friend?.uid))}
+			>
+				Unblock
+			</button>
 		)
 	}
 
@@ -220,8 +215,8 @@ function FriendRequests() {
 							<div className="relative aspect-square w-8 rounded">
 								<Image
 									alt="profile picture"
-									fill
 									className="object-cover"
+									fill
 									loader={removeParams}
 									sizes="100%"
 									src={request?.avatar_url || '/placeholder.gif'}
