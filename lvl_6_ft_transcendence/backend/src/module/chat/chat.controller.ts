@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	Body,
 	Controller,
 	Delete,
@@ -273,9 +274,10 @@ export class ChatController {
 	@Get('/possible-invites')
 	public async possibleInvites(
 		@ExtractUser() user: User,
-		@Query('friendId') friendID: number,
+		@Query('friendId') friendId: number,
 	): Promise<ChatRoomInterface[] | ErrorResponse> {
-		return await this.chatService.findPossibleInvites(user.id, friendID);
+		if (!friendId) throw new BadRequestException('No friendId was provided');
+		return await this.chatService.findPossibleInvites(user.id, friendId);
 	}
 
 	@ApiBody({ type: RoomOperationRequest })

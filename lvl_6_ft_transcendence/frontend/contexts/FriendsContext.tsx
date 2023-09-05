@@ -12,6 +12,7 @@ import {
 	RoomMessageReceivedEvent,
 	RoomWarning,
 	RoomWarningEvent,
+	SendGameInviteMessage,
 	SendMessageSMessage,
 } from '@/common/types'
 import {
@@ -518,7 +519,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	function sendGameInvite(id: string) {
+	function sendRoomInvite(id: string) {
 		if (!socket) return
 
 		const newRoomInvite: InviteToRoomRequest = {
