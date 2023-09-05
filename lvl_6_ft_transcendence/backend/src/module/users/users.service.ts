@@ -12,13 +12,13 @@ import * as path from 'path';
 import { Repository } from 'typeorm';
 import {
   BlockedUserInterface,
+  ChatRoomInterface,
   ErrorResponse,
   Friend,
   FriendRequest,
   FriendshipStatus,
   GameResultInterface,
   GameThemes,
-  MeChatRoom,
   MeUserInfo,
   SuccessResponse,
   UserBasicProfile,
@@ -57,7 +57,7 @@ export class UsersService {
     const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
 
     const newUser: User = await this.usersRepository.save(newUserInfo);
-    this.userStatsService.createUserStats(newUser);
+    await this.userStatsService.createUserStats(newUser);
 
     if (developersIntraName.includes(newUser.intra_name)) {
       this.achievementService.grantPongFightMaestro(newUser.id);
@@ -97,25 +97,17 @@ export class UsersService {
     return await this.friendshipsService.findBlocklistByUID(meUID);
   }
 
-  public async findChatRoomsWhereUserIs(uid: number): Promise<MeChatRoom[]> {
-    const rooms: ChatRoom[] | undefined = (
-      await this.usersRepository.findOne({
-        where: { id: uid },
-        relations: [
-          'chat_rooms',
-          'chat_rooms.owner',
-          'chat_rooms.admins',
-          'chat_rooms.users',
-        ],
-      })
-    ).chat_rooms;
+  public async findChatRoomsWhereUserIs(
+    uid: number,
+  ): Promise<ChatRoomInterface[]> {
+    const rooms: ChatRoom[] = (await this.findUserByUID(uid)).chat_rooms;
 
     if (!rooms) {
       return [];
     }
 
-    const roomInterfaces: MeChatRoom[] = rooms.map(
-      (room: ChatRoom): MeChatRoom => ({
+    const roomInterfaces: ChatRoomInterface[] = rooms.map(
+      (room: ChatRoom): ChatRoomInterface => ({
         id: room.id,
         name: room.name,
         ownerId: room.owner.id,
@@ -137,8 +129,8 @@ export class UsersService {
   ): Promise<GameResultInterface[]> {
     // Find game results where winner or loser id = userId
     const gameResults: GameResult[] = await this.gameResultRepository.find({
-      relations: { loser: true, winner: true },
       where: [{ winner: { id: userId } }, { loser: { id: userId } }],
+      relations: { winner: true, loser: true },
     });
 
     const matchHistory: GameResultInterface[] = gameResults.map(
@@ -175,15 +167,40 @@ export class UsersService {
   }
 
   public async findUserByIntraName(intraName: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ intra_name: intraName });
+    return await this.usersRepository.findOne({
+      where: { intra_name: intraName },
+      relations: [
+        'chat_rooms',
+        'chat_rooms.admins',
+        'chat_rooms.owner',
+        'chat_rooms.users',
+      ],
+    });
   }
 
   public async findUserByName(name: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ name: name });
+    return await this.usersRepository.findOne({
+      where: { name: name },
+      relations: [
+        'chat_rooms',
+        'chat_rooms.admins',
+        'chat_rooms.owner',
+        'chat_rooms.users',
+      ],
+    });
   }
 
   public async findUserByUID(userId: number): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ id: userId });
+    return await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: [
+        'chat_rooms',
+        'chat_rooms.admins',
+        'chat_rooms.owner',
+        'chat_rooms.users',
+        'banned_rooms',
+      ],
+    });
   }
 
   public async findUserProfileByUID(
@@ -198,15 +215,14 @@ export class UsersService {
       id: userId,
     });
 
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
     const friendship: Friendship | null =
       await this.friendshipsService.findFriendshipBetween2Users(
         meUser.id,
         user.id,
       );
+
     return {
       id: user.id,
       name: user.name,

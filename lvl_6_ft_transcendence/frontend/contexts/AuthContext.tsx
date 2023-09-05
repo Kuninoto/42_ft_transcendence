@@ -1,7 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { MeUserInfo } from '@/common/types/backend'
+import { MeUserInfo } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
 import axios from 'axios'
 import Cookies from 'js-cookie'
@@ -52,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			api
 				.get<MeUserInfo>('/me')
 				.then((result) => {
-					console.log(result.data)
 					if (hasValues(result.data)) setUser(result.data)
 					else logout()
 				})

@@ -1,10 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import {
-	FriendshipStatus,
-	UserProfile as IUserProfile,
-} from '@/common/types'
+import { FriendshipStatus, UserProfile as IUserProfile } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import moment from 'moment'
@@ -227,7 +224,7 @@ export default function Profile() {
 	const refreshProfile = () => {
 		try {
 			api
-				.get(`/users/profile/${id}`)
+				.get(`/users/${id}/profile`)
 				.then((result) => {
 					setUserProfile(result.data)
 				})
@@ -244,10 +241,9 @@ export default function Profile() {
 			try {
 				setModal(modalPage.HISTORY)
 				api
-					.get(`/users/profile/${id}`)
+					.get(`/users/${id}/profile`)
 					.then((result) => {
 						setUserProfile(result.data)
-						console.log(result.data)
 					})
 					.catch(() => {
 						throw 'Network error'
@@ -280,7 +276,7 @@ export default function Profile() {
 					<div className="relative aspect-square w-80 overflow-hidden rounded-xl">
 						{console.log(userProfile?.avatar_url)}
 						<Image
-							alt={'player profile picutre'}
+							alt={'player profile picture'}
 							className="h-max w-max object-cover"
 							fill
 							loader={removeParams}
@@ -321,47 +317,51 @@ export default function Profile() {
 						since{' '}
 						{hasValues(userProfile)
 							? moment(
-								userProfile?.created_at,
-								moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
-							).format('DD/MM/YY')
+									userProfile?.created_at,
+									moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
+							  ).format('DD/MM/YY')
 							: 'XX/XX/XX'}
 					</div>
 				</div>
 
-				<div className="pb-12">
+				<div className="h-full overflow-hidden pb-12">
 					<div className="-mb-px flex w-full place-content-center space-x-1 text-2xl ">
 						<button
 							className={`w-1/2 rounded-tl border border-white py-1 hover:border-white hover:text-white
-							${modal === modalPage.HISTORY
+							${
+								modal === modalPage.HISTORY
 									? 'mix-blend-exclusion'
 									: 'border-white/50 text-white/50'
-								}`}
+							}`}
 							onClick={() => setModal(modalPage.HISTORY)}
 						>
 							History
 						</button>
 						<button
 							className={`w-1/2 border border-white py-1 hover:border-white hover:text-white
-							${modal === modalPage.FRIENDS
+							${
+								modal === modalPage.FRIENDS
 									? 'mix-blend-exclusion'
 									: 'border-white/50 text-white/50'
-								}`}
+							}`}
 							onClick={() => setModal(modalPage.FRIENDS)}
 						>
 							Friends
 						</button>
 						<button
 							className={`w-1/2 rounded-tr border border-white py-1 text-lg hover:border-white hover:text-white
-							${modal === modalPage.ACHIEVEMENTS
+							${
+								modal === modalPage.ACHIEVEMENTS
 									? 'mix-blend-exclusion'
 									: 'border-white/50 text-white/50'
-								}`}
+							}`}
 							onClick={() => setModal(modalPage.ACHIEVEMENTS)}
 						>
 							Achievements
 						</button>
 					</div>
-					<div className="h-full rounded-b border border-white p-4">
+
+					<div className="h-full overflow-hidden rounded-b border border-white p-4">
 						{modal === modalPage.HISTORY ? (
 							<History
 								history={userProfile?.match_history}

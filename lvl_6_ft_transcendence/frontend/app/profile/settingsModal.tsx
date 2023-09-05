@@ -31,7 +31,7 @@ function QRCode() {
 	const [otp, setOtp] = useState('')
 	const [QRCodeEncode, setQRCodeEncode] = useState('')
 
-	const { user, logout } = useAuth()
+	const { logout, user } = useAuth()
 
 	const enable2fa = () => {
 		try {

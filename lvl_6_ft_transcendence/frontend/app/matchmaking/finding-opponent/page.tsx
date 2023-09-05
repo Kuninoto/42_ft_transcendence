@@ -16,12 +16,15 @@ export default function Loading() {
 
 	return (
 		<div className="flex h-full">
-			<div className="m-auto flex flex-col items-center place-content-center space-y-10 text-4xl">
-				<div className="flex items-end text-center space-x-4 text-3xl">
+			<div className="m-auto flex flex-col place-content-center items-center space-y-10 text-4xl">
+				<div className="flex items-end space-x-4 text-center text-3xl">
 					<div>{user?.name}</div>
 					<div className="text-xl">vs.</div>
-					<div>{opponentFound?.opponentInfo?.name || 
-					<span className="animate-blink">????</span>}</div>
+					<div>
+						{opponentFound?.opponentInfo?.name || (
+							<span className="animate-blink">????</span>
+						)}
+					</div>
 				</div>
 				<div className="relative h-72 w-96 overflow-hidden rounded">
 					<Image

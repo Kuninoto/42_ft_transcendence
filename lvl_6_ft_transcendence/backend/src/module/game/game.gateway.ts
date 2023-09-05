@@ -30,8 +30,6 @@ import { PADDLE_HEIGHT, Player } from './Player';
   namespace: 'connection',
 })
 export class GameGateway implements OnGatewayInit {
-  private readonly logger: Logger = new Logger(GameGateway.name);
-
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
@@ -40,6 +38,8 @@ export class GameGateway implements OnGatewayInit {
     @Inject(forwardRef(() => ConnectionService))
     private readonly connectionService: ConnectionService,
   ) {}
+
+  private readonly logger: Logger = new Logger(GameGateway.name);
 
   /******************************
    *          MESSAGES          *
@@ -121,6 +121,14 @@ export class GameGateway implements OnGatewayInit {
       );
       return;
     }
+
+    if (
+      !this.gameService.correctInviteUsage(
+        client.data.userId,
+        messageBody.inviteId,
+      )
+    )
+      return;
 
     if (messageBody.accepted === true) {
       await this.gameService.gameInviteAccepted(messageBody.inviteId, client);

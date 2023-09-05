@@ -29,7 +29,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   /**
-   * GET /api/users/profile/:userId
+   * GET /api/users/:userId/profile
    *
    * @description This is the route to visit to retrieve user's
    * (identified by id) profile
@@ -45,7 +45,7 @@ export class UsersController {
     description: 'User id of the user to user we want the profile of',
     name: 'userId',
   })
-  @Get('/profile/:userId')
+  @Get('/:userId/profile')
   public async findUserProfileByUID(
     @ExtractUser() user: User,
     @Param('userId', NonNegativeIntPipe) userId: number,
@@ -68,14 +68,14 @@ export class UsersController {
    * Returns up to 5 users info that match that "piece" of username
    * If no <username> is provided returns an empty array
    */
+  @ApiQuery({
+    name: 'username',
+    type: 'string',
+    description: 'A piece of the username(s) to match',
+  })
   @ApiOkResponse({
     description:
       'Finds users by username proximity and returns a UserProfile[] with up to 5 elements, if no <username> is provided returns an empty array\nIgnores blocked users and friends',
-  })
-  @ApiQuery({
-    description: 'A piece of the username(s) to match',
-    name: 'username',
-    type: 'string',
   })
   @Get('/search')
   public async findUsersByUsernameProximity(

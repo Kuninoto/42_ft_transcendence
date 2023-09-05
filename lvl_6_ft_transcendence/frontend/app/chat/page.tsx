@@ -1,11 +1,18 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomRoles, GetChatterRoleEvent, GetChatterRoleMessage, MuteDuration } from '@/common/types'
+import {
+	ChatRoomRoles,
+	GetChatterRoleEvent,
+	GetChatterRoleMessage,
+	MuteDuration,
+	UserBasicProfile,
+} from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
 import Tippy from '@tippyjs/react'
+import md5 from 'md5'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -13,8 +20,6 @@ import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
-import { LuSwords } from 'react-icons/lu'
-import { MdOutlineBlock } from 'react-icons/md'
 import { toast } from 'react-toastify'
 
 interface IMuteTooltip {
@@ -34,12 +39,15 @@ function RoomSettings({
 	closeModal: () => void
 	id: number
 }) {
-	const [bans, setBans] = useState<>([])
+	const [bans, setBans] = useState<UserBasicProfile[]>([])
 
 	const { handleSubmit, register } = useForm()
 
-	function onSubmit(data: any) {
-		console.log(data)
+	function changePassword({ password }: { password: string }) {
+		api.delete('/chat/room-password', {
+			newPassword: md5(password),
+			roomId: parseInt(id),
+		})
 	}
 
 	function removePassword() {
@@ -51,7 +59,7 @@ function RoomSettings({
 	useEffect(() => {
 		try {
 			api
-				.get(`/chat/rooms/bans?room-id=${id}`)
+				.get(`/chat/rooms/${id}/bans`)
 				.then((result) => setBans(result.data))
 				.catch(() => {
 					throw 'Network Error'
@@ -72,7 +80,7 @@ function RoomSettings({
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
 						<div>
-							<form onSubmit={handleSubmit(onSubmit)}>
+							<form onSubmit={handleSubmit(changePassword)}>
 								<input type="password" value="" {...register('password')} />
 								<input type="submit" value="Change password" />
 							</form>
@@ -109,7 +117,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 						type="radio"
 						value={MuteDuration.THIRTEEN_SECS}
 					/>
-					<span htmlFor="30s">30s</span>
+					<label htmlFor="30s">30s</label>
 				</fieldset>
 
 				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
@@ -120,7 +128,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 						type="radio"
 						value={MuteDuration.FIVE_MINS}
 					/>
-					<span htmlFor="5m">5m</span>
+					<label htmlFor="5m">5m</label>
 				</fieldset>
 
 				<input
@@ -142,7 +150,6 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	}
 
 	function demote() {
-		console.log(id, roomId)
 		api
 			.post(`/chat/remove-admin`, {
 				roomId: parseInt(roomId),
@@ -227,6 +234,8 @@ export default function Chat() {
 	const [settings, setSettings] = useState(false)
 	const pathname = usePathname()
 
+	const { user } = useAuth()
+
 	const [role, setRole] = useState<ChatRoomRoles>()
 	const [authorRole, setAuthorRole] = useState<ChatRoomRoles>()
 
@@ -239,7 +248,6 @@ export default function Chat() {
 		focus,
 		isOpen,
 		openChats,
-		rejectChallenge,
 		sendMessage,
 	} = useFriends()
 
@@ -253,7 +261,6 @@ export default function Chat() {
 			'getChatterRole',
 			newGetChatterRole,
 			function (data: GetChatterRoleEvent) {
-				console.log(data)
 				setRole(data.myRole)
 				setAuthorRole(data.authorRole)
 			}
@@ -289,8 +296,11 @@ export default function Chat() {
 			>
 				<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
 					{'room' in currentOpenChat &&
-						currentOpenChat.room.myRole === ChatRoomRoles.OWNER && (
-							<button className="" onClick={() => setSettings(true)}>
+						currentOpenChat.room.ownerId === user.id && (
+							<button
+								className="hover:text-primary-fushia"
+								onClick={() => setSettings(true)}
+							>
 								<FiSettings size={24} />
 							</button>
 						)}
@@ -369,22 +379,6 @@ export default function Chat() {
 					</div>
 
 					<div className="relative flex h-full w-8/12 flex-col place-content-between">
-						{'friend' in currentOpenChat && !!currentOpenChat.challengeId && (
-							<div className="absolute top-0 flex h-[49px] w-full place-content-between items-center border-b border-white bg-[#170317] px-4">
-								<div>Challenged you</div>
-								<div className="flex space-x-2">
-									<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-										<LuSwords />
-									</button>
-									<button
-										className="rounded border border-red-600 p-2 text-red-600 hover:bg-red-600 hover:text-white"
-										onClick={() => rejectChallenge(currentOpenChat.friend?.uid)}
-									>
-										<MdOutlineBlock />
-									</button>
-								</div>
-							</div>
-						)}
 						<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 							{currentOpenChat?.messages?.map((message, index) => {
 								if ('warning' in message) {
@@ -394,6 +388,31 @@ export default function Chat() {
 											key={index}
 										>
 											{message.warning}
+										</div>
+									)
+								}
+
+								if ('game' in message) {
+									if (message.game) {
+										return (
+											<div
+												className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
+												key={index}
+											>
+												<span>Challange you</span>
+												<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+													Accept
+												</button>
+											</div>
+										)
+									}
+
+									return (
+										<div
+											className="mx-auto flex w-5/6 rounded border border-white p-2"
+											key={index}
+										>
+											Invite
 										</div>
 									)
 								}
@@ -408,7 +427,10 @@ export default function Chat() {
 
 								if (!message.sendByMe) {
 									return (
-										<div className="mb-2" key={message.uniqueID}>
+										<div
+											className={isLastOfSameAuthor ? 'mb-4' : 'mb-2'}
+											key={message.uniqueID}
+										>
 											<div className="w-fit max-w-[60%] break-words rounded border border-white p-2">
 												{message.content}
 											</div>
@@ -429,6 +451,7 @@ export default function Chat() {
 															? 'right'
 															: 'top'
 													}
+													hideOnClick
 													interactive
 													trigger={'click'}
 												>
@@ -456,27 +479,25 @@ export default function Chat() {
 
 								return (
 									<div
-										className="mb-2 flex w-full flex-col place-content-end items-end space-y-1 "
+										className={`flex w-full flex-col place-content-end items-end ${
+											isLastOfMe ? 'mb-4' : 'mb-2'
+										}`}
 										key={message.uniqueID}
 									>
 										<div className="max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
 											{message.content}
 										</div>
 										{isRoom && isLastOfMe && (
-											<div className="mb-4 text-[0.5rem] text-gray-500">
-												You
-											</div>
+											<div className="text-[0.5rem] text-gray-500">You</div>
 										)}
 									</div>
 								)
 							})}
 						</div>
 
-						{console.log(openChats)}
-
 						{('room' in currentOpenChat &&
 							!currentOpenChat.forbiddenChatReason) ||
-						'friends' in currentOpenChat ? (
+						'friend' in currentOpenChat ? (
 							<textarea
 								className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
 								cols={2}

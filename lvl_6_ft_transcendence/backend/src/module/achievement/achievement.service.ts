@@ -108,17 +108,17 @@ export class AchievementService {
       return;
     }
 
-    this.achievementRepository.save({
-      achievement: achievement,
+    await this.achievementRepository.save({
       user: { id: userId },
+      achievement: achievement,
     });
 
     if (timeout) {
       setTimeout((): void => {
-        this.connectionGateway.achievementUnlocked(userId);
+        this.connectionGateway.sendAchievementUnlocked(userId);
       }, timeout);
     } else {
-      this.connectionGateway.achievementUnlocked(userId);
+      this.connectionGateway.sendAchievementUnlocked(userId);
     }
 
     this.logger.log(`User with id= ${userId} just received ${achievement}!`);

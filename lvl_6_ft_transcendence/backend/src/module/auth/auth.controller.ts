@@ -22,6 +22,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity/index';
 import { UsersService } from 'src/module/users/users.service';
@@ -198,15 +199,13 @@ export class AuthController {
   @Post('2fa/generate')
   public async generate2faQRCodeAndSecret(
     @ExtractUser() user: User,
-    @Res() res: any,
-  ): Promise<string> {
+    @Res() res: Response,
+  ): Promise<void> {
     const info2fa: OtpInfoDTO = await this.authService.generate2faSecret();
 
     await this.usersService.update2faSecretByUID(user.id, info2fa.secret);
 
-    return res.json(
-      await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL),
-    );
+    res.json(await this.authService.generateQRCodeDataURL(info2fa.otpAuthURL));
   }
 
   /**
