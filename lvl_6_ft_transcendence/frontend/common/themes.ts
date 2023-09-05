@@ -8,6 +8,7 @@ interface IThemes {
 
 const HEX_WHITE: string = '#FFFFFF'
 const HEX_BLACK: string = '#000000'
+const HEX_PINK: string = '#ff28b9'
 const HEX_CYAN: string = '#1EB9BA'
 
 export const themes: IThemes = {
@@ -22,9 +23,9 @@ export const themes: IThemes = {
 		paddle: 'white.png',
 	},
 	fortyTwo: {
-		background: 'forty_two.jpg',
-		ball: HEX_CYAN,
-		paddle: 'white.png',
+		background: '42porto.jpeg',
+		ball: HEX_PINK,
+		paddle: 'white.jpeg',
 	},
 	halloween: {
 		background: 'halloween.jpg',
