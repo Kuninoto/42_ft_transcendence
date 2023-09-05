@@ -5,5 +5,5 @@ export class RemoveRoomPasswordRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  roomId: number;
+  readonly roomId: number;
 }

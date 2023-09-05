@@ -5,5 +5,5 @@ export class PossibleInvitesRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  friendUID: number;
+  readonly friendUID: number;
 }

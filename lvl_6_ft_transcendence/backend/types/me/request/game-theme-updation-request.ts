@@ -5,5 +5,5 @@ import { GameThemes } from 'types/game/game-themes.enum';
 export class GameThemeUpdationRequest {
   @ApiProperty()
   @IsEnum(GameThemes)
-  newGameTheme: GameThemes;
+  readonly newGameTheme: GameThemes;
 }

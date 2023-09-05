@@ -38,7 +38,3 @@ export class Player {
         : CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET;
   }
 }
-
-export interface IPlayer {
-  paddleY: number;
-}

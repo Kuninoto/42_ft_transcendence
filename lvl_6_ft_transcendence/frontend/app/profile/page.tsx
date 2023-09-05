@@ -280,7 +280,7 @@ export default function Profile() {
 					<div className="relative aspect-square w-80 overflow-hidden rounded-xl">
 						{console.log(userProfile?.avatar_url)}
 						<Image
-							alt={'player profile picutre'}
+							alt={'player profile picture'}
 							className="h-max w-max object-cover"
 							fill
 							loader={removeParams}
