@@ -8,7 +8,17 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
-import { GameEndEvent, GameRoomInfoEvent, InvitedToGameEvent, PaddleMoveMessage, PlayerReadyMessage, PlayerScoredEvent, PlayerSide, RespondToGameInviteMessage, SendGameInviteMessage } from 'types';
+import {
+  GameEndEvent,
+  GameRoomInfoEvent,
+  InvitedToGameEvent,
+  PaddleMoveMessage,
+  PlayerReadyMessage,
+  PlayerScoredEvent,
+  PlayerSide,
+  RespondToGameInviteMessage,
+  SendGameInviteMessage,
+} from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
 import { GameService } from './game.service';
@@ -100,12 +110,6 @@ export class GameGateway implements OnGatewayInit {
       .emit('invitedToGame', invitedToGame);
   }
 
-  /**
-   * Listen to 'respondToGameInvite' messages
-   *
-   * @param client client's socket
-   * @param messageBody body of the received message
-   */
   @SubscribeMessage('respondToGameInvite')
   async respondToGameInvite(
     @ConnectedSocket() client: Socket,
@@ -125,12 +129,6 @@ export class GameGateway implements OnGatewayInit {
     }
   }
 
-  /**
-   * Listen to 'playerReady' messages
-   *
-   * @param client client's socket
-   * @param messageBody body of the received message
-   */
   @SubscribeMessage('playerReady')
   playerReady(
     @ConnectedSocket() client: Socket,
@@ -146,9 +144,6 @@ export class GameGateway implements OnGatewayInit {
     this.gameService.playerReady(messageBody.gameRoomId, client.id);
   }
 
-  /*
-   * Listen to 'paddleMove' messages
-   */
   @SubscribeMessage('paddleMove')
   paddleMove(
     @ConnectedSocket() client: Socket,
@@ -201,7 +196,7 @@ export class GameGateway implements OnGatewayInit {
     gameRoomId: string,
     leftPlayerScore: number,
     rightPlayerScore: number,
-  ) {
+  ): void {
     const playerScoredEvent: PlayerScoredEvent = {
       leftPlayerScore: leftPlayerScore,
       rightPlayerScore: rightPlayerScore,

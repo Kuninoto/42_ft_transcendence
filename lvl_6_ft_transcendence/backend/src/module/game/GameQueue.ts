@@ -11,14 +11,14 @@ export class GameQueue {
     this.players = [];
   }
 
-  public dequeue(): Player | undefined {
-    this.logger.log(`${this.size()} players in queue`);
-    return this.players.shift();
-  }
-
   public enqueue(player: Player): void {
     this.players.push(player);
     this.logger.log(`${this.size()} players in queue`);
+  }
+
+  public dequeue(): Player | undefined {
+    this.logger.log(`${this.size()} players in queue`);
+    return this.players.shift();
   }
 
   public isEmpty(): boolean {
@@ -26,27 +26,23 @@ export class GameQueue {
   }
 
   public isPlayerInQueue(playerUID: number): boolean {
-    const playerIndex: number = this.players.findIndex((player) => {
-      return player.userId === playerUID;
-    });
+    const playerIndex: number = this.players.findIndex(
+      (player: Player): boolean => {
+        return player.userId === playerUID;
+      },
+    );
 
-    if (playerIndex === -1) {
-      return false;
-    }
-
-    return true;
+    return playerIndex !== -1;
   }
 
-  public removePlayerFromQueueByUID(playerUID: number): null | Player {
-    const playerIndex: number = this.players.findIndex((player) => {
-      return player.userId === playerUID;
-    });
+  public removePlayerFromQueueByUID(playerUID: number): Player | null {
+    const playerIndex: number = this.players.findIndex(
+      (player: Player): boolean => {
+        return player.userId === playerUID;
+      },
+    );
 
-    if (playerIndex === -1) {
-      return null;
-    }
-
-    return this.players.splice(playerIndex, 1)[0];
+    return playerIndex === -1 ? null : this.players.splice(playerIndex, 1)[0];
   }
 
   public size(): number {

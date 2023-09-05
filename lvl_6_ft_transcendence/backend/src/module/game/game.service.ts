@@ -7,8 +7,8 @@ import {
   GameInvite,
   GameType,
   OpponentFoundEvent,
-  OpponentInfo,
   PlayerSide,
+  UserBasicProfile,
   UserStatus,
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -50,8 +50,8 @@ export class GameService {
     roomId: string,
     opponentUID: number,
   ): Promise<void> {
-    const opponentInfo: OpponentInfo =
-      await this.usersService.findOpponentInfoByUID(opponentUID);
+    const opponentInfo: UserBasicProfile =
+      await this.usersService.findUserBasicProfileByUID(opponentUID);
 
     const opponentFound: OpponentFoundEvent = {
       opponentInfo: opponentInfo,
@@ -143,10 +143,10 @@ export class GameService {
     } else {
       // Remove player from queue if he was there
       this.gameQueue.removePlayerFromQueueByUID(playerUserId);
-      await this.connectionGateway.updateUserStatus(
-        playerUserId,
-        UserStatus.ONLINE,
-      );
+      await this.connectionGateway.updateUserStatus({
+        uid: playerUserId,
+        newStatus: UserStatus.ONLINE,
+      });
     }
   }
 
@@ -176,14 +176,14 @@ export class GameService {
 
     await this.saveGameResult(gameType, winner, loser);
 
-    await this.connectionGateway.updateUserStatus(
-      winner.userId,
-      UserStatus.ONLINE,
-    );
-    await this.connectionGateway.updateUserStatus(
-      loser.userId,
-      UserStatus.ONLINE,
-    );
+    await this.connectionGateway.updateUserStatus({
+      uid: winner.userId,
+      newStatus: UserStatus.ONLINE,
+    });
+    await this.connectionGateway.updateUserStatus({
+      uid: loser.userId,
+      newStatus: UserStatus.ONLINE,
+    });
 
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
@@ -278,14 +278,14 @@ export class GameService {
     gameRoom = this.gameRoomMap.findGameRoomById(gameRoomId);
 
     if (gameRoom.leftPlayer.isReady && gameRoom.rightPlayer.isReady) {
-      await this.connectionGateway.updateUserStatus(
-        gameRoom.rightPlayer.userId,
-        UserStatus.IN_GAME,
-      );
-      await this.connectionGateway.updateUserStatus(
-        gameRoom.leftPlayer.userId,
-        UserStatus.IN_GAME,
-      );
+      await this.connectionGateway.updateUserStatus({
+        uid: gameRoom.rightPlayer.userId,
+        newStatus: UserStatus.IN_GAME,
+      });
+      await this.connectionGateway.updateUserStatus({
+        uid: gameRoom.leftPlayer.userId,
+        newStatus: UserStatus.IN_GAME,
+      });
 
       setTimeout(() => {
         this.gameEngine.startGame(gameRoomId);
@@ -295,10 +295,10 @@ export class GameService {
 
   public async queueToLadder(player: Player): Promise<void> {
     this.gameQueue.enqueue(player);
-    await this.connectionGateway.updateUserStatus(
-      player.userId,
-      UserStatus.IN_QUEUE,
-    );
+    await this.connectionGateway.updateUserStatus({
+      uid: player.userId,
+      newStatus: UserStatus.IN_QUEUE,
+    });
 
     // If there's no more players on the queue, assign the left side and keep him waiting
     if (this.gameQueue.size() === 1) {

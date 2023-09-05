@@ -18,12 +18,12 @@ import {
   ChatRoomInterface,
   ChatRoomSearchInfo,
   ChatRoomType,
-  Chatter,
   CreateRoomRequest,
   DirectMessageReceivedEvent,
   ErrorResponse,
   RoomWarning,
   SuccessResponse,
+  UserBasicProfile,
 } from 'types';
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -90,7 +90,7 @@ export class ChatService {
     if (!missedDMs) return;
 
     // Send every missed DM
-    missedDMs.forEach(async (dm: DirectMessage) => {
+    missedDMs.forEach(async (dm: DirectMessage): Promise<void> => {
       const directMessageReceived: DirectMessageReceivedEvent = {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),
@@ -120,9 +120,11 @@ export class ChatService {
   public async createRoom(
     createRoomRequest: CreateRoomRequest,
     owner: User,
-  ): Promise<ChatRoom> {
+  ): Promise<ChatRoom | ErrorResponse> {
     // If room name's already taken
-    const room: ChatRoom | null = await this.findRoomByName(createRoomRequest.name);
+    const room: ChatRoom | null = await this.findRoomByName(
+      createRoomRequest.name,
+    );
     if (room) {
       this.logger.warn(
         `${owner.name} tried to create a room with already taken name: "${createRoomRequest.name}"`,
@@ -170,14 +172,8 @@ export class ChatService {
     return this.chatRoomRepository.save(newRoom);
   }
 
-  public async findChatterInfoByUID(userId: number): Promise<Chatter> {
-    const user: User = await this.usersService.findUserByUID(userId);
-
-    return {
-      id: user.id,
-      name: user.name,
-      avatar_url: user.avatar_url,
-    };
+  public async findChatterInfoByUID(userId: number): Promise<UserBasicProfile> {
+    return await this.usersService.findUserBasicProfileByUID(userId);
   }
 
   public async findRoomById(roomId: number): Promise<ChatRoom | null> {
@@ -350,17 +346,12 @@ export class ChatService {
       );
     }
 
-    const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(receiverUID.toString());
+    this.connectionGateway.sendRoomInvite(receiverUID, {
+      inviterUID: inviterUID,
+      roomId: roomId,
+    });
 
-    if (receiverSocketId) {
-      this.connectionGateway.server.to(receiverSocketId).emit('roomInvite', {
-        inviterUID: inviterUID,
-        roomId: roomId,
-      });
-    }
-
-    return { message: 'Succesfully sent invite to room' };
+    return { message: 'Successfully sent room invite' };
   }
 
   public async assignAdminRole(
@@ -412,7 +403,7 @@ export class ChatService {
       `"${userToAssignRole.name}" is now an admin on room: "${room.name}"`,
     );
     return {
-      message: `Succesfully assigned admin privileges to "${userToAssignRole.name}"`,
+      message: `Successfully assigned admin privileges to "${userToAssignRole.name}"`,
     };
   }
 
@@ -459,7 +450,7 @@ export class ChatService {
       `${userToRemoveRole.name} is no longer an admin in room: "${room.name}"`,
     );
     return {
-      message: `Succesfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
+      message: `Successfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
     };
   }
 
@@ -498,7 +489,7 @@ export class ChatService {
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
     return {
-      message: `Succesfully banned "${userToBan.name}" from room "${room.name}"`,
+      message: `Successfully banned "${userToBan.name}" from room "${room.name}"`,
     };
   }
 
@@ -524,7 +515,7 @@ export class ChatService {
       `${userToUnban.name} was unbanned from room "${room.name}"`,
     );
     return {
-      message: `Succesfully unbanned "${userToUnban.name}" from room "${room.name}"`,
+      message: `Successfully unbanned "${userToUnban.name}" from room "${room.name}"`,
     };
   }
 
@@ -651,7 +642,7 @@ export class ChatService {
     this.logger.log(
       `"${userToMute.name}" is now muted on room: "${room.name}"`,
     );
-    return { message: `Succesfully muted "${userToMute.name}"` };
+    return { message: `Successfully muted "${userToMute.name}"` };
   }
 
   public async unmuteUser(
@@ -679,7 +670,7 @@ export class ChatService {
         `${userToUnmute.name} was unmuted on room: "${room.name}"`,
       );
     }
-    return { message: `Succesfully unmuted "${userToUnmute.name}"` };
+    return { message: `Successfully unmuted "${userToUnmute.name}"` };
   }
 
   public async updateRoomPassword(
@@ -699,7 +690,7 @@ export class ChatService {
     room.password = newPassword;
 
     await this.chatRoomRepository.save(room);
-    return { message: `Succesfully updated room's password` };
+    return { message: `Successfully updated room's password` };
   }
 
   public async removeRoomPassword(
@@ -718,7 +709,7 @@ export class ChatService {
     room.password = null;
 
     await this.chatRoomRepository.save(room);
-    return { message: `Succesfully updated room's password` };
+    return { message: `Successfully removed room's password` };
   }
 
   public removeUserFromRoom(room: ChatRoom, uid: number): void {

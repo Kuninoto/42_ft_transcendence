@@ -52,6 +52,17 @@ services:
       - app-net
     env_file:
       - ./backend/.env
+
+    #x-develop:
+    #  watch:
+    #    - action: sync
+    #      path: ./backend
+    #      target: /app
+    #      ignore:
+    #        - node_modules/
+
+    # TODO
+    # Remove the first 2 volumes in prod
     volumes:
       - ./backend/src:/app/src
       - ./backend/types:/app/types

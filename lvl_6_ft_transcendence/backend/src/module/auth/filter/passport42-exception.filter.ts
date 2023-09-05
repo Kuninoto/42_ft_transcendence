@@ -5,21 +5,21 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { TokenError } from 'passport-oauth2';
 import { ErrorResponse } from 'types';
 
+const FT_API_ERROR_MSG: string =
+  'The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.';
+
 @Catch(TokenError)
 export class Passport42ExceptionFilter implements ExceptionFilter {
-  private readonly logger: Logger = new Logger();
+  private readonly logger: Logger = new Logger('Passport42');
 
-  catch(exception: TokenError, host: ArgumentsHost) {
-    const ctx: HttpArgumentsHost = host.switchToHttp();
-    const response = ctx.getResponse();
+  catch(exception: TokenError, host: ArgumentsHost): void {
+    const response: any = host.switchToHttp().getResponse();
 
     const errorResponse: ErrorResponse = {
-      message:
-        'The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.',
+      message: FT_API_ERROR_MSG,
       statusCode: HttpStatus.BAD_REQUEST,
     };
 

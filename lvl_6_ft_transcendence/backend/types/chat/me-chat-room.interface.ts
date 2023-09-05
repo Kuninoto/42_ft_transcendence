@@ -1,8 +1,8 @@
-import { Chatter } from './chatter.interface';
+import { UserBasicProfile } from 'types/user';
 
 export interface MeChatRoom {
   id: number;
   name: string;
   ownerId: number;
-  participants: Chatter[];
+  participants: UserBasicProfile[];
 }

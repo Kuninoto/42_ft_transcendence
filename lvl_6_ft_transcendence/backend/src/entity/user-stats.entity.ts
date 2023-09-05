@@ -18,31 +18,37 @@ export class UserStats {
 
   @ApiProperty()
   @Column({
-    default: 0,
     type: 'bigint',
+    default: 0,
+    nullable: false,
   })
   wins: number;
 
   @ApiProperty()
   @Column({
-    default: 0,
     type: 'bigint',
+    default: 0,
+    nullable: false,
   })
   losses: number;
 
   @ApiProperty()
-  @Column({ default: null, nullable: true, type: 'double precision' })
+  @Column({
+    type: 'double precision',
+    nullable: true,
+    default: null,
+  })
   win_rate: number;
 
   @ApiProperty()
   @Column({
-    default: 0,
     type: 'bigint',
+    default: 0,
   })
   matches_played: number;
 
   @ApiProperty()
-  @OneToOne(() => User, (user) => user.user_stats)
+  @OneToOne(() => User, (user: User) => user.user_stats)
   @JoinColumn()
   user: User;
 }

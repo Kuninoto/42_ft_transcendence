@@ -32,7 +32,7 @@ export class AchievementService {
       await this.achievementRepository.findBy({ user: { id: userId } });
 
     const achievementsInterface: AchievementInterface[] = userAchievements.map(
-      (achievement: Achievement) => {
+      (achievement: Achievement): AchievementInterface => {
         return {
           achievement: achievement.achievement,
           description: AchievementDescriptions[achievement.achievement],
@@ -92,17 +92,11 @@ export class AchievementService {
   }
 
   public async grantDeclinedTomorrowBuddies(userId: number): Promise<void> {
-    await this.grantAchievement(
-      userId,
-      Achievements.DECLINED_TOMORROW_BUDDIES,
-    );
+    await this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
   }
 
   public async grantBreakingThePaddleBond(userId: number): Promise<void> {
-    await this.grantAchievement(
-      userId,
-      Achievements.BREAKING_THE_PADDLE_BOND,
-    );
+    await this.grantAchievement(userId, Achievements.BREAKING_THE_PADDLE_BOND);
   }
 
   private async grantAchievement(
@@ -110,8 +104,7 @@ export class AchievementService {
     achievement: Achievements,
     timeout?: number,
   ): Promise<void> {
-
-    if ((await this.userAlreadyHaveThisAchievement(userId, achievement))) {
+    if (await this.userAlreadyHaveThisAchievement(userId, achievement)) {
       return;
     }
 
@@ -121,11 +114,11 @@ export class AchievementService {
     });
 
     if (timeout) {
-      setTimeout(() => {
-        this.connectionGateway.achievementUnlocked(userId, achievement);
+      setTimeout((): void => {
+        this.connectionGateway.sendAchievementUnlocked(userId);
       }, timeout);
     } else {
-      this.connectionGateway.achievementUnlocked(userId, achievement);
+      this.connectionGateway.sendAchievementUnlocked(userId);
     }
 
     this.logger.log(`User with id= ${userId} just received ${achievement}!`);
@@ -139,7 +132,8 @@ export class AchievementService {
       await this.achievementRepository.findBy({ user: { id: userId } });
 
     return userAchievements.some(
-      (achievement) => achievement.achievement === achievementToCheck,
+      (achievement: Achievement): boolean =>
+        achievement.achievement === achievementToCheck,
     );
   }
 }

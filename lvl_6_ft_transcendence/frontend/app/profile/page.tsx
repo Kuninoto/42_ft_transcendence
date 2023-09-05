@@ -325,7 +325,7 @@ export default function Profile() {
 					</div>
 				</div>
 
-				<div className="pb-12">
+				<div className="h-full overflow-hidden pb-12">
 					<div className="-mb-px flex w-full place-content-center space-x-1 text-2xl ">
 						<button
 							className={`w-1/2 rounded-tl border border-white py-1 hover:border-white hover:text-white
@@ -361,7 +361,8 @@ export default function Profile() {
 							Achievements
 						</button>
 					</div>
-					<div className="h-full rounded-b border border-white p-4">
+
+					<div className="h-full overflow-hidden rounded-b border border-white p-4">
 						{modal === modalPage.HISTORY ? (
 							<History
 								history={userProfile?.match_history}

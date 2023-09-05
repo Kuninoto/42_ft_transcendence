@@ -28,8 +28,6 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  //private readonly logger: Logger = new Logger(UsersController.name);
-
   /**
    * GET /api/users/profile/:userId
    *
