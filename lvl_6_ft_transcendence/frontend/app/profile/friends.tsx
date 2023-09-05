@@ -24,7 +24,6 @@ export default function Friends({ friends }: { friends: Friend[] }) {
 		)
 	}
 
-	console.log(friends)
 	return (
 		<div className="flex flex-col space-y-4">
 			{friends!.map((friend) => (
