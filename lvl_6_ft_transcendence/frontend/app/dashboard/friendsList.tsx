@@ -3,11 +3,13 @@
 import { api } from '@/api/api'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
+import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
+import { HiOutlineChatAlt2 } from 'react-icons/hi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
 
@@ -18,6 +20,16 @@ enum openModalType {
 	FRIENDS = 'friends',
 	GROUPS = 'groups',
 	NULL = '',
+}
+
+function RoomsInvite({ id }: { id: number }) {
+	useEffect(() => {})
+
+	return (
+		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
+			nig
+		</div>
+	)
 }
 
 export default function FriendsList(): JSX.Element {
@@ -160,9 +172,20 @@ export default function FriendsList(): JSX.Element {
 										>
 											<BiUser size={24} />
 										</Link>
+										<Tippy
+											content={<RoomsInvite id={friend.uid} />}
+											hideOnClick
+											interactive
+											placement={'left'}
+											trigger={'click'}
+										>
+											<button className="hover:text-[#F32E7C]">
+												<HiOutlineChatAlt2 size={24} />
+											</button>
+										</Tippy>
 										<button
 											className="hover:text-[#F32E7C]"
-											onClick={() => sendGameInvite(friend.uid)}
+											onClick={() => sendGameInvite(friend.uid.toString())}
 										>
 											<LuSwords size={24} />
 										</button>
