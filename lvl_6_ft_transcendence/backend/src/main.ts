@@ -61,6 +61,7 @@ function configureSwagger(app: NestExpressApplication): void {
         description: 'Enter password',
         name: 'swagger-basic-auth',
         scheme: 'basic',
+        challenge: true,
       } as SecuritySchemeObject,
       'swagger-basic-auth',
     )

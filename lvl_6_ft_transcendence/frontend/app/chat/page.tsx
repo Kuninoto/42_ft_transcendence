@@ -382,12 +382,12 @@ export default function Chat() {
 					</div>
 
 					<div className="relative flex h-full w-8/12 flex-col place-content-between">
-						<div className="flex h-[17.5rem] flex-col-reverse space-y-8 overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+						<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 							{currentOpenChat?.messages?.map((message, index) => {
 								if ('warning' in message) {
 									return (
 										<div
-											className="flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
+											className="mb-4 flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
 											key={index}
 										>
 											{message.warning}
@@ -399,7 +399,7 @@ export default function Chat() {
 									if (message.game) {
 										return (
 											<div
-												className="mx-auto flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
+												className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
 												key={index}
 											>
 												<span>Challange you</span>
@@ -430,7 +430,10 @@ export default function Chat() {
 
 								if (!message.sendByMe) {
 									return (
-										<div className="" key={message.uniqueID}>
+										<div
+											className={isLastOfSameAuthor ? 'mb-4' : 'mb-2'}
+											key={message.uniqueID}
+										>
 											<div className="w-fit max-w-[60%] break-words rounded border border-white p-2">
 												{message.content}
 											</div>
@@ -451,6 +454,7 @@ export default function Chat() {
 															? 'right'
 															: 'top'
 													}
+													hideOnClick
 													interactive
 													trigger={'click'}
 												>
@@ -478,7 +482,9 @@ export default function Chat() {
 
 								return (
 									<div
-										className="flex w-full flex-col place-content-end items-end"
+										className={`flex w-full flex-col place-content-end items-end ${
+											isLastOfMe ? 'mb-4' : 'mb-2'
+										}`}
 										key={message.uniqueID}
 									>
 										<div className="max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
