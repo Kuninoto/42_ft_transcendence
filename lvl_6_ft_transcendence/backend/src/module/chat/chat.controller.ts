@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,6 +8,7 @@ import {
   HttpStatus,
   Logger,
   NotFoundException,
+  Param,
   Patch,
   Post,
   Query,
@@ -22,6 +24,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -30,6 +33,7 @@ import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { ChatRoom, User } from 'src/entity';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import {
+  ChatRoomInterface,
   ChatRoomSearchInfo,
   CreateRoomRequest,
   ErrorResponse,
@@ -95,9 +99,9 @@ export class ChatController {
       'This is the route to visit to search for ChatRoomSearchInfo, by room-name proximity.\nReturns the rooms that match that "piece" of name, If no <name> is provided returns all rooms',
   })
   @ApiQuery({
-    description: 'A piece of the room name(s) to match',
     name: 'room-name',
     type: 'string',
+    description: 'A piece of the room name(s) to match',
   })
   @Get('/rooms/search')
   public async findRoomsByNameProximity(
@@ -108,36 +112,33 @@ export class ChatController {
   }
 
   /**
-   * GET /api/chat/rooms/bans?room-id=
+   * GET /api/chat/rooms/:roomId/bans
    *
    * This is the route to visit to get the ids
-   * of the banned users on the room which id=room-id
+   * of the banned users on the room which id=roomId
    */
   @ApiOperation({
-    description: 'Get the ids of the banned users on room which id=room-id',
+    description: 'Get the ids of the banned users on room which id=roomId',
+  })
+  @ApiParam({
+    description: 'The room id',
+    name: 'roomId',
+    type: 'number',
   })
   @ApiUnauthorizedResponse({
     description: 'If requesting user is not the owner of the room',
   })
-  @ApiNotFoundResponse({ description: "Room with id=room-id doesn't exist" })
-  @ApiQuery({
-    description: 'The room id',
-    name: 'room-id',
-    type: 'number',
-  })
+  @ApiNotFoundResponse({ description: "Room with id=roomId doesn't exist" })
   @ApiOkResponse({
     description:
       'Returns an array of the UIDs of the banned users on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
-  @Get('/rooms/bans')
+  @Get('/rooms/:roomId/bans')
   public async findRoomBans(
-    @Query('room-id') query: number,
+    @Param('roomId') roomId: number,
   ): Promise<UserBasicProfile[]> {
-    const room: ChatRoom | null = await this.chatService.findRoomById(query);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${query} doesn't exist`);
-    }
+    const room: ChatRoom = await this.chatService.findRoomById(roomId);
 
     return room.bans.map(
       (bannedUser: User): UserBasicProfile => ({
@@ -149,31 +150,34 @@ export class ChatController {
   }
 
   /**
-   * GET /api/chat/rooms/admins?room-id=
+   * GET /api/chat/rooms/:roomId/admins
    *
    * This is the route to visit to get the ids
    * of the admins on the room which id=room-id
    */
   @ApiOperation({
-    description: 'Get the ids of the admins on the room which id=room-id',
+    description: 'Get the ids of the admins on the room which id=roomId',
   })
+  @ApiParam({
+    description: 'The room id',
+    name: 'roomId',
+    type: 'number',
+  })
+  @ApiUnauthorizedResponse({
+    description: "If requesting user isn't the owner of the room",
+  })
+  @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
   @ApiOkResponse({
     description: 'Returns an array of the user ids of the admins',
   })
-  @ApiNotFoundResponse({ description: "Room with id= room-id doesn't exist" })
-  @ApiQuery({
-    description: 'The room id',
-    name: 'room-id',
-    type: 'number',
-  })
   @UseGuards(OwnerGuard)
-  @Get('/rooms/admins')
+  @Get('/rooms/:roomId/admins')
   public async findRoomAdmins(
-    @Query('room-id') query: number,
+    @Param('roomId') roomId: number,
   ): Promise<UserBasicProfile[]> {
-    const room: ChatRoom | null = await this.chatService.findRoomById(query);
+    const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
     if (!room) {
-      throw new NotFoundException(`Room with id=${query} doesn't exist`);
+      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
     return room.admins.map(
@@ -203,7 +207,7 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: JoinRoomRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.joinRoom(user, body.roomId, body.password);
+    return await this.chatService.joinRoom(user, body.roomId, body.password, body.inviteId);
   }
 
   @ApiBody({ type: RoomOperationRequest })
@@ -226,17 +230,20 @@ export class ChatController {
     }
 
     await this.chatService.leaveRoom(room, body.userId, true);
-    return { message: `Succesfully left room "${room.name}"` };
+    return { message: `Successfully left room "${room.name}"` };
   }
 
   @ApiBody({ type: InviteToRoomRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
+  @ApiForbiddenResponse({
+    description: 'If sender is not a friend of receiver',
+  })
   @ApiConflictResponse({
     description: 'If the invited user is already part of the room',
   })
   @ApiOkResponse({
     description:
-      'Succesfully invited user with uid=body.receiverUID to room with id=body.roomId',
+      'Successfully invited user with uid=body.receiverUID to room with id=body.roomId',
   })
   @HttpCode(HttpStatus.OK)
   @Post('/invite')
@@ -251,12 +258,36 @@ export class ChatController {
     );
   }
 
+  @ApiQuery({
+    name: 'friendId',
+    type: 'number',
+    description: 'The user id of the friend',
+  })
+  @ApiNotFoundResponse({
+    description: "If user with id=body.friendUID doesn't exist",
+  })
+  @ApiOkResponse({
+    description:
+      'Successfully gets the list of possible rooms to invite the friend to',
+  })
+  @Get('/possible-invites')
+  public async possibleInvites(
+    @ExtractUser() user: User,
+    @Query('friendId') friendId: number,
+  ): Promise<ChatRoomInterface[] | ErrorResponse> {
+    if (!friendId) throw new BadRequestException('No friendId was provided');
+    return await this.chatService.findPossibleInvites(user.id, friendId);
+  }
+
   @ApiBody({ type: RoomOperationRequest })
+  @ApiUnauthorizedResponse({
+    description: "If sender doesn't have admin privileges",
+  })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
   @ApiConflictResponse({ description: 'If sender tries to kick himself' })
   @ApiOkResponse({
     description:
-      'Succesfully kicked user with uid=body.userId from room with id=body.roomId',
+      'Successfully kicked user with uid=body.userId from room with id=body.roomId',
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -273,10 +304,10 @@ export class ChatController {
   }
 
   @ApiBody({ type: RoomOperationRequest })
-  @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
   @Post('/ban')
@@ -309,16 +340,16 @@ export class ChatController {
   }
 
   @ApiBody({ type: MuteUserRequest })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiForbiddenResponse({
     description: 'If sender (admin) tries to ban another admin',
   })
   @ApiOkResponse({
     description:
-      'Succesfully muted user with id=body.userId on room with id=body.roomId',
+      'Successfully muted user with id=body.userId on room with id=body.roomId',
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -345,10 +376,10 @@ export class ChatController {
   }
 
   @ApiBody({ type: RoomOperationRequest })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiOkResponse({
     description:
       'Successfully unmuted user with id=body.userId from room with id=body.roomId',
@@ -362,16 +393,16 @@ export class ChatController {
   }
 
   @ApiBody({ type: RoomOperationRequest })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiConflictResponse({
     description: 'If recipient already have admin privileges',
   })
   @ApiOkResponse({
     description:
-      'Succesfully granted admin privileges to user with id=body.userId on room with id=body.roomId',
+      'Successfully granted admin privileges to user with id=body.userId on room with id=body.roomId',
   })
   @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
@@ -391,17 +422,17 @@ export class ChatController {
   @ApiOperation({
     description: 'Remove admin privileges of a participant of a room',
   })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
   })
+  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiBadRequestResponse({
     description:
       "If request's body is malformed or if recipient doesn't have admin privileges",
   })
   @ApiOkResponse({
     description:
-      'Succesfully removed admin privileges of user with id=body.userId on room with id=body.roomId',
+      'Successfully removed admin privileges of user with id=body.userId on room with id=body.roomId',
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -413,13 +444,13 @@ export class ChatController {
   }
 
   @ApiBody({ type: UpdateRoomPasswordRequest })
-  @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiUnauthorizedResponse({
-    description: "If sender isn't the room owner",
+    description: "If sender doesn't have owner privileges",
   })
+  @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiOkResponse({
     description:
-      "Succesfully updated room with id=body.roomId's password to body.newPassword",
+      "Successfully updated room with id=body.roomId's password to body.newPassword",
   })
   @UseGuards(OwnerGuard)
   @Patch('/room-password')
@@ -434,14 +465,14 @@ export class ChatController {
 
   @ApiBody({ type: RemoveRoomPasswordRequest })
   @ApiUnauthorizedResponse({
-    description: "If sender isn't the room owner",
+    description: "If sender doesn't have owner privileges",
   })
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiBadRequestResponse({
     description: "If request's body is malformed or if room is not protected",
   })
   @ApiOkResponse({
-    description: "Succesfully removed room with id=body.roomId's password",
+    description: "Successfully removed room with id=body.roomId's password",
   })
   @UseGuards(OwnerGuard)
   @Delete('/room-password')

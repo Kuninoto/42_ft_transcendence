@@ -8,10 +8,10 @@ export const CANVAS_HEIGHT = 400;
 export const CANVAS_HEIGHT_OFFSET = 80;
 
 export interface GameRoom {
-  ball: Ball;
-  gameLoopIntervalId?: NodeJS.Timeout;
+  roomId: string;
   gameType: GameType;
+  gameLoopIntervalId?: NodeJS.Timeout;
+  ball: Ball;
   leftPlayer: Player;
   rightPlayer: Player;
-  roomId: string;
 }

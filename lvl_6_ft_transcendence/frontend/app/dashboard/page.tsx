@@ -69,7 +69,8 @@ export default function Dashboard() {
 						<div className="text-2xl">Profile</div>
 						<HiOutlineUserCircle size={128} />
 						<div>
-							WHAT A FINE <br/>PICTURE
+							WHAT A FINE <br />
+							PICTURE
 						</div>
 					</Card>
 				</div>

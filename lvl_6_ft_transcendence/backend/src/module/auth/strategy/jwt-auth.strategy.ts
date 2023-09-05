@@ -17,9 +17,9 @@ import { ErrorResponse } from 'types';
 export interface TokenPayload {
   id: number;
   has_2fa: boolean;
-  is_2fa_authed?: boolean;
-  iat?: number;
-  exp?: number;
+  is_2fa_authed: boolean;
+  iat: number;
+  exp: number;
 }
 
 @Injectable()

@@ -1,11 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import {
-	FriendRequest,
-	FriendshipStatus,
-	UserSearchInfo,
-} from '@/common/types'
+import { FriendRequest, FriendshipStatus, UserSearchInfo } from '@/common/types'
 import { removeParams } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
@@ -15,11 +11,11 @@ import { MdOutlineBlock, MdOutlineClear, MdOutlineDone } from 'react-icons/md'
 import { toast } from 'react-toastify'
 
 interface InfoOrRequest {
+	blocked_by_me: bool
 	friendship_id: null | number
 	sent_by_me: boolean | null
 	status: null | string
 	uid: number
-	blocked_by_me: bool
 }
 
 function Buttons({
@@ -36,13 +32,13 @@ function Buttons({
 	const { refreshFriends } = useFriends()
 
 	const friend: InfoOrRequest = {
+		blocked_by_me: isRequest ? false : request.blocked_by_me,
 		friendship_id: isRequest ? request.friendship_id : null,
 		sent_by_me: isRequest
 			? request.sent_by_me
 			: request.friend_request_sent_by_me,
 		status: isRequest ? request.status : request.friendship_status,
 		uid: isRequest ? request.uid : request.id,
-		blocked_by_me: isRequest ? false: request.blocked_by_me
 	}
 
 	async function basis(
@@ -61,15 +57,15 @@ function Buttons({
 
 	async function cancel(friendshipId: null | number) {
 		await api
-			.patch(`/friendships/${friendshipId}/update`, {
+			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.UNFRIEND,
 			})
 			.then(() => refresh())
 	}
 
-	function accept(friendship_id: null | number) {
+	function accept(friendshipId: null | number) {
 		api
-			.patch(`/friendships/${friendship_id}/update`, {
+			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.ACCEPTED,
 			})
 			.then(() => {
@@ -78,9 +74,9 @@ function Buttons({
 			})
 	}
 
-	function decline(friendship_id: null | number) {
+	function decline(friendshipId: null | number) {
 		api
-			.patch(`/friendships/${friendship_id}/update`, {
+			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.DECLINED,
 			})
 			.then(() => refresh())
@@ -89,7 +85,6 @@ function Buttons({
 	function block(userId: number) {
 		api.post(`/friendships/block/${userId}`).then(() => refresh())
 	}
-
 
 	function unblock(userId: number) {
 		try {
@@ -113,12 +108,12 @@ function Buttons({
 
 	if (friend.blocked_by_me) {
 		return (
-				<button
-					className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-					onClick={(e) => basis(e, unblock(friend?.uid))}
-				>
-					Unblock
-				</button>
+			<button
+				className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+				onClick={(e) => basis(e, unblock(friend?.uid))}
+			>
+				Unblock
+			</button>
 		)
 	}
 
@@ -178,7 +173,7 @@ function FriendRequests() {
 	async function getFriendRequests() {
 		try {
 			await api
-				.get(`/me/friend-request`)
+				.get(`/me/friend-requests`)
 				.then((result) => {
 					setRequests(result.data)
 				})
@@ -220,8 +215,8 @@ function FriendRequests() {
 							<div className="relative aspect-square w-8 rounded">
 								<Image
 									alt="profile picture"
-									fill
 									className="object-cover"
+									fill
 									loader={removeParams}
 									sizes="100%"
 									src={request?.avatar_url || '/placeholder.gif'}
@@ -318,7 +313,6 @@ export default function FriendsModal({
 				.get(`/users/search?username=${search}`)
 				.then((result) => {
 					setUsers(result.data)
-					console.log(result.data)
 				})
 				.catch((error) => console.error(error))
 				.finally(() => setLoading(false))

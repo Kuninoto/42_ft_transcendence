@@ -1,7 +1,16 @@
 import { Ball } from '@/app/matchmaking/definitions'
+import {
+	GameEndEvent,
+	GameRoomInfoEvent,
+	OpponentFoundEvent,
+	PaddleMoveMessage,
+	PlayerReadyMessage,
+	PlayerScoredEvent,
+	PlayerSide,
+} from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
-import { useRouter } from 'next/navigation'
 import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
@@ -11,9 +20,6 @@ import {
 } from 'react'
 
 import { socket } from './SocketContext'
-import { PlayerSide } from '@/common/types'
-import { GameEndEvent, GameRoomInfoEvent, OpponentFoundEvent, PlayerScoredEvent } from '@/common/types/game/socket/event'
-import { PaddleMoveMessage, PlayerReadyMessage } from '@/common/types/game/socket/message'
 
 type GameContextType = {
 	ballPosition: Ball
@@ -41,7 +47,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
-	const [gameEndInfo, setGameEndInfo] = useState<GameEndEvent>({} as GameEndEvent)
+	const [gameEndInfo, setGameEndInfo] = useState<GameEndEvent>(
+		{} as GameEndEvent
+	)
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -67,7 +75,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				setOpponentFound(data)
 				setTimeout(() => {
 					router.push('/matchmaking')
-				}, 4 * 1000)
+				}, 2 * 1000)
 			})
 
 			socket?.on('connect_error', (err: any) => console.log(err))

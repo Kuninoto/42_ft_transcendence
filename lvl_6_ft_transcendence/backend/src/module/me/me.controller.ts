@@ -22,12 +22,13 @@ import {
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity/index';
 import {
+  AvatarUpdationRequest,
   BlockedUserInterface,
+  ChatRoomInterface,
   ErrorResponse,
   Friend,
   FriendRequest,
-  GameThemes,
-  MeChatRoom,
+  GameThemeUpdationRequest,
   MeUserInfo,
   SuccessResponse,
   UsernameUpdationRequest,
@@ -35,16 +36,15 @@ import {
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UsersService } from '../users/users.service';
 import { multerConfig } from './middleware/multer/multer.config';
-import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validation.pipe';
 
 @ApiTags('me')
 @ApiBearerAuth('swagger-basic-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('me')
 export class MeController {
-  private readonly logger: Logger = new Logger(MeController.name);
-
   constructor(private readonly usersService: UsersService) {}
+
+  private readonly logger: Logger = new Logger(MeController.name);
 
   /**
    * GET /api/me
@@ -74,14 +74,14 @@ export class MeController {
   }
 
   /**
-   * GET /api/me/friend-request
+   * GET /api/me/friend-requests
    *
    * Finds and returns the 'me' user's friend-requests
    */
   @ApiOkResponse({
     description: "Finds and returns the 'me' user's friend-requests",
   })
-  @Get('friend-request')
+  @Get('friend-requests')
   public async findMyFriendRequests(
     @ExtractUser() user: User,
   ): Promise<FriendRequest[]> {
@@ -113,12 +113,12 @@ export class MeController {
    */
   @ApiOkResponse({
     description:
-      "Finds and returns the rooms where 'me' user is (MeChatRoom[])",
+      "Finds and returns the rooms where 'me' user is (ChatRoomInterface[])",
   })
   @Get('rooms')
   public async findMyChatRooms(
     @ExtractUser() user: User,
-  ): Promise<MeChatRoom[]> {
+  ): Promise<ChatRoomInterface[]> {
     this.logger.log(`"${user.name}" requested his rooms`);
     return await this.usersService.findChatRoomsWhereUserIs(user.id);
   }
@@ -172,15 +172,8 @@ export class MeController {
    * e.g http://http://localhost:3000/api/users/avatars/<hashed_filename>.png
    *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
    */
-  @UseInterceptors(FileInterceptor('avatar', multerConfig))
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['avatar'],
-      properties: { avatar: { format: 'binary', type: 'string' } },
-    },
-  })
+  @ApiBody({ type: AvatarUpdationRequest })
   @ApiBadRequestResponse({
     description:
       'If the uploaded image is not a png, jpg or jpeg or if its size exceeds the max size',
@@ -189,12 +182,13 @@ export class MeController {
     description:
       "Stores the uploaded new avatar and updates the avatar_url on the user's table",
   })
+  @UseInterceptors(FileInterceptor('avatar', multerConfig))
   @Patch('avatar')
   public async updateMyAvatar(
     @ExtractUser() user: User,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() avatar: Express.Multer.File,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!file) {
+    if (!avatar) {
       this.logger.warn(
         `"${user.name}" failed to update his avatar because the file was invalid`,
       );
@@ -204,7 +198,7 @@ export class MeController {
 
     return await this.usersService.updateUserAvatarByUID(
       user.id,
-      process.env.BACKEND_URL + '/api/users/avatars/' + file.filename,
+      process.env.BACKEND_URL + '/api/users/avatars/' + avatar.filename,
     );
   }
 
@@ -214,26 +208,23 @@ export class MeController {
    * This is the route to visit to update 'me'
    * user's game theme.
    */
+  @ApiBody({ type: GameThemeUpdationRequest })
+  @ApiBadRequestResponse({
+    description: 'If the game theme is invalid',
+  })
   @ApiOkResponse({
     description: "Updates 'me' user's game theme",
-  })
-  @ApiBadRequestResponse({
-    description: "If the theme doesn't exist",
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['newGameTheme'],
-      properties: { newGameTheme: { type: 'string' } },
-    },
   })
   @Patch('game-theme')
   public async updateMyGameTheme(
     @ExtractUser() user: User,
-    @Body(new GameThemeUpdateValidationPipe()) newGameTheme: GameThemes,
+    @Body() body: GameThemeUpdationRequest,
   ): Promise<ErrorResponse | SuccessResponse> {
     this.logger.log(`${user.name} is updating his game theme`);
 
-    return await this.usersService.updateGameThemeByUID(user.id, newGameTheme);
+    return await this.usersService.updateGameThemeByUID(
+      user.id,
+      body.newGameTheme,
+    );
   }
 }

@@ -4,7 +4,7 @@
 export interface SuccessResponse {
   /**
    * @description Message describing the success of the requested operation
-   * @example "Successfully updated username"
+   * @example 'Successfully updated username'
    */
   message: string;
 }

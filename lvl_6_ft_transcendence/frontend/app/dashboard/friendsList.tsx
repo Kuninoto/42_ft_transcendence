@@ -1,18 +1,22 @@
 'use client'
 
+import { api } from '@/api/api'
+import { ChatRoomInterface, PossibleInvitesRequest } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
+import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
+import { HiOutlineChatAlt2 } from 'react-icons/hi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
+import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'
 import RoomsModal from './roomsModal'
-import { api } from '@/api/api'
 
 enum openModalType {
 	FRIENDS = 'friends',
@@ -20,24 +24,67 @@ enum openModalType {
 	NULL = '',
 }
 
+function RoomsInvite({
+	id,
+	rooms,
+}: {
+	id: number
+	rooms: ChatRoomInterface[]
+}) {
+	useEffect(() => {})
+
+	if (rooms.length === 0) return <></>
+
+	return (
+		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
+			{rooms.map((room) => {
+				return <div key={room.id}>{room.name}</div>
+			})}
+		</div>
+	)
+}
+
 export default function FriendsList(): JSX.Element {
 	const { user } = useAuth()
-	const { friends, newFriendNotification, rooms, seeNewFriendNotification, exitRoom } =
-		useFriends()
+	const {
+		exitRoom,
+		friends,
+		newFriendNotification,
+		rooms,
+		seeNewFriendNotification,
+	} = useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
+	const [inviteRooms, setInviteRooms] = useState<ChatRoomInterface[]>([])
 
 	const { open, sendGameInvite } = useFriends()
 
+	function openInviteRooms(id: number) {
+		try {
+			api
+				.get(`/chat/possible-invites?friendId=${id}`)
+				.then((result) => {
+					setInviteRooms(result.data)
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
+
 	function leaveRoom(roomId: number) {
-		api.post('/chat/leave-room', {
-			roomId: parseInt(roomId),
-			userId: parseInt(user.id),
-		}).then(() => {
-			exitRoom(roomId)
-		})
+		api
+			.post('/chat/leave-room', {
+				roomId: parseInt(roomId),
+				userId: parseInt(user.id),
+			})
+			.then(() => {
+				exitRoom(roomId)
+			})
 	}
 
 	return (
@@ -66,7 +113,13 @@ export default function FriendsList(): JSX.Element {
 						</div>
 						<div className="mx-4 my-auto">
 							<div className="text-xl">{user?.name}</div>
-							<a className="text-sm text-gray-400 hover:underline" target="_blank" href={user?.intra_profile_url}>{user?.intra_name}</a>
+							<a
+								className="text-sm text-gray-400 hover:underline"
+								href={user?.intra_profile_url}
+								target="_blank"
+							>
+								{user?.intra_name}
+							</a>
 						</div>
 					</div>
 					<div className="text-2xl">#{user.ladder_level} </div>
@@ -147,9 +200,25 @@ export default function FriendsList(): JSX.Element {
 										>
 											<BiUser size={24} />
 										</Link>
+										<Tippy
+											content={
+												<RoomsInvite id={friend.uid} rooms={inviteRooms} />
+											}
+											hideOnClick
+											interactive
+											placement={'left'}
+											trigger={'click'}
+										>
+											<button
+												className="hover:text-[#F32E7C]"
+												onClick={() => openInviteRooms(friend.uid)}
+											>
+												<HiOutlineChatAlt2 size={24} />
+											</button>
+										</Tippy>
 										<button
 											className="hover:text-[#F32E7C]"
-											onClick={() => sendGameInvite(friend.uid)}
+											onClick={() => sendGameInvite(friend.uid.toString())}
 										>
 											<LuSwords size={24} />
 										</button>
@@ -190,9 +259,7 @@ export default function FriendsList(): JSX.Element {
 						>
 							{rooms?.map((room) => {
 								return (
-									<div 
-										key={room.id}
-										className="relative w-full peer">
+									<div className="peer relative w-full" key={room.id}>
 										<button
 											className="w-full "
 											onClick={() => open(room.id, true)}
@@ -201,8 +268,13 @@ export default function FriendsList(): JSX.Element {
 												<div>{room.name}</div>
 											</div>
 										</button>
-										<div className="absolute top-2 right-4 visible">
-											<button onClick={() => leaveRoom(room.id)} className="text-xs text-gray-400 hover:text-red-500">Exit room</button>
+										<div className="visible absolute right-4 top-2">
+											<button
+												className="text-xs text-gray-400 hover:text-red-500"
+												onClick={() => leaveRoom(room.id)}
+											>
+												Exit room
+											</button>
 										</div>
 									</div>
 								)
