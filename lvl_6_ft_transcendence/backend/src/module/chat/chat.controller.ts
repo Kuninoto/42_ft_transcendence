@@ -30,6 +30,7 @@ import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { ChatRoom, User } from 'src/entity';
 import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 import {
+  ChatRoomInterface,
   ChatRoomSearchInfo,
   CreateRoomRequest,
   ErrorResponse,
@@ -43,6 +44,7 @@ import {
   UpdateRoomPasswordRequest,
   UserBasicProfile,
 } from 'types';
+import { PossibleInvitesRequest } from 'types/chat/request/possible-invites-request';
 import { ChatService } from './chat.service';
 import { AdminGuard } from './guard/admin.guard';
 import { OwnerGuard } from './guard/owner.guard';
@@ -203,11 +205,7 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: JoinRoomRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.joinRoom(
-      user,
-      body.roomId,
-      body.password,
-    );
+    return await this.chatService.joinRoom(user, body.roomId, body.password);
   }
 
   @ApiBody({ type: RoomOperationRequest })
@@ -256,6 +254,22 @@ export class ChatController {
       body.receiverUID,
       body.roomId,
     );
+  }
+
+  @ApiBody({ type: PossibleInvitesRequest })
+  @ApiNotFoundResponse({
+    description: "If user with id=body.friendUID doesn't exist",
+  })
+  @ApiOkResponse({
+    description:
+      'Successfully gets the list of possible rooms to invite the friend to',
+  })
+  @Get('/possible-invites')
+  public async possibleInvites(
+    @ExtractUser() user: User,
+    @Body() body: PossibleInvitesRequest,
+  ): Promise<ChatRoomInterface[] | ErrorResponse> {
+    return await this.chatService.findPossibleInvites(user.id, body.friendUID);
   }
 
   @ApiBody({ type: RoomOperationRequest })
