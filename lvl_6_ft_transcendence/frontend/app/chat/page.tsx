@@ -55,7 +55,7 @@ function RoomSettings({
 	useEffect(() => {
 		try {
 			api
-				.get(`/chat/rooms/bans?room-id=${id}`)
+				.get(`/chat/rooms/${id}/bans`)
 				.then((result) => setBans(result.data))
 				.catch(() => {
 					throw 'Network Error'
