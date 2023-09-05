@@ -13,7 +13,7 @@ import { UsersService } from 'src/module/users/users.service';
 import {
   Friend,
   NewUserStatusEvent,
-  RoomInviteEvent,
+  RoomInviteRecievedEvent,
   RoomWarningEvent,
   UserStatus,
 } from 'types';
@@ -171,7 +171,10 @@ export class ConnectionGateway
     this.server.to(`room-${roomId}`).emit('roomWarning', warning);
   }
 
-  sendRoomInviteReceived(userId: number, invite: RoomInviteEvent): void {
+  sendRoomInviteReceived(
+    userId: number,
+    invite: RoomInviteRecievedEvent,
+  ): void {
     const socketId: string | undefined =
       this.connectionService.findSocketIdByUID(userId.toString());
 
