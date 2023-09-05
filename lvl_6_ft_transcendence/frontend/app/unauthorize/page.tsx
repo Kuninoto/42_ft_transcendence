@@ -5,7 +5,7 @@ export default function Unauthorize() {
 				<p className="text-9xl">403</p>
 				<p className="text-7xl">UNAUTHORIZED</p>
 				<p className="mt-24 text-xl">
-                    NEITHER OF US KNOW WHAT YOU'RE DOING HERE
+					NEITHER OF US KNOW WHAT YOU'RE DOING HERE
 				</p>
 			</div>
 		</div>
