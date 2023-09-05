@@ -8,6 +8,7 @@ interface IThemes {
 
 const HEX_WHITE: string = '#FFFFFF'
 const HEX_BLACK: string = '#000000'
+const HEX_CYAN: string = '#1EB9BA'
 
 export const themes: IThemes = {
 	candyland: {
@@ -21,9 +22,9 @@ export const themes: IThemes = {
 		paddle: 'white.png',
 	},
 	fortyTwo: {
-		background: 'school_42.jpeg',
-		ball: HEX_WHITE,
-		paddle: 'white.jpeg',
+		background: 'forty_two.jpg',
+		ball: HEX_CYAN,
+		paddle: 'white.png',
 	},
 	halloween: {
 		background: 'halloween.jpg',
@@ -45,18 +46,6 @@ export const themes: IThemes = {
 		ball: HEX_WHITE,
 		paddle: 'white.png',
 	},
-	//safari: {
-	//	background: 'safari.png',
-	//	paddle: '',
-	//},
-	// miki: {
-	// 	background: 'miki.png',
-	// 	paddle: 'white.png',
-	// },
-	// monke: {
-	// 	background: 'monke.png',
-	// 	paddle: 'monke.jpeg',
-	// },
 }
 
 export const amount: number = Object.keys(themes).length

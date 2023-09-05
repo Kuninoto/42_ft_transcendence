@@ -9,21 +9,21 @@ import {
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 
-// Because the first achievement (PONG_FIGHT_MAESTRO OR NEW_PONGFIGHTER)
-// is assigned right away upon user creation we must delay the socket event
-// so that the user have the time to connect to the socket and receive it
-const FIRST_ACHIEVEMENT_TIMEOUT = 2 * 1000; // 2 seconds
+/* Because the first achievement (PONG_FIGHT_MAESTRO or NEW_PONGFIGHTER)
+is assigned right away upon user creation we must delay the socket event
+so that the user have the time to connect to the socket and receive it */
+const FIRST_ACHIEVEMENT_TIMEOUT: number = 2 * 1000; // 2 seconds
 
 @Injectable()
 export class AchievementService {
-  private readonly logger: Logger = new Logger(AchievementService.name);
-
   constructor(
     @InjectRepository(Achievement)
     private readonly achievementRepository: Repository<Achievement>,
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
   ) {}
+
+  private readonly logger: Logger = new Logger(AchievementService.name);
 
   public async findAchievementsByUID(
     userId: number,
@@ -32,12 +32,10 @@ export class AchievementService {
       await this.achievementRepository.findBy({ user: { id: userId } });
 
     const achievementsInterface: AchievementInterface[] = userAchievements.map(
-      (achievement: Achievement): AchievementInterface => {
-        return {
-          achievement: achievement.achievement,
-          description: AchievementDescriptions[achievement.achievement],
-        };
-      },
+      (achievement: Achievement): AchievementInterface => ({
+        achievement: achievement.achievement,
+        description: AchievementDescriptions[achievement.achievement],
+      }),
     );
 
     return achievementsInterface;
@@ -63,6 +61,10 @@ export class AchievementService {
     await this.grantAchievement(userId, Achievements.UNEXPECTED_VICTORY);
   }
 
+  public async grantGoofyQuitter(userId: number): Promise<void> {
+    await this.grantAchievement(userId, Achievements.GOOFY_QUITTER);
+  }
+
   public async grantWinsAchievementsIfEligible(
     userId: number,
     nrWins: number,
@@ -79,6 +81,8 @@ export class AchievementService {
   ): Promise<void> {
     if (nrLosses === 1)
       await this.grantAchievement(userId, Achievements.FIRST_SETBACK);
+    else if (nrLosses === 5)
+      await this.grantAchievement(userId, Achievements.THE_STYLISH_ONE);
   }
 
   public async grantFriendsAchievementsIfEligible(

@@ -81,7 +81,7 @@ export default function Themes() {
 	return (
 		<>
 			<Link
-				className="fixed  top-0 h-28 w-40 hover:underline"
+				className="fixed top-0 h-28 w-40 hover:underline"
 				href={'/dashboard'}
 			>
 				<Image

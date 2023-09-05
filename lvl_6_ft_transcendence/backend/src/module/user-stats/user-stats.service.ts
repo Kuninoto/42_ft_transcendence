@@ -36,9 +36,10 @@ export class UserStatsService {
   }
 
   public async findUserStatsByUID(userId: number): Promise<UserStatsInterface> {
-    const userStats: UserStats | null = await this.userStatsRepository.findOneBy({
-      user: { id: userId },
-    });
+    const userStats: UserStats | null =
+      await this.userStatsRepository.findOneBy({
+        user: { id: userId },
+      });
 
     if (!userStats) {
       console.log('userId = ' + userId);
@@ -117,13 +118,14 @@ export class UserStatsService {
       winnerWins,
     );
 
-    if (wonByDisconnection) {
-      await this.achievementService.grantUnexpectedVictory(winnerUID);
-    }
-
     await this.achievementService.grantLossesAchievementsIfEligible(
       loserUID,
       loserLosses,
     );
+
+    if (wonByDisconnection) {
+      await this.achievementService.grantUnexpectedVictory(winnerUID);
+      await this.achievementService.grantGoofyQuitter(loserUID);
+    }
   }
 }

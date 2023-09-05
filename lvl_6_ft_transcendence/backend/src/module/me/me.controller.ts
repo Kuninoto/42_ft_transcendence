@@ -38,7 +38,7 @@ import { UsersService } from '../users/users.service';
 import { multerConfig } from './middleware/multer/multer.config';
 
 @ApiTags('me')
-@ApiBearerAuth('swagger-basic-auth')
+@ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
 @Controller('me')
 export class MeController {
@@ -145,7 +145,7 @@ export class MeController {
   public async updateMyUsername(
     @ExtractUser() user: User,
     @Body() body: UsernameUpdationRequest,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     this.logger.log(`Updating ${user.name}'s username`);
 
     if (!body.newUsername) {
@@ -219,7 +219,7 @@ export class MeController {
   public async updateMyGameTheme(
     @ExtractUser() user: User,
     @Body() body: GameThemeUpdationRequest,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     this.logger.log(`${user.name} is updating his game theme`);
 
     return await this.usersService.updateGameThemeByUID(
