@@ -5,5 +5,6 @@ export * from './common';
 export * from './connection';
 export * from './friendship';
 export * from './game';
+export * from './me';
 export * from './user';
 export * from './user-stats';

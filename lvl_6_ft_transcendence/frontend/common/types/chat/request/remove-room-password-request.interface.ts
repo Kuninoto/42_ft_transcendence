@@ -1,3 +1,3 @@
-export class RemoveRoomPasswordRequest {
-  roomId: number;
+export interface RemoveRoomPasswordRequest {
+  readonly roomId: number;
 }

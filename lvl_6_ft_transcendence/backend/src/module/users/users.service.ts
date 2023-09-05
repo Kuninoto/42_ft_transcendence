@@ -12,13 +12,13 @@ import * as path from 'path';
 import { Repository } from 'typeorm';
 import {
   BlockedUserInterface,
+  ChatRoomInterface,
   ErrorResponse,
   Friend,
   FriendRequest,
   FriendshipStatus,
   GameResultInterface,
   GameThemes,
-  MeChatRoom,
   MeUserInfo,
   SuccessResponse,
   UserBasicProfile,
@@ -57,7 +57,7 @@ export class UsersService {
     const developersIntraName: string[] = ['nnuno-ca', 'roramos', 'jarsenio'];
 
     const newUser: User = await this.usersRepository.save(newUserInfo);
-    this.userStatsService.createUserStats(newUser);
+    await this.userStatsService.createUserStats(newUser);
 
     if (developersIntraName.includes(newUser.intra_name)) {
       this.achievementService.grantPongFightMaestro(newUser.id);
@@ -97,7 +97,9 @@ export class UsersService {
     return await this.friendshipsService.findBlocklistByUID(meUID);
   }
 
-  public async findChatRoomsWhereUserIs(uid: number): Promise<MeChatRoom[]> {
+  public async findChatRoomsWhereUserIs(
+    uid: number,
+  ): Promise<ChatRoomInterface[]> {
     const rooms: ChatRoom[] | undefined = (
       await this.usersRepository.findOne({
         where: { id: uid },
@@ -114,8 +116,8 @@ export class UsersService {
       return [];
     }
 
-    const roomInterfaces: MeChatRoom[] = rooms.map(
-      (room: ChatRoom): MeChatRoom => ({
+    const roomInterfaces: ChatRoomInterface[] = rooms.map(
+      (room: ChatRoom): ChatRoomInterface => ({
         id: room.id,
         name: room.name,
         ownerId: room.owner.id,
@@ -175,15 +177,45 @@ export class UsersService {
   }
 
   public async findUserByIntraName(intraName: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ intra_name: intraName });
+    return await this.usersRepository.findOne({
+      where: { intra_name: intraName },
+      relations: {
+        achievements: true,
+        blocked_users: true,
+        user_stats: true,
+        chat_rooms: true,
+        banned_rooms: true,
+        chat_admin: true,
+      },
+    });
   }
 
   public async findUserByName(name: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ name: name });
+    return await this.usersRepository.findOne({
+      where: { name: name },
+      relations: {
+        achievements: true,
+        blocked_users: true,
+        user_stats: true,
+        chat_rooms: true,
+        banned_rooms: true,
+        chat_admin: true,
+      },
+    });
   }
 
   public async findUserByUID(userId: number): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ id: userId });
+    return await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: {
+        achievements: true,
+        blocked_users: true,
+        user_stats: true,
+        chat_rooms: true,
+        banned_rooms: true,
+        chat_admin: true,
+      },
+    });
   }
 
   public async findUserProfileByUID(

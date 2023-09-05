@@ -1,8 +1,8 @@
-import { Chatter } from './chatter.interface'
+import { UserBasicProfile } from "../user";
 
 export interface ChatRoomInterface {
-	id: number
-	name: string
-	ownerId: number
-	participants: Chatter[]
+  id: number;
+  name: string;
+  ownerId: number;
+  participants: UserBasicProfile[];
 }

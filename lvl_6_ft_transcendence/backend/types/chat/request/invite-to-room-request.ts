@@ -5,10 +5,10 @@ export class InviteToRoomRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly receiverUID: number;
+  readonly roomId: number;
 
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly roomId: number;
+  readonly receiverUID: number;
 }

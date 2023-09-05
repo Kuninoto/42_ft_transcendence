@@ -37,7 +37,7 @@ export default function Friends({ friends }: { friends: Friend[] }) {
 						<p>#{friend.ladder_level}</p>
 						<div className="relative aspect-square w-12 overflow-hidden rounded-sm">
 							<Image
-								alt={'player profile picutre'}
+								alt={'player profile picture'}
 								className="object-cover"
 								fill
 								loader={removeParams}

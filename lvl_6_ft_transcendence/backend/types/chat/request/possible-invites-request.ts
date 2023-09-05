@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsPositive } from 'class-validator';
 
-export class RemoveRoomPasswordRequest {
+export class PossibleInvitesRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly roomId: number;
+  readonly friendUID: number;
 }
