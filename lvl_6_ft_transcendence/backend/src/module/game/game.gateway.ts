@@ -122,6 +122,14 @@ export class GameGateway implements OnGatewayInit {
       return;
     }
 
+    if (
+      !this.gameService.isUserTheCorrectReceiverOfInvite(
+        client.data.userId,
+        messageBody.inviteId,
+      )
+    )
+      return;
+
     if (messageBody.accepted === true) {
       await this.gameService.gameInviteAccepted(messageBody.inviteId, client);
     } else {

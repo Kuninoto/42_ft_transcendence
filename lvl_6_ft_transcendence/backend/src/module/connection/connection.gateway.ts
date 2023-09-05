@@ -79,6 +79,7 @@ export class ConnectionGateway
     if (!client.data.userId) return;
 
     await this.gameService.disconnectPlayer(client.data.userId);
+    this.chatService.disconnectChatter(client.data.userId);
     await this.updateUserStatus({
       uid: client.data.userId,
       newStatus: UserStatus.OFFLINE,
