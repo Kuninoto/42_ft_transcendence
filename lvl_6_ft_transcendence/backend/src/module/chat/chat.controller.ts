@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Logger,
   NotFoundException,
+  Param,
   Patch,
   Post,
   Query,
@@ -22,6 +23,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -110,35 +112,35 @@ export class ChatController {
   }
 
   /**
-   * GET /api/chat/rooms/bans?room-id=
+   * GET /api/chat/rooms/:roomId/bans
    *
    * This is the route to visit to get the ids
-   * of the banned users on the room which id=room-id
+   * of the banned users on the room which id=roomId
    */
   @ApiOperation({
-    description: 'Get the ids of the banned users on room which id=room-id',
+    description: 'Get the ids of the banned users on room which id=roomId',
+  })
+  @ApiParam({
+    description: 'The room id',
+    name: 'roomId',
+    type: 'number',
   })
   @ApiUnauthorizedResponse({
     description: 'If requesting user is not the owner of the room',
   })
-  @ApiNotFoundResponse({ description: "Room with id=room-id doesn't exist" })
-  @ApiQuery({
-    description: 'The room id',
-    name: 'room-id',
-    type: 'number',
-  })
+  @ApiNotFoundResponse({ description: "Room with id=roomId doesn't exist" })
   @ApiOkResponse({
     description:
       'Returns an array of the UIDs of the banned users on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
-  @Get('/rooms/bans')
+  @Get('/rooms/:roomId/bans')
   public async findRoomBans(
-    @Query('room-id') query: number,
+    @Param('roomId') roomId: number,
   ): Promise<UserBasicProfile[]> {
-    const room: ChatRoom | null = await this.chatService.findRoomById(query);
+    const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
     if (!room) {
-      throw new NotFoundException(`Room with id=${query} doesn't exist`);
+      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
     return room.bans.map(
@@ -151,31 +153,34 @@ export class ChatController {
   }
 
   /**
-   * GET /api/chat/rooms/admins?room-id=
+   * GET /api/chat/rooms/:roomId/admins
    *
    * This is the route to visit to get the ids
    * of the admins on the room which id=room-id
    */
   @ApiOperation({
-    description: 'Get the ids of the admins on the room which id=room-id',
+    description: 'Get the ids of the admins on the room which id=roomId',
   })
+  @ApiParam({
+    description: 'The room id',
+    name: 'roomId',
+    type: 'number',
+  })
+  @ApiUnauthorizedResponse({
+    description: "If requesting user isn't the owner of the room",
+  })
+  @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
   @ApiOkResponse({
     description: 'Returns an array of the user ids of the admins',
   })
-  @ApiNotFoundResponse({ description: "Room with id= room-id doesn't exist" })
-  @ApiQuery({
-    description: 'The room id',
-    name: 'room-id',
-    type: 'number',
-  })
   @UseGuards(OwnerGuard)
-  @Get('/rooms/admins')
+  @Get('/rooms/:roomId/admins')
   public async findRoomAdmins(
-    @Query('room-id') query: number,
+    @Param('roomId') roomId: number,
   ): Promise<UserBasicProfile[]> {
-    const room: ChatRoom | null = await this.chatService.findRoomById(query);
+    const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
     if (!room) {
-      throw new NotFoundException(`Room with id=${query} doesn't exist`);
+      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
     return room.admins.map(

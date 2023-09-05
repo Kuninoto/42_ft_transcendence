@@ -29,7 +29,11 @@ export class OwnerGuard implements CanActivate {
       | RemoveRoomPasswordRequest = request.body;
     const requestingUser: User = request.user;
 
-    if (!body.roomId) {
+    const roomId = body.roomId || request.params.roomId;
+    if (!roomId) {
+      this.logger.warn(
+        `${requestingUser.name} sent an invalid request for a chat room action`,
+      );
       throw new BadRequestException(
         'Invalid request body for a chat room action',
       );
