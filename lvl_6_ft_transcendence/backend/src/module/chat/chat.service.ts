@@ -300,16 +300,11 @@ export class ChatService {
     joiningUser: User,
     roomId: number,
     password?: string,
-    inviteId?: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
-
-    // Is joining by invitation but he's not the receiver of the invite
-    if (inviteId && !this.isUserTheCorrectReceiver(inviteId, joiningUser.id))
-      return;
 
     if (this.isUserBannedFromRoom(room, joiningUser.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
@@ -322,8 +317,7 @@ export class ChatService {
       throw new ConflictException(`You're already in room "${room.name}"`);
     }
 
-    // If room is protected and user is NOT joining by invitation
-    if (room.type === ChatRoomType.PROTECTED && !inviteId) {
+    if (room.type === ChatRoomType.PROTECTED) {
       if (password !== room.password) {
         throw new UnauthorizedException(`Wrong password`);
       }
@@ -818,11 +812,15 @@ export class ChatService {
     );
   }
 
-  public isUserTheCorrectReceiver(inviteId: number, userId: number): boolean {
+  public correctInviteUsage(
+    inviteId: number,
+    userId: number,
+    roomId: number,
+  ): boolean {
     const invite: RoomInvite = this.roomInviteMap.findInviteById(
       inviteId.toString(),
     );
 
-    return invite.receiverUID == userId;
+    return invite.receiverUID == userId && invite.roomId == roomId;
   }
 }
