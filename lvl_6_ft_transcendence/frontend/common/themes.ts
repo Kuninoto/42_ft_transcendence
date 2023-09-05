@@ -8,6 +8,8 @@ interface IThemes {
 
 const HEX_WHITE: string = '#FFFFFF'
 const HEX_BLACK: string = '#000000'
+const HEX_PINK: string = '#ff28b9'
+const HEX_CYAN: string = '#00ffff'
 
 export const themes: IThemes = {
 	candyland: {
@@ -21,8 +23,8 @@ export const themes: IThemes = {
 		paddle: 'white.png',
 	},
 	fortyTwo: {
-		background: 'school_42.jpeg',
-		ball: HEX_WHITE,
+		background: '42porto.jpeg',
+		ball: HEX_PINK,
 		paddle: 'white.jpeg',
 	},
 	halloween: {
