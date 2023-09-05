@@ -346,17 +346,12 @@ export class ChatService {
       );
     }
 
-    const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(receiverUID.toString());
+    this.connectionGateway.sendRoomInvite(receiverUID, {
+      inviterUID: inviterUID,
+      roomId: roomId,
+    });
 
-    if (receiverSocketId) {
-      this.connectionGateway.server.to(receiverSocketId).emit('roomInvite', {
-        inviterUID: inviterUID,
-        roomId: roomId,
-      });
-    }
-
-    return { message: 'Succesfully sent invite to room' };
+    return { message: 'Successfully sent room invite' };
   }
 
   public async assignAdminRole(
@@ -408,7 +403,7 @@ export class ChatService {
       `"${userToAssignRole.name}" is now an admin on room: "${room.name}"`,
     );
     return {
-      message: `Succesfully assigned admin privileges to "${userToAssignRole.name}"`,
+      message: `Successfully assigned admin privileges to "${userToAssignRole.name}"`,
     };
   }
 
@@ -455,7 +450,7 @@ export class ChatService {
       `${userToRemoveRole.name} is no longer an admin in room: "${room.name}"`,
     );
     return {
-      message: `Succesfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
+      message: `Successfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
     };
   }
 
@@ -494,7 +489,7 @@ export class ChatService {
 
     this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
     return {
-      message: `Succesfully banned "${userToBan.name}" from room "${room.name}"`,
+      message: `Successfully banned "${userToBan.name}" from room "${room.name}"`,
     };
   }
 
@@ -520,7 +515,7 @@ export class ChatService {
       `${userToUnban.name} was unbanned from room "${room.name}"`,
     );
     return {
-      message: `Succesfully unbanned "${userToUnban.name}" from room "${room.name}"`,
+      message: `Successfully unbanned "${userToUnban.name}" from room "${room.name}"`,
     };
   }
 
@@ -647,7 +642,7 @@ export class ChatService {
     this.logger.log(
       `"${userToMute.name}" is now muted on room: "${room.name}"`,
     );
-    return { message: `Succesfully muted "${userToMute.name}"` };
+    return { message: `Successfully muted "${userToMute.name}"` };
   }
 
   public async unmuteUser(
@@ -675,7 +670,7 @@ export class ChatService {
         `${userToUnmute.name} was unmuted on room: "${room.name}"`,
       );
     }
-    return { message: `Succesfully unmuted "${userToUnmute.name}"` };
+    return { message: `Successfully unmuted "${userToUnmute.name}"` };
   }
 
   public async updateRoomPassword(
@@ -695,7 +690,7 @@ export class ChatService {
     room.password = newPassword;
 
     await this.chatRoomRepository.save(room);
-    return { message: `Succesfully updated room's password` };
+    return { message: `Successfully updated room's password` };
   }
 
   public async removeRoomPassword(
@@ -714,7 +709,7 @@ export class ChatService {
     room.password = null;
 
     await this.chatRoomRepository.save(room);
-    return { message: `Succesfully removed room's password` };
+    return { message: `Successfully removed room's password` };
   }
 
   public removeUserFromRoom(room: ChatRoom, uid: number): void {
