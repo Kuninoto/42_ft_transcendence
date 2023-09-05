@@ -1,7 +1,12 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomRoles, GetChatterRoleEvent, GetChatterRoleMessage, MuteDuration } from '@/common/types'
+import {
+	ChatRoomRoles,
+	GetChatterRoleEvent,
+	GetChatterRoleMessage,
+	MuteDuration,
+} from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
@@ -369,31 +374,40 @@ export default function Chat() {
 					</div>
 
 					<div className="relative flex h-full w-8/12 flex-col place-content-between">
-						{'friend' in currentOpenChat && !!currentOpenChat.challengeId && (
-							<div className="absolute top-0 flex h-[49px] w-full place-content-between items-center border-b border-white bg-[#170317] px-4">
-								<div>Challenged you</div>
-								<div className="flex space-x-2">
-									<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-										<LuSwords />
-									</button>
-									<button
-										className="rounded border border-red-600 p-2 text-red-600 hover:bg-red-600 hover:text-white"
-										onClick={() => rejectChallenge(currentOpenChat.friend?.uid)}
-									>
-										<MdOutlineBlock />
-									</button>
-								</div>
-							</div>
-						)}
-						<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+						<div className="flex h-[17.5rem] flex-col-reverse space-y-8 overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 							{currentOpenChat?.messages?.map((message, index) => {
 								if ('warning' in message) {
 									return (
 										<div
-											className="mb-4 flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
+											className="flex w-full place-content-center items-center text-center text-[0.6rem] text-gray-400"
 											key={index}
 										>
 											{message.warning}
+										</div>
+									)
+								}
+
+								if ('game' in message) {
+									if (message.game) {
+										return (
+											<div
+												className="mx-auto flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
+												key={index}
+											>
+												<span>Challange you</span>
+												<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+													Accept
+												</button>
+											</div>
+										)
+									}
+
+									return (
+										<div
+											className="mx-auto flex w-5/6 rounded border border-white p-2"
+											key={index}
+										>
+											Invite
 										</div>
 									)
 								}
@@ -408,7 +422,7 @@ export default function Chat() {
 
 								if (!message.sendByMe) {
 									return (
-										<div className="mb-2" key={message.uniqueID}>
+										<div className="" key={message.uniqueID}>
 											<div className="w-fit max-w-[60%] break-words rounded border border-white p-2">
 												{message.content}
 											</div>
@@ -456,27 +470,23 @@ export default function Chat() {
 
 								return (
 									<div
-										className="mb-2 flex w-full flex-col place-content-end items-end space-y-1 "
+										className="flex w-full flex-col place-content-end items-end"
 										key={message.uniqueID}
 									>
 										<div className="max-w-[60%] break-words rounded bg-white p-2 text-[#170317]">
 											{message.content}
 										</div>
 										{isRoom && isLastOfMe && (
-											<div className="mb-4 text-[0.5rem] text-gray-500">
-												You
-											</div>
+											<div className="text-[0.5rem] text-gray-500">You</div>
 										)}
 									</div>
 								)
 							})}
 						</div>
 
-						{console.log(openChats)}
-
 						{('room' in currentOpenChat &&
 							!currentOpenChat.forbiddenChatReason) ||
-						'friends' in currentOpenChat ? (
+						'friend' in currentOpenChat ? (
 							<textarea
 								className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
 								cols={2}

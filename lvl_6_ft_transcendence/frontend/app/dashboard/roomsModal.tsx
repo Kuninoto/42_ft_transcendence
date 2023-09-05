@@ -1,7 +1,12 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomSearchInfo, ChatRoomType, CreateRoomRequest, JoinRoomRequest } from '@/common/types'
+import {
+	ChatRoomSearchInfo,
+	ChatRoomType,
+	CreateRoomRequest,
+	JoinRoomRequest,
+} from '@/common/types'
 import { useFriends } from '@/contexts/FriendsContext'
 import md5 from 'md5'
 import { useEffect, useState } from 'react'
@@ -31,9 +36,8 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		password: string
 		type: ChatRoomType
 	}) {
-		if (type === ChatRoomType.PROTECTED ) {
-
-			if ((password.length < 4 || password.length > 20)) {
+		if (type === ChatRoomType.PROTECTED) {
+			if (password.length < 4 || password.length > 20) {
 				setError('name', {
 					message: 'Password must be 4-20 characters',
 					type: 'alreadyInUser',
@@ -41,19 +45,18 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 				return
 			}
 
-			if (!password.match('^[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~=\/\\|-]+$')) {
+			if (!password.match('^[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~=/\\|-]+$')) {
 				setError('name', {
 					message: 'Invalid character',
 					type: 'invalid',
 				})
 				return
 			}
-		
+
 			if (password === '1234') {
 				toast.error('1234? Really?')
 				return
 			}
-
 		}
 
 		const newRoom: CreateRoomRequest = {
