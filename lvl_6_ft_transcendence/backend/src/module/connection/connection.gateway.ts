@@ -171,10 +171,10 @@ export class ConnectionGateway
     this.server.to(`room-${roomId}`).emit('roomWarning', warning);
   }
 
-  sendRoomInvite(userId: number, invite: RoomInviteEvent): void {
+  sendRoomInviteReceived(userId: number, invite: RoomInviteEvent): void {
     const socketId: string | undefined =
       this.connectionService.findSocketIdByUID(userId.toString());
 
-    if (socketId) this.server.to(socketId).emit('roomInvite', invite);
+    if (socketId) this.server.to(socketId).emit('roomInviteReceived', invite);
   }
 }

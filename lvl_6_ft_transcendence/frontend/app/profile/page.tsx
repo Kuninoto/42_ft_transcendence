@@ -224,7 +224,7 @@ export default function Profile() {
 	const refreshProfile = () => {
 		try {
 			api
-				.get(`/users/profile/${id}`)
+				.get(`/users/${id}/profile`)
 				.then((result) => {
 					setUserProfile(result.data)
 				})
@@ -241,7 +241,7 @@ export default function Profile() {
 			try {
 				setModal(modalPage.HISTORY)
 				api
-					.get(`/users/profile/${id}`)
+					.get(`/users/${id}/profile`)
 					.then((result) => {
 						setUserProfile(result.data)
 					})
