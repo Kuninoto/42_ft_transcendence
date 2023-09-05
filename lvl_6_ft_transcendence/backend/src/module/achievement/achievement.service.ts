@@ -108,9 +108,9 @@ export class AchievementService {
       return;
     }
 
-    this.achievementRepository.save({
-      achievement: achievement,
+    await this.achievementRepository.save({
       user: { id: userId },
+      achievement: achievement,
     });
 
     if (timeout) {

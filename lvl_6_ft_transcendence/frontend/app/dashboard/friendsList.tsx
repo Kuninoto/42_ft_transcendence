@@ -13,6 +13,7 @@ import { BiUser } from 'react-icons/bi'
 import { HiOutlineChatAlt2 } from 'react-icons/hi'
 import { LuSwords } from 'react-icons/lu'
 import { RxTriangleUp } from 'react-icons/rx'
+import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'
 import RoomsModal from './roomsModal'
@@ -34,7 +35,9 @@ function RoomsInvite({
 
 	return (
 		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
-			nig
+			{rooms.map((room) => {
+				return <div key={room.id}>{room.name}</div>
+			})}
 		</div>
 	)
 }
@@ -57,11 +60,20 @@ export default function FriendsList(): JSX.Element {
 	const { open, sendGameInvite } = useFriends()
 
 	function openInviteRooms(id: number) {
-		const possibleInvites: PossibleInvitesRequest = {
-			friendUID: id,
+		console.log('incrivel')
+		try {
+			api
+				.get(`/chat/possible-invites?friendId=${id}`)
+				.then((result) => {
+					console.log(result.data)
+					setInviteRooms(result.data)
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
 		}
-
-		api.get(`/chat/possible-invites`, {})
 	}
 
 	function leaveRoom(roomId: number) {
@@ -189,13 +201,18 @@ export default function FriendsList(): JSX.Element {
 											<BiUser size={24} />
 										</Link>
 										<Tippy
-											content={<RoomsInvite id={friend.uid} />}
+											content={
+												<RoomsInvite id={friend.uid} rooms={inviteRooms} />
+											}
 											hideOnClick
 											interactive
 											placement={'left'}
 											trigger={'click'}
 										>
-											<button className="hover:text-[#F32E7C]">
+											<button
+												className="hover:text-[#F32E7C]"
+												onClick={() => openInviteRooms(friend.uid)}
+											>
 												<HiOutlineChatAlt2 size={24} />
 											</button>
 										</Tippy>
