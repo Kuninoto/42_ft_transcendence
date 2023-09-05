@@ -203,7 +203,11 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: JoinRoomRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.joinRoom(user, body.roomId, body.password);
+    return await this.chatService.joinRoom(
+      user,
+      body.roomId,
+      body.password,
+    );
   }
 
   @ApiBody({ type: RoomOperationRequest })
@@ -231,6 +235,9 @@ export class ChatController {
 
   @ApiBody({ type: InviteToRoomRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
+  @ApiForbiddenResponse({
+    description: 'If sender is not a friend of receiver',
+  })
   @ApiConflictResponse({
     description: 'If the invited user is already part of the room',
   })

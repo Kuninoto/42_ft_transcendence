@@ -42,10 +42,10 @@ import { GameThemeUpdateValidationPipe } from './pipe/game-theme-update-validati
 @UseGuards(JwtAuthGuard)
 @Controller('me')
 export class MeController {
-  private readonly logger: Logger = new Logger(MeController.name);
-
   constructor(private readonly usersService: UsersService) {}
 
+  private readonly logger: Logger = new Logger(MeController.name);
+  
   /**
    * GET /api/me
    *
