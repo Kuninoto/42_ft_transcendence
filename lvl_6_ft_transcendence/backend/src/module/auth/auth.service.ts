@@ -16,7 +16,7 @@ export class AuthService {
 
   constructor(private readonly jwtService: JwtService) {}
 
-  // Return the signed JWT as access_token
+  // Return the signed JWT
   public login(user: User): LoginResponse {
     const payload: TokenPayload = {
       has_2fa: user.has_2fa,
@@ -35,7 +35,7 @@ export class AuthService {
     };
   }
 
-  // Return the signed JWT as access_token
+  // Return the signed JWT
   public authenticate2fa(user: User): AccessTokenResponse {
     const payload: TokenPayload = {
       has_2fa: true,
@@ -50,7 +50,7 @@ export class AuthService {
 
     this.logger.log(`"${user.name}" authenticated with Google Authenticator!`);
     return {
-      access_token: accessToken,
+      accessToken: accessToken,
     };
   }
 
@@ -79,8 +79,7 @@ export class AuthService {
 
   public logout(userId: number): SuccessResponse {
     this.tokenWhitelist.delete(userId.toString());
-    return {
-      message: 'Successfully logged out',
-    };
+
+    return { message: 'Successfully logged out' };
   }
 }

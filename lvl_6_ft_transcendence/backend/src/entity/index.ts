@@ -7,7 +7,7 @@ import { GameResult } from './game-result.entity';
 import { UserStats } from './user-stats.entity';
 import { User } from './user.entity';
 
-const entities = [
+const entities: any[] = [
   Achievement,
   BlockedUser,
   ChatRoom,

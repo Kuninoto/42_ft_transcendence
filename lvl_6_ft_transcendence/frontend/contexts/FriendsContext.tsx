@@ -1,20 +1,18 @@
 import { api } from '@/api/api'
-import { ChatRoomInterface, Chatter, Friend, RoomWarning } from '@/common/types'
 import {
-	RoomMessageReceivedEvent,
-	RoomWarningEvent,
-} from '@/common/types/chat/socket/event'
-import { SendMessageSMessage } from '@/common/types/chat/socket/message'
-import { NewUserStatusEvent } from '@/common/types/connection/socket/event'
-import { DirectMessageReceivedEvent } from '@/common/types/friendship/socket/event'
-import {
+	ChatRoomInterface,
+	Chatter,
+	DirectMessageReceivedEvent,
+	Friend,
 	InvitedToGameEvent,
+	NewUserStatusEvent,
 	OpponentFoundEvent,
-} from '@/common/types/game/socket/event'
-import {
 	RespondToGameInviteMessage,
-	SendGameInviteMessage,
-} from '@/common/types/game/socket/message'
+	RoomMessageReceivedEvent,
+	RoomWarning,
+	RoomWarningEvent,
+	SendMessageSMessage,
+} from '@/common/types'
 import {
 	createContext,
 	ReactNode,

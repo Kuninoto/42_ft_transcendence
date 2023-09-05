@@ -22,10 +22,13 @@ import {
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { NonNegativeIntPipe } from 'src/common/pipe/non-negative-int.pipe';
 import { User } from 'src/entity';
-import { ErrorResponse, FriendshipStatus, SuccessResponse } from 'types';
+import {
+  ErrorResponse,
+  FriendshipStatusUpdationRequest,
+  SuccessResponse,
+} from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from './friendships.service';
-import { FriendshipStatusUpdateValidationPipe } from './pipe/friendship-status-update-validation.pipe';
 
 @ApiTags('friendships')
 @ApiBearerAuth('swagger-basic-auth')
@@ -51,9 +54,6 @@ export class FriendshipsController {
    *   - They're friends already
    * And finally creates a new entry on the friendships table
    */
-  @ApiOkResponse({
-    description: 'Sends a friend request to the user which id=receiverId',
-  })
   @ApiBadRequestResponse({
     description: 'If the sender == receiver i.e self friend-request',
   })
@@ -64,6 +64,9 @@ export class FriendshipsController {
   @ApiConflictResponse({
     description:
       "If there's already a friend request between the two users (sender & receiver) or if sender & receiver are already friends",
+  })
+  @ApiOkResponse({
+    description: 'Sends a friend request to the user which id=receiverId',
   })
   @HttpCode(HttpStatus.OK)
   @Post('send-request/:receiverId')
@@ -84,40 +87,28 @@ export class FriendshipsController {
    *   "newStatus":"accepted" | "declined" | "unfriend"
    * }
    */
-  @ApiOkResponse({
-    description:
-      "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body. Possible values: 'declined' | 'accepted' | 'unfriend' ",
-  })
+  @ApiBody({ type: FriendshipStatusUpdationRequest })
   @ApiNotFoundResponse({
     description: "If a friendship which id=friendshipId doesn't exist",
   })
   @ApiBadRequestResponse({
     description:
-      'If the sender tries to update the friend request that he has sent',
+      "If request's body is malformed or if the sender tries to update the friend request that he has sent",
   })
-  @ApiBody({
-    schema: {
-      properties: {
-        newStatus: {
-          enum: Object.values(['declined', 'accepted', 'unfriend']),
-          type: 'string',
-        },
-      },
-      required: ['newStatus'],
-      type: 'object',
-    },
+  @ApiOkResponse({
+    description:
+      "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body. Possible values: 'declined' | 'accepted' | 'unfriend' ",
   })
   @Patch(':friendshipId/update')
   public async updateFriendshipStatus(
     @ExtractUser() user: User,
     @Param('friendshipId', NonNegativeIntPipe) friendshipId: number,
-    @Body(new FriendshipStatusUpdateValidationPipe())
-    newStatus: FriendshipStatus,
+    @Body() body: FriendshipStatusUpdationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.friendshipsService.updateFriendshipStatus(
       user,
       friendshipId,
-      newStatus,
+      body.newStatus,
     );
   }
 

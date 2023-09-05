@@ -13,12 +13,12 @@ import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import {
-  Chatter,
   ChatRoomRoles,
-  GetChatterRoleMessage,
-  SendMessageSMessage,
-  RoomMessageReceivedEvent,
   GetChatterRoleEvent,
+  GetChatterRoleMessage,
+  RoomMessageReceivedEvent,
+  SendMessageSMessage,
+  UserBasicProfile,
 } from 'types';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
@@ -77,7 +77,7 @@ export class ChatGateway implements OnGatewayInit {
     const user: User = await this.usersService.findUserByUID(
       client.data.userId,
     );
-    const messageAuthor: Chatter = {
+    const messageAuthor: UserBasicProfile = {
       id: client.data.userId,
       name: user.name,
       avatar_url: user.avatar_url,
@@ -89,8 +89,10 @@ export class ChatGateway implements OnGatewayInit {
       content: messageBody.content,
     };
 
-    const idsOfUsersInRoom: number[] = room.users.map((user: User) => user.id);
-    idsOfUsersInRoom.forEach(async (uid: number) => {
+    const idsOfUsersInRoom: number[] = room.users.map(
+      (user: User): number => user.id,
+    );
+    idsOfUsersInRoom.forEach(async (uid: number): Promise<void> => {
       const blockRelationship: boolean =
         await this.friendshipService.isThereABlockRelationship(
           client.data.userId,
@@ -98,9 +100,8 @@ export class ChatGateway implements OnGatewayInit {
         );
 
       // Retrieve the clientId of the user
-      const userSocketId: string = this.connectionService.findSocketIdByUID(
-        uid.toString(),
-      );
+      const userSocketId: string | undefined =
+        this.connectionService.findSocketIdByUID(uid.toString());
       if (userSocketId && !blockRelationship) {
         client.to(userSocketId).emit('newChatRoomMessage', message);
       }

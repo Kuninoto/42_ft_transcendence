@@ -19,9 +19,9 @@ export class Friendship {
 
   @ApiProperty()
   @Column({
-    default: FriendshipStatus.PENDING,
-    nullable: false,
     type: 'varchar',
+    nullable: false,
+    default: FriendshipStatus.PENDING,
   })
   status: FriendshipStatus;
 

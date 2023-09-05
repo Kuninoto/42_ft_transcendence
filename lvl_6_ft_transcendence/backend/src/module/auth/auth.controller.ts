@@ -48,7 +48,6 @@ export class AuthController {
 
   private readonly logger: Logger = new Logger(AuthController.name);
 
-
   /**
    * GET /api/auth/login/callback
    *
@@ -74,32 +73,22 @@ export class AuthController {
    * Validates the Google Authenticator's OTP
    * and if it is valid, signs a JWT and returns it
    * else throws.
-   * @returns JWT access_token
+   * @returns Access token (signed JWT)
    */
-  @ApiOkResponse({
-    description:
-      'A new access token that proves that the user is two factor authenticated',
-  })
-  @ApiBody({
-    schema: {
-      properties: {
-        otp: {
-          type: 'string',
-        },
-      },
-      required: ['otp'],
-      type: 'object',
-    },
-  })
+  @ApiBody({ type: OtpVerificationRequest })
   @ApiUnauthorizedResponse({
     description:
       'If the user which id is provided in the JWT or if the OTP is invalid',
   })
   @ApiBadRequestResponse({ description: "If request's body is malformed" })
+  @ApiOkResponse({
+    description:
+      'A new access token that proves that the user is two factor authenticated',
+  })
   /* This guard is only used for this request
   where the user will have has2fa true but is_2fa_authed false
   thus we cannot use the JwtAuthGuard */
-  @UseGuards(AuthGuard('2faExchange'))
+  @UseGuards(AuthGuard('Authenticate2faCode'))
   @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
   public auth2fa(
@@ -141,6 +130,10 @@ export class AuthController {
    * because /generate generates the secret and is the only way
    * for the user to get the OTPs that he'll need, inclusively here.
    */
+  @ApiBody({ type: OtpVerificationRequest })
+  @ApiBadRequestResponse({
+    description: "If request's body is malformed or if the OTP is invalid",
+  })
   @ApiOkResponse({
     description:
       "Enables two factor authentication.\
@@ -150,7 +143,6 @@ export class AuthController {
       (registering the app on Google Authenticator) that he'll need,\
       \ninclusively here.",
   })
-  @ApiBadRequestResponse({ description: 'If the OTP is invalid' })
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/enable')
   public async enable2fa(

@@ -12,7 +12,7 @@ import { Passport42ExceptionFilter } from './module/auth/filter/passport42-excep
 
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
-function checkRequiredEnvVariables(): void {
+function ensureRequiredEnvVariables(): void {
   const RED: string = '\x1b[31m';
   const RESET: string = '\x1b[0m';
 
@@ -49,7 +49,7 @@ function checkRequiredEnvVariables(): void {
 }
 
 async function bootstrap(): Promise<void> {
-  checkRequiredEnvVariables();
+  ensureRequiredEnvVariables();
 
   const logger: Logger = new Logger('NestApplication');
 
@@ -61,34 +61,34 @@ async function bootstrap(): Promise<void> {
 
   // Only enable Swagger on dev mode
   // TODO
-  // if (process.env.NODE_ENV === 'dev') {
-  const swaggerConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
-    .setTitle('ft_transcendence API')
-    .setDescription('API for the ft_transcendence project')
-    .setVersion('1.0')
-    .addTag('ft_transcendence')
-    .addBasicAuth(
-      {
-        type: 'http',
-        description: 'Enter password',
-        name: 'swagger-basic-auth',
-        scheme: 'basic',
-      } as SecuritySchemeObject,
-      'swagger-basic-auth',
-    )
-    .addSecurityRequirements('swagger-basic-auth')
-    .build();
+  if (process.env.NODE_ENV === 'dev') {
+    const swaggerConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
+      .setTitle('ft_transcendence API')
+      .setDescription('API for the ft_transcendence project')
+      .setVersion('1.0')
+      .addTag('ft_transcendence')
+      .addBasicAuth(
+        {
+          type: 'http',
+          description: 'Enter password',
+          name: 'swagger-basic-auth',
+          scheme: 'basic',
+        } as SecuritySchemeObject,
+        'swagger-basic-auth',
+      )
+      .addSecurityRequirements('swagger-basic-auth')
+      .build();
 
-  const document: OpenAPIObject = SwaggerModule.createDocument(
-    app,
-    swaggerConfig,
-  );
-  SwaggerModule.setup('help', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
-  // }
+    const document: OpenAPIObject = SwaggerModule.createDocument(
+      app,
+      swaggerConfig,
+    );
+    SwaggerModule.setup('help', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+  }
 
   const oneDayInMs: number = 60 * 60 * 24 * 1000;
   app.use(

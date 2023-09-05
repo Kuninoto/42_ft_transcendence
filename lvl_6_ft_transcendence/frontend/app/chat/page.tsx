@@ -16,10 +16,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { AiOutlineUserAdd } from 'react-icons/ai'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
-import { LuSwords } from 'react-icons/lu'
-import { MdOutlineBlock } from 'react-icons/md'
 import { toast } from 'react-toastify'
 
 interface IMuteTooltip {
@@ -112,9 +111,9 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 						id="30s"
 						name="duration"
 						type="radio"
-						value={MuteDuration.THIRTEEN_SEGS}
+						value={MuteDuration.THIRTEEN_SECS}
 					/>
-					<span htmlFor="30s">30s</span>
+					<label htmlFor="30s">30s</label>
 				</fieldset>
 
 				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
@@ -125,7 +124,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 						type="radio"
 						value={MuteDuration.FIVE_MINS}
 					/>
-					<span htmlFor="5m">5m</span>
+					<label htmlFor="5m">5m</label>
 				</fieldset>
 
 				<input
@@ -227,10 +226,20 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	)
 }
 
+function InviteFriend() {
+	return (
+		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs text-white">
+			<div>Invite to room</div>
+		</div>
+	)
+}
+
 export default function Chat() {
 	const [message, setMessage] = useState('')
 	const [settings, setSettings] = useState(false)
 	const pathname = usePathname()
+
+	const { user } = useAuth()
 
 	const [role, setRole] = useState<ChatRoomRoles>()
 	const [authorRole, setAuthorRole] = useState<ChatRoomRoles>()
@@ -244,7 +253,6 @@ export default function Chat() {
 		focus,
 		isOpen,
 		openChats,
-		rejectChallenge,
 		sendMessage,
 	} = useFriends()
 
@@ -293,12 +301,27 @@ export default function Chat() {
 			absolute right-28 flex h-96 w-[38rem] flex-col place-content-between rounded-t border border-b-0 border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% transition-all`}
 			>
 				<div className="flex h-8 place-content-between items-center bg-white px-2 text-[#170317]">
-					{'room' in currentOpenChat &&
-						currentOpenChat.room.myRole === ChatRoomRoles.OWNER && (
-							<button className="" onClick={() => setSettings(true)}>
-								<FiSettings size={24} />
+					<div className="flex space-x-2">
+						{'room' in currentOpenChat &&
+							currentOpenChat.room.ownerId === user.id && (
+								<button
+									className="hover:text-primary-fushia"
+									onClick={() => setSettings(true)}
+								>
+									<FiSettings size={24} />
+								</button>
+							)}
+						<Tippy
+							content={<InviteFriend />}
+							interactive
+							placement={'top'}
+							trigger={'click'}
+						>
+							<button className="hover:text-primary-fushia">
+								<AiOutlineUserAdd size={24} />
 							</button>
-						)}
+						</Tippy>
+					</div>
 					<button className="w-full" onClick={changeOpenState}>
 						{'friend' in currentOpenChat
 							? currentOpenChat.friend?.name

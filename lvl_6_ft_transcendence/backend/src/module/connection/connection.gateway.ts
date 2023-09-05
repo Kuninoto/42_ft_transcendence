@@ -11,12 +11,11 @@ import { GatewayCorsOption } from 'src/common/option/cors.option';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import {
-  Achievements,
   Friend,
-  UserStatus,
+  NewUserStatusEvent,
+  RoomInviteEvent,
   RoomWarningEvent,
-  AchievementUnlockedEvent,
-  NewUserStatusEvent
+  UserStatus,
 } from 'types';
 import { ChatService } from '../chat/chat.service';
 import { FriendshipsService } from '../friendships/friendships.service';
@@ -60,7 +59,10 @@ export class ConnectionGateway
 
       this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
 
-      await this.updateUserStatus(user.id, UserStatus.ONLINE);
+      await this.updateUserStatus({
+        uid: user.id,
+        newStatus: UserStatus.ONLINE,
+      });
 
       await this.chatService.joinUserRooms(client);
       await this.joinFriendsRooms(client, user.id),
@@ -77,34 +79,22 @@ export class ConnectionGateway
     if (!client.data.userId) return;
 
     await this.gameService.disconnectPlayer(client.data.userId);
-    await this.updateUserStatus(client.data.userId, UserStatus.OFFLINE);
+    await this.updateUserStatus({
+      uid: client.data.userId,
+      newStatus: UserStatus.OFFLINE,
+    });
 
     this.connectionService.deleteSocketIdByUID(client.data.userId);
 
     this.logger.log(`${client.data.name} is now offline`);
   }
 
-  async achievementUnlocked(
-    userId: number,
-    achievement: Achievements,
-  ): Promise<void> {
-    const socketId: string = this.connectionService.findSocketIdByUID(
-      userId.toString(),
-    );
-
-    const achievementUnlocked: AchievementUnlockedEvent = {
-      achievement: achievement,
-    };
-    this.server.to(socketId).emit('achievementUnlocked', achievementUnlocked);
-  }
-
   friendRequestReceived(receiverUID: number) {
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-    if (receiverSocketId) {
+    if (receiverSocketId)
       this.server.to(receiverSocketId).emit('friendRequestReceived');
-    }
   }
 
   async joinFriendsRooms(client: Socket, userId: number): Promise<void> {
@@ -113,7 +103,7 @@ export class ConnectionGateway
     );
 
     const friendRoomNames: string[] = friends.map(
-      (friend: Friend) => 'friend-' + friend.uid,
+      (friend: Friend): string => 'friend-' + friend.uid,
     );
 
     client.join(friendRoomNames);
@@ -138,41 +128,52 @@ export class ConnectionGateway
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID.toString());
 
-    // If both users are online
-    if (senderSocketId && receiverSocketId) {
-      this.sendRefreshUser(senderUID, senderSocketId);
+    // If sender is online
+    if (senderSocketId) this.sendRefreshUser(senderUID, senderSocketId);
 
+    // If both users are online
+    if (receiverSocketId) {
       this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
       this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
     }
   }
 
-  async updateUserStatus(userId: number, newStatus: UserStatus): Promise<void> {
-    await this.usersService.updateUserStatusByUID(userId, newStatus);
+  async updateUserStatus(newUserStatus: NewUserStatusEvent): Promise<void> {
+    await this.usersService.updateUserStatusByUID(
+      newUserStatus.uid,
+      newUserStatus.newStatus,
+    );
 
     // Broadcast new user status to all users in the friend room (his friends)
-    const newUserStatus: NewUserStatusEvent = {
-      newStatus: newStatus,
-      uid: userId,
-    };
+    this.server
+      .to(`friend-${newUserStatus.uid}`)
+      .emit('newUserStatus', newUserStatus);
+  }
 
-    this.server.to(`friend-${userId}`).emit('newUserStatus', newUserStatus);
+  sendAchievementUnlocked(userId: number): void {
+    const socketId: string | undefined =
+      this.connectionService.findSocketIdByUID(userId.toString());
+
+    // If user is online send the 'notification' that an achievement
+    // was unlocked
+    if (socketId) this.server.to(socketId).emit('achievementUnlocked');
   }
 
   sendRefreshUser(userId: number, socketId?: string): void {
-    if (socketId) {
-      this.server.to(socketId).emit('refreshUser');
-    } else {
-      const socketIdOfUser: string | undefined =
-        this.connectionService.findSocketIdByUID(userId.toString());
+    if (!socketId)
+      socketId = this.connectionService.findSocketIdByUID(userId.toString());
 
-      if (socketIdOfUser) {
-        this.server.to(socketIdOfUser).emit('refreshUser');
-      }
-    }
+    if (socketId) this.server.to(socketId).emit('refreshUser');
   }
 
   sendRoomWarning(roomId: number, warning: RoomWarningEvent): void {
     this.server.to(`room-${roomId}`).emit('roomWarning', warning);
+  }
+
+  sendRoomInvite(userId: number, invite: RoomInviteEvent): void {
+    const socketId: string | undefined =
+      this.connectionService.findSocketIdByUID(userId.toString());
+
+    if (socketId) this.server.to(socketId).emit('roomInvite', invite);
   }
 }

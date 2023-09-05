@@ -24,7 +24,7 @@ export interface TokenPayload {
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
-  private readonly logger: Logger = new Logger('JwtAuthStrategy');
+  private readonly logger: Logger = new Logger(JwtAuthStrategy.name);
 
   constructor(
     // TODO
@@ -34,13 +34,13 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
+      ignoreExpiration: false,
     });
   }
 
-  async validate(payload: TokenPayload): Promise<ErrorResponse | User> {
-    const user: null | User = await this.usersService.findUserByUID(payload.id);
+  async validate(payload: TokenPayload): Promise<User | ErrorResponse> {
+    const user: User | null = await this.usersService.findUserByUID(payload.id);
 
     if (!user) {
       this.logger.warn(

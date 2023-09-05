@@ -1,4 +1,4 @@
-import { Friend } from '@/common/types/backend'
+import { Friend } from '@/common/types'
 import { removeParams } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -17,13 +17,14 @@ export default function Friends({ friends }: { friends: Friend[] }) {
 						/>
 					</div>
 					<div className="">
-						You've got no friends <span className="text-xl">😔</span>
+						You&apos;ve got no friends <span className="text-xl">😔</span>
 					</div>
 				</div>
 			</div>
 		)
 	}
 
+	console.log(friends)
 	return (
 		<div className="flex flex-col space-y-4">
 			{friends!.map((friend) => (
@@ -33,7 +34,8 @@ export default function Friends({ friends }: { friends: Friend[] }) {
 					key={friend.uid}
 				>
 					<div className="flex w-full place-content-around items-center border border-white py-3 text-xl">
-						<div className="relative aspect-square w-12 overflow-hidden rounded">
+						<p>#{friend.ladder_level}</p>
+						<div className="relative aspect-square w-12 overflow-hidden rounded-sm">
 							<Image
 								alt={'player profile picutre'}
 								className="object-cover"
@@ -44,7 +46,6 @@ export default function Friends({ friends }: { friends: Friend[] }) {
 							/>
 						</div>
 						<p className="group-hover:underline">{friend.name}</p>
-						<p>rank</p>
 						<p>{friend.status}</p>
 					</div>
 				</Link>
