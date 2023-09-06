@@ -60,6 +60,7 @@ export class ChatController {
 
   private readonly logger: Logger = new Logger(ChatController.name);
 
+  @ApiOperation({ description: 'Create a chat room'})
   @ApiBody({ type: CreateRoomRequest })
   @ApiConflictResponse({ description: 'If room name is already taken' })
   @ApiNotAcceptableResponse({
@@ -95,7 +96,7 @@ export class ChatController {
    * If no roomname is provided returns all rooms
    */
   @ApiOperation({
-    description: 'Search rooms by name proximity',
+    description: 'Search chat rooms by name proximity',
   })
   @ApiQuery({
     name: 'room-name',
@@ -121,7 +122,7 @@ export class ChatController {
    * of the banned users on the room which id=roomId
    */
   @ApiOperation({
-    description: 'Get the ids of the banned users of a room',
+    description: 'Get the ids of the banned users of a chat room',
   })
   @ApiParam({
     description: 'The room id',
@@ -159,7 +160,7 @@ export class ChatController {
    * of the admins on the room which id=room-id
    */
   @ApiOperation({
-    description: 'Get the ids of the admins on the room which id=roomId',
+    description: 'Get the ids of the admins of a room',
   })
   @ApiParam({
     description: 'The room id',
@@ -192,6 +193,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: 'Join a chat room'})
   @ApiBody({ type: JoinRoomRequest })
   @ApiNotFoundResponse({
     description: "The room doesn't exist",
@@ -218,6 +220,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: 'Leave a chat room'})
   @ApiBody({ type: RoomOperationRequest })
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiOkResponse({
@@ -241,6 +244,7 @@ export class ChatController {
     return { message: `Successfully left room "${room.name}"` };
   }
 
+  @ApiOperation({ description: 'Invite a user (friend) to a chat room'})
   @ApiBody({ type: InviteToRoomRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
   @ApiForbiddenResponse({
@@ -266,6 +270,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: "Get the possible rooms to invite a friend to (the ones that he's not a participant already nor banned" })
   @ApiQuery({
     name: 'friendId',
     type: 'number',
@@ -287,6 +292,7 @@ export class ChatController {
     return await this.chatService.findPossibleInvites(user, friendId);
   }
 
+  @ApiOperation({ description: 'Kick a user from a room' })
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -311,6 +317,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: 'Ban a user from a room'})
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
