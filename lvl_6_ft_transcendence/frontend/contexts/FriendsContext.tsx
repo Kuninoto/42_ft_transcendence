@@ -9,6 +9,7 @@ import {
 	NewUserStatusEvent,
 	OpponentFoundEvent,
 	RespondToGameInviteMessage,
+	RoomInviteRecievedEvent,
 	RoomMessageReceivedEvent,
 	RoomWarning,
 	RoomWarningEvent,
@@ -68,12 +69,12 @@ interface Invite {
 
 type IChat = (
 	| {
-			forbiddenChatReason: null | string
-			room: ChatRoomInterface
-	  }
+		forbiddenChatReason: null | string
+		room: ChatRoomInterface
+	}
 	| {
-			friend: Friend
-	  }
+		friend: Friend
+	}
 ) & {
 	display: boolean
 	messages: (Invite | Message | Warning)[]
@@ -100,7 +101,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	// ======================== General ========================
 
 	const getFriends = useCallback(
-		function () {
+		function() {
 			try {
 				if (isAuth) {
 					api
@@ -108,7 +109,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 						.then((result) => {
 							setFriends(result.data)
 						})
-						.catch((e) => {
+						.catch(() => {
 							throw 'Network error'
 						})
 				}
@@ -120,7 +121,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	)
 
 	const getRooms = useCallback(
-		function () {
+		function() {
 			try {
 				if (isAuth) {
 					api
@@ -128,7 +129,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 						.then((result) => {
 							setRooms(result.data)
 						})
-						.catch((e) => {
+						.catch(() => {
 							throw 'Network error'
 						})
 				}
@@ -278,10 +279,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	const onMessageReceived = useCallback(
-		function (
+		function(
 			data:
 				| DirectMessageReceivedEvent
 				| InvitedToGameEvent
+				| RoomInviteRecievedEvent
 				| RoomMessageReceivedEvent
 				| RoomWarningEvent
 		) {
@@ -312,18 +314,18 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				const newMessage: Invite | Message | Warning =
 					'warning' in data
 						? {
-								warning: data.warning,
-						  }
+							warning: data.warning,
+						}
 						: 'inviteId' in data
-						? {
+							? {
 								game: true,
 								id: data.inviteId,
-						  }
-						: {
+							}
+							: {
 								author: data.author,
 								content: data.content,
 								uniqueID: data.uniqueId,
-						  }
+							}
 
 				if (index === -1) {
 					if ('id' in data || 'roomId' in data) {
@@ -423,11 +425,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		if (socket) {
-			socket.on('friendRequestReceived', function () {
+			socket.on('friendRequestReceived', function() {
 				setNewFriendNotification(true)
 			})
 
-			socket.on('refreshUser', function () {
+			socket.on('refreshUser', function() {
 				refreshUser()
 				getFriends()
 				getRooms()
@@ -443,12 +445,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			socket.on('newChatRoomMessage', onMessageReceived)
 			socket.on('roomWarning', onMessageReceived)
 			socket.on('invitedToGame', onMessageReceived)
+			socket.on('roomInviteReceived', onMessageReceived)
 
 			return () => {
 				socket.off('directMessageReceived', onMessageReceived)
 				socket.off('newChatRoomMessage', onMessageReceived)
 				socket.off('roomWarning', onMessageReceived)
 				socket.off('invitedToGame', onMessageReceived)
+				socket.off('roomInviteReceived', onMessageReceived)
 			}
 		}
 	}, [onMessageReceived])

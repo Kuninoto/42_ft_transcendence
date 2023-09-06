@@ -1,10 +1,9 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomInterface, PossibleInvitesRequest } from '@/common/types'
+import { ChatRoomInterface, InviteToRoomRequest } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
-import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -19,27 +18,86 @@ import FriendsModal from './friendsModal'
 import RoomsModal from './roomsModal'
 
 enum openModalType {
-	FRIENDS = 'friends',
-	GROUPS = 'groups',
-	NULL = '',
+	FRIENDS,
+	GROUPS,
+	INVITEROOM,
+	NULL,
 }
 
-function RoomsInvite({
+function InviteRoomsModal({
+	closeModal,
 	id,
-	rooms,
 }: {
+	closeModal: () => void
 	id: number
-	rooms: ChatRoomInterface[]
 }) {
-	useEffect(() => {})
+	const [inviteRooms, setInviteRooms] = useState<ChatRoomInterface[]>([])
 
-	if (rooms.length === 0) return <></>
+	useEffect(() => {
+		try {
+			api
+				.get(`/chat/possible-invites?friendId=${id}`)
+				.then((result) => {
+					setInviteRooms(result.data)
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}, [id])
+
+	function inviteToRoom(roomId: number) {
+		const newInvite: InviteToRoomRequest = {
+			receiverUID: parseInt(id),
+			roomId: parseInt(roomId),
+		}
+
+		try {
+			api.post(`/chat/invite`, newInvite).catch(() => {
+				throw 'Network error'
+			})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
 
 	return (
-		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-40% to-[#0E050E] to-80% text-xs">
-			{rooms.map((room) => {
-				return <div key={room.id}>{room.name}</div>
-			})}
+		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
+			<button
+				className="absolute left-0 top-0 h-screen w-screen bg-black/70"
+				onClick={closeModal}
+			></button>
+			<div className="px-8 py-32">
+				<div className="group relative grid items-start justify-center gap-8">
+					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
+					<div className="relative block max-h-64 items-center space-y-3 overflow-auto rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+						{inviteRooms.length === 0 ? (
+							<div>Nothing to show</div>
+						) : (
+							inviteRooms.map((room) => {
+								return (
+									<div
+										className="flex w-96 place-content-between items-center rounded border border-white p-2"
+										key={room.id}
+									>
+										{room.name}
+										<button
+											onClick={() => {
+												inviteToRoom(room.id)
+											}}
+											className="flex rounded-r border border-white px-4 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+										>
+											Invite
+										</button>
+									</div>
+								)
+							})
+						)}
+					</div>
+				</div>
+			</div>
 		</div>
 	)
 }
@@ -57,24 +115,10 @@ export default function FriendsList(): JSX.Element {
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
-	const [inviteRooms, setInviteRooms] = useState<ChatRoomInterface[]>([])
+
+	const [friendId, setFriendId] = useState(-1)
 
 	const { open, sendGameInvite } = useFriends()
-
-	function openInviteRooms(id: number) {
-		try {
-			api
-				.get(`/chat/possible-invites?friendId=${id}`)
-				.then((result) => {
-					setInviteRooms(result.data)
-				})
-				.catch(() => {
-					throw 'Network error'
-				})
-		} catch (error: any) {
-			toast.error(error)
-		}
-	}
 
 	function leaveRoom(roomId: number) {
 		api
@@ -91,9 +135,14 @@ export default function FriendsList(): JSX.Element {
 		<div className="flex h-full w-full">
 			{openModal === openModalType.FRIENDS ? (
 				<FriendsModal closeModal={() => setOpenModal(openModalType.NULL)} />
+			) : openModal === openModalType.GROUPS ? (
+				<RoomsModal closeModal={() => setOpenModal(openModalType.NULL)} />
 			) : (
-				openModal === openModalType.GROUPS && (
-					<RoomsModal closeModal={() => setOpenModal(openModalType.NULL)} />
+				openModal === openModalType.INVITEROOM && (
+					<InviteRoomsModal
+						closeModal={() => setOpenModal(openModalType.NULL)}
+						id={friendId}
+					/>
 				)
 			)}
 
@@ -200,22 +249,15 @@ export default function FriendsList(): JSX.Element {
 										>
 											<BiUser size={24} />
 										</Link>
-										<Tippy
-											content={
-												<RoomsInvite id={friend.uid} rooms={inviteRooms} />
-											}
-											hideOnClick
-											interactive
-											placement={'left'}
-											trigger={'click'}
+										<button
+											onClick={() => {
+												setOpenModal(openModalType.INVITEROOM)
+												setFriendId(friend.uid)
+											}}
+											className="hover:text-[#F32E7C]"
 										>
-											<button
-												className="hover:text-[#F32E7C]"
-												onClick={() => openInviteRooms(friend.uid)}
-											>
-												<HiOutlineChatAlt2 size={24} />
-											</button>
-										</Tippy>
+											<HiOutlineChatAlt2 size={24} />
+										</button>
 										<button
 											className="hover:text-[#F32E7C]"
 											onClick={() => sendGameInvite(friend.uid.toString())}
