@@ -1,3 +1,5 @@
+import { UUID } from "crypto";
+
 export interface PlayerReadyMessage {
-  gameRoomId: string;
+  readonly gameRoomId: UUID;
 }

@@ -47,15 +47,15 @@ export class ConnectionService {
     return user;
   }
 
-  public findSocketIdByUID(userId: string): string | undefined {
+  public findSocketIdByUID(userId: number): string | undefined {
     return this.userIdToSocketId.findSocketIdByUID(userId);
   }
 
-  public updateSocketIdByUID(userId: string, socketId: string): void {
+  public updateSocketIdByUID(userId: number, socketId: string): void {
     this.userIdToSocketId.updateSocketIdByUID(userId, socketId);
   }
 
-  public deleteSocketIdByUID(userId: string): void {
+  public deleteSocketIdByUID(userId: number): void {
     this.userIdToSocketId.deleteSocketIdByUID(userId);
   }
 

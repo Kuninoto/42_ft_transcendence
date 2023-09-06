@@ -40,10 +40,9 @@ export class GameRoomMap {
   }
 
   public updateGameRoomById(roomId: string, newInfo: Partial<GameRoom>): void {
-    const gameRoom: GameRoom = this.gameRoomMap.get(roomId);
-    if (!gameRoom) {
-      return;
-    }
+    const gameRoom: GameRoom | undefined = this.gameRoomMap.get(roomId);
+
+    if (!gameRoom) return;
 
     // Merge the info on GameRoom with the new coming on newInfo
     // refer to:

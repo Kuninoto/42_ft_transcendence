@@ -1,6 +1,6 @@
 import { Player } from '../Player';
 
 export interface CreateGameInviteDTO {
-  recipientUID: string;
+  recipientUID: number;
   sender: Player;
 }

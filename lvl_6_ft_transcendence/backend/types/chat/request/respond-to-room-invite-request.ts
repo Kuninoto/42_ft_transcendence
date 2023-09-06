@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsPositive, IsBoolean } from 'class-validator';
+import { IsBoolean, IsUUID } from 'class-validator';
+import { UUID } from 'crypto';
 
 export class RespondToRoomInviteRequest {
   @ApiProperty()
-  @IsNumber()
-  @IsPositive()
-  readonly inviteId: number;
+  @IsUUID()
+  readonly inviteId: UUID;
 
   @ApiProperty()
   @IsBoolean()

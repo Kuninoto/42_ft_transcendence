@@ -199,7 +199,7 @@ export class GameEngineService {
 
       gameRoom.rightPlayer.score += 1;
       gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(
+      this.gameGateway.broadcastPlayerScoredEvent(
         gameRoom.roomId,
         gameRoom.leftPlayer.score,
         gameRoom.rightPlayer.score,
@@ -210,7 +210,7 @@ export class GameEngineService {
 
       gameRoom.leftPlayer.score += 1;
       gameRoom.ball.reset();
-      this.gameGateway.emitPlayerScoredEvent(
+      this.gameGateway.broadcastPlayerScoredEvent(
         gameRoom.roomId,
         gameRoom.leftPlayer.score,
         gameRoom.rightPlayer.score,

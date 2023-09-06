@@ -1,11 +1,11 @@
 export interface GameEndEvent {
-  winner: {
-    userId: number;
-    score: number;
+  readonly winner: {
+    readonly userId: number;
+    readonly score: number;
   };
 
-  loser: {
-    userId: number;
-    score: number;
+  readonly loser: {
+    readonly userId: number;
+    readonly score: number;
   };
 }
