@@ -835,9 +835,13 @@ export class ChatService {
     userId: number,
     roomId: number,
   ): boolean {
+    console.log("aaa" + inviteId)
     const invite: RoomInvite | undefined = this.roomInviteMap.findInviteById(
       inviteId.toString(),
     );
+    console.log("ui:" + userId)
+    console.log("ri" + roomId)
+    console.log(invite)
 
     return invite?.receiverUID === userId && invite?.roomId === roomId;
   }

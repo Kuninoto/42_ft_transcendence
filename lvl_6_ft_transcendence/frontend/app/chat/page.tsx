@@ -416,7 +416,7 @@ export default function Chat() {
 												className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
 												key={index}
 											>
-												<span>Challange you</span>
+												<span>Challenged you</span>
 												<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
 													Accept
 												</button>
