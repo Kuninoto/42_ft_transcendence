@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   HealthCheck,
   HealthCheckResult,
@@ -17,7 +17,9 @@ export class AppController {
     private readonly http: HttpHealthIndicator,
   ) {}
 
-  @ApiOkResponse({ description: 'Returns the health check' })
+  @ApiOperation({
+    description: 'Performs an health check on HTTP and DB connection',
+  })
   @Get('/health')
   @HealthCheck()
   async getHello(): Promise<HealthCheckResult> {

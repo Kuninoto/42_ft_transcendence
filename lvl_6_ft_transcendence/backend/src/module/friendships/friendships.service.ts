@@ -69,7 +69,7 @@ export class FriendshipsService {
   public async blockUserByUID(
     sender: User,
     userToBlockUID: number,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     const userToBlock: User | null = await this.usersRepository.findOneBy({
       id: userToBlockUID,
     });
@@ -162,12 +162,12 @@ export class FriendshipsService {
     const [myFriendRequestsAsReceiver, myFriendRequestsAsSender] =
       await Promise.all([
         this.friendshipRepository.find({
-          relations: { sender: true },
           where: { receiver: { id: userId }, status: FriendshipStatus.PENDING },
+          relations: { sender: true },
         }),
         this.friendshipRepository.find({
-          relations: { receiver: true },
           where: { sender: { id: userId }, status: FriendshipStatus.PENDING },
+          relations: { receiver: true },
         }),
       ]);
 
@@ -210,7 +210,7 @@ export class FriendshipsService {
   public async sendFriendRequest(
     sender: User,
     receiverUID: number,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     const receiver: User | null = await this.usersRepository.findOneBy({
       id: receiverUID,
     });
@@ -234,7 +234,7 @@ export class FriendshipsService {
   public async unblockUserByUID(
     sender: User,
     userToUnblockId: number,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     if (sender.id == userToUnblockId) {
       this.logger.warn(`"${sender.name}" tried to unblock himself`);
       throw new ConflictException('You cannot unblock yourself');
@@ -264,7 +264,7 @@ export class FriendshipsService {
     user: User,
     friendshipId: number,
     newStatus: NewFriendshipStatus,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     const friendship: Friendship | null =
       await this.friendshipRepository.findOne({
         where: { id: friendshipId },

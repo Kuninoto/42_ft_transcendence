@@ -10,6 +10,7 @@ import {
   ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
@@ -22,7 +23,7 @@ import { ErrorResponse, UserProfile, UserSearchInfo } from 'types';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
-@ApiBearerAuth('swagger-basic-auth')
+@ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
@@ -34,15 +35,18 @@ export class UsersController {
    * @description This is the route to visit to retrieve user's
    * (identified by id) profile
    */
+  @ApiOperation({
+    description: 'Get the UserProfile of user identified by :userId',
+  })
   @ApiOkResponse({
-    description: "Finds User's which id=userId profile",
+    description: "Successfully found user which id=userId profile's",
   })
   @ApiNotFoundResponse({
     description:
       "If user with id=userId doesn't exist or the requester is blocked by him ",
   })
   @ApiParam({
-    description: 'User id of the user to user we want the profile of',
+    description: 'Id of the user we want the profile of',
     name: 'userId',
   })
   @Get('/:userId/profile')
@@ -53,9 +57,7 @@ export class UsersController {
     const userProfile: UserProfile | null =
       await this.usersService.findUserProfileByUID(user, userId);
 
-    if (!userProfile) {
-      throw new NotFoundException('User not found');
-    }
+    if (!userProfile) throw new NotFoundException('User not found');
 
     return userProfile;
   }
@@ -68,6 +70,9 @@ export class UsersController {
    * Returns up to 5 users info that match that "piece" of username
    * If no <username> is provided returns an empty array
    */
+  @ApiOperation({
+    description: 'Search users by username proximity',
+  })
   @ApiQuery({
     name: 'username',
     type: 'string',
@@ -75,7 +80,7 @@ export class UsersController {
   })
   @ApiOkResponse({
     description:
-      'Finds users by username proximity and returns a UserProfile[] with up to 5 elements, if no <username> is provided returns an empty array\nIgnores blocked users and friends',
+      'Returns a UserSearchInfo[] with up to 5 elements, if no <username> is provided returns an empty array\nIgnores blocked users and friends',
   })
   @Get('/search')
   public async findUsersByUsernameProximity(

@@ -2,7 +2,6 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
-import { SecuritySchemeObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 import * as session from 'express-session';
 import helmet from 'helmet';
 import * as passport from 'passport';
@@ -31,8 +30,6 @@ function ensureRequiredEnvVariables(): void {
     'JWT_SECRET',
     'JWT_EXPIRES_IN',
     'EXPRESS_SESSION_SECRET',
-    'SWAGGER_USER',
-    'SWAGGER_PASSWORD',
   ];
 
   const missingVariables: string[] = requiredEnvVariables.filter(
@@ -55,17 +52,6 @@ function configureSwagger(app: NestExpressApplication): void {
     .setDescription('API for the ft_transcendence project')
     .setVersion('1.0')
     .addTag('ft_transcendence')
-    .addBasicAuth(
-      {
-        type: 'http',
-        description: 'Enter password',
-        name: 'swagger-basic-auth',
-        scheme: 'basic',
-        challenge: true,
-      } as SecuritySchemeObject,
-      'swagger-basic-auth',
-    )
-    .addSecurityRequirements('swagger-basic-auth')
     .build();
 
   const document: OpenAPIObject = SwaggerModule.createDocument(
