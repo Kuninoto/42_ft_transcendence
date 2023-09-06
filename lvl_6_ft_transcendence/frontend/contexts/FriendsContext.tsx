@@ -65,7 +65,6 @@ interface Warning {
 interface Invite {
 	game: boolean
 	id: number // Challenge id or invite id
-	roomId?: number
 	roomName?: string
 }
 
@@ -339,9 +338,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 						  }
 						: 'inviteId' in data
 						? {
-								game: !('roomId' in data),
+								game: !('roomName' in data),
 								id: data.inviteId,
-								roomId: 'roomId' in data ? data.roomId : undefined,
 								roomName: 'roomName' in data ? data.roomName : undefined,
 						  }
 						: {

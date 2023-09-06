@@ -7,6 +7,7 @@ import {
 	GetChatterRoleMessage,
 	JoinRoomRequest,
 	MuteDuration,
+	RespondToRoomInviteRequest,
 	UserBasicProfile,
 } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
@@ -121,7 +122,7 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 					<label htmlFor="30s">30s</label>
 				</fieldset>
 
-				<fieldset className="flex items-center  space-x-1 accent-primary-fushia">
+				<fieldset className="flex items-center space-x-1 accent-primary-fushia">
 					<input
 						{...register('duration')}
 						id="5m"
@@ -268,14 +269,14 @@ export default function Chat() {
 		)
 	}
 
-	function joinRoom(roomId: number, inviteId: number) {
-		const newJoinRequest: JoinRoomRequest = {
-			inviteId: parseInt(inviteId),
-			roomId: parseInt(roomId),
+	function joinRoom(inviteId: number) {
+		const newJoinRequest: RespondToRoomInviteRequest = {
+			accepted: true,
+			inviteId,
 		}
 
 		try {
-			api.post('/chat/join-room', newJoinRequest).catch(() => {
+			api.patch(`/chat/${inviteId}/status`, newJoinRequest).catch(() => {
 				throw 'Network error'
 			})
 		} catch (error: any) {
@@ -344,8 +345,8 @@ export default function Chat() {
 
 							const openId =
 								'room' in currentOpenChat
-									? currentOpenChat.room.id
-									: currentOpenChat.friend.uid
+									? currentOpenChat.room?.id
+									: currentOpenChat.friend?.uid
 
 							return (
 								<div
@@ -436,7 +437,7 @@ export default function Chat() {
 											</div>
 											<button
 												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-												onClick={() => joinRoom(message.roomId, message.id)}
+												onClick={() => joinRoom(message.id)}
 											>
 												Join
 											</button>
