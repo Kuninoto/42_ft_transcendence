@@ -309,6 +309,17 @@ export class ChatService {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
+    if (this.isUserBannedFromRoom(room, joiningUser.id)) {
+      throw new ForbiddenException(`You're banned from room "${room.name}"`);
+    }
+
+    if (this.isUserInRoom(room, joiningUser.id)) {
+      this.logger.warn(
+        `${joiningUser.name} tried to join a room where he's already in (room: "${room.name}")`,
+      );
+      throw new ConflictException(`You're already in room "${room.name}"`);
+    }
+
     if (room.type === ChatRoomType.PROTECTED && password !== room.password) {
       throw new UnauthorizedException(`Wrong password`);
     }
