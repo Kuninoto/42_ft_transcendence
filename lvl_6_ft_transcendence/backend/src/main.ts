@@ -70,7 +70,11 @@ function configureSwagger(app: NestExpressApplication): void {
     customSiteTitle: 'ft_transcendence docs', //add site title to swagger for nice SEO
     customCss: `
       .topbar-wrapper img {content:url(\'../public/swagger/favicon.png\'); width:200px; height:auto;}
-      .swagger-ui { background-color: ${HEX_NORDIC_BLUE} `,
+      .swagger-ui {
+        background-color: ${HEX_NORDIC_BLUE}
+        color: #ffffff
+      }
+    `,
     swaggerOptions: { persistAuthorization: true },
   };
 
