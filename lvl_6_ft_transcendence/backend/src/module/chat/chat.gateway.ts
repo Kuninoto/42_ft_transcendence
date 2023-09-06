@@ -67,10 +67,13 @@ export class ChatGateway implements OnGatewayInit {
 
     const canUserSendMessages: boolean =
       !this.chatService.isUserMuted(client.data.userId, room.id) &&
-      !this.chatService.isUserBannedFromRoom(room, client.data.userId);
+      !this.chatService.isUserBannedFromRoom(room, client.data.userId) &&
+      this.chatService.isUserInRoom(room, client.data.userId);
 
     if (!canUserSendMessages) {
-      this.logger.log(`${client.data.name} is muted. Message not sent`);
+      this.logger.log(
+        `${client.data.name} tried to send a message to a room where he's not allowed to (muted, banned or kicked)`,
+      );
       return;
     }
 

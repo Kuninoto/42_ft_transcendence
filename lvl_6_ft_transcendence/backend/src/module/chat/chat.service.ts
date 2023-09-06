@@ -323,6 +323,8 @@ export class ChatService {
       warningType: RoomWarning.JOIN,
     });
 
+    this.connectionGateway.joinUserToChatRoom(room.id, joiningUser.id);
+
     return { message: `Successfully joined room "${room.name}"` };
   }
 
@@ -849,6 +851,8 @@ export class ChatService {
       warning: `${joiningUser.name} joined the room`,
       warningType: RoomWarning.JOIN,
     });
+
+    this.connectionGateway.joinUserToChatRoom(room.id, joiningUser.id);
 
     this.roomInviteMap.deleteInviteByInviteId(inviteId);
     return { message: `Successfully joined room "${room.name}"` };
