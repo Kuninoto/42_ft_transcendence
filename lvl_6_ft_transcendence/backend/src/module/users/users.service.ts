@@ -87,7 +87,7 @@ export class UsersService {
     return await this.friendshipsService.findFriendRequestsByUID(meUID);
   }
 
-  public async findMyFriends(meUID: number): Promise<Friend[]> {
+  public async findMyFriendlist(meUID: number): Promise<Friend[]> {
     return await this.friendshipsService.findFriendsByUID(meUID);
   }
 
