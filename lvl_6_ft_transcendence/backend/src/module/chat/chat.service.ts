@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UUID } from 'crypto';
 import { Socket } from 'socket.io';
 import { ChatRoom, DirectMessage, User } from 'src/entity';
 import { Repository } from 'typeorm';
@@ -51,8 +52,7 @@ export class ChatService {
 
   private readonly logger: Logger = new Logger(ChatService.name);
 
-  private readonly roomInviteMap: RoomInviteMap = new RoomInviteMap();
-
+  private roomInviteMap: RoomInviteMap = new RoomInviteMap();
   private mutedUsers: { roomId: number; userId: number }[] = [];
 
   /****************************
@@ -170,7 +170,7 @@ export class ChatService {
     const savedRoom: ChatRoom = await this.chatRoomRepository.save(newRoom);
 
     const ownerSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(owner.id.toString());
+      this.connectionService.findSocketIdByUID(owner.id);
 
     if (ownerSocketId) {
       this.connectionGateway.server
@@ -303,31 +303,14 @@ export class ChatService {
     joiningUser: User,
     roomId: number,
     password?: string,
-    inviteId?: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
-    if (inviteId && !this.correctInviteUsage(inviteId, joiningUser.id, roomId))
-      throw new ForbiddenException(`Invite isn't meant for you or roomId is not the same room you were invited to`);
-
-    if (this.isUserBannedFromRoom(room, joiningUser.id)) {
-      throw new ForbiddenException(`You're banned from room "${room.name}"`);
-    }
-
-    if (this.isUserInRoom(room, joiningUser.id)) {
-      this.logger.warn(
-        `${joiningUser.name} tried to join a room where he's already in (room: "${room.name}")`,
-      );
-      throw new ConflictException(`You're already in room "${room.name}"`);
-    }
-
-    if (room.type === ChatRoomType.PROTECTED && !inviteId) {
-      if (password !== room.password) {
-        throw new UnauthorizedException(`Wrong password`);
-      }
+    if (room.type === ChatRoomType.PROTECTED && password !== room.password) {
+      throw new UnauthorizedException(`Wrong password`);
     }
 
     room.users.push(joiningUser);
@@ -339,18 +322,6 @@ export class ChatService {
       warning: `${joiningUser.name} joined the room`,
       warningType: RoomWarning.JOIN,
     });
-
-    const socketIdOfJoiningUser: string =
-      this.connectionService.findSocketIdByUID(joiningUser.id.toString());
-
-    this.connectionGateway.server
-      .to(socketIdOfJoiningUser)
-      .socketsJoin(`room-${room.id}`);
-
-    this.connectionGateway.sendRefreshUser(
-      joiningUser.id,
-      socketIdOfJoiningUser,
-    );
 
     return { message: `Successfully joined room "${room.name}"` };
   }
@@ -403,7 +374,7 @@ export class ChatService {
       );
     }
 
-    const inviteId: number = this.roomInviteMap.createRoomInvite({
+    const inviteId: UUID = this.roomInviteMap.createRoomInvite({
       roomId: roomId,
       inviterUID: inviterUID,
       receiverUID: receiverUID,
@@ -417,6 +388,17 @@ export class ChatService {
     });
 
     return { message: 'Successfully sent room invite' };
+  }
+
+  public async respondToRoomInvite(
+    inviteId: UUID,
+    accepted: boolean,
+    user: User,
+  ): Promise<SuccessResponse | ErrorResponse> {
+    if (accepted) return this.joinRoomByInvite(inviteId, user);
+
+    this.roomInviteMap.deleteInviteByInviteId(inviteId);
+    return { message: 'Successfully declined chat room invite' };
   }
 
   public async assignAdminRole(
@@ -637,7 +619,7 @@ export class ChatService {
     emitUserHasLeftTheRoom: boolean,
   ): Promise<void> {
     const socketIdOfLeavingUser: string =
-      this.connectionService.findSocketIdByUID(userLeavingId.toString());
+      this.connectionService.findSocketIdByUID(userLeavingId);
 
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
@@ -650,7 +632,7 @@ export class ChatService {
         warning: 'Owner has left the room',
       });
 
-      // Remove all participants from the room 
+      // Remove all participants from the room
       this.connectionGateway.server
         .to(`room-${room.id}`)
         .socketsLeave(`room-${room.id}`);
@@ -702,7 +684,7 @@ export class ChatService {
       userId: userToMuteId,
     });
 
-    setTimeout(async () => {
+    setTimeout(async (): Promise<void> => {
       await this.unmuteUser(userToMuteId, roomId);
     }, durationInMs);
 
@@ -821,7 +803,7 @@ export class ChatService {
       : false;
   }
 
-  public isUserMuted(userId: number, roomId: number): boolean {
+  public isUserMuted(roomId: number, userId: number): boolean {
     return (
       this.mutedUsers.findIndex(
         (entry: { roomId: number; userId: number }) =>
@@ -830,19 +812,45 @@ export class ChatService {
     );
   }
 
-  public correctInviteUsage(
-    inviteId: number,
-    userId: number,
-    roomId: number,
-  ): boolean {
-    console.log("aaa" + inviteId)
-    const invite: RoomInvite | undefined = this.roomInviteMap.findInviteById(
-      inviteId.toString(),
-    );
-    console.log("ui:" + userId)
-    console.log("ri" + roomId)
-    console.log(invite)
+  private async joinRoomByInvite(
+    inviteId: UUID,
+    joiningUser: User,
+  ): Promise<SuccessResponse | ErrorResponse> {
+    const invite: RoomInvite | undefined =
+      this.roomInviteMap.findInviteById(inviteId);
 
-    return invite?.receiverUID === userId && invite?.roomId === roomId;
+    if (!(invite?.receiverUID === joiningUser.id))
+      throw new ForbiddenException(`Invite isn't meant for you`);
+
+    const room: ChatRoom | null = await this.findRoomById(invite.roomId);
+    if (!room) {
+      throw new NotFoundException(
+        `Room with id=${invite.roomId} doesn't exist`,
+      );
+    }
+
+    if (this.isUserBannedFromRoom(room, joiningUser.id)) {
+      throw new ForbiddenException(`You're banned from room "${room.name}"`);
+    }
+
+    if (this.isUserInRoom(room, joiningUser.id)) {
+      this.logger.warn(
+        `${joiningUser.name} tried to join a room where he's already in (room: "${room.name}")`,
+      );
+      throw new ConflictException(`You're already in room "${room.name}"`);
+    }
+
+    room.users.push(joiningUser);
+    await this.chatRoomRepository.save(room);
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: joiningUser.id,
+      warning: `${joiningUser.name} joined the room`,
+      warningType: RoomWarning.JOIN,
+    });
+
+    this.roomInviteMap.deleteInviteByInviteId(inviteId);
+    return { message: `Successfully joined room "${room.name}"` };
   }
 }

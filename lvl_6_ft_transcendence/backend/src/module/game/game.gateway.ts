@@ -6,12 +6,14 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
+import { UUID } from 'crypto';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import {
   GameEndEvent,
   GameRoomInfoEvent,
   InvitedToGameEvent,
+  OpponentFoundEvent,
   PaddleMoveMessage,
   PlayerReadyMessage,
   PlayerScoredEvent,
@@ -80,7 +82,7 @@ export class GameGateway implements OnGatewayInit {
 
     if (
       this.gameService.isPlayerInQueueOrGame(client.data.userId) ||
-      this.gameService.isPlayerInQueueOrGame(parseInt(messageBody.recipientUID))
+      this.gameService.isPlayerInQueueOrGame(messageBody.recipientUID)
     ) {
       this.logger.warn(
         `${client.data.name} tried to send a game invite while in game or to a recipient in game`,
@@ -91,23 +93,15 @@ export class GameGateway implements OnGatewayInit {
     const newPlayer: Player = new Player(client, client.data.userId);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
-    const inviteId: number = this.gameService.createGameInvite({
+    const inviteId: UUID = this.gameService.createGameInvite({
       recipientUID: messageBody.recipientUID,
       sender: newPlayer,
     });
 
-    const recipientSocketId: string = this.connectionService.findSocketIdByUID(
-      messageBody.recipientUID.toString(),
-    );
-
-    const invitedToGame: InvitedToGameEvent = {
+    this.emitInvitedToGameEvent(messageBody.recipientUID, {
       inviteId: inviteId,
       inviterUID: client.data.userId,
-    };
-
-    this.connectionGateway.server
-      .to(recipientSocketId)
-      .emit('invitedToGame', invitedToGame);
+    });
   }
 
   @SubscribeMessage('respondToGameInvite')
@@ -175,6 +169,42 @@ export class GameGateway implements OnGatewayInit {
    *           EVENTS           *
    ******************************/
 
+  public emitInvitedToGameEvent(
+    recipientUID: number,
+    event: InvitedToGameEvent,
+  ): void {
+    const recipientSocketId: string =
+      this.connectionService.findSocketIdByUID(recipientUID);
+
+    this.connectionGateway.server
+      .to(recipientSocketId)
+      .emit('invitedToGame', event);
+  }
+
+  public emitOpponentFoundEvent(
+    playerSocketId: string,
+    event: OpponentFoundEvent,
+  ): void {
+    this.connectionGateway.server
+      .to(playerSocketId)
+      .emit('opponentFound', event);
+  }
+
+  public broadcastPlayerScoredEvent(
+    gameRoomId: string,
+    leftPlayerScore: number,
+    rightPlayerScore: number,
+  ): void {
+    const playerScoredEvent: PlayerScoredEvent = {
+      leftPlayerScore: leftPlayerScore,
+      rightPlayerScore: rightPlayerScore,
+    };
+
+    this.connectionGateway.server
+      .to(gameRoomId)
+      .emit('playerScored', playerScoredEvent);
+  }
+
   public broadcastGameRoomInfo(gameRoom: GameRoom): void {
     const { ball, leftPlayer, rightPlayer } = gameRoom;
 
@@ -198,21 +228,6 @@ export class GameGateway implements OnGatewayInit {
       winner: { score: winner.score, userId: winner.userId },
     };
     this.connectionGateway.server.to(gameRoomId).emit('gameEnd', gameEnd);
-  }
-
-  public emitPlayerScoredEvent(
-    gameRoomId: string,
-    leftPlayerScore: number,
-    rightPlayerScore: number,
-  ): void {
-    const playerScoredEvent: PlayerScoredEvent = {
-      leftPlayerScore: leftPlayerScore,
-      rightPlayerScore: rightPlayerScore,
-    };
-
-    this.connectionGateway.server
-      .to(gameRoomId)
-      .emit('playerScored', playerScoredEvent);
   }
 
   private isValidPaddleMoveMessage(
@@ -253,7 +268,7 @@ export class GameGateway implements OnGatewayInit {
   ): messageBody is RespondToGameInviteMessage {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.inviteId === 'number' &&
+      typeof messageBody.inviteId === 'string' &&
       typeof messageBody.accepted === 'boolean'
     );
   }
@@ -263,7 +278,7 @@ export class GameGateway implements OnGatewayInit {
   ): messageBody is SendGameInviteMessage {
     return (
       typeof messageBody === 'object' &&
-      typeof messageBody.recipientUID === 'string'
+      typeof messageBody.recipientUID === 'number'
     );
   }
 }

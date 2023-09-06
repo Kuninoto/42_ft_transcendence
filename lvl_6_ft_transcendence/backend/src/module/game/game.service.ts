@@ -1,5 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UUID } from 'crypto';
 import { Socket } from 'socket.io';
 import { GameResult, User } from 'src/entity';
 import { Repository } from 'typeorm';
@@ -7,9 +8,7 @@ import {
   GameInvite,
   GameType,
   InviteDeclinedEvent,
-  OpponentFoundEvent,
   PlayerSide,
-  UserBasicProfile,
   UserStatus,
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -45,53 +44,15 @@ export class GameService {
     private readonly connectionGateway: ConnectionGateway,
   ) {}
 
-  private async emitOpponentFoundEvent(
-    player: Player,
-    roomId: string,
-    opponentUID: number,
-  ): Promise<void> {
-    const opponentInfo: UserBasicProfile =
-      await this.usersService.findUserBasicProfileByUID(opponentUID);
-
-    const opponentFound: OpponentFoundEvent = {
-      opponentInfo: opponentInfo,
-      roomId: roomId,
-      side: player.side,
-    };
-    player.client.emit('opponentFound', opponentFound);
-  }
-
-  private async saveGameResult(
-    gameType: GameType,
-    winner: Player,
-    loser: Player,
-  ): Promise<void> {
-    const winnerUser: User = await this.usersService.findUserByUID(
-      winner.userId,
-    );
-    const loserUser: User = await this.usersService.findUserByUID(loser.userId);
-
-    const newGameResult: GameResult = this.gameResultRepository.create({
-      game_type: gameType,
-      loser: loserUser,
-      loser_score: loser.score,
-      winner: winnerUser,
-      winner_score: winner.score,
-    });
-    await this.gameResultRepository.save(newGameResult);
-  }
-
-  public createGameInvite(createGameInviteDto: CreateGameInviteDTO): number {
+  public createGameInvite(createGameInviteDto: CreateGameInviteDTO): UUID {
     return this.gameInviteMap.createGameInvite(createGameInviteDto);
   }
 
   public async gameInviteAccepted(
-    inviteId: number,
+    inviteId: UUID,
     recipient: Socket,
   ): Promise<void> {
-    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(
-      inviteId.toString(),
-    );
+    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
 
     const recipientPlayer: Player = new Player(
       recipient,
@@ -105,16 +66,16 @@ export class GameService {
       GameType.ONEVSONE,
     );
 
-    this.gameInviteMap.deleteInviteByInviteId(inviteId.toString());
+    this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
-  public gameInviteDeclined(inviteId: number) {
+  public gameInviteDeclined(inviteId: UUID) {
     const inviteDeclined: InviteDeclinedEvent = {
       inviteId: inviteId,
     };
 
     this.connectionGateway.server.emit('inviteDeclined', inviteDeclined);
-    this.gameInviteMap.deleteInviteByInviteId(inviteId.toString());
+    this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
   /**
@@ -153,7 +114,7 @@ export class GameService {
     }
   }
 
-  public findGameInviteByInviteId(inviteId: string): GameInvite | undefined {
+  public findGameInviteByInviteId(inviteId: UUID): GameInvite | undefined {
     return this.gameInviteMap.findInviteById(inviteId);
   }
 
@@ -209,7 +170,7 @@ export class GameService {
     playerTwo: Player,
     gameType: GameType,
   ): Promise<void> {
-    const roomId: string = crypto.randomUUID();
+    const roomId: UUID = crypto.randomUUID();
 
     // Join both players to the same room
     playerOne.client.join(roomId);
@@ -231,8 +192,21 @@ export class GameService {
     });
 
     // Emit 'opponentFound' event to both players
-    await this.emitOpponentFoundEvent(playerOne, roomId, playerTwo.userId);
-    await this.emitOpponentFoundEvent(playerTwo, roomId, playerOne.userId);
+    this.gameGateway.emitOpponentFoundEvent(playerOne.client.id, {
+      roomId: roomId,
+      side: playerOne.side,
+      opponentInfo: await this.usersService.findUserBasicProfileByUID(
+        playerTwo.userId,
+      ),
+    });
+
+    this.gameGateway.emitOpponentFoundEvent(playerTwo.client.id, {
+      roomId: roomId,
+      side: playerTwo.side,
+      opponentInfo: await this.usersService.findUserBasicProfileByUID(
+        playerOne.userId,
+      ),
+    });
   }
 
   public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
@@ -261,9 +235,10 @@ export class GameService {
   public async playerReady(gameRoomId: string, clientId: string) {
     let gameRoom: GameRoom | undefined =
       this.gameRoomMap.findGameRoomById(gameRoomId);
-    if (!gameRoom) {
-      return;
-    }
+
+    // In case the other player leaves (and consequently delete the game room)
+    // this if prevents this player of accessing the undefined object
+    if (!gameRoom) return;
 
     const playerToUpdate: Player =
       gameRoom.leftPlayer.client.id === clientId
@@ -318,10 +293,30 @@ export class GameService {
     }
   }
 
-  public correctInviteUsage(userId: number, inviteId: number): boolean {
+  public correctInviteUsage(userId: number, inviteId: UUID): boolean {
     const gameInvite: GameInvite | undefined =
-      this.gameInviteMap.findInviteById(inviteId.toString());
+      this.gameInviteMap.findInviteById(inviteId);
 
     return gameInvite?.recipientUID === userId;
+  }
+
+  private async saveGameResult(
+    gameType: GameType,
+    winner: Player,
+    loser: Player,
+  ): Promise<void> {
+    const winnerUser: User = await this.usersService.findUserByUID(
+      winner.userId,
+    );
+    const loserUser: User = await this.usersService.findUserByUID(loser.userId);
+
+    const newGameResult: GameResult = this.gameResultRepository.create({
+      game_type: gameType,
+      loser: loserUser,
+      loser_score: loser.score,
+      winner: winnerUser,
+      winner_score: winner.score,
+    });
+    await this.gameResultRepository.save(newGameResult);
   }
 }
