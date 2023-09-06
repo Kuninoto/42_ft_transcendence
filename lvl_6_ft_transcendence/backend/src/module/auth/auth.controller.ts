@@ -134,18 +134,20 @@ export class AuthController {
    * because /generate generates the secret and is the only way
    * for the user to get the OTPs that he'll need, inclusively here.
    */
+  @ApiOperation({ description:
+      "Enable 2FA (Two Factor Authentication with Google Authenticator)\
+      \nMUST be called AFTER a POST /api/auth/2fa/generate is made\
+      because /generate generates the secret and the QRCode\
+      \nand so is the only way for the user to get the OTPs\
+      (registering the app on Google Authenticator) that he'll need,\
+      \ninclusively here."})
   @ApiBody({ type: OtpVerificationRequest })
   @ApiBadRequestResponse({
     description: "If request's body is malformed or if the OTP is invalid",
   })
   @ApiOkResponse({
     description:
-      "Enables two factor authentication.\
-      \nMUST be called AFTER a POST /api/auth/2fa/generate is made\
-      because /generate generates the secret and the QRCode\
-      \nand so is the only way for the user to get the OTPs\
-      (registering the app on Google Authenticator) that he'll need,\
-      \ninclusively here.",
+      'Succesfully enabled 2FA'
   })
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/enable')
@@ -173,7 +175,8 @@ export class AuthController {
    *
    * Disables two factor authentication.
    */
-  @ApiOkResponse({ description: 'Disables two factor authentication' })
+  @ApiOperation({ description: 'Disable 2FA'})
+  @ApiOkResponse({ description: 'Succesfully disabled two factor authentication' })
   @UseGuards(JwtAuthGuard)
   @Patch('2fa/disable')
   public async disable2fa(@ExtractUser() user: User): Promise<SuccessResponse> {
@@ -194,6 +197,7 @@ export class AuthController {
    * Later the user can use the OTPs for 2FA.
    * @returns QRCode for Google Authenticator app registration
    */
+  @ApiOperation({ description: 'Generate the QRCode to scan with Google Authenticator to register the app'})
   @ApiOkResponse({
     description:
       'Returns the QRCode that enables app registration on Google Authenticator',
@@ -217,6 +221,7 @@ export class AuthController {
    * This is the route to logout a user
    * @returns Logs out the user (wipes the access token from whitelist)
    */
+  @ApiOperation({ description: 'Logs out the user'})
   @ApiOkResponse({
     description: 'Logs out the user (wipes the access token from whitelist)',
   })
