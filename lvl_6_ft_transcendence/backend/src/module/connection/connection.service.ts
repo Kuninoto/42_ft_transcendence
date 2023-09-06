@@ -4,9 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Socket } from 'socket.io';
 import { User } from 'src/entity';
 import { Repository } from 'typeorm';
-// TODO
-// uncomment this
-// import { AuthService } from '../auth/auth.service';
 import { TokenPayload } from '../auth/strategy/jwt-auth.strategy';
 import { UserIdToSocketIdMap } from './UserIdToSocketIdMap';
 
@@ -17,7 +14,7 @@ export class ConnectionService {
     private readonly usersRepository: Repository<User>,
     private readonly jwtService: JwtService,
     // TODO
-    // uncomment this
+    // UNCOMMENT
     // private readonly authService: AuthService,
     private userIdToSocketId: UserIdToSocketIdMap,
   ) {}
@@ -42,11 +39,10 @@ export class ConnectionService {
     }
 
     // TODO
-    // ACTIVATE THIS CHECK
-
-    //if (authToken !== this.authService.tokenWhitelist.get(user.id.toString())) {
-    //  throw new Error('Invalid token');
-    //}
+    // UNCOMMENT
+    // if (authToken != this.authService.tokenWhitelist.get(user.id.toString())) {
+    //   throw new Error('Invalid token');
+    // }
 
     return user;
   }

@@ -4,9 +4,6 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from 'src/entity';
 import { UsersService } from 'src/module/users/users.service';
 import { ErrorResponse } from 'types';
-// TODO
-// uncomment this
-// import { AuthService } from '../auth.service';
 
 // JWT Payload
 // - User id
@@ -26,12 +23,7 @@ export interface TokenPayload {
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
   private readonly logger: Logger = new Logger(JwtAuthStrategy.name);
 
-  constructor(
-    // TODO
-    // uncomment this
-    // private readonly authService: AuthService,
-    private readonly usersService: UsersService,
-  ) {
+  constructor(private readonly usersService: UsersService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.JWT_SECRET,
@@ -50,11 +42,11 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
     }
 
     // TODO
-    // uncomment this
-    //if (this.authService.tokenWhitelist.get(user.id.toString()) === undefined) {
-    //  this.logger.warn('A request was made with a blacklisted token');
-    //  throw new UnauthorizedException('Unauthenticated request');
-    //}
+    // Uncomment
+    // if (!this.authService.tokenWhitelist.get(user.id.toString())) {
+    //   this.logger.warn('A request was made with a blacklisted token');
+    //   throw new UnauthorizedException('Unauthenticated request');
+    // }
 
     if (!payload.has_2fa || (payload.has_2fa && payload.is_2fa_authed)) {
       // If user doesn't have 2fa or has 2fa and is 2f authenticated, return user
