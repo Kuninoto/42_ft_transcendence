@@ -102,7 +102,7 @@ export class GameGateway implements OnGatewayInit {
 
     const invitedToGame: InvitedToGameEvent = {
       inviteId: inviteId,
-      senderUID: client.data.userId,
+      inviterUID: client.data.userId,
     };
 
     this.connectionGateway.server
