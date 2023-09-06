@@ -270,7 +270,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: "Get the possible rooms to invite a friend to (the ones that he's not a participant already nor banned" })
+  @ApiOperation({ description: "Get the possible chat rooms to invite a friend to (the ones that he's not a participant already nor banned" })
   @ApiQuery({
     name: 'friendId',
     type: 'number',
@@ -292,7 +292,7 @@ export class ChatController {
     return await this.chatService.findPossibleInvites(user, friendId);
   }
 
-  @ApiOperation({ description: 'Kick a user from a room' })
+  @ApiOperation({ description: 'Kick a user from a chat room' })
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -317,7 +317,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: 'Ban a user from a room'})
+  @ApiOperation({ description: 'Ban a user from a chat room'})
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -337,6 +337,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: 'Unban a user from a chat room'})
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -354,6 +355,7 @@ export class ChatController {
     return await this.chatService.unbanFromRoom(body.userId, body.roomId);
   }
 
+  @ApiOperation({ description: 'Mute a user on a chat room'})
   @ApiBody({ type: MuteUserRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -390,6 +392,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: 'Unmute a user on a chat room'})
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -407,6 +410,7 @@ export class ChatController {
     return await this.chatService.unmuteUser(body.userId, body.roomId);
   }
 
+  @ApiOperation({ description: 'Grant admin privileges to a user on a chat room'})
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -433,6 +437,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: 'Remove admin privileges of a user on a chat room'})
   @ApiBody({ type: RoomOperationRequest })
   @ApiOperation({
     description: 'Remove admin privileges of a participant of a room',
@@ -458,6 +463,7 @@ export class ChatController {
     return await this.chatService.removeAdminRole(body.userId, body.roomId);
   }
 
+  @ApiOperation({ description: 'Update chat room password'})
   @ApiBody({ type: UpdateRoomPasswordRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
@@ -478,6 +484,7 @@ export class ChatController {
     );
   }
 
+  @ApiOperation({ description: ''})
   @ApiBody({ type: RemoveRoomPasswordRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",

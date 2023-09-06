@@ -105,7 +105,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			try {
 				if (isAuth) {
 					api
-						.get('/me/friends')
+						.get('/me/friendlist')
 						.then((result) => {
 							setFriends(result.data)
 						})
