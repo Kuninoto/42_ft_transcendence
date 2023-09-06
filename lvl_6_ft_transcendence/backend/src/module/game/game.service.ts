@@ -321,7 +321,7 @@ export class GameService {
   public correctInviteUsage(userId: number, inviteId: number): boolean {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId.toString());
-    
+
     return gameInvite?.recipientUID === userId;
   }
 }
