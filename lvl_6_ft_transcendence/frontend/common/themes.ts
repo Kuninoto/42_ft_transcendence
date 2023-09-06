@@ -10,13 +10,9 @@ const HEX_WHITE: string = '#FFFFFF'
 const HEX_BLACK: string = '#000000'
 const HEX_PINK: string = '#FF28B9'
 const HEX_CYAN: string = '#1EB9BA'
+const HEX_RED: string = '#D30000'
 
 export const themes: IThemes = {
-	candyland: {
-		background: 'candyland.jpg',
-		ball: HEX_BLACK,
-		paddle: 'black.jpeg',
-	},
 	default: {
 		background: 'default.png',
 		ball: HEX_WHITE,
@@ -24,26 +20,16 @@ export const themes: IThemes = {
 	},
 	fortyTwo: {
 		background: 'forty_two_porto.jpg',
-		ball: HEX_PINK,
+		ball: HEX_CYAN,
 		paddle: 'white.png',
 	},
-	halloween: {
-		background: 'halloween.jpg',
-		ball: HEX_WHITE,
-		paddle: 'white.png',
-	},
-	neon: {
-		background: 'neon_city.jpg',
-		ball: HEX_WHITE,
+	mario: {
+		background: 'mario.jpg',
+		ball: HEX_RED,
 		paddle: 'white.png',
 	},
 	space: {
 		background: 'space.jpg',
-		ball: HEX_WHITE,
-		paddle: 'white.png',
-	},
-	underwater: {
-		background: 'underwater.jpg',
 		ball: HEX_WHITE,
 		paddle: 'white.png',
 	},
