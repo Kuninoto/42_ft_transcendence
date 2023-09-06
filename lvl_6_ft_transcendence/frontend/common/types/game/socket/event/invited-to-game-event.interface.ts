@@ -1,4 +1,4 @@
 export interface InvitedToGameEvent {
-  inviteId: number;
-  senderUID: number;
+	inviteId: number
+	senderUID: number
 }
