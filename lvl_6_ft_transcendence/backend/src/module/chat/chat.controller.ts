@@ -234,7 +234,7 @@ export class ChatController {
     );
     if (!room) {
       this.logger.warn(`${user.name} tried to leave a non-existing room`);
-      throw new NotFoundException(`Room "${room.name}" doesn't exist`);
+      throw new NotFoundException(`Room with id=${body.roomId} doesn't exist`);
     }
 
     await this.chatService.leaveRoom(room, body.userId, true);
@@ -284,7 +284,7 @@ export class ChatController {
     @Query('friendId') friendId: number,
   ): Promise<ChatRoomInterface[] | ErrorResponse> {
     if (!friendId) throw new BadRequestException('No friendId was provided');
-    return await this.chatService.findPossibleInvites(user.id, friendId);
+    return await this.chatService.findPossibleInvites(user, friendId);
   }
 
   @ApiBody({ type: RoomOperationRequest })

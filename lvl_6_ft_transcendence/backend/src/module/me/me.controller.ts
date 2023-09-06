@@ -55,7 +55,7 @@ export class MeController {
   @Get()
   public async getMyInfo(@ExtractUser() user: User): Promise<MeUserInfo> {
     this.logger.log(`"${user.name}" requested his info`);
-    return await this.usersService.findMyInfo(user.id);
+    return await this.usersService.findMyInfo(user);
   }
 
   /**
