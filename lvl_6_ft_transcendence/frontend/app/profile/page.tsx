@@ -305,7 +305,7 @@ export default function Profile() {
 					</div>
 
 					<h2 className="text-4xl">
-						Rank: #{userProfile?.ladder_level || '0'}
+						Rank: #{userProfile?.ladder_level || '#'}
 					</h2>
 
 					<div className="text-xl opacity-80">

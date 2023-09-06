@@ -9,7 +9,7 @@ import {
 	NewUserStatusEvent,
 	OpponentFoundEvent,
 	RespondToGameInviteMessage,
-	RoomInviteRecievedEvent,
+	RoomInviteReceivedEvent,
 	RoomMessageReceivedEvent,
 	RoomWarning,
 	RoomWarningEvent,
@@ -64,7 +64,9 @@ interface Warning {
 
 interface Invite {
 	game: boolean
-	id: number // Challenge id or room id
+	id: number // Challenge id or invite id
+	roomId?: number,
+	roomName?: string,
 }
 
 type IChat = (
@@ -283,7 +285,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			data:
 				| DirectMessageReceivedEvent
 				| InvitedToGameEvent
-				| RoomInviteRecievedEvent
+				| RoomInviteReceivedEvent
 				| RoomMessageReceivedEvent
 				| RoomWarningEvent
 		) {
@@ -293,13 +295,13 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				const index = newChat?.findIndex((chat) => {
 					if ('room' in chat) {
 						if ('id' in data) return chat.room.id === data.id
-						if ('roomId' in data) return chat.room.id === data.roomId
+						if ('roomId' in data && !('inviteId' in data)) return chat.room.id === data.roomId
 						return false
 					}
-					if ('friend' in chat && 'author' in data && !('id' in data))
+					if ('author' in data && !('id' in data))
 						return chat.friend.uid === data.author.id
-					if ('friend' in chat && 'senderUID' in data)
-						return chat.friend.uid === data.senderUID
+					if ('inviterUID' in data)
+						return chat.friend.uid === data.inviterUID
 					return false
 				})
 
@@ -318,8 +320,10 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 						}
 						: 'inviteId' in data
 							? {
-								game: true,
+								game: !('roomId' in data),
 								id: data.inviteId,
+								roomId: 'roomId' in data ? data.roomId : undefined,
+								roomName: 'roomName' in data ? data.roomName : undefined
 							}
 							: {
 								author: data.author,
@@ -328,7 +332,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							}
 
 				if (index === -1) {
-					if ('id' in data || 'roomId' in data) {
+					if ('id' in data || 'warning' in data) {
 						const room = rooms.find((room) => {
 							if ('id' in data) return room.id === data.id
 							return room.id === data.roomId
@@ -345,7 +349,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					} else {
 						const friend = friends.find((friend) => {
 							if ('author' in data) return friend.uid === data.author.id
-							return friend.uid === data.senderUID
+							return friend.uid === data.inviterUID
 						})
 
 						if (!friend) throw 'error'
@@ -516,16 +520,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			newChat[index]?.messages.unshift(newMessage)
 			return newChat
 		})
-	}
-
-	function sendRoomInvite(id: string) {
-		if (!socket) return
-
-		const newRoomInvite: InviteToRoomRequest = {
-			roomId,
-		}
-
-		api.post()
 	}
 
 	function respondGameInvite(accepted: boolean) {
