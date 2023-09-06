@@ -17,6 +17,7 @@ export class RoomInviteMap {
       inviterUID: createRoomInviteDto.inviterUID,
       receiverUID: createRoomInviteDto.receiverUID,
     });
+    console.log(this.inviteIdCounter)
     return this.inviteIdCounter++;
   }
 
