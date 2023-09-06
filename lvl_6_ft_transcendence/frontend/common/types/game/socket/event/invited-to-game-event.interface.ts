@@ -1,6 +1,6 @@
-import { UUID } from "crypto"
+import { UUID } from 'crypto'
 
 export interface InvitedToGameEvent {
-  readonly inviteId: UUID,
-  readonly inviterUID: number,
+	readonly inviteId: UUID
+	readonly inviterUID: number
 }

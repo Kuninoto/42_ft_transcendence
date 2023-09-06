@@ -1,4 +1,4 @@
 export interface JoinRoomRequest {
-  readonly roomId: number;
-  readonly password?: string;
+	readonly password?: string
+	readonly roomId: number
 }
