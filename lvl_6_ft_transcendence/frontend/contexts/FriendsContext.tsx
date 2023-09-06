@@ -9,7 +9,7 @@ import {
 	NewUserStatusEvent,
 	OpponentFoundEvent,
 	RespondToGameInviteMessage,
-	RoomInviteRecievedEvent,
+	RoomInviteReceivedEvent,
 	RoomMessageReceivedEvent,
 	RoomWarning,
 	RoomWarningEvent,
@@ -64,7 +64,9 @@ interface Warning {
 
 interface Invite {
 	game: boolean
-	id: number // Challenge id or room id
+	id: number // Challenge id or invite id
+	roomId?: number,
+	roomName?: string,
 }
 
 type IChat = (
@@ -283,7 +285,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			data:
 				| DirectMessageReceivedEvent
 				| InvitedToGameEvent
-				| RoomInviteRecievedEvent
+				| RoomInviteReceivedEvent
 				| RoomMessageReceivedEvent
 				| RoomWarningEvent
 		) {
@@ -516,16 +518,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			newChat[index]?.messages.unshift(newMessage)
 			return newChat
 		})
-	}
-
-	function sendRoomInvite(id: string) {
-		if (!socket) return
-
-		const newRoomInvite: InviteToRoomRequest = {
-			roomId,
-		}
-
-		api.post()
 	}
 
 	function respondGameInvite(accepted: boolean) {
