@@ -69,10 +69,10 @@ function InviteRoomsModal({
 				className="absolute left-0 top-0 h-screen w-screen bg-black/70"
 				onClick={closeModal}
 			></button>
-			<div className="px-8 py-32">
+			<div>
 				<div className="group relative grid items-start justify-center gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
-					<div className="relative block max-h-64 items-center space-y-3 overflow-auto rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+					<div className="relative block max-h-64 items-center space-y-3 overflow-auto rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-4 leading-none scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 						{inviteRooms.length === 0 ? (
 							<div>Nothing to show</div>
 						) : (
@@ -86,6 +86,7 @@ function InviteRoomsModal({
 										<button
 											onClick={() => {
 												inviteToRoom(room.id)
+												closeModal()
 											}}
 											className="flex rounded-r border border-white px-4 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 										>
@@ -102,7 +103,7 @@ function InviteRoomsModal({
 	)
 }
 
-export default function FriendsList(): JSX.Element {
+export default function FriendsList() {
 	const { user } = useAuth()
 	const {
 		exitRoom,
@@ -171,7 +172,7 @@ export default function FriendsList(): JSX.Element {
 							</a>
 						</div>
 					</div>
-					<div className="text-2xl">#{user.ladder_level} </div>
+					<div className="text-2xl">#{user.ladder_level || "#"} </div>
 				</div>
 
 				<div className="my-2 space-y-2">

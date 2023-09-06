@@ -229,7 +229,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 				.then((data) => {
 					api.get(`/chat/rooms/search`).then((result) => {
 						refreshRooms()
-						setRooms(result.data)
+						searchRoom('')
 					})
 				})
 				.catch((e) => {
