@@ -1,7 +1,12 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import {
+  DocumentBuilder,
+  OpenAPIObject,
+  SwaggerCustomOptions,
+  SwaggerModule,
+} from '@nestjs/swagger';
 import * as session from 'express-session';
 import helmet from 'helmet';
 import * as passport from 'passport';
@@ -58,12 +63,18 @@ function configureSwagger(app: NestExpressApplication): void {
     app,
     swaggerConfig,
   );
-  SwaggerModule.setup('help', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
+
+  const HEX_NORDIC_BLUE: string = '#1c4966';
+  const options: SwaggerCustomOptions = {
     customfavIcon: '../public/swagger/favicon.ico',
-  });
+    customSiteTitle: 'ft_transcendence docs', //add site title to swagger for nice SEO
+    customCss: `
+      .topbar-wrapper img {content:url(\'../public/swagger/favicon.png\'); width:200px; height:auto;}
+      .swagger-ui { background-color: ${HEX_NORDIC_BLUE} `,
+    swaggerOptions: { persistAuthorization: true },
+  };
+
+  SwaggerModule.setup('help', app, document, options);
 }
 
 async function bootstrap(): Promise<void> {
