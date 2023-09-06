@@ -268,23 +268,22 @@ export default function Chat() {
 		)
 	}
 
-	function joinRoom(roomId: number, inviteId: number) { 
-
+	function joinRoom(roomId: number, inviteId: number) {
 		const newJoinRequest: JoinRoomRequest = {
+			inviteId: parseInt(inviteId),
 			roomId: parseInt(roomId),
-			inviteId: parseInt(inviteId)
 		}
 
 		try {
-			api.post('/chat/join-room', newJoinRequest)
-				.catch(() => { throw "Network error"})
+			api.post('/chat/join-room', newJoinRequest).catch(() => {
+				throw 'Network error'
+			})
 		} catch (error: any) {
 			toast.error(error)
 		}
-
 	}
 
-	const handleChange = (event: ChangeEventHandler<HTMLTextAreaElement>) => {
+	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
 		const value = event.target.value
 
 		if (message.trim().length !== 0 && value.includes('\n')) {
@@ -396,7 +395,7 @@ export default function Chat() {
 					</div>
 
 					<div className="relative flex h-full w-8/12 flex-col place-content-between">
-						<div className="flex h-[17.5rem] flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+						<div className="flex h-full flex-col-reverse overflow-y-auto p-2 text-sm scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 							{currentOpenChat?.messages?.map((message, index) => {
 								if ('warning' in message) {
 									return (
@@ -431,12 +430,15 @@ export default function Chat() {
 										>
 											<div className="flex flex-col">
 												Invited you
-												<span className="text-gray-500 text-[0.5rem] leading-3">to {message.roomName}</span>
+												<span className="text-[0.5rem] leading-3 text-gray-500">
+													to {message.roomName}
+												</span>
 											</div>
-											<button 
+											<button
+												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 												onClick={() => joinRoom(message.roomId, message.id)}
-												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-													Join
+											>
+												Join
 											</button>
 										</div>
 									)
@@ -520,21 +522,15 @@ export default function Chat() {
 							})}
 						</div>
 
-						{('room' in currentOpenChat &&
-							!currentOpenChat.forbiddenChatReason) ||
-						'friend' in currentOpenChat ? (
+						{(('room' in currentOpenChat && currentOpenChat.canWrite) ||
+							'friend' in currentOpenChat) && (
 							<textarea
-								className={`mx-2 mb-2 h-14 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
+								className={`mx-2 mb-2 h-16 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
 								cols={2}
 								onChange={handleChange}
 								placeholder="Write something beutiful"
 								value={message}
 							/>
-						) : (
-							<div>
-								{'room' in currentOpenChat &&
-									currentOpenChat.forbiddenChatReason}
-							</div>
 						)}
 					</div>
 				</div>

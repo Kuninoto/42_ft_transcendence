@@ -1,6 +1,6 @@
 export interface RoomInviteReceivedEvent {
-  inviterUID: number;
-  inviteId: number;
-  roomId: number;
-  roomName: string;
+	inviteId: number
+	inviterUID: number
+	roomId: number
+	roomName: string
 }
