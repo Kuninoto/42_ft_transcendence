@@ -5,6 +5,7 @@ import {
 	ChatRoomRoles,
 	GetChatterRoleEvent,
 	GetChatterRoleMessage,
+	JoinRoomRequest,
 	MuteDuration,
 	UserBasicProfile,
 } from '@/common/types'
@@ -267,7 +268,23 @@ export default function Chat() {
 		)
 	}
 
-	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
+	function joinRoom(roomId: number, inviteId: number) { 
+
+		const newJoinRequest: JoinRoomRequest = {
+			roomId,
+			inviteId,
+		}
+
+		try {
+			api.post('/chat/join-room', newJoinRequest)
+				.catch(() => { throw "Network error"})
+		} catch (error: any) {
+			toast.error(error)
+		}
+
+	}
+
+	const handleChange = (event: ChangeEventHandler<HTMLTextAreaElement>) => {
 		const value = event.target.value
 
 		if (message.trim().length !== 0 && value.includes('\n')) {
@@ -409,10 +426,18 @@ export default function Chat() {
 
 									return (
 										<div
-											className="mx-auto flex w-5/6 rounded border border-white p-2"
+											className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
 											key={index}
 										>
-											Invite
+											<div className="flex flex-col">
+												Invited you
+												<span className="text-gray-500 text-[0.5rem] leading-3">to {message.roomName}</span>
+											</div>
+											<button 
+											onClick={() => joinRoom(message.roomId, message.id)}
+											className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+												Join
+											</button>
 										</div>
 									)
 								}
