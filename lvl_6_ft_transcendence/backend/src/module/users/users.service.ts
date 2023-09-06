@@ -32,7 +32,7 @@ import {
   Friendship,
   GameResult,
   User,
-} from '../../entity/index';
+} from '../../entity';
 import { AchievementService } from '../achievement/achievement.service';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
@@ -174,6 +174,7 @@ export class UsersService {
         'chat_rooms.admins',
         'chat_rooms.owner',
         'chat_rooms.users',
+        'banned_rooms',
       ],
     });
   }
@@ -186,6 +187,7 @@ export class UsersService {
         'chat_rooms.admins',
         'chat_rooms.owner',
         'chat_rooms.users',
+        'banned_rooms',
       ],
     });
   }
@@ -387,7 +389,7 @@ export class UsersService {
   public async updateUsernameByUID(
     userId: number,
     newName: string,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     // Check name length boundaries (4-10)
     if (newName.length <= 4 || newName.length >= 10) {
       this.logger.warn(

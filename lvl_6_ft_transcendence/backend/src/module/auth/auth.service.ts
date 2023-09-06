@@ -4,29 +4,30 @@ import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
 import { User } from 'src/entity';
 import { AccessTokenResponse, LoginResponse, SuccessResponse } from 'types';
-
 import { OtpInfoDTO } from './dto/otpInfo.dto';
 import { TokenPayload } from './strategy/jwt-auth.strategy';
 
 @Injectable()
 export class AuthService {
+  constructor(private readonly jwtService: JwtService) {}
+
   private readonly logger: Logger = new Logger(AuthService.name);
 
-  public tokenWhitelist: Map<string, string> = new Map<string, string>();
-
-  constructor(private readonly jwtService: JwtService) {}
+  // public tokenWhitelist: Map<string, string> = new Map<string, string>();
 
   // Return the signed JWT
   public login(user: User): LoginResponse {
-    const payload: TokenPayload = {
-      has_2fa: user.has_2fa,
+    const payload: Partial<TokenPayload> = {
       id: user.id,
+      has_2fa: user.has_2fa,
     };
 
     const accessToken: string = this.jwtService.sign(payload);
 
     // Set the new accessToken as the new valid token for user with uid= user.id
-    this.tokenWhitelist.set(user.id.toString(), accessToken);
+    // TODO
+    // UNCOMMENT
+    //this.tokenWhitelist.set(user.id.toString(), accessToken);
 
     this.logger.log(`"${user.name}" logged in with 42 auth!`);
     return {
@@ -37,16 +38,18 @@ export class AuthService {
 
   // Return the signed JWT
   public authenticate2fa(user: User): AccessTokenResponse {
-    const payload: TokenPayload = {
-      has_2fa: true,
+    const payload: Partial<TokenPayload> = {
       id: user.id,
+      has_2fa: true,
       is_2fa_authed: true,
     };
 
     const accessToken: string = this.jwtService.sign(payload);
 
     // Set the new accessToken as the new valid token for user with uid= user.id
-    this.tokenWhitelist.set(user.id.toString(), accessToken);
+    // TODO
+    // UNCOMMENT
+    // this.tokenWhitelist.set(user.id.toString(), accessToken);
 
     this.logger.log(`"${user.name}" authenticated with Google Authenticator!`);
     return {
@@ -78,7 +81,9 @@ export class AuthService {
   }
 
   public logout(userId: number): SuccessResponse {
-    this.tokenWhitelist.delete(userId.toString());
+    // TODO
+    // UNCOMMENT
+    // this.tokenWhitelist.delete(userId.toString());
 
     return { message: 'Successfully logged out' };
   }

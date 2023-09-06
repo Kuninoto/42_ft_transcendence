@@ -7,7 +7,7 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UserStatsService } from '../user-stats/user-stats.service';
 
 @ApiTags('game')
-@ApiBearerAuth('swagger-basic-auth')
+@ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
 @Controller('game')
 export class GameController {

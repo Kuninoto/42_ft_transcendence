@@ -39,7 +39,7 @@ import { FortyTwoAuthGuard } from './guard/fortytwo-auth.guard';
 import { JwtAuthGuard } from './guard/jwt-auth.guard';
 
 @ApiTags('auth')
-@ApiBearerAuth('swagger-basic-auth')
+@ApiBearerAuth('JWT')
 @Controller('auth')
 export class AuthController {
   constructor(

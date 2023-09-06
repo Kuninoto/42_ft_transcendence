@@ -17,6 +17,7 @@ import {
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
@@ -31,7 +32,7 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { FriendshipsService } from './friendships.service';
 
 @ApiTags('friendships')
-@ApiBearerAuth('swagger-basic-auth')
+@ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard)
 @Controller('friendships')
 export class FriendshipsController {
@@ -44,7 +45,7 @@ export class FriendshipsController {
   /**
    * POST /api/friendships/send-request/:receiverId
    *
-   * Sends a friend request to the user which id=receiverId
+   * Send a friend request to the user which id=receiverId
    * - Checks if:
    *   - The sender is the receiver (self friend request)
    *   - The receiver exists
@@ -54,6 +55,7 @@ export class FriendshipsController {
    *   - They're friends already
    * And finally creates a new entry on the friendships table
    */
+  @ApiOperation({ description: 'Send a friend request' })
   @ApiBadRequestResponse({
     description: 'If the sender == receiver i.e self friend-request',
   })
@@ -66,38 +68,36 @@ export class FriendshipsController {
       "If there's already a friend request between the two users (sender & receiver) or if sender & receiver are already friends",
   })
   @ApiOkResponse({
-    description: 'Sends a friend request to the user which id=receiverId',
+    description:
+      'Successfully sent friend request to the user which id=receiverId',
   })
   @HttpCode(HttpStatus.OK)
   @Post('send-request/:receiverId')
   public async sendFriendRequest(
     @ExtractUser() user: User,
     @Param('receiverId', NonNegativeIntPipe) receiverUID: number,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     return await this.friendshipsService.sendFriendRequest(user, receiverUID);
   }
 
   /**
    * PATCH /api/friendships/:friendshipId/update
    *
-   * Updates the friendship status according to the "newStatus"
+   * Update the friendship status according to the "newStatus"
    * field of the JSON sent on the body
-   *
-   * {
-   *   "newStatus":"accepted" | "declined" | "unfriend"
-   * }
    */
+  @ApiOperation({ description: 'Update a friendship status' })
   @ApiBody({ type: FriendshipStatusUpdationRequest })
   @ApiNotFoundResponse({
     description: "If a friendship which id=friendshipId doesn't exist",
   })
   @ApiBadRequestResponse({
     description:
-      "If request's body is malformed or if the sender tries to update the friend request that he has sent",
+      "If request's body is malformed or if the sender tries to update a friend request that he has sent",
   })
   @ApiOkResponse({
     description:
-      "Updates the friendship status according to the \"newStatus\" field of the JSON sent on the body. Possible values: 'declined' | 'accepted' | 'unfriend' ",
+      'Successfully updates the friendship status to the "newStatus"',
   })
   @Patch(':friendshipId/status')
   public async updateFriendshipStatus(
@@ -119,15 +119,17 @@ export class FriendshipsController {
   /**
    * POST /api/block/:userToBlockId
    *
-   * @description Checks if:
+   * @description
+   * Checks if:
    *   - The userToBlock exists
    *   - The user is trying to block himself
    *   - The userToBlock is already blocked
    * And finally blocks user which id=userToBlockId
    */
+  @ApiOperation({ description: 'Block a user' })
   @ApiOkResponse({
     description:
-      'Estabilishes a block relationship between sender and the user which id=userToBlockId',
+      'Successfully establishes a block relationship between sender and the user which id=userToBlockId',
   })
   @ApiConflictResponse({
     description:
@@ -141,18 +143,19 @@ export class FriendshipsController {
   public async blockUser(
     @ExtractUser() user: User,
     @Param('userToBlockId', NonNegativeIntPipe) userToBlockId: number,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     return await this.friendshipsService.blockUserByUID(user, userToBlockId);
   }
 
   /**
    * DELETE /api/block/:userToUnblockId
    *
-   * @description Unblocks uid=userToUnblockId
+   * @description Unblocks uid=:userToUnblockId
    */
+  @ApiOperation({ description: 'Unblock a user' })
   @ApiOkResponse({
     description:
-      'Breaks the block relationship between sender and the user which id=userToUnblockId',
+      'Successfully breaks the block relationship between sender and the user which id=userToUnblockId',
   })
   @ApiConflictResponse({
     description:
@@ -165,7 +168,7 @@ export class FriendshipsController {
   public async unblockUser(
     @ExtractUser() user: User,
     @Param('userToUnblockId', NonNegativeIntPipe) userToUnblockId: number,
-  ): Promise<ErrorResponse | SuccessResponse> {
+  ): Promise<SuccessResponse | ErrorResponse> {
     return await this.friendshipsService.unblockUserByUID(
       user,
       userToUnblockId,

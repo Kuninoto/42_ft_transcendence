@@ -66,22 +66,20 @@ export default function Themes() {
 
 	function goBackward() {
 		setSelected((prevSelect: number) => {
-			if (prevSelect == 0) return amount - 1
-			return prevSelect - 1
+			return prevSelect == 0 ? amount - 1 : prevSelect - 1
 		})
 	}
 
 	function goForward() {
 		setSelected((prevSelect: number) => {
-			if (prevSelect == amount - 1) return 0
-			return prevSelect + 1
+			return prevSelect == amount - 1 ? 0 : prevSelect + 1
 		})
 	}
 
 	return (
 		<>
 			<Link
-				className="fixed  top-0 h-28 w-40 hover:underline"
+				className="fixed top-0 h-28 w-40 hover:underline"
 				href={'/dashboard'}
 			>
 				<Image
