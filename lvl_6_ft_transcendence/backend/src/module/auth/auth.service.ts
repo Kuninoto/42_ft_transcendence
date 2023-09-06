@@ -13,7 +13,7 @@ export class AuthService {
 
   private readonly logger: Logger = new Logger(AuthService.name);
 
-  public tokenWhitelist: Map<string, string> = new Map<string, string>();
+  // public tokenWhitelist: Map<string, string> = new Map<string, string>();
 
   // Return the signed JWT
   public login(user: User): LoginResponse {
@@ -25,7 +25,9 @@ export class AuthService {
     const accessToken: string = this.jwtService.sign(payload);
 
     // Set the new accessToken as the new valid token for user with uid= user.id
-    this.tokenWhitelist.set(user.id.toString(), accessToken);
+    // TODO
+    // UNCOMMENT
+    //this.tokenWhitelist.set(user.id.toString(), accessToken);
 
     this.logger.log(`"${user.name}" logged in with 42 auth!`);
     return {
@@ -45,7 +47,9 @@ export class AuthService {
     const accessToken: string = this.jwtService.sign(payload);
 
     // Set the new accessToken as the new valid token for user with uid= user.id
-    this.tokenWhitelist.set(user.id.toString(), accessToken);
+    // TODO
+    // UNCOMMENT
+    // this.tokenWhitelist.set(user.id.toString(), accessToken);
 
     this.logger.log(`"${user.name}" authenticated with Google Authenticator!`);
     return {
@@ -77,7 +81,9 @@ export class AuthService {
   }
 
   public logout(userId: number): SuccessResponse {
-    this.tokenWhitelist.delete(userId.toString());
+    // TODO
+    // UNCOMMENT
+    // this.tokenWhitelist.delete(userId.toString());
 
     return { message: 'Successfully logged out' };
   }

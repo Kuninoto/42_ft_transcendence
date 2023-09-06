@@ -32,7 +32,7 @@ import {
   Friendship,
   GameResult,
   User,
-} from '../../entity/index';
+} from '../../entity';
 import { AchievementService } from '../achievement/achievement.service';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UserStatsService } from '../user-stats/user-stats.service';

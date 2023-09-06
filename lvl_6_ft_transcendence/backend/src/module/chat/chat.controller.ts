@@ -94,14 +94,17 @@ export class ChatController {
    * Returns the rooms that match that "piece" of name,
    * If no roomname is provided returns all rooms
    */
-  @ApiOkResponse({
-    description:
-      'This is the route to visit to search for ChatRoomSearchInfo, by room-name proximity.\nReturns the rooms that match that "piece" of name, If no <name> is provided returns all rooms',
+  @ApiOperation({
+    description: 'Search rooms by name proximity',
   })
   @ApiQuery({
     name: 'room-name',
     type: 'string',
     description: 'A piece of the room name(s) to match',
+  })
+  @ApiOkResponse({
+    description:
+      'This is the route to visit to search for ChatRoomSearchInfo, by room-name proximity.\nReturns the rooms that match that "piece" of name, If no <name> is provided returns all rooms',
   })
   @Get('/rooms/search')
   public async findRoomsByNameProximity(
