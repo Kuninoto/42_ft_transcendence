@@ -139,7 +139,7 @@ export class ConnectionGateway
     }
   }
 
-  joinUserToChatRoom(roomId: string, userId: number): void {
+  joinUserToChatRoom(roomId: number, userId: number): void {
     const socketIdOfJoiningUser: string | undefined =
       this.connectionService.findSocketIdByUID(userId);
 
