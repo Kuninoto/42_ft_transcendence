@@ -66,9 +66,7 @@ export class FriendshipsGateway implements OnGatewayInit {
     }
 
     const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(
-        messageBody.receiverId.toString(),
-      );
+      this.connectionService.findSocketIdByUID(messageBody.receiverId);
 
     const directMessageReceived: DirectMessageReceivedEvent = {
       uniqueId: messageBody.uniqueId,

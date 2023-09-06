@@ -1,4 +1,6 @@
+import { UUID } from "crypto";
+
 export interface PaddleMoveMessage {
-  gameRoomId: string;
-  newY: number;
+  readonly gameRoomId: UUID;
+  readonly newY: number;
 }

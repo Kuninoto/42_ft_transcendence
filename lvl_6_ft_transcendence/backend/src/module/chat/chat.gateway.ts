@@ -65,11 +65,11 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const isUserMuted: boolean = this.chatService.isUserMuted(
-      client.data.userId,
-      room.id,
-    );
-    if (isUserMuted) {
+    const canUserSendMessages: boolean =
+      !this.chatService.isUserMuted(client.data.userId, room.id) &&
+      !this.chatService.isUserBannedFromRoom(room, client.data.userId);
+
+    if (!canUserSendMessages) {
       this.logger.log(`${client.data.name} is muted. Message not sent`);
       return;
     }
@@ -101,7 +101,7 @@ export class ChatGateway implements OnGatewayInit {
 
       // Retrieve the clientId of the user
       const userSocketId: string | undefined =
-        this.connectionService.findSocketIdByUID(uid.toString());
+        this.connectionService.findSocketIdByUID(uid);
       if (userSocketId && !blockRelationship) {
         client.to(userSocketId).emit('newChatRoomMessage', message);
       }
