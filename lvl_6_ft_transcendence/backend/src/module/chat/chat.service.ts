@@ -51,8 +51,7 @@ export class ChatService {
 
   private readonly logger: Logger = new Logger(ChatService.name);
 
-  private readonly roomInviteMap: RoomInviteMap = new RoomInviteMap();
-
+  private roomInviteMap: RoomInviteMap = new RoomInviteMap();
   private mutedUsers: { roomId: number; userId: number }[] = [];
 
   /****************************

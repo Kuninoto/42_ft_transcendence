@@ -270,6 +270,50 @@ export class ChatController {
     );
   }
 
+  // TODO
+  // @ApiOperation({ description: 'Respond to chat room invite'})
+  //@ApiBody({ type:  })
+  @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
+  @ApiForbiddenResponse({
+    description: 'If sender is not a friend of receiver',
+  })
+  @ApiConflictResponse({
+    description: 'If the invited user is already part of the room',
+  })
+  @ApiOkResponse({ description: '' })
+  @Patch('/:inviteId/status')
+  public async respondToRoomInvite(
+    @ExtractUser() user: User,
+    @Body() body: InviteToRoomRequest,
+  ): Promise<SuccessResponse | ErrorResponse> {
+    return await this.chatService.inviteToRoom(
+      user.id,
+      body.receiverUID,
+      body.roomId,
+    );
+  }
+  /* @ApiOperation({ description: 'Respond to chat room invite'})
+  @ApiBody({ type:  })
+  @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
+  @ApiForbiddenResponse({
+    description: 'If sender is not a friend of receiver',
+  })
+  @ApiConflictResponse({
+    description: 'If the invited user is already part of the room',
+  })
+  @ApiOkResponse({ description: '' })
+  @Patch('/:inviteId/status')
+  public async respondToRoomInvite(
+    @ExtractUser() user: User,
+    @Body() body: InviteToRoomRequest,
+  ): Promise<SuccessResponse | ErrorResponse> {
+    return await this.chatService.inviteToRoom(
+      user.id,
+      body.receiverUID,
+      body.roomId,
+    );
+  } */
+
   @ApiOperation({ description: "Get the possible chat rooms to invite a friend to (the ones that he's not a participant already nor banned" })
   @ApiQuery({
     name: 'friendId',
