@@ -311,7 +311,7 @@ export class ChatService {
     }
 
     if (inviteId && !this.correctInviteUsage(inviteId, joiningUser.id, roomId))
-      return;
+      throw new ForbiddenException(`Invite isn't meant for you or roomId is not the same room you were invited to`);
 
     if (this.isUserBannedFromRoom(room, joiningUser.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
