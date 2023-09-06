@@ -36,7 +36,7 @@ export class UsersController {
    * (identified by id) profile
    */
   @ApiOperation({
-    description: 'Get the UserProfile of user identified by :userId',
+    description: 'Get the profile of a user',
   })
   @ApiOkResponse({
     description: "Successfully found user which id=userId profile's",
