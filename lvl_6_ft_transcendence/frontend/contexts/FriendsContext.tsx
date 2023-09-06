@@ -208,26 +208,29 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		setOpenChats((prevChat) => {
 			const newChat = [...prevChat]
 
-			return newChat?.map((chat) => {
-				if (isRoom && 'room' in chat && chat.room.id === id) {
-					return { ...chat, display: true, unread: false }
-				}
-				if (!isRoom && 'friend' in chat && chat.friend.uid === id) {
+			const read = newChat?.map((chat) => {
+				if ((isRoom && 'room' in chat && chat.room.id === id) || (!isRoom && 'friend' in chat && chat.friend.uid === id)) {
 					return { ...chat, display: true, unread: false }
 				}
 				return chat
 			})
-		})
 
-		setCurrentOpenChat(() => {
-			const newCurrent = openChats.find((chat) => {
-				if (isRoom && 'room' in chat) return chat.room.id === id
-				if (!isRoom && 'friend' in chat) return chat.friend.uid === id
-				return false
+			console.log("here")
+
+			setCurrentOpenChat(() => {
+				const newCurrent = newChat.find((chat) => {
+					if (isRoom && 'room' in chat) return chat.room.id === id
+					if (!isRoom && 'friend' in chat) return chat.friend.uid === id
+					return false
+				})
+
+				console.log(newCurrent)
+
+				if (!newCurrent) return {} as IChat
+				return newCurrent
 			})
 
-			if (!newCurrent) return {} as IChat
-			return newCurrent
+			return read
 		})
 	}
 
@@ -263,18 +266,23 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		getRooms()
 
 		if (warningType === RoomWarning.BAN || warningType === RoomWarning.KICK) {
-			setOpenChats((prevChat) => {
+			setOpenChats((prevChat: any) => {
 				const newChat = [...prevChat]
+
 				const update = newChat?.map((chat) => {
 					if ('room' in chat && chat.room.id === id) {
 						return { ...chat, forbiddenChatReason: warningType }
 					}
 					return chat
 				})
+				console.log(update)
 				return update
 			})
 
+				console.log("asd")
+
 			if ('room' in currentOpenChat && currentOpenChat.room.id === id) {
+				console.log("equal")
 				focus(id, true)
 			}
 		}
