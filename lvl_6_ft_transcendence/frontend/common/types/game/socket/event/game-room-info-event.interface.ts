@@ -1,8 +1,7 @@
-import { IBall } from "src/module/game/Ball";
-import { IPlayer } from "src/module/game/Player";
+import { IBall, IPlayer } from "@/common/types";
 
 export interface GameRoomInfoEvent {
-  ball: IBall;
-  leftPlayer: IPlayer;
-  rightPlayer: IPlayer;
+  readonly ball: IBall;
+  readonly leftPlayer: IPlayer;
+  readonly rightPlayer: IPlayer;
 }

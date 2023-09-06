@@ -1,5 +1,6 @@
 import { RoomInvite } from 'types';
 import { CreateRoomInviteDTO } from './dto/create-room-invite.dto';
+import { UUID } from 'crypto';
 
 export class RoomInviteMap {
   /* As JS is a fuckfest maps with numbers as keys don't work
@@ -9,20 +10,20 @@ export class RoomInviteMap {
     string,
     RoomInvite
   >();
-  private inviteIdCounter: number = 1;
 
-  public createRoomInvite(createRoomInviteDto: CreateRoomInviteDTO): number {
-    this.roomInviteMap.set(this.inviteIdCounter.toString(), {
+  public createRoomInvite(createRoomInviteDto: CreateRoomInviteDTO): UUID {
+    const inviteId: UUID = crypto.randomUUID();
+
+    this.roomInviteMap.set(inviteId, {
       roomId: createRoomInviteDto.roomId,
       inviterUID: createRoomInviteDto.inviterUID,
       receiverUID: createRoomInviteDto.receiverUID,
     });
-    console.log(this.inviteIdCounter)
-    return this.inviteIdCounter++;
+    return inviteId;
   }
 
-  public deleteInviteByInviteId(inviteId: string): void {
-    this.roomInviteMap.delete(inviteId);
+  public deleteInviteByInviteId(inviteId: UUID): void {
+    this.roomInviteMap.delete(inviteId.toString());
   }
 
   public deleteAllInvitesToUser(userId: number): void {
@@ -31,7 +32,7 @@ export class RoomInviteMap {
     });
   }
 
-  public findInviteById(inviteId: string): RoomInvite {
-    return this.roomInviteMap.get(inviteId);
+  public findInviteById(inviteId: UUID): RoomInvite {
+    return this.roomInviteMap.get(inviteId.toString());
   }
 }

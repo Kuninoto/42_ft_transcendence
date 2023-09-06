@@ -47,6 +47,7 @@ import {
   UpdateRoomPasswordRequest,
   UserBasicProfile,
 } from 'types';
+import { RespondToRoomInviteRequest } from 'types/chat/request/respond-to-room-invite-request';
 import { ChatService } from './chat.service';
 import { AdminGuard } from './guard/admin.guard';
 import { OwnerGuard } from './guard/owner.guard';
@@ -60,7 +61,7 @@ export class ChatController {
 
   private readonly logger: Logger = new Logger(ChatController.name);
 
-  @ApiOperation({ description: 'Create a chat room'})
+  @ApiOperation({ description: 'Create a chat room' })
   @ApiBody({ type: CreateRoomRequest })
   @ApiConflictResponse({ description: 'If room name is already taken' })
   @ApiNotAcceptableResponse({
@@ -193,7 +194,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: 'Join a chat room'})
+  @ApiOperation({ description: 'Join a chat room' })
   @ApiBody({ type: JoinRoomRequest })
   @ApiNotFoundResponse({
     description: "The room doesn't exist",
@@ -212,15 +213,10 @@ export class ChatController {
     @ExtractUser() user: User,
     @Body() body: JoinRoomRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.joinRoom(
-      user,
-      body.roomId,
-      body.password,
-      body.inviteId,
-    );
+    return await this.chatService.joinRoom(user, body.roomId, body.password);
   }
 
-  @ApiOperation({ description: 'Leave a chat room'})
+  @ApiOperation({ description: 'Leave a chat room' })
   @ApiBody({ type: RoomOperationRequest })
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiOkResponse({
@@ -244,7 +240,7 @@ export class ChatController {
     return { message: `Successfully left room "${room.name}"` };
   }
 
-  @ApiOperation({ description: 'Invite a user (friend) to a chat room'})
+  @ApiOperation({ description: 'Invite a user (friend) to a chat room' })
   @ApiBody({ type: InviteToRoomRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
   @ApiForbiddenResponse({
@@ -270,51 +266,25 @@ export class ChatController {
     );
   }
 
-  // TODO
-  // @ApiOperation({ description: 'Respond to chat room invite'})
-  //@ApiBody({ type:  })
-  @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
-  @ApiForbiddenResponse({
-    description: 'If sender is not a friend of receiver',
-  })
-  @ApiConflictResponse({
-    description: 'If the invited user is already part of the room',
-  })
-  @ApiOkResponse({ description: '' })
+  @ApiOperation({ description: 'Respond to chat room invite' })
+  @ApiBody({ type: RespondToRoomInviteRequest })
+  @ApiOkResponse({ description: 'Successfully responded to chat room invite' })
   @Patch('/:inviteId/status')
   public async respondToRoomInvite(
     @ExtractUser() user: User,
-    @Body() body: InviteToRoomRequest,
+    @Body() body: RespondToRoomInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.inviteToRoom(
-      user.id,
-      body.receiverUID,
-      body.roomId,
+    return await this.chatService.respondToRoomInvite(
+      body.inviteId,
+      body.accepted,
+      user,
     );
   }
-  /* @ApiOperation({ description: 'Respond to chat room invite'})
-  @ApiBody({ type:  })
-  @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
-  @ApiForbiddenResponse({
-    description: 'If sender is not a friend of receiver',
-  })
-  @ApiConflictResponse({
-    description: 'If the invited user is already part of the room',
-  })
-  @ApiOkResponse({ description: '' })
-  @Patch('/:inviteId/status')
-  public async respondToRoomInvite(
-    @ExtractUser() user: User,
-    @Body() body: InviteToRoomRequest,
-  ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.inviteToRoom(
-      user.id,
-      body.receiverUID,
-      body.roomId,
-    );
-  } */
 
-  @ApiOperation({ description: "Get the possible chat rooms to invite a friend to (the ones that he's not a participant already nor banned" })
+  @ApiOperation({
+    description:
+      "Get the possible chat rooms to invite a friend to (the ones that he's not a participant already nor banned",
+  })
   @ApiQuery({
     name: 'friendId',
     type: 'number',
@@ -361,7 +331,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: 'Ban a user from a chat room'})
+  @ApiOperation({ description: 'Ban a user from a chat room' })
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -381,7 +351,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: 'Unban a user from a chat room'})
+  @ApiOperation({ description: 'Unban a user from a chat room' })
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -399,7 +369,7 @@ export class ChatController {
     return await this.chatService.unbanFromRoom(body.userId, body.roomId);
   }
 
-  @ApiOperation({ description: 'Mute a user on a chat room'})
+  @ApiOperation({ description: 'Mute a user on a chat room' })
   @ApiBody({ type: MuteUserRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -436,7 +406,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: 'Unmute a user on a chat room'})
+  @ApiOperation({ description: 'Unmute a user on a chat room' })
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -454,7 +424,9 @@ export class ChatController {
     return await this.chatService.unmuteUser(body.userId, body.roomId);
   }
 
-  @ApiOperation({ description: 'Grant admin privileges to a user on a chat room'})
+  @ApiOperation({
+    description: 'Grant admin privileges to a user on a chat room',
+  })
   @ApiBody({ type: RoomOperationRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -481,7 +453,9 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: 'Remove admin privileges of a user on a chat room'})
+  @ApiOperation({
+    description: 'Remove admin privileges of a user on a chat room',
+  })
   @ApiBody({ type: RoomOperationRequest })
   @ApiOperation({
     description: 'Remove admin privileges of a participant of a room',
@@ -507,7 +481,7 @@ export class ChatController {
     return await this.chatService.removeAdminRole(body.userId, body.roomId);
   }
 
-  @ApiOperation({ description: 'Update chat room password'})
+  @ApiOperation({ description: 'Update chat room password' })
   @ApiBody({ type: UpdateRoomPasswordRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
@@ -528,7 +502,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: ''})
+  @ApiOperation({ description: '' })
   @ApiBody({ type: RemoveRoomPasswordRequest })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",

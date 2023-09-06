@@ -1,3 +1,3 @@
 export interface SendGameInviteMessage {
-  recipientUID: string;
+  recipientUID: number;
 }

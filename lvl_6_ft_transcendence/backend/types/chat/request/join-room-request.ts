@@ -11,10 +11,4 @@ export class JoinRoomRequest {
   @IsString()
   @IsOptional()
   readonly password?: string;
-
-  @ApiPropertyOptional()
-  @IsNumber()
-  @IsPositive()
-  @IsOptional()
-  readonly inviteId?: number;
 }

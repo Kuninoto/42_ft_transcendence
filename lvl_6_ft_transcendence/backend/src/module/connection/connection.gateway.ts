@@ -57,7 +57,7 @@ export class ConnectionGateway
       client.data.userId = user.id;
       client.data.name = user.name;
 
-      this.connectionService.updateSocketIdByUID(user.id.toString(), client.id);
+      this.connectionService.updateSocketIdByUID(user.id, client.id);
 
       await this.updateUserStatus({
         uid: user.id,
@@ -92,7 +92,7 @@ export class ConnectionGateway
 
   friendRequestReceived(receiverUID: number) {
     const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(receiverUID.toString());
+      this.connectionService.findSocketIdByUID(receiverUID);
 
     if (receiverSocketId)
       this.server.to(receiverSocketId).emit('friendRequestReceived');
@@ -112,9 +112,9 @@ export class ConnectionGateway
 
   leaveFriendRooms(senderUID: number, receiverUID: number): void {
     const senderSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(senderUID.toString());
+      this.connectionService.findSocketIdByUID(senderUID);
     const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(receiverUID.toString());
+      this.connectionService.findSocketIdByUID(receiverUID);
 
     if (senderSocketId)
       this.server.to(senderSocketId).socketsLeave(`friend-${receiverUID}`);
@@ -125,9 +125,9 @@ export class ConnectionGateway
 
   makeFriendsJoinEachOthersRoom(senderUID: number, receiverUID: number): void {
     const senderSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(senderUID.toString());
+      this.connectionService.findSocketIdByUID(senderUID);
     const receiverSocketId: string | undefined =
-      this.connectionService.findSocketIdByUID(receiverUID.toString());
+      this.connectionService.findSocketIdByUID(receiverUID);
 
     // If sender is online
     if (senderSocketId) this.sendRefreshUser(senderUID, senderSocketId);
@@ -137,6 +137,15 @@ export class ConnectionGateway
       this.server.to(senderSocketId).socketsJoin(`friend-${receiverUID}`);
       this.server.to(receiverSocketId).socketsJoin(`friend-${senderUID}`);
     }
+  }
+
+  joinUserToChatRoom(roomId: string, userId: number): void {
+    const socketIdOfJoiningUser: string | undefined =
+      this.connectionService.findSocketIdByUID(userId);
+
+    this.server.to(socketIdOfJoiningUser).socketsJoin(`room-${roomId}`);
+
+    this.sendRefreshUser(userId, socketIdOfJoiningUser);
   }
 
   async updateUserStatus(newUserStatus: NewUserStatusEvent): Promise<void> {
@@ -153,7 +162,7 @@ export class ConnectionGateway
 
   sendAchievementUnlocked(userId: number): void {
     const socketId: string | undefined =
-      this.connectionService.findSocketIdByUID(userId.toString());
+      this.connectionService.findSocketIdByUID(userId);
 
     // If user is online send the 'notification' that an achievement
     // was unlocked
@@ -161,8 +170,7 @@ export class ConnectionGateway
   }
 
   sendRefreshUser(userId: number, socketId?: string): void {
-    if (!socketId)
-      socketId = this.connectionService.findSocketIdByUID(userId.toString());
+    if (!socketId) socketId = this.connectionService.findSocketIdByUID(userId);
 
     if (socketId) this.server.to(socketId).emit('refreshUser');
   }
@@ -176,7 +184,7 @@ export class ConnectionGateway
     invite: RoomInviteReceivedEvent,
   ): void {
     const socketId: string | undefined =
-      this.connectionService.findSocketIdByUID(userId.toString());
+      this.connectionService.findSocketIdByUID(userId);
 
     if (socketId) this.server.to(socketId).emit('roomInviteReceived', invite);
   }
