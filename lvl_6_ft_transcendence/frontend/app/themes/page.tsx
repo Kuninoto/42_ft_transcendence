@@ -91,18 +91,21 @@ export default function Themes() {
 				/>
 			</Link>
 
-			<div className="flex h-full w-full place-content-center items-center space-x-6 overflow-hidden">
-				<button onClick={goBackward}>
-					<FiChevronLeft size={96} />
-				</button>
-				<div className="relative flex h-2/3 w-2/3 place-content-center items-center border-2 border-white">
-					{user.game_theme == themeKeys[selected] ? (
-						<div className="z-50 text-3xl">In use</div>
+			<div className="flex flex-col h-full w-full place-content-center items-center space-y-6 overflow-hidden">
+				<div className="flex items-center space-x-2 ">
+					<button className="border rounded-l border-white text-white mix-blend-lighten hover:bg-white hover:text-black" onClick={goBackward}>
+						<FiChevronLeft size={48} />
+					</button>
+					{user.game_theme == themeKeys[selected] || saving ? (
+						<div className="px-4 text-2xl text-black border border-white py-2 bg-white mix-blend-lighten">{saving ? 'SAVING...' : 'IN USE'}</div>
 					) : (
-						<button className="z-10 text-3xl" onClick={save}>
-							{saving ? 'SAVING...' : 'SAVE'}
-						</button>
+						<button className="px-4 text-2xl border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black" onClick={save}>SAVE</button>
 					)}
+					<button className="border rounded-r border-white text-white mix-blend-lighten hover:bg-white hover:text-black" onClick={goForward}>
+						<FiChevronRight size={48} />
+					</button>
+				</div>
+				<div className="relative flex h-2/3 w-2/3 place-content-center items-center border-2 border-white">
 
 					<Image
 						alt="background"
@@ -138,9 +141,6 @@ export default function Themes() {
 						/>
 					</div>
 				</div>
-				<button onClick={goForward}>
-					<FiChevronRight size={96} />
-				</button>
 			</div>
 		</>
 	)
