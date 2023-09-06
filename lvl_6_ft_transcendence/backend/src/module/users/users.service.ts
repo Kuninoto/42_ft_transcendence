@@ -68,9 +68,7 @@ export class UsersService {
     return newUser;
   }
 
-  public async findMyInfo(meUID: number): Promise<MeUserInfo> {
-    const meUser: User = await this.usersRepository.findOneBy({ id: meUID });
-
+  public async findMyInfo(meUser: User): Promise<MeUserInfo> {
     return {
       id: meUser.id,
       name: meUser.name,
@@ -79,8 +77,8 @@ export class UsersService {
       intra_profile_url: meUser.intra_profile_url,
       has_2fa: meUser.has_2fa,
       game_theme: meUser.game_theme,
-      ladder_level: await this.userStatsService.findLadderLevelByUID(meUID),
-      stats: await this.userStatsService.findUserStatsByUID(meUID),
+      ladder_level: await this.userStatsService.findLadderLevelByUID(meUser.id),
+      stats: await this.userStatsService.findUserStatsByUID(meUser.id),
       created_at: meUser.created_at,
     };
   }

@@ -253,7 +253,7 @@ export class ChatService {
   }
 
   public async findPossibleInvites(
-    meUID: number,
+    meUser: User,
     friendUID: number,
   ): Promise<ChatRoomInterface[] | ErrorResponse> {
     const friend: User | null = await this.usersService.findUserByUID(
@@ -264,8 +264,6 @@ export class ChatService {
         `Friend (user) with id=${friendUID} not found`,
       );
     }
-
-    const meUser: User = await this.usersService.findUserByUID(meUID);
 
     const possibleRoomsToInvite: ChatRoom[] = meUser.chat_rooms.filter(
       (room: ChatRoom): boolean =>
@@ -644,6 +642,7 @@ export class ChatService {
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
+      // Send the warning that the owner has left
       this.connectionGateway.sendRoomWarning(room.id, {
         roomId: room.id,
         affectedUID: room.owner.id,
@@ -651,14 +650,15 @@ export class ChatService {
         warning: 'Owner has left the room',
       });
 
+      // Remove all participants from the room 
       this.connectionGateway.server
         .to(`room-${room.id}`)
         .socketsLeave(`room-${room.id}`);
 
       await this.chatRoomRepository.remove(room);
     } else {
+      // Remove user from chat's table
       this.removeUserFromRoom(room, userLeavingId);
-      await this.chatRoomRepository.save(room);
 
       /* In case this function is being used by kickFromRoom or banFromRoom
       emitUserHasLeftTheRoom will be false (they will have their own events) */
@@ -674,7 +674,7 @@ export class ChatService {
         });
       }
 
-      // Kick userLeaving from chat room
+      // Kick userLeaving from socket room
       this.connectionGateway.server
         .to(socketIdOfLeavingUser)
         .socketsLeave(`room-${room.id}`);
@@ -783,9 +783,10 @@ export class ChatService {
     this.roomInviteMap.deleteAllInvitesToUser(userId);
   }
 
-  public removeUserFromRoom(room: ChatRoom, uid: number): void {
+  public async removeUserFromRoom(room: ChatRoom, uid: number): Promise<void> {
     room.users = room.users.filter((user: User): boolean => user.id != uid);
     room.admins = room.users.filter((user: User): boolean => user.id != uid);
+    await this.chatRoomRepository.save(room);
   }
 
   public checkForValidRoomName(name: string): void {

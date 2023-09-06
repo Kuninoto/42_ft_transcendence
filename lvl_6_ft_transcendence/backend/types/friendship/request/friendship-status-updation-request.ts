@@ -4,6 +4,6 @@ import { NewFriendshipStatus } from 'types/friendship/new-friendship-status.enum
 
 export class FriendshipStatusUpdationRequest {
   @ApiProperty({ enum: NewFriendshipStatus })
-  @IsEnum({ enum: NewFriendshipStatus })
+  @IsEnum(NewFriendshipStatus)
   readonly newStatus: NewFriendshipStatus;
 }
