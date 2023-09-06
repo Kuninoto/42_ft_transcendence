@@ -271,8 +271,8 @@ export default function Chat() {
 	function joinRoom(roomId: number, inviteId: number) { 
 
 		const newJoinRequest: JoinRoomRequest = {
-			roomId,
-			inviteId,
+			roomId: parseInt(roomId),
+			inviteId: parseInt(inviteId)
 		}
 
 		try {
@@ -434,9 +434,9 @@ export default function Chat() {
 												<span className="text-gray-500 text-[0.5rem] leading-3">to {message.roomName}</span>
 											</div>
 											<button 
-											onClick={() => joinRoom(message.roomId, message.id)}
-											className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
-												Join
+												onClick={() => joinRoom(message.roomId, message.id)}
+												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+													Join
 											</button>
 										</div>
 									)
