@@ -18,6 +18,7 @@ import {
   ApiConsumes,
   ApiOkResponse,
   ApiTags,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity/index';
@@ -51,7 +52,8 @@ export class MeController {
    *
    * Finds and returns the 'me' user's info
    */
-  @ApiOkResponse({ description: "Finds and returns 'me' user's info" })
+  @ApiOperation({ description: "Get the 'me' user's info" })
+  @ApiOkResponse({ description: "Successfully finds and returns 'me' user's info" })
   @Get()
   public async getMyInfo(@ExtractUser() user: User): Promise<MeUserInfo> {
     this.logger.log(`"${user.name}" requested his info`);
@@ -59,18 +61,19 @@ export class MeController {
   }
 
   /**
-   * GET /api/me/friends
+   * GET /api/me/friendlist
    *
-   * Finds and returns the 'me' user's friends
+   * Finds and returns the 'me' user's friendlist
    */
+  @ApiOperation({ description: "Get the 'me' user's friendlist" })
   @ApiOkResponse({
-    description: "Finds and returns the 'me' user's friends",
+    description: "Successfully finds and returns 'me' user's friendlist"
   })
-  @Get('friends')
-  public async findMyFriends(@ExtractUser() user: User): Promise<Friend[]> {
-    this.logger.log(`"${user.name}" requested his friends info`);
+  @Get('friendlist')
+  public async findMyFriendlist(@ExtractUser() user: User): Promise<Friend[]> {
+    this.logger.log(`"${user.name}" requested his friendlist`);
 
-    return await this.usersService.findMyFriends(user.id);
+    return await this.usersService.findMyFriendlist(user.id);
   }
 
   /**
@@ -78,8 +81,9 @@ export class MeController {
    *
    * Finds and returns the 'me' user's friend-requests
    */
+  @ApiOperation({ description: "Get the 'me' user's friend-requests" })
   @ApiOkResponse({
-    description: "Finds and returns the 'me' user's friend-requests",
+    description: "Successfully finds and returns the 'me' user's friend-requests",
   })
   @Get('friend-requests')
   public async findMyFriendRequests(
@@ -95,8 +99,9 @@ export class MeController {
    *
    * Finds and returns the 'me' user's blocklist
    */
+  @ApiOperation({ description: "Get the 'me' user's blocklist" })
   @ApiOkResponse({
-    description: "Finds and returns the 'me' user's blocklist",
+    description: "Successfully finds and returns the 'me' user's blocklist",
   })
   @Get('blocklist')
   public async findMyBlocklist(
@@ -111,9 +116,10 @@ export class MeController {
    *
    * Finds and returns the rooms where 'me' user is
    */
+  @ApiOperation({ description: "Get the rooms where 'me' user is" })
   @ApiOkResponse({
     description:
-      "Finds and returns the rooms where 'me' user is (ChatRoomInterface[])",
+      "Successfully finds and returns the rooms where 'me' user is",
   })
   @Get('rooms')
   public async findMyChatRooms(
@@ -130,16 +136,17 @@ export class MeController {
    * user's username.
    *
    */
+  @ApiOperation({ description: "Update 'me' user's username"})
   @ApiBody({ type: UsernameUpdationRequest })
-  @ApiOkResponse({
-    description: "Updates 'me' user's username",
-  })
   @ApiBadRequestResponse({
     description:
       'If no new username was provided or if the new username is less than 4 or more than 10 chars long',
   })
   @ApiConflictResponse({
     description: 'If the new username is already taken',
+  })
+   @ApiOkResponse({
+    description: "Successfully updated 'me' user's username",
   })
   @Patch('username')
   public async updateMyUsername(
@@ -172,6 +179,7 @@ export class MeController {
    * e.g http://http://localhost:3000/api/users/avatars/<hashed_filename>.png
    *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
    */
+  @ApiOperation({ description: "Update 'me' user's avatar"})
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: AvatarUpdationRequest })
   @ApiBadRequestResponse({
@@ -180,7 +188,7 @@ export class MeController {
   })
   @ApiOkResponse({
     description:
-      "Stores the uploaded new avatar and updates the avatar_url on the user's table",
+      "Successfully updates 'me' user's avatar",
   })
   @UseInterceptors(FileInterceptor('avatar', multerConfig))
   @Patch('avatar')
@@ -208,12 +216,13 @@ export class MeController {
    * This is the route to visit to update 'me'
    * user's game theme.
    */
+  @ApiOperation({ description: "Update 'me' user's game theme"})
   @ApiBody({ type: GameThemeUpdationRequest })
   @ApiBadRequestResponse({
     description: 'If the game theme is invalid',
   })
   @ApiOkResponse({
-    description: "Updates 'me' user's game theme",
+    description: "Successfully updated 'me' user's game theme",
   })
   @Patch('game-theme')
   public async updateMyGameTheme(

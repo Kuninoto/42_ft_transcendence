@@ -1,5 +1,5 @@
 import { Controller, Get, Logger, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity';
 import { UserStatsForLeaderboard } from 'types';
@@ -20,6 +20,7 @@ export class GameController {
    *
    * Returns leaderboard (UserStatsForLeaderboard[]) user at index 0 is the top scorer (descending order)
    */
+  @ApiOperation({ description: 'Get the leaderboard'})
   @ApiOkResponse({
     description:
       'Returns leaderboard (UserStatsForLeaderboard[]) user at index 0 is the top scorer (descending order)',
