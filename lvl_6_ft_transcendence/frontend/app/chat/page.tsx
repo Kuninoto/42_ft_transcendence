@@ -7,6 +7,7 @@ import {
 	GetChatterRoleMessage,
 	MuteDuration,
 	RespondToRoomInviteRequest,
+	RoomOperationRequest,
 	UserBasicProfile,
 } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
@@ -20,11 +21,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { AiOutlineClose } from 'react-icons/ai'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
 import { toast } from 'react-toastify'
 
 interface IMuteTooltip {
+	close: () => void
 	id: number | undefined
 	roomId: number
 }
@@ -46,30 +49,52 @@ function RoomSettings({
 	const { handleSubmit, register } = useForm()
 
 	function changePassword({ password }: { password: string }) {
-		api.delete('/chat/room-password', {
+		api.patch('/chat/room-password', {
 			newPassword: md5(password),
 			roomId: parseInt(id),
 		})
 	}
 
 	function removePassword() {
-		api.delete('/chat/room-password', {
-			roomId: parseInt(id),
-		})
+		api.delete(`/chat/room-password?roomId=${id}`)
 	}
 
-	useEffect(() => {
+	function getBans() { 
 		try {
 			api
 				.get(`/chat/rooms/${id}/bans`)
-				.then((result) => setBans(result.data))
+				.then((result: any) => {
+					setBans(result.data)
+				})
 				.catch(() => {
 					throw 'Network Error'
 				})
 		} catch (error: any) {
 			toast.error(error)
 		}
+	}
+
+	useEffect(() => {
+		getBans()
 	}, [])
+
+	function unban(userId: number) {
+
+		const newRoomOperation: RoomOperationRequest = {
+			roomId: parseInt(id),
+			userId: parseInt(userId)
+		}
+
+		try {
+			api.delete(`/chat/ban?roomId=${id}&userId=${userId}`)
+				.then(() => getBans())
+				.catch(() => {
+					throw 'Network Error'
+		})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
@@ -80,15 +105,62 @@ function RoomSettings({
 			<div className="px-8 py-32">
 				<div className="group relative grid items-start justify-center  gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
-					<div className="relative flex h-full items-center space-x-16 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
-						<div>
-							<form onSubmit={handleSubmit(changePassword)}>
-								<input type="password" value="" {...register('password')} />
-								<input type="submit" value="Change password" />
-							</form>
-						</div>
+					<div className="relative flex flex-col h-full items-center place-content-center space-y-4 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
 
-						<button onClick={removePassword}>Remove password</button>
+					<div className="flex">
+						<div className="flex flex-col space-y-2">
+							<span>ROOM PASSWORD</span>
+							<div className="flex space-x-2 h-8">
+								<form className="space-x-2" onSubmit={handleSubmit(changePassword)}>
+									<input className="border h-full w-64 border-white rounded bg-transparent px-2 py-1 text-white"
+										placeholder="New password" 
+										type="password"
+										{...register('password')}
+									/>
+									<input 
+									className="rounded border border-white px-2 h-full text-white mix-blend-lighten hover:bg-white hover:text-black"
+									 type="submit" 
+									 value="Change" />
+								</form>
+								<button 
+									className="rounded border border-red-600 px-2 h-full text-red-600 hover:bg-red-600 hover:text-white"
+									onClick={removePassword}>Remove</button>
+							</div>
+						</div>
+					</div>
+
+					<div className="flex flex-col w-full">
+						<h3 className="text-xl">Bans</h3>
+						<div className="flex flex-col overflow-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-white space-y-2 h-48 py-2 w-full">
+							{ bans.length === 0 ?
+								<div className="w-full text-center my-4 h-48 align-center">Go ahead, ban someone</div>
+							: bans.map((ban) => {
+								return (
+									<div 
+									className="border border-white place-content-between px-4 py-2 rounded flex"
+									key={ban.id}>
+										<div className="flex items-center space-x-4">
+											<div className="relative overflow-hidden aspect-square w-8 rounded-sm">
+												<Image
+													alt="profile picture"
+													className="object-cover"
+													fill
+													loader={removeParams}
+													sizes="100%"
+													src={ban.avatar_url || '/placeholder.gif'}
+													unoptimized
+												/>
+											</div>
+											<span> {ban.name} </span>
+										</div>
+										<button
+											className="rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+										 	onClick={() => unban(ban.id)}>unban</button>
+									</div>
+								)
+							})}
+						</div>
+					</div>
 					</div>
 				</div>
 			</div>
@@ -96,10 +168,11 @@ function RoomSettings({
 	)
 }
 
-function MuteTooltip({ id, roomId }: IMuteTooltip) {
+function MuteTooltip({ close, id, roomId }: IMuteTooltip) {
 	const { handleSubmit, register } = useForm()
 
 	function mute({ duration }: { duration: MuteDuration }) {
+		close()
 		api.post(`/chat/mute`, {
 			duration,
 			roomId: parseInt(roomId),
@@ -143,8 +216,9 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 	)
 }
 
-function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
+function Tooltip({ close, authorRole, id, role, roomId }: ITooltip) {
 	function promote() {
+		close()
 		api.post(`/chat/add-admin`, {
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
@@ -152,15 +226,15 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	}
 
 	function demote() {
-		api
-			.post(`/chat/remove-admin`, {
+		close()
+		api.post(`/chat/remove-admin`, {
 				roomId: parseInt(roomId),
 				userId: parseInt(id),
-			})
-			.then((result) => console.log(result))
+		})
 	}
 
 	function kick() {
+		close()
 		api.post(`/chat/kick`, {
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
@@ -168,6 +242,7 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	}
 
 	function ban() {
+		close()
 		api.post(`/chat/ban`, {
 			roomId: parseInt(roomId),
 			userId: parseInt(id),
@@ -204,7 +279,7 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 				authorRole !== null && (
 					<>
 						<Tippy
-							content={<MuteTooltip id={id} roomId={roomId} />}
+							content={<MuteTooltip close={close} id={id} roomId={roomId} />}
 							interactive
 							placement={'right'}
 							trigger={'click'}
@@ -234,6 +309,7 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 export default function Chat() {
 	const [message, setMessage] = useState('')
 	const [settings, setSettings] = useState(false)
+	const [visible, setVisible] = useState(false)
 	const pathname = usePathname()
 
 	const { user } = useAuth()
@@ -450,18 +526,20 @@ export default function Chat() {
 													to {message.roomName}
 												</span>
 											</div>
-											<button
-												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-												onClick={() => respondeToRoomInvite(message.id, true)}
-											>
-												Join
-											</button>
-											<button
-												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-												onClick={() => respondeToRoomInvite(message.id, false)}
-											>
-												Cancel
-											</button>
+											<div className="flex space-x-2">
+												<button
+													className="rounded border border-white py-1 px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													onClick={() => respondeToRoomInvite(message.id, true)}
+												>
+													Join
+												</button>
+												<button
+													className="rounded border border-white px-1 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													onClick={() => respondeToRoomInvite(message.id, false)}
+												>
+													<AiOutlineClose size={20}/>
+												</button>
+											</div>
 										</div>
 									)
 								}
@@ -487,6 +565,7 @@ export default function Chat() {
 												<Tippy
 													content={
 														<Tooltip
+														close={() => setVisible(false)}
 															authorRole={authorRole}
 															id={message.author?.id}
 															role={role}
@@ -500,19 +579,15 @@ export default function Chat() {
 															? 'right'
 															: 'top'
 													}
-													hideOnClick
 													interactive
 													trigger={'click'}
-												>
-													<button
-														onClick={() =>
-															openTippy(
+													visible={visible}
+													onShow={() => openTippy(
 																currentOpenChat.room.id,
 																message.author?.id
-															)
-														}
-														className="text-[0.5rem] text-gray-500 hover:underline"
-													>
+													)}
+												>
+													<button onClick={() => setVisible(true)} className="text-[0.5rem] text-gray-500 hover:underline" >
 														{message.author?.name}
 													</button>
 												</Tippy>

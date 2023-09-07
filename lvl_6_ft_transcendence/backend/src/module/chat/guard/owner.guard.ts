@@ -22,16 +22,14 @@ export class OwnerGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: any = context.switchToHttp().getRequest();
-    const queryParams: string[] | undefined = request._parserOriginalUrl.query?.split('&');
     const body:
       | RoomOperationRequest
       | UpdateRoomPasswordRequest = request.body;
     const requestingUser: User = request.user;
 
-    const roomId: number = body.roomId || request.params.roomId
-      || parseInt(queryParams?.filter((value: string) => value.includes('roomId'))[0].split('=')[1]);
+    const roomId: number | undefined = body.roomId | parseInt(request.params.roomId) | parseInt(request.query['roomId']);
       
-    if (!roomId) {
+    if (!roomId || Number.isNaN(roomId)) {
       this.logger.warn(
         `${requestingUser.name} sent an invalid request for a chat room action`,
       );

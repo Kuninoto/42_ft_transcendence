@@ -377,7 +377,7 @@ export class ChatController {
     description:
       'Successfully unbanned user with uid=body.userId from room with id=body.roomId',
   })
-  @UseGuards(AdminGuard)
+  @UseGuards(OwnerGuard)
   @Delete('/ban')
   public async unbanFromRoom(
     @Query('roomId') roomId: number,
