@@ -14,7 +14,7 @@ export class RoomInviteMap {
   public createRoomInvite(createRoomInviteDto: CreateRoomInviteDTO): UUID {
     const inviteId: UUID = crypto.randomUUID();
 
-    this.roomInviteMap.set(inviteId, {
+    this.roomInviteMap.set(inviteId.toString(), {
       roomId: createRoomInviteDto.roomId,
       inviterUID: createRoomInviteDto.inviterUID,
       receiverUID: createRoomInviteDto.receiverUID,

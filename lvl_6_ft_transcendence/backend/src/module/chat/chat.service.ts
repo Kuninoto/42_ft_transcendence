@@ -825,6 +825,9 @@ export class ChatService {
     );
   }
 
+  // !! NOTE
+  // !! BECAUSE INVITES USE MAPS
+  // !! IF NESTJS HOT RELOADS ALL INVITES WILL BE LOST
   private async joinRoomByInvite(
     inviteId: UUID,
     joiningUser: User,
@@ -832,7 +835,9 @@ export class ChatService {
     const invite: RoomInvite | undefined =
       this.roomInviteMap.findInviteById(inviteId);
 
-    if (!(invite?.receiverUID === joiningUser.id))
+    if (!invite) throw new NotFoundException('Invite not found');
+
+    if (invite.receiverUID != joiningUser.id)
       throw new ForbiddenException(`Invite isn't meant for you`);
 
     const room: ChatRoom | null = await this.findRoomById(invite.roomId);
