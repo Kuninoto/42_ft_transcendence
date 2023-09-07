@@ -280,6 +280,7 @@ export class ChatService {
       (room: ChatRoom): ChatRoomInterface => ({
         id: room.id,
         name: room.name,
+        type: room.type,
         ownerId: room.owner.id,
         participants: room.users.map(
           (user: User): UserBasicProfile => ({

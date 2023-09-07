@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { ChatRoom, User } from 'src/entity';
 import {
-  RemoveRoomPasswordRequest,
   RoomOperationRequest,
   UpdateRoomPasswordRequest,
 } from 'types';
@@ -25,11 +24,10 @@ export class OwnerGuard implements CanActivate {
     const request: any = context.switchToHttp().getRequest();
     const body:
       | RoomOperationRequest
-      | UpdateRoomPasswordRequest
-      | RemoveRoomPasswordRequest = request.body;
+      | UpdateRoomPasswordRequest = request.body;
     const requestingUser: User = request.user;
 
-    const roomId: number = body.roomId || request.params.roomId;
+    const roomId: number = body.roomId || request.params.roomId
     if (!roomId) {
       this.logger.warn(
         `${requestingUser.name} sent an invalid request for a chat room action`,
