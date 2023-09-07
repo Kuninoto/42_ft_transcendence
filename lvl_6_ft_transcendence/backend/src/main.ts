@@ -7,9 +7,9 @@ import {
   SwaggerCustomOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
-import * as session from 'express-session';
+import session from 'express-session';
 import helmet from 'helmet';
-import * as passport from 'passport';
+import passport from 'passport';
 import { AppModule } from './app.module';
 import { AppCorsOption } from './common/option/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';

@@ -1,5 +1,6 @@
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { diskStorage } from 'multer';
+import { nanoid } from 'nanoid';
 import { extname } from 'path';
 
 const MAX_IMG_SIZE: number = 4 * 1024 * 1024;
@@ -22,8 +23,7 @@ export const multerConfig: MulterOptions = {
   storage: diskStorage({
     destination: 'public',
     filename: (req: any, file: any, callback) => {
-      const randomName: string = crypto.randomUUID().split('-').join('');
-      callback(null, `${randomName}${extname(file.originalname)}`);
+      callback(null, `${nanoid()}${extname(file.originalname)}`);
     },
   }),
 };

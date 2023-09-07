@@ -11,7 +11,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UUID } from 'crypto';
 import { Socket } from 'socket.io';
 import { ChatRoom, DirectMessage, User } from 'src/entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
@@ -388,7 +387,7 @@ export class ChatService {
       );
     }
 
-    const inviteId: UUID = this.roomInviteMap.createRoomInvite({
+    const inviteId: string = this.roomInviteMap.createRoomInvite({
       roomId: roomId,
       inviterUID: inviterUID,
       receiverUID: receiverUID,
@@ -404,7 +403,7 @@ export class ChatService {
   }
 
   public async respondToRoomInvite(
-    inviteId: UUID,
+    inviteId: string,
     accepted: boolean,
     user: User,
   ): Promise<SuccessResponse | ErrorResponse> {
@@ -829,7 +828,7 @@ export class ChatService {
   // !! BECAUSE INVITES USE MAPS
   // !! IF NESTJS HOT RELOADS ALL INVITES WILL BE LOST
   private async joinRoomByInvite(
-    inviteId: UUID,
+    inviteId: string,
     joiningUser: User,
   ): Promise<SuccessResponse | ErrorResponse> {
     const invite: RoomInvite | undefined =

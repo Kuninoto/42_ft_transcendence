@@ -1,4 +1,4 @@
-import { UUID } from 'crypto';
+import { nanoid } from 'nanoid';
 import { GameInvite } from 'types';
 import { CreateGameInviteDTO } from './dto/create-game-invite.dto';
 
@@ -11,10 +11,10 @@ export class GameInviteMap {
     GameInvite
   >();
 
-  public createGameInvite(createGameInviteDto: CreateGameInviteDTO): UUID {
-    const inviteId: UUID = crypto.randomUUID();
+  public createGameInvite(createGameInviteDto: CreateGameInviteDTO): string {
+    const inviteId: string = nanoid();
 
-    this.gameInviteMap.set(inviteId.toString(), {
+    this.gameInviteMap.set(inviteId, {
       recipientUID: createGameInviteDto.recipientUID,
       sender: createGameInviteDto.sender,
     });
@@ -22,8 +22,8 @@ export class GameInviteMap {
     return inviteId;
   }
 
-  public deleteInviteByInviteId(inviteId: UUID): void {
-    this.gameInviteMap.delete(inviteId.toString());
+  public deleteInviteByInviteId(inviteId: string): void {
+    this.gameInviteMap.delete(inviteId);
   }
 
   public deleteAllInvitesToUser(userId: number): void {
@@ -32,7 +32,7 @@ export class GameInviteMap {
     });
   }
 
-  public findInviteById(inviteId: UUID): GameInvite | undefined {
-    return this.gameInviteMap.get(inviteId.toString());
+  public findInviteById(inviteId: string): GameInvite | undefined {
+    return this.gameInviteMap.get(inviteId);
   }
 }

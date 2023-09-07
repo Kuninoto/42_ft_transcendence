@@ -25,7 +25,7 @@ import {
 	useState,
 } from 'react'
 import { toast } from 'react-toastify'
-
+import { nanoid } from 'nanoid';
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
 
@@ -415,7 +415,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		const SendMessageSMessage: SendMessageSMessage = {
 			content: message,
 			receiverId: parseInt(id),
-			uniqueId: crypto.randomUUID(),
+			uniqueId: nanoid(),
 		}
 
 		if ('room' in currentOpenChat) {

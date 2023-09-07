@@ -268,6 +268,14 @@ export class ChatController {
 
   @ApiOperation({ description: 'Respond to chat room invite' })
   @ApiBody({ type: RespondToRoomInviteRequest })
+  @ApiNotFoundResponse({ description: 'Invite or room not found' })
+  @ApiForbiddenResponse({
+    description:
+      'The requesting user is not the correct receiver of that invite or the invited user is banned from the room',
+  })
+  @ApiConflictResponse({
+    description: 'Invited user is already part of the room',
+  })
   @ApiOkResponse({ description: 'Successfully responded to chat room invite' })
   @Patch('/:inviteId/status')
   public async respondToRoomInvite(

@@ -1,6 +1,4 @@
-import { UUID } from "crypto";
-
 export interface RespondToGameInviteMessage {
-  readonly inviteId: UUID;
+  readonly inviteId: string;
   readonly accepted: boolean;
 }
