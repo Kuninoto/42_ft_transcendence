@@ -185,6 +185,7 @@ export class ChatService {
   }
 
   public async findRoomById(roomId: number): Promise<ChatRoom | null> {
+    console.log("findROom", roomId);
     return await this.chatRoomRepository.findOne({
       where: { id: roomId },
       relations: {
@@ -557,6 +558,8 @@ export class ChatService {
     userToUnbanId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
+
+    console.log("chat", roomId)
     const room: ChatRoom = await this.findRoomById(roomId);
 
     const userToUnban: User | null = await this.usersService.findUserByUID(

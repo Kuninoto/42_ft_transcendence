@@ -20,15 +20,12 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: any = context.switchToHttp().getRequest();
-    const queryParams: string[] | undefined = request._parserOriginalUrl.query?.split('&');
     const body: RoomOperationRequest | MuteUserRequest = request.body;
-
     const requestingUser: User = request.user;
 
-    const roomId: number = body.roomId
-      || parseInt(queryParams?.filter((value: string) => value.includes('roomId'))[0].split('=')[1]);
-
-    if (!roomId || !body.userId) {
+    const roomId: number | undefined = body.roomId | parseInt(request.query['room-id']);
+  
+    if (!roomId || Number.isNaN(roomId) || !body.userId) {
       this.logger.warn(
         `${requestingUser.name} tried to request an admin action with an invalid request`,
       );
