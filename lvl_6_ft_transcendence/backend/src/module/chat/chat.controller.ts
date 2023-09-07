@@ -84,7 +84,7 @@ export class ChatController {
     await this.chatService.createRoom(body, user);
 
     this.logger.log(
-      `${user.name} created a ${body.type} room named "${body.name}"`,
+      `"${user.name}" created a ${body.type} room named "${body.name}"`,
     );
     return { message: `Successfully created room "${body.name}"` };
   }

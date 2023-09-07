@@ -631,9 +631,6 @@ export class ChatService {
     userLeavingId: number,
     emitUserHasLeftTheRoom: boolean,
   ): Promise<void> {
-    const socketIdOfLeavingUser: string =
-      this.connectionService.findSocketIdByUID(userLeavingId);
-
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
@@ -668,6 +665,9 @@ export class ChatService {
           warning: `${leavingUser.name} has left the room`,
         });
       }
+
+      const socketIdOfLeavingUser: string =
+        this.connectionService.findSocketIdByUID(userLeavingId);
 
       // Kick userLeaving from socket room
       this.connectionGateway.server
@@ -825,6 +825,9 @@ export class ChatService {
     );
   }
 
+  // !! NOTE
+  // !! BECAUSE INVITES USE MAPS
+  // !! IF NESTJS HOT RELOADS ALL INVITES WILL BE LOST
   private async joinRoomByInvite(
     inviteId: UUID,
     joiningUser: User,
@@ -832,7 +835,9 @@ export class ChatService {
     const invite: RoomInvite | undefined =
       this.roomInviteMap.findInviteById(inviteId);
 
-    if (!(invite?.receiverUID === joiningUser.id))
+    if (!invite) throw new NotFoundException('Invite not found');
+
+    if (invite.receiverUID != joiningUser.id)
       throw new ForbiddenException(`Invite isn't meant for you`);
 
     const room: ChatRoom | null = await this.findRoomById(invite.roomId);

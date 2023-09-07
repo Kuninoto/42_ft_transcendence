@@ -5,7 +5,6 @@ import {
 	DirectMessageReceivedEvent,
 	Friend,
 	InvitedToGameEvent,
-	InviteToRoomRequest,
 	NewUserStatusEvent,
 	OpponentFoundEvent,
 	RespondToGameInviteMessage,
@@ -16,6 +15,7 @@ import {
 	SendGameInviteMessage,
 	SendMessageSMessage,
 } from '@/common/types'
+import { UUID } from 'crypto'
 import {
 	createContext,
 	ReactNode,
@@ -44,6 +44,7 @@ type FriendsContextType = {
 	openChats: IChat[]
 	refreshFriends: () => void
 	refreshRooms: () => void
+	removeInvite: (id: UUID) => void
 	respondGameInvite: (accepted: boolean) => void
 	rooms: ChatRoomInterface[]
 	seeNewFriendNotification: () => void
@@ -64,7 +65,7 @@ interface Warning {
 
 interface Invite {
 	game: boolean
-	id: number // Challenge id or invite id
+	id: UUID // Challenge id or invite id
 	roomName?: string
 }
 
@@ -407,10 +408,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function sendMessage(message: string) {
 		if (!socket) return
 
-		const id =
-			'room' in currentOpenChat
-				? currentOpenChat?.room?.id
-				: currentOpenChat?.friend?.uid
+		const isRoom = 'room' in currentOpenChat
+		const id = isRoom ? currentOpenChat?.room?.id : currentOpenChat?.friend?.uid
 
 		const SendMessageSMessage: SendMessageSMessage = {
 			content: message,
@@ -433,9 +432,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		setOpenChats((prevChat) => {
 			const newChat = [...prevChat]
 			const index = newChat?.findIndex((chat) => {
-				if ('room' in chat) return chat.room.id === id
-				if ('friend' in chat) return chat.friend.uid === id
-
+				if (isRoom && 'room' in chat) return chat.room.id === id
+				if (!isRoom && 'friend' in chat) return chat.friend.uid === id
 				return false
 			})
 
@@ -479,6 +477,24 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}, [onMessageReceived])
 
 	// ======================== Room messages ========================
+
+	function removeInvite(id: UUID) {
+		setOpenChats((prevChats) => {
+			return prevChats.map((chat) => {
+				return {
+					...chat,
+					messages: chat.messages.filter((message) => {
+						if ('game' in message) return message.id !== id
+						return true
+					}),
+				}
+			})
+		})
+
+		if ('friend' in currentOpenChat) {
+			focus(currentOpenChat.friend.uid, false)
+		}
+	}
 
 	function exitRoom(id: number) {
 		setOpenChats((prevChats) => {
@@ -571,6 +587,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		openChats,
 		refreshFriends: getFriends,
 		refreshRooms: getRooms,
+		removeInvite,
 		respondGameInvite,
 		rooms,
 		seeNewFriendNotification: () => setNewFriendNotification(false),

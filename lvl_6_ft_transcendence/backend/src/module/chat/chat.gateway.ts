@@ -70,22 +70,12 @@ export class ChatGateway implements OnGatewayInit {
       !this.chatService.isUserBannedFromRoom(room, client.data.userId) &&
       this.chatService.isUserInRoom(room, client.data.userId);
 
-    if (this.chatService.isUserMuted(client.data.userId, room.id))
-      console.log('MUTED!');
-
-    if (this.chatService.isUserBannedFromRoom(room, client.data.userId))
-      console.log('BANNED!');
-
-    if (!this.chatService.isUserInRoom(room, client.data.userId))
-      console.log('NOT PARTICIPANT!');
-
-
-      if (!canUserSendMessages) {
-        this.logger.log(
-          `${client.data.name} tried to send a message to a room where he's not allowed to (muted, banned or kicked)`,
-        );
-        return;
-      }
+    if (!canUserSendMessages) {
+      this.logger.log(
+        `${client.data.name} tried to send a message to a room where he's not allowed to (muted, banned or kicked)`,
+      );
+      return;
+    }
 
     const user: User = await this.usersService.findUserByUID(
       client.data.userId,
