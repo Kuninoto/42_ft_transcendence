@@ -21,7 +21,7 @@ export class OwnerGuard implements CanActivate {
     const requestingUser: User = request.user;
 
     const roomId: number | undefined = parseInt(request.params.roomId);
-      
+
     if (!roomId || Number.isNaN(roomId)) {
       this.logger.warn(
         `${requestingUser.name} sent an invalid request for a chat room action`,

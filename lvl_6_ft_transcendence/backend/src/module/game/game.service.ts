@@ -1,4 +1,9 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GameResult, User } from 'src/entity';
 import { Repository } from 'typeorm';
@@ -52,13 +57,11 @@ export class GameService {
     receiver: number,
     receiverSocketId: string,
   ): Promise<void> {
-    const gameInvite: GameInvite | undefined = this.gameInviteMap.findInviteById(inviteId);
+    const gameInvite: GameInvite | undefined =
+      this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    const recipientPlayer: Player = new Player(
-      receiver,
-      receiverSocketId,
-    );
+    const recipientPlayer: Player = new Player(receiver, receiverSocketId);
     recipientPlayer.setPlayerSide(PlayerSide.RIGHT);
 
     this.joinPlayersToRoom(
