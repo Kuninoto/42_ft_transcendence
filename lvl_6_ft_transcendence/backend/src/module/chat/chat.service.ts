@@ -744,12 +744,10 @@ export class ChatService {
       throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
     }
 
-    // If the room was public now it is protected
-    if (room.type !== ChatRoomType.PROTECTED) {
-      room.type = ChatRoomType.PROTECTED;
-    }
-
+    room.type = ChatRoomType.PROTECTED;
     room.password = newPassword;
+
+    console.log(room.password);
 
     await this.chatRoomRepository.save(room);
     return { message: `Successfully updated room's password` };

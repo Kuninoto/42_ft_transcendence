@@ -5,10 +5,5 @@ export class RoomOperationRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly roomId: number;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsPositive()
   readonly userId: number;
 }

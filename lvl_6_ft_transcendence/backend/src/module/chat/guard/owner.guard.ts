@@ -8,10 +8,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ChatRoom, User } from 'src/entity';
-import {
-  RoomOperationRequest,
-  UpdateRoomPasswordRequest,
-} from 'types';
 import { ChatService } from '../chat.service';
 
 @Injectable()
@@ -22,12 +18,9 @@ export class OwnerGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: any = context.switchToHttp().getRequest();
-    const body:
-      | RoomOperationRequest
-      | UpdateRoomPasswordRequest = request.body;
     const requestingUser: User = request.user;
 
-    const roomId: number | undefined = body.roomId | parseInt(request.params.roomId) | parseInt(request.query['roomId']);
+    const roomId: number | undefined = parseInt(request.params.roomId);
       
     if (!roomId || Number.isNaN(roomId)) {
       this.logger.warn(

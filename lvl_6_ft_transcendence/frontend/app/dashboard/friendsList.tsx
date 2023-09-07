@@ -36,7 +36,7 @@ function InviteRoomsModal({
 	useEffect(() => {
 		try {
 			api
-				.get(`/chat/possible-invites?friendId=${id}`)
+				.get(`/chat/possible-room-invites?friendId=${id}`)
 				.then((result) => {
 					setInviteRooms(result.data)
 				})
