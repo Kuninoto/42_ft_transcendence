@@ -284,7 +284,7 @@ export class UsersService {
         usernameProximity: usernameQuery + '%',
       })
       .andWhere('user.id != :meUserId', { meUserId })
-      .andWhere((qb) => {
+      .andWhere((qb): string => {
         const subqueryBlockedMe: string = qb
           .subQuery()
           .select('*')
@@ -293,7 +293,7 @@ export class UsersService {
           .getQuery();
         return `NOT EXISTS ${subqueryBlockedMe}`;
       })
-      .andWhere((qb) => {
+      .andWhere((qb): string => {
         const subqueryFriend: string = qb
           .subQuery()
           .select('*')

@@ -66,10 +66,10 @@ function configureSwagger(app: NestExpressApplication): void {
 
   const HEX_NORDIC_BLUE: string = '#1c4966';
   const options: SwaggerCustomOptions = {
-    customfavIcon: '../public/swagger/favicon.ico',
+    customfavIcon: 'backend/public/swagger/favicon.ico',
     customSiteTitle: 'ft_transcendence docs', //add site title to swagger for nice SEO
     customCss: `
-      .topbar-wrapper img {content:url(\'../public/swagger/favicon.png\'); width:200px; height:auto;}
+      .topbar { display: none }
       .swagger-ui {
         background-color: ${HEX_NORDIC_BLUE}
         color: #ffffff

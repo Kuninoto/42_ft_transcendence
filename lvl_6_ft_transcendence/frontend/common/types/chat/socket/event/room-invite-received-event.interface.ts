@@ -1,5 +1,7 @@
+import { UUID } from 'crypto'
+
 export interface RoomInviteReceivedEvent {
-	inviteId: number
+	inviteId: UUID
 	inviterUID: number
 	roomName: string
 }

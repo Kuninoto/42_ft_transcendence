@@ -14,7 +14,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
 import { Socket } from 'socket.io';
 import { ChatRoom, DirectMessage, User } from 'src/entity';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import {
   ChatRoomInterface,
   ChatRoomSearchInfo,
@@ -211,31 +211,32 @@ export class ChatService {
 
   public async findRoomsByNameProximity(
     meUID: number,
-    chatRoomNameQuery: string,
+    query: string,
   ): Promise<ChatRoomSearchInfo[]> {
     const chatRooms: ChatRoom[] = await this.chatRoomRepository
       .createQueryBuilder('chat_room')
-      .leftJoin('chat_room.owner', 'owner')
       .where('chat_room.name LIKE :roomNameProximity', {
-        roomNameProximity: chatRoomNameQuery + '%',
+        roomNameProximity: query + '%',
       })
-      .andWhere("chat_room.type != 'private'")
-      .andWhere((qb): string => {
+      .andWhere('chat_room.type != :privateType', {
+        privateType: ChatRoomType.PRIVATE,
+      })
+      .andWhere((qb: SelectQueryBuilder<ChatRoom>): string => {
         const subqueryUserRooms: string = qb
           .subQuery()
-          .select('user_room.id')
-          .from(ChatRoom, 'user_room')
-          .leftJoin('user_room.users', 'user')
-          .where('user.id = :meUID', { meUID })
+          .select('participant_rooms.id')
+          .from(ChatRoom, 'participant_rooms')
+          .leftJoin('participant_rooms.users', 'participants')
+          .where('participants.id = :meUID', { meUID })
           .getQuery();
         return `chat_room.id NOT IN ${subqueryUserRooms}`;
       })
-      .andWhere((qb): string => {
+      .andWhere((qb: SelectQueryBuilder<ChatRoom>): string => {
         const subqueryBannedRooms: string = qb
           .subQuery()
-          .select('banned_room.id')
-          .from(ChatRoom, 'banned_room')
-          .leftJoin('banned_room.bans', 'banned_user')
+          .select('banned_rooms.id')
+          .from(ChatRoom, 'banned_rooms')
+          .leftJoin('banned_rooms.bans', 'banned_user')
           .where('banned_user.id = :meUID', { meUID })
           .getQuery();
         return `chat_room.id NOT IN ${subqueryBannedRooms}`;
@@ -246,7 +247,7 @@ export class ChatService {
       (room: ChatRoom): ChatRoomSearchInfo => ({
         id: room.id,
         name: room.name,
-        protected: room.type === ChatRoomType.PROTECTED ? true : false,
+        protected: room.type === ChatRoomType.PROTECTED,
       }),
     );
     return chatRoomSearchInfos;
@@ -396,7 +397,6 @@ export class ChatService {
     this.connectionGateway.sendRoomInviteReceived(receiverUID, {
       inviteId: inviteId,
       inviterUID: inviterUID,
-      roomId: roomId,
       roomName: room.name,
     });
 
@@ -547,7 +547,7 @@ export class ChatService {
 
     await this.leaveRoom(room, userToBanId, false);
 
-    this.logger.log(`${userToBan.name} was banned from room "${room.name}"`);
+    this.logger.log(`"${userToBan.name}" was banned from room "${room.name}"`);
     return {
       message: `Successfully banned "${userToBan.name}" from room "${room.name}"`,
     };
@@ -780,7 +780,7 @@ export class ChatService {
 
   public async removeUserFromRoom(room: ChatRoom, uid: number): Promise<void> {
     room.users = room.users.filter((user: User): boolean => user.id != uid);
-    room.admins = room.users.filter((user: User): boolean => user.id != uid);
+    room.admins = room.admins.filter((user: User): boolean => user.id != uid);
     await this.chatRoomRepository.save(room);
   }
 
