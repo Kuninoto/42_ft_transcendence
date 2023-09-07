@@ -1,6 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UUID } from 'crypto';
 import { Socket } from 'socket.io';
 import { GameResult, User } from 'src/entity';
 import { Repository } from 'typeorm';
@@ -23,6 +22,7 @@ import { GameQueue } from './GameQueue';
 import { GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
+import { nanoid } from 'nanoid';
 
 const GAME_START_TIMEOUT: number = 1000 * 3;
 
@@ -44,12 +44,12 @@ export class GameService {
     private readonly connectionGateway: ConnectionGateway,
   ) {}
 
-  public createGameInvite(createGameInviteDto: CreateGameInviteDTO): UUID {
+  public createGameInvite(createGameInviteDto: CreateGameInviteDTO): string {
     return this.gameInviteMap.createGameInvite(createGameInviteDto);
   }
 
   public async gameInviteAccepted(
-    inviteId: UUID,
+    inviteId: string,
     recipient: Socket,
   ): Promise<void> {
     const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
@@ -69,7 +69,7 @@ export class GameService {
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
-  public gameInviteDeclined(inviteId: UUID) {
+  public gameInviteDeclined(inviteId: string) {
     const inviteDeclined: InviteDeclinedEvent = {
       inviteId: inviteId,
     };
@@ -114,7 +114,7 @@ export class GameService {
     }
   }
 
-  public findGameInviteByInviteId(inviteId: UUID): GameInvite | undefined {
+  public findGameInviteByInviteId(inviteId: string): GameInvite | undefined {
     return this.gameInviteMap.findInviteById(inviteId);
   }
 
@@ -170,7 +170,7 @@ export class GameService {
     playerTwo: Player,
     gameType: GameType,
   ): Promise<void> {
-    const roomId: UUID = crypto.randomUUID();
+    const roomId: string = nanoid();
 
     // Join both players to the same room
     playerOne.client.join(roomId);
@@ -293,7 +293,7 @@ export class GameService {
     }
   }
 
-  public correctInviteUsage(userId: number, inviteId: UUID): boolean {
+  public correctInviteUsage(userId: number, inviteId: string): boolean {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
 

@@ -7,11 +7,12 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 
-const GAME_LOOP_INTERVAL = 7.5;
-const RESET_GAME_DELAY = 6;
+const GAME_LOOP_INTERVAL: number = 4;
+const RESET_GAME_DELAY: number = 6;
 
-// Hacky way to make js wait
-const sleep = (ms: number) => new Promise(() => setTimeout(() => {}, ms));
+// Hacky way to make js 'sleep'
+const sleep = (ms: number): Promise<void> =>
+  new Promise(() => setTimeout(() => {}, ms));
 
 /* 
 CANVAS AXIS
@@ -41,11 +42,11 @@ export class GameEngineService {
     const gameRoom: GameRoom | undefined =
       this.GameRoomMap.findGameRoomById(roomId);
 
-    // If a user disconnects right upon game start
-    // gameRoom will be undefined
-    if (!gameRoom) {
-      return;
-    }
+    /* If a user disconnects right upon game start
+    gameRoom will end up undefined and the remaining user
+    could be running this section of the code thus accessing
+    an undefined object */
+    if (!gameRoom) return;
 
     gameRoom.gameLoopIntervalId = setInterval(() => {
       // Fetch the game room info (which can possibly be updated by

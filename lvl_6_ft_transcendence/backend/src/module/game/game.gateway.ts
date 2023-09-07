@@ -6,7 +6,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { UUID } from 'crypto';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import {
@@ -93,7 +92,7 @@ export class GameGateway implements OnGatewayInit {
     const newPlayer: Player = new Player(client, client.data.userId);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
-    const inviteId: UUID = this.gameService.createGameInvite({
+    const inviteId: string = this.gameService.createGameInvite({
       recipientUID: messageBody.recipientUID,
       sender: newPlayer,
     });

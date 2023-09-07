@@ -1,6 +1,4 @@
-import { UUID } from "crypto";
-
 export interface InvitedToGameEvent {
-  inviteId: UUID;
+  inviteId: string;
   inviterUID: number;
 }

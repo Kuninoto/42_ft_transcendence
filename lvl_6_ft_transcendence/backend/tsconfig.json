@@ -19,6 +19,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "pretty": true,
+    "esModuleInterop": true,
   },
   "exclude": ["node_modules", "dist"]
 }
