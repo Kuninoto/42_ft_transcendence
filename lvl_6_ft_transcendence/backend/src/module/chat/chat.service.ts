@@ -631,9 +631,6 @@ export class ChatService {
     userLeavingId: number,
     emitUserHasLeftTheRoom: boolean,
   ): Promise<void> {
-    const socketIdOfLeavingUser: string =
-      this.connectionService.findSocketIdByUID(userLeavingId);
-
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
     if (userLeavingId == room.owner.id) {
@@ -668,6 +665,9 @@ export class ChatService {
           warning: `${leavingUser.name} has left the room`,
         });
       }
+
+      const socketIdOfLeavingUser: string =
+        this.connectionService.findSocketIdByUID(userLeavingId);
 
       // Kick userLeaving from socket room
       this.connectionGateway.server
