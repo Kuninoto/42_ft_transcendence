@@ -28,8 +28,8 @@ export const themes: IThemes = {
 		ball: HEX_RED,
 		paddle: 'white.png',
 	},
-	space: {
-		background: 'space.jpg',
+	spaceInvaders: {
+		background: 'space_invaders.jpg',
 		ball: HEX_WHITE,
 		paddle: 'white.png',
 	},
