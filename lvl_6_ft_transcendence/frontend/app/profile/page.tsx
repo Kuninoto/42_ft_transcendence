@@ -4,6 +4,7 @@ import { api } from '@/api/api'
 import { FriendshipStatus, UserProfile as IUserProfile } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
+import { useFriends } from '@/contexts/FriendsContext'
 import moment from 'moment'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -34,7 +35,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 	function removeFriendship(friendshipId: null | number) {
 		try {
 			api
-				.patch(`/friendships/${friendshipId}/update`, {
+				.patch(`/friendships/${friendshipId}/status`, {
 					newStatus: FriendshipStatus.UNFRIEND,
 				})
 				.then(() => refreshProfile())
@@ -75,7 +76,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 	function accept(friendship_id: null | number) {
 		try {
 			api
-				.patch(`/friendships/${friendship_id}/update`, {
+				.patch(`/friendships/${friendship_id}/status`, {
 					newStatus: 'accepted',
 				})
 				.then(() => refreshProfile())
@@ -90,7 +91,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 	function decline(friendship_id: null | number) {
 		try {
 			api
-				.patch(`/friendships/${friendship_id}/update`, {
+				.patch(`/friendships/${friendship_id}/status`, {
 					newStatus: 'declined',
 				})
 				.then(() => refreshProfile())
@@ -221,12 +222,15 @@ export default function Profile() {
 	const [modal, setModal] = useState<modalPage>(modalPage.HISTORY)
 	const [openModal, setOpenModal] = useState(false)
 
+	const { refreshFriends } = useFriends()
+
 	const refreshProfile = () => {
 		try {
 			api
 				.get(`/users/${id}/profile`)
 				.then((result) => {
 					setUserProfile(result.data)
+					refreshFriends()
 				})
 				.catch(() => {
 					throw 'Network error'
