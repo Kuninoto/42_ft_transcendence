@@ -1,6 +1,5 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Socket } from 'socket.io';
 import { GameResult, User } from 'src/entity';
 import { Repository } from 'typeorm';
 import {
@@ -50,13 +49,15 @@ export class GameService {
 
   public async gameInviteAccepted(
     inviteId: string,
-    recipient: Socket,
+    receiver: number,
+    receiverSocketId: string,
   ): Promise<void> {
-    const gameInvite: GameInvite = this.gameInviteMap.findInviteById(inviteId);
+    const gameInvite: GameInvite | undefined = this.gameInviteMap.findInviteById(inviteId);
+    if (!gameInvite) throw new NotFoundException('Invite not found');
 
     const recipientPlayer: Player = new Player(
-      recipient,
-      recipient.data.userId,
+      receiver,
+      receiverSocketId,
     );
     recipientPlayer.setPlayerSide(PlayerSide.RIGHT);
 
@@ -154,8 +155,8 @@ export class GameService {
       wonByDisconnection,
     );
 
-    this.connectionGateway.sendRefreshUser(winner.userId, winner.client.id);
-    this.connectionGateway.sendRefreshUser(loser.userId, loser.client.id);
+    this.connectionGateway.sendRefreshUser(winner.userId, winner.socketId);
+    this.connectionGateway.sendRefreshUser(loser.userId, loser.socketId);
   }
 
   public isPlayerInQueueOrGame(playerUID: number): boolean {
@@ -173,8 +174,8 @@ export class GameService {
     const roomId: string = nanoid();
 
     // Join both players to the same room
-    playerOne.client.join(roomId);
-    playerTwo.client.join(roomId);
+    this.connectionGateway.server.to(playerOne.socketId).socketsJoin(roomId);
+    this.connectionGateway.server.to(playerTwo.socketId).socketsJoin(roomId);
 
     // Determine the left and right players based on their 'side' property
     // assigned earlier based on who first entered the queue
@@ -192,7 +193,7 @@ export class GameService {
     });
 
     // Emit 'opponentFound' event to both players
-    this.gameGateway.emitOpponentFoundEvent(playerOne.client.id, {
+    this.gameGateway.emitOpponentFoundEvent(playerOne.socketId, {
       roomId: roomId,
       side: playerOne.side,
       opponentInfo: await this.usersService.findUserBasicProfileByUID(
@@ -200,7 +201,7 @@ export class GameService {
       ),
     });
 
-    this.gameGateway.emitOpponentFoundEvent(playerTwo.client.id, {
+    this.gameGateway.emitOpponentFoundEvent(playerTwo.socketId, {
       roomId: roomId,
       side: playerTwo.side,
       opponentInfo: await this.usersService.findUserBasicProfileByUID(
@@ -209,7 +210,7 @@ export class GameService {
     });
   }
 
-  public paddleMove(gameRoomId: string, clientId: string, newY: number): void {
+  public paddleMove(gameRoomId: string, socketId: string, newY: number): void {
     const gameRoom: GameRoom | undefined =
       this.gameRoomMap.findGameRoomById(gameRoomId);
     if (!gameRoom) {
@@ -217,7 +218,7 @@ export class GameService {
     }
 
     const playerToUpdate: Player =
-      gameRoom.leftPlayer.client.id === clientId
+      gameRoom.leftPlayer.socketId === socketId
         ? gameRoom.leftPlayer
         : gameRoom.rightPlayer;
 
@@ -232,7 +233,7 @@ export class GameService {
     this.gameRoomMap.updateGameRoomById(gameRoomId, updatedGameRoom);
   }
 
-  public async playerReady(gameRoomId: string, clientId: string) {
+  public async playerReady(gameRoomId: string, socketId: string) {
     let gameRoom: GameRoom | undefined =
       this.gameRoomMap.findGameRoomById(gameRoomId);
 
@@ -241,7 +242,7 @@ export class GameService {
     if (!gameRoom) return;
 
     const playerToUpdate: Player =
-      gameRoom.leftPlayer.client.id === clientId
+      gameRoom.leftPlayer.socketId === socketId
         ? gameRoom.leftPlayer
         : gameRoom.rightPlayer;
 

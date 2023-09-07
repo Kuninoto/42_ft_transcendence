@@ -1,3 +1,4 @@
+export * from './request';
 export * from './socket';
 export * from './ball.interface';
 export * from './game-invite.interface';

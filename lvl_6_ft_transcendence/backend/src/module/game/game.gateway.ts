@@ -16,9 +16,6 @@ import {
   PaddleMoveMessage,
   PlayerReadyMessage,
   PlayerScoredEvent,
-  PlayerSide,
-  RespondToGameInviteMessage,
-  SendGameInviteMessage,
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
 import { ConnectionService } from '../connection/connection.service';
@@ -52,12 +49,13 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('queueToLadder')
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
-    this.logger.log(`${client.data.name} joined the ladder queue`);
     if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) {
       return;
     }
 
-    const newPlayer: Player = new Player(client, client.data.userId);
+    this.logger.log(`${client.data.name} joined the ladder queue`);
+
+    const newPlayer: Player = new Player(client.data.userId, client.id);
     await this.gameService.queueToLadder(newPlayer);
   }
 
@@ -65,69 +63,6 @@ export class GameGateway implements OnGatewayInit {
   async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
     this.logger.log(`${client.data.name} left the queue or a game`);
     await this.gameService.disconnectPlayer(client.data.userId);
-  }
-
-  @SubscribeMessage('sendGameInvite')
-  async sendGameInvite(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: SendGameInviteMessage,
-  ): Promise<void> {
-    if (!this.isValidSendGameInviteMessage(messageBody)) {
-      this.logger.warn(
-        `${client.data.name} tried to send a wrong SendGameInviteMessage`,
-      );
-      return;
-    }
-
-    if (
-      this.gameService.isPlayerInQueueOrGame(client.data.userId) ||
-      this.gameService.isPlayerInQueueOrGame(messageBody.recipientUID)
-    ) {
-      this.logger.warn(
-        `${client.data.name} tried to send a game invite while in game or to a recipient in game`,
-      );
-      return;
-    }
-
-    const newPlayer: Player = new Player(client, client.data.userId);
-    newPlayer.setPlayerSide(PlayerSide.LEFT);
-
-    const inviteId: string = this.gameService.createGameInvite({
-      recipientUID: messageBody.recipientUID,
-      sender: newPlayer,
-    });
-
-    this.emitInvitedToGameEvent(messageBody.recipientUID, {
-      inviteId: inviteId,
-      inviterUID: client.data.userId,
-    });
-  }
-
-  @SubscribeMessage('respondToGameInvite')
-  async respondToGameInvite(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() messageBody: RespondToGameInviteMessage,
-  ): Promise<void> {
-    if (!this.isValidRespondToGameInviteMessage(messageBody)) {
-      this.logger.warn(
-        `${client.data.name} tried to send a wrong RespondToGameInviteMessage`,
-      );
-      return;
-    }
-
-    if (
-      !this.gameService.correctInviteUsage(
-        client.data.userId,
-        messageBody.inviteId,
-      )
-    )
-      return;
-
-    if (messageBody.accepted === true) {
-      await this.gameService.gameInviteAccepted(messageBody.inviteId, client);
-    } else {
-      this.gameService.gameInviteDeclined(messageBody.inviteId);
-    }
   }
 
   @SubscribeMessage('playerReady')
@@ -259,25 +194,6 @@ export class GameGateway implements OnGatewayInit {
     return (
       typeof messageBody === 'object' &&
       typeof messageBody.gameRoomId === 'string'
-    );
-  }
-
-  private isValidRespondToGameInviteMessage(
-    messageBody: any,
-  ): messageBody is RespondToGameInviteMessage {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.inviteId === 'string' &&
-      typeof messageBody.accepted === 'boolean'
-    );
-  }
-
-  private isValidSendGameInviteMessage(
-    messageBody: any,
-  ): messageBody is SendGameInviteMessage {
-    return (
-      typeof messageBody === 'object' &&
-      typeof messageBody.recipientUID === 'number'
     );
   }
 }

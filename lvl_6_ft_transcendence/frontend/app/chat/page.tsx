@@ -5,7 +5,6 @@ import {
 	ChatRoomRoles,
 	GetChatterRoleEvent,
 	GetChatterRoleMessage,
-	JoinRoomRequest,
 	MuteDuration,
 	RespondToRoomInviteRequest,
 	UserBasicProfile,
@@ -14,6 +13,7 @@ import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
 import Tippy from '@tippyjs/react'
+import { UUID } from 'crypto'
 import md5 from 'md5'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -250,6 +250,7 @@ export default function Chat() {
 		focus,
 		isOpen,
 		openChats,
+		removeInvite,
 		sendMessage,
 	} = useFriends()
 
@@ -269,16 +270,21 @@ export default function Chat() {
 		)
 	}
 
-	function joinRoom(inviteId: number) {
+	function respondeToRoomInvite(inviteId: UUID, accepted: boolean) {
 		const newJoinRequest: RespondToRoomInviteRequest = {
-			accepted: true,
-			inviteId,
+			accepted,
+			inviteId: inviteId,
 		}
 
 		try {
-			api.patch(`/chat/${inviteId}/status`, newJoinRequest).catch(() => {
-				throw 'Network error'
-			})
+			api
+				.patch(`/chat/${inviteId}/status`, newJoinRequest)
+				.then(() => {
+					removeInvite(inviteId)
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
 		} catch (error: any) {
 			toast.error(error)
 		}
@@ -351,12 +357,17 @@ export default function Chat() {
 							return (
 								<div
 									className={`group relative w-full items-center border-b border-white
-								${display.id !== openId && 'opacity-60 hover:opacity-100'}`}
+								${
+									(display.id !== openId ||
+										('room' in chat && 'friend' in currentOpenChat) ||
+										('friend' in chat && 'room' in currentOpenChat)) &&
+									'opacity-60 hover:opacity-100'
+								}`}
 									key={index}
 								>
 									<button
-										className={`flex h-12 items-center space-x-2 px-2 group-hover:w-5/6
-									${chat.unread ? 'w-5/6' : 'w-full '}`}
+										className={`group flex h-12 items-center space-x-2 px-2 hover:w-5/6
+						${chat.unread ? 'w-5/6' : 'w-full '}`}
 										onClick={() => focus(display.id, display.isRoom)}
 									>
 										{'friend' in chat && (
@@ -371,7 +382,11 @@ export default function Chat() {
 												/>
 											</div>
 										)}
-										<div className="text-md flex h-full w-3/4 items-center overflow-hidden whitespace-nowrap break-normal">
+										<div
+											className={`text-md flex h-full ${
+												'friend' in chat ? 'w-3/4' : 'w-full'
+											} items-center overflow-hidden whitespace-nowrap break-normal`}
+										>
 											{display.name || 'NOT FOUND'}
 										</div>
 									</button>
@@ -437,9 +452,15 @@ export default function Chat() {
 											</div>
 											<button
 												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-												onClick={() => joinRoom(message.id)}
+												onClick={() => respondeToRoomInvite(message.id, true)}
 											>
 												Join
+											</button>
+											<button
+												className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+												onClick={() => respondeToRoomInvite(message.id, false)}
+											>
+												Cancel
 											</button>
 										</div>
 									)
