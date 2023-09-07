@@ -1,12 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
 export class JoinRoomRequest {
-  @ApiProperty()
-  @IsNumber()
-  @IsPositive()
-  readonly roomId: number;
-
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()

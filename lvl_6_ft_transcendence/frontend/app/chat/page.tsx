@@ -49,20 +49,19 @@ function RoomSettings({
 	const { handleSubmit, register } = useForm()
 
 	function changePassword({ password }: { password: string }) {
-		api.patch('/chat/room-password', {
+		api.patch(`/chat/${id}/password`, {
 			newPassword: md5(password),
-			roomId: parseInt(id),
 		})
 	}
 
 	function removePassword() {
-		api.delete(`/chat/room-password?roomId=${id}`)
+		api.delete(`/chat/${id}/password`)
 	}
 
 	function getBans() { 
 		try {
 			api
-				.get(`/chat/rooms/${id}/bans`)
+				.get(`/chat/${id}/bans`)
 				.then((result: any) => {
 					setBans(result.data)
 				})
@@ -86,7 +85,7 @@ function RoomSettings({
 		}
 
 		try {
-			api.delete(`/chat/ban?roomId=${id}&userId=${userId}`)
+			api.delete(`/chat/${roomId}/ban?roomId=${id}&userId=${userId}`)
 				.then(() => getBans())
 				.catch(() => {
 					throw 'Network Error'
@@ -173,9 +172,8 @@ function MuteTooltip({ close, id, roomId }: IMuteTooltip) {
 
 	function mute({ duration }: { duration: MuteDuration }) {
 		close()
-		api.post(`/chat/mute`, {
+		api.post(`/chat/${roomId}/mute`, {
 			duration,
-			roomId: parseInt(roomId),
 			userId: parseInt(id),
 		})
 	}
@@ -219,32 +217,28 @@ function MuteTooltip({ close, id, roomId }: IMuteTooltip) {
 function Tooltip({ close, authorRole, id, role, roomId }: ITooltip) {
 	function promote() {
 		close()
-		api.post(`/chat/add-admin`, {
-			roomId: parseInt(roomId),
+		api.post(`/chat/${roomId}/add-admin`, {
 			userId: parseInt(id),
 		})
 	}
 
 	function demote() {
 		close()
-		api.post(`/chat/remove-admin`, {
-				roomId: parseInt(roomId),
-				userId: parseInt(id),
+		api.post(`/chat/${roomId}/remove-admin`, {
+			userId: parseInt(id),
 		})
 	}
 
 	function kick() {
 		close()
-		api.post(`/chat/kick`, {
-			roomId: parseInt(roomId),
+		api.post(`/chat/${roomId}/kick`, {
 			userId: parseInt(id),
 		})
 	}
 
 	function ban() {
 		close()
-		api.post(`/chat/ban`, {
-			roomId: parseInt(roomId),
+		api.post(`/chat/${roomId}/ban`, {
 			userId: parseInt(id),
 		})
 	}

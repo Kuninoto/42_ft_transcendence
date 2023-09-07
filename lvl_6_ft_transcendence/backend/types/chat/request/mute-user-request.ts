@@ -6,11 +6,6 @@ export class MuteUserRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly roomId: number;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsPositive()
   readonly userId: number;
 
   @ApiProperty({ enum: MuteDuration })

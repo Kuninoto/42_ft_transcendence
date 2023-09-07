@@ -67,7 +67,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 
 		try {
 			api
-				.post('/chat/create-room', newRoom)
+				.post('/chat/rooms/create', newRoom)
 				.then(() => {
 					closeModal()
 					refreshRooms()
@@ -220,12 +220,11 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 
 		const roomInfo: JoinRoomRequest = {
 			password: needPassword ? md5(password) : null,
-			roomId: parseInt(id),
 		}
 
 		try {
 			api
-				.post('/chat/join-room', roomInfo)
+				.post(`/chat/${id}/join`, roomInfo)
 				.then((data) => {
 					api.get(`/chat/rooms/search`).then((result) => {
 						refreshRooms()
