@@ -20,18 +20,23 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: any = context.switchToHttp().getRequest();
+    const queryParams: string[] | undefined = request._parserOriginalUrl.query?.split('&');
     const body: RoomOperationRequest | MuteUserRequest = request.body;
+
     const requestingUser: User = request.user;
 
-    if (!body.roomId || !body.userId) {
+    const roomId: number = body.roomId
+      || parseInt(queryParams?.filter((value: string) => value.includes('roomId'))[0].split('=')[1]);
+
+    if (!roomId || !body.userId) {
       this.logger.warn(
-        `${requestingUser.name} tried to request an admin action with an invalid request body`,
+        `${requestingUser.name} tried to request an admin action with an invalid request`,
       );
       throw new BadRequestException('Invalid request body for an admin action');
     }
 
     const room: ChatRoom | null = await this.chatService.findRoomById(
-      body.roomId,
+      roomId,
     );
     if (!room) {
       this.logger.warn(

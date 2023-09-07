@@ -22,12 +22,15 @@ export class OwnerGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: any = context.switchToHttp().getRequest();
+    const queryParams: string[] | undefined = request._parserOriginalUrl.query?.split('&');
     const body:
       | RoomOperationRequest
       | UpdateRoomPasswordRequest = request.body;
     const requestingUser: User = request.user;
 
     const roomId: number = body.roomId || request.params.roomId
+      || parseInt(queryParams?.filter((value: string) => value.includes('roomId'))[0].split('=')[1]);
+      
     if (!roomId) {
       this.logger.warn(
         `${requestingUser.name} sent an invalid request for a chat room action`,
@@ -38,7 +41,6 @@ export class OwnerGuard implements CanActivate {
     }
 
     const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
-
     if (!room) {
       this.logger.warn(
         `${requestingUser.name} tried to do an owner action on a non-existing room`,
