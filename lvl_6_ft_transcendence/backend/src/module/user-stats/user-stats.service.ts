@@ -41,11 +41,6 @@ export class UserStatsService {
         user: { id: userId },
       });
 
-    if (!userStats) {
-      console.log('userId = ' + userId);
-      console.log('WTF');
-    }
-
     const userStatsInterfaces: UserStatsInterface = {
       losses: userStats.losses,
       matches_played: userStats.matches_played,

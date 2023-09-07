@@ -23,7 +23,7 @@ export class AdminGuard implements CanActivate {
     const body: RoomOperationRequest | MuteUserRequest = request.body;
     const requestingUser: User = request.user;
 
-    const roomId: number | undefined = body.roomId | parseInt(request.query['room-id']);
+    const roomId: number | undefined = body.roomId | parseInt(request.query['roomId']);
   
     if (!roomId || Number.isNaN(roomId) || !body.userId) {
       this.logger.warn(
