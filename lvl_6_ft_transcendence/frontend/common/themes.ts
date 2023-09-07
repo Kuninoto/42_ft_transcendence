@@ -33,6 +33,11 @@ export const themes: IThemes = {
 		ball: HEX_WHITE,
 		paddle: 'white.png',
 	},
+	donkey: {
+		background: 'donkey.jpg',
+		ball: HEX_PINK,
+		paddle: 'white.png',
+	},
 }
 
 export const amount: number = Object.keys(themes).length

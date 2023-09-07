@@ -3,4 +3,5 @@ export enum GameThemes {
   FORTY_TWO = 'fortyTwo',
   MARIO = 'mario',
   SPACE_INVADERS = 'spaceInvaders',
+  DONKEY = 'donkey',
 }
