@@ -53,7 +53,9 @@ export class MeController {
    * Finds and returns the 'me' user's info
    */
   @ApiOperation({ description: "Get the 'me' user's info" })
-  @ApiOkResponse({ description: "Successfully finds and returns 'me' user's info" })
+  @ApiOkResponse({
+    description: "Successfully finds and returns 'me' user's info",
+  })
   @Get()
   public async getMyInfo(@ExtractUser() user: User): Promise<MeUserInfo> {
     this.logger.log(`"${user.name}" requested his info`);
@@ -67,7 +69,7 @@ export class MeController {
    */
   @ApiOperation({ description: "Get the 'me' user's friendlist" })
   @ApiOkResponse({
-    description: "Successfully finds and returns 'me' user's friendlist"
+    description: "Successfully finds and returns 'me' user's friendlist",
   })
   @Get('friendlist')
   public async findMyFriendlist(@ExtractUser() user: User): Promise<Friend[]> {
@@ -83,7 +85,8 @@ export class MeController {
    */
   @ApiOperation({ description: "Get the 'me' user's friend-requests" })
   @ApiOkResponse({
-    description: "Successfully finds and returns the 'me' user's friend-requests",
+    description:
+      "Successfully finds and returns the 'me' user's friend-requests",
   })
   @Get('friend-requests')
   public async findMyFriendRequests(
@@ -118,8 +121,7 @@ export class MeController {
    */
   @ApiOperation({ description: "Get the rooms where 'me' user is" })
   @ApiOkResponse({
-    description:
-      "Successfully finds and returns the rooms where 'me' user is",
+    description: "Successfully finds and returns the rooms where 'me' user is",
   })
   @Get('rooms')
   public async findMyChatRooms(
@@ -136,7 +138,7 @@ export class MeController {
    * user's username.
    *
    */
-  @ApiOperation({ description: "Update 'me' user's username"})
+  @ApiOperation({ description: "Update 'me' user's username" })
   @ApiBody({ type: UsernameUpdationRequest })
   @ApiBadRequestResponse({
     description:
@@ -145,7 +147,7 @@ export class MeController {
   @ApiConflictResponse({
     description: 'If the new username is already taken',
   })
-   @ApiOkResponse({
+  @ApiOkResponse({
     description: "Successfully updated 'me' user's username",
   })
   @Patch('username')
@@ -179,7 +181,7 @@ export class MeController {
    * e.g http://http://localhost:3000/api/users/avatars/<hashed_filename>.png
    *     (BACKEND_URL) + /api/users/avatars/ + <hashed_filename>.png
    */
-  @ApiOperation({ description: "Update 'me' user's avatar"})
+  @ApiOperation({ description: "Update 'me' user's avatar" })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: AvatarUpdationRequest })
   @ApiBadRequestResponse({
@@ -187,8 +189,7 @@ export class MeController {
       'If the uploaded image is not a png, jpg or jpeg or if its size exceeds the max size',
   })
   @ApiOkResponse({
-    description:
-      "Successfully updates 'me' user's avatar",
+    description: "Successfully updates 'me' user's avatar",
   })
   @UseInterceptors(FileInterceptor('avatar', multerConfig))
   @Patch('avatar')
@@ -216,7 +217,7 @@ export class MeController {
    * This is the route to visit to update 'me'
    * user's game theme.
    */
-  @ApiOperation({ description: "Update 'me' user's game theme"})
+  @ApiOperation({ description: "Update 'me' user's game theme" })
   @ApiBody({ type: GameThemeUpdationRequest })
   @ApiBadRequestResponse({
     description: 'If the game theme is invalid',
