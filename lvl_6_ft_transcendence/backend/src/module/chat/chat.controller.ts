@@ -138,7 +138,7 @@ export class ChatController {
       'Returns an array of the UIDs of the banned users on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
-  @Get(':roomId/bans')
+  @Get('/:roomId/bans')
   public async findRoomBans(
     @Param('roomId') roomId: number,
   ): Promise<UserBasicProfile[]> {
@@ -175,17 +175,11 @@ export class ChatController {
     description: 'Returns an array of the user ids of the admins',
   })
   @UseGuards(OwnerGuard)
-  @Get(':roomId/admins')
+  @Get('/:roomId/admins')
   public async findRoomAdmins(
     @Param('roomId') roomId: number,
   ): Promise<UserBasicProfile[]> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
-  
-    const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
-    }
+    const room: ChatRoom = await this.chatService.findRoomById(roomId);
 
     return room.admins.map(
       (admin: User): UserBasicProfile => ({
@@ -210,14 +204,12 @@ export class ChatController {
     description: 'Successfully joined room with id=body.roomId',
   })
   @HttpCode(HttpStatus.OK)
-  @Post(':roomId/join')
+  @Post('/:roomId/join')
   public async joinRoom(
     @ExtractUser() user: User,
     @Param('roomId') roomId: number,
     @Body() body: JoinRoomRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
     return await this.chatService.joinRoom(user, roomId, body.password);
   }
 
@@ -228,18 +220,13 @@ export class ChatController {
     description: 'Successfully left room with id=body.roomId',
   })
   @HttpCode(HttpStatus.OK)
-  @Post(':roomId/leave-room')
+  @Post('/:roomId/leave-room')
   public async leaveRoom(
     @ExtractUser() user: User,
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
-
-    const room: ChatRoom | null = await this.chatService.findRoomById(
-      roomId,
-    );
+    const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
     if (!room) {
       this.logger.warn(`${user.name} tried to leave a non-existing room`);
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
@@ -337,20 +324,13 @@ export class ChatController {
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
-  @Post(':roomId/kick')
+  @Post('/:roomId/kick')
   public async kickFromRoom(
     @ExtractUser() user: User,
     @Body() body: RoomOperationRequest,
     @Param('roomId') roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
-  
-    return await this.chatService.kickFromRoom(
-      user.id,
-      body.userId,
-      roomId,
-    );
+    return await this.chatService.kickFromRoom(user.id, body.userId, roomId);
   }
 
   @ApiOperation({ description: 'Ban a user from a chat room' })
@@ -361,20 +341,13 @@ export class ChatController {
   @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
-  @Post(':roomId/ban')
+  @Post('/:roomId/ban')
   public async banFromRoom(
     @ExtractUser() user: User,
     @Body() body: RoomOperationRequest,
     @Param('roomId') roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
-
-    return await this.chatService.banFromRoom(
-      user.id,
-      body.userId,
-      roomId,
-    );
+    return await this.chatService.banFromRoom(user.id, body.userId, roomId);
   }
 
   @ApiOperation({ description: 'Unban a user from a chat room' })
@@ -388,7 +361,9 @@ export class ChatController {
     type: 'number',
     description: 'The id of the user to unban',
   })
-  @ApiBadRequestResponse({ description: 'If invalid roomId or userId are passed' })
+  @ApiBadRequestResponse({
+    description: 'If invalid roomId or userId are passed',
+  })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
@@ -398,16 +373,14 @@ export class ChatController {
       'Successfully unbanned user with uid=body.userId from room with id=body.roomId',
   })
   @UseGuards(OwnerGuard)
-  @Delete(':roomId/ban')
+  @Delete('/:roomId/ban')
   public async unbanFromRoom(
     @Param('roomId') roomId: number,
     @Query('userId') userId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
     if (!userId || Number.isNaN(userId))
       throw new BadRequestException('Invalid userId parameter');
-    
+
     return await this.chatService.unbanFromRoom(userId, roomId);
   }
 
@@ -426,14 +399,11 @@ export class ChatController {
   })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
-  @Post(':roomId/mute')
+  @Post('/:roomId/mute')
   public async muteUser(
-    @Param('roomId') roomId: number,
     @Body() body: MuteUserRequest,
+    @Param('roomId') roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
-
     // Calculate the mute duration in ms to later use on setTimeout()
     let muteDuration: number;
     switch (body.duration) {
@@ -445,11 +415,7 @@ export class ChatController {
         break;
     }
 
-    return await this.chatService.muteUser(
-      body.userId,
-      muteDuration,
-      roomId,
-    );
+    return await this.chatService.muteUser(body.userId, muteDuration, roomId);
   }
 
   @ApiOperation({
@@ -469,20 +435,13 @@ export class ChatController {
   })
   @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
-  @Post(':roomId/add-admin')
+  @Post('/:roomId/add-admin')
   public async addAdmin(
     @ExtractUser() user: User,
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
-
-    return await this.chatService.assignAdminRole(
-      user.id,
-      body.userId,
-      roomId,
-    );
+    return await this.chatService.assignAdminRole(user.id, body.userId, roomId);
   }
 
   @ApiOperation({
@@ -511,14 +470,12 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!roomId || Number.isNaN(roomId))
-      throw new BadRequestException('Invalid roomId parameter');
-  
     return await this.chatService.removeAdminRole(body.userId, roomId);
   }
 
   @ApiOperation({ description: 'Update chat room password' })
   @ApiBody({ type: UpdateRoomPasswordRequest })
+  @ApiBadRequestResponse({ description: 'If an invalid roomId is sent' })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
   })
@@ -528,15 +485,12 @@ export class ChatController {
       "Successfully updated room with id=body.roomId's password to body.newPassword",
   })
   @UseGuards(OwnerGuard)
-  @Patch(':roomId/password')
+  @Patch('/:roomId/password')
   public async updateRoomPassword(
+    @Param('roomId') roomId: number,
     @Body() body: UpdateRoomPasswordRequest,
-    @Param(':roomId') roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.updateRoomPassword(
-      body.newPassword,
-      roomId,
-    );
+    return await this.chatService.updateRoomPassword(body.newPassword, roomId);
   }
 
   @ApiOperation({ description: 'Delete the password of a protected room' })
@@ -551,9 +505,9 @@ export class ChatController {
     description: "Successfully removed room with id=body.roomId's password",
   })
   @UseGuards(OwnerGuard)
-  @Delete(':roomId/password')
+  @Delete('/:roomId/password')
   public async removeRoomPassword(
-    @Param(':roomId') roomId: number,
+    @Param('roomId') roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.removeRoomPassword(roomId);
   }

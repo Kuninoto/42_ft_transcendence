@@ -310,9 +310,11 @@ export class ChatService {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
-    if (this.isUserBannedFromRoom(room, joiningUser.id)) {
+    if (room.type === ChatRoomType.PRIVATE)
+      throw new ForbiddenException('Private rooms are only joinable by invite');
+
+    if (this.isUserBannedFromRoom(room, joiningUser.id))
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
-    }
 
     if (this.isUserInRoom(room, joiningUser.id)) {
       this.logger.warn(
@@ -739,15 +741,10 @@ export class ChatService {
     newPassword: string,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
-      throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
-    }
+    const room: ChatRoom = await this.findRoomById(roomId);
 
     room.type = ChatRoomType.PROTECTED;
     room.password = newPassword;
-
-    console.log(room.password);
 
     await this.chatRoomRepository.save(room);
     return { message: `Successfully updated room's password` };

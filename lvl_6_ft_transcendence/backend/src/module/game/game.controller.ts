@@ -7,7 +7,7 @@ import {
   Logger,
   UseGuards,
   ConflictException,
-  BadRequestException
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -26,7 +26,7 @@ import {
   RespondToGameInviteRequest,
   SendGameInviteRequest,
   SuccessResponse,
-  UserStatsForLeaderboard
+  UserStatsForLeaderboard,
 } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { ConnectionService } from '../connection/connection.service';
@@ -68,10 +68,12 @@ export class GameController {
   }
 
   @ApiOperation({ description: 'Send a game invite' })
-  @ApiConflictResponse({ description: 'If requesting user is in game or offline\If recipient is in game\n'})
-  @ApiOkResponse({
+  @ApiConflictResponse({
     description:
-      'Successfully sent game invite',
+      'If requesting user is in game or offlineIf recipient is in game\n',
+  })
+  @ApiOkResponse({
+    description: 'Successfully sent game invite',
   })
   @Post('/invite')
   async sendGameInvite(
@@ -79,14 +81,19 @@ export class GameController {
     @Body() body: SendGameInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (this.gameService.isPlayerInQueueOrGame(user.id))
-      throw new ConflictException('You cannot send a game invite while in a game');
+      throw new ConflictException(
+        'You cannot send a game invite while in a game',
+      );
 
     if (this.gameService.isPlayerInQueueOrGame(body.recipientUID))
       throw new ConflictException('Recipient is in game');
 
-    const socketIdOfPlayer: string | undefined = this.connectionService.findSocketIdByUID(user.id);
+    const socketIdOfPlayer: string | undefined =
+      this.connectionService.findSocketIdByUID(user.id);
     if (!socketIdOfPlayer)
-      throw new ConflictException("You cannot send a game invite if you're offline");
+      throw new ConflictException(
+        "You cannot send a game invite if you're offline",
+      );
 
     const newPlayer: Player = new Player(Number(user.id), socketIdOfPlayer);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
@@ -105,12 +112,15 @@ export class GameController {
   }
 
   @ApiOperation({ description: 'Respond to game invite' })
-  @ApiBadRequestResponse({ description: "If invite isn't meant for the requesting user" })
-  @ApiConflictResponse({ description: 'If user accepts the invite but is offline' })
+  @ApiBadRequestResponse({
+    description: "If invite isn't meant for the requesting user",
+  })
+  @ApiConflictResponse({
+    description: 'If user accepts the invite but is offline',
+  })
   @ApiNotFoundResponse({ description: 'If invite is not found' })
   @ApiOkResponse({
-    description:
-      'Successfully responded to game invite',
+    description: 'Successfully responded to game invite',
   })
   @Patch('/:inviteId/status')
   async respondToGameInvite(
@@ -125,9 +135,15 @@ export class GameController {
         this.connectionService.findSocketIdByUID(user.id);
 
       if (!receiverSocketId)
-        throw new ConflictException('You cannot accept a game invite while being offline');
+        throw new ConflictException(
+          'You cannot accept a game invite while being offline',
+        );
 
-      await this.gameService.gameInviteAccepted(body.inviteId, user.id, receiverSocketId);
+      await this.gameService.gameInviteAccepted(
+        body.inviteId,
+        user.id,
+        receiverSocketId,
+      );
     } else {
       this.gameService.gameInviteDeclined(body.inviteId);
     }

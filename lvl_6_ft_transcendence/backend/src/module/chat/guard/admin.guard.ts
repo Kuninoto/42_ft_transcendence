@@ -24,7 +24,7 @@ export class AdminGuard implements CanActivate {
     const requestingUser: User = request.user;
 
     const roomId: number | undefined = parseInt(request.params.roomId);
-  
+
     if (!roomId || Number.isNaN(roomId) || !body.userId) {
       this.logger.warn(
         `${requestingUser.name} tried to request an admin action with an invalid request`,
@@ -32,9 +32,7 @@ export class AdminGuard implements CanActivate {
       throw new BadRequestException('Invalid request body for an admin action');
     }
 
-    const room: ChatRoom | null = await this.chatService.findRoomById(
-      roomId,
-    );
+    const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
     if (!room) {
       this.logger.warn(
         `${requestingUser.name} tried to do an admin action on a non-existing room`,
