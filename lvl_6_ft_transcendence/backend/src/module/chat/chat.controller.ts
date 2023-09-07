@@ -41,7 +41,6 @@ import {
   JoinRoomRequest,
   MuteDuration,
   MuteUserRequest,
-  RemoveRoomPasswordRequest,
   RoomOperationRequest,
   SuccessResponse,
   UpdateRoomPasswordRequest,
@@ -360,7 +359,16 @@ export class ChatController {
   }
 
   @ApiOperation({ description: 'Unban a user from a chat room' })
-  @ApiBody({ type: RoomOperationRequest })
+  @ApiQuery({
+    name: 'roomId',
+    type: 'number',
+    description: 'The room id',
+  })
+  @ApiQuery({
+    name: 'userId',
+    type: 'number',
+    description: 'The id of the user to unban',
+  })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
@@ -372,9 +380,10 @@ export class ChatController {
   @UseGuards(AdminGuard)
   @Delete('/ban')
   public async unbanFromRoom(
-    @Body() body: RoomOperationRequest,
+    @Query('roomId') roomId: number,
+    @Query('userId') userId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.unbanFromRoom(body.userId, body.roomId);
+    return await this.chatService.unbanFromRoom(userId, roomId);
   }
 
   @ApiOperation({ description: 'Mute a user on a chat room' })
@@ -412,24 +421,6 @@ export class ChatController {
       muteDuration,
       body.roomId,
     );
-  }
-
-  @ApiOperation({ description: 'Unmute a user on a chat room' })
-  @ApiBody({ type: RoomOperationRequest })
-  @ApiUnauthorizedResponse({
-    description: "If sender doesn't have admin privileges",
-  })
-  @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
-  @ApiOkResponse({
-    description:
-      'Successfully unmuted user with id=body.userId from room with id=body.roomId',
-  })
-  @UseGuards(AdminGuard)
-  @Delete('/mute')
-  public async unmuteUser(
-    @Body() body: RoomOperationRequest,
-  ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.unmuteUser(body.userId, body.roomId);
   }
 
   @ApiOperation({
@@ -510,8 +501,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: '' })
-  @ApiBody({ type: RemoveRoomPasswordRequest })
+  @ApiOperation({ description: 'Delete the password of a protected room' })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
   })
@@ -523,10 +513,10 @@ export class ChatController {
     description: "Successfully removed room with id=body.roomId's password",
   })
   @UseGuards(OwnerGuard)
-  @Delete('/room-password')
+  @Delete(':roomId/room-password')
   public async removeRoomPassword(
-    @Body() body: RemoveRoomPasswordRequest,
+    @Param(':roomId') roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.removeRoomPassword(body.roomId);
+    return await this.chatService.removeRoomPassword(roomId);
   }
 }

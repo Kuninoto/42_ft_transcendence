@@ -98,16 +98,14 @@ export class UsersService {
   public async findChatRoomsWhereUserIs(
     uid: number,
   ): Promise<ChatRoomInterface[]> {
-    const rooms: ChatRoom[] = (await this.findUserByUID(uid)).chat_rooms;
-
-    if (!rooms) {
-      return [];
-    }
+    const rooms: ChatRoom[] | undefined = (await this.findUserByUID(uid)).chat_rooms;
+    if (!rooms) return [];
 
     const roomInterfaces: ChatRoomInterface[] = rooms.map(
       (room: ChatRoom): ChatRoomInterface => ({
         id: room.id,
         name: room.name,
+        type: room.type,
         ownerId: room.owner.id,
         participants: room.users.map(
           (user: User): UserBasicProfile => ({

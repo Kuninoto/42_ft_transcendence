@@ -13,6 +13,8 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiConflictResponse,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
   ApiTags,
   ApiOperation,
 } from '@nestjs/swagger';
@@ -66,9 +68,7 @@ export class GameController {
   }
 
   @ApiOperation({ description: 'Send a game invite' })
-  @ApiConflictResponse({ description:
-    'If requesting user is in game or offline\n\
-     If recipient is in game\n'})
+  @ApiConflictResponse({ description: 'If requesting user is in game or offline\If recipient is in game\n'})
   @ApiOkResponse({
     description:
       'Successfully sent game invite',
@@ -105,6 +105,9 @@ export class GameController {
   }
 
   @ApiOperation({ description: 'Respond to game invite' })
+  @ApiBadRequestResponse({ description: "If invite isn't meant for the requesting user" })
+  @ApiConflictResponse({ description: 'If user accepts the invite but is offline' })
+  @ApiNotFoundResponse({ description: 'If invite is not found' })
   @ApiOkResponse({
     description:
       'Successfully responded to game invite',
