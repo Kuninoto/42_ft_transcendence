@@ -3,9 +3,9 @@ import { PlayerSide } from 'types';
 import { Ball, BALL_RADIUS } from './Ball';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom } from './GameRoom';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom, MAX_SCORE } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
-import { MAX_SCORE, PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
+import { PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 
 const GAME_LOOP_INTERVAL: number = 4;
 const RESET_GAME_DELAY: number = 6;

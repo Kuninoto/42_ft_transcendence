@@ -13,7 +13,6 @@ import { User } from 'src/entity/user.entity';
 import { FriendshipsService } from 'src/module/friendships/friendships.service';
 import { UsersService } from 'src/module/users/users.service';
 import {
-  ChatRoomRoles,
   GetChatterRoleEvent,
   GetChatterRoleMessage,
   RoomMessageReceivedEvent,
@@ -102,7 +101,7 @@ export class ChatGateway implements OnGatewayInit {
           uid,
         );
 
-      // Retrieve the clientId of the user
+      // Retrieve the socketId of the user
       const userSocketId: string | undefined =
         this.connectionService.findSocketIdByUID(uid);
       if (userSocketId && !blockRelationship) {
@@ -115,7 +114,7 @@ export class ChatGateway implements OnGatewayInit {
   async getChatterRole(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: GetChatterRoleMessage,
-  ): Promise<GetChatterRoleEvent> {
+  ): Promise<GetChatterRoleEvent | void> {
     if (!this.isValidGetChatterRoleMessage(messageBody)) {
       this.logger.warn(
         `${client.data.name} tried to send a wrong GetChatterRoleMessage`,
@@ -133,18 +132,9 @@ export class ChatGateway implements OnGatewayInit {
       return;
     }
 
-    const myRole: ChatRoomRoles = this.chatService.findRoleOnChatRoom(
-      room,
-      client.data.userId,
-    );
-    const chatterRole: ChatRoomRoles = this.chatService.findRoleOnChatRoom(
-      room,
-      messageBody.uid,
-    );
-
     return {
-      myRole: myRole,
-      authorRole: chatterRole,
+      myRole: this.chatService.findRoleOnChatRoom(room, client.data.userId),
+      authorRole: this.chatService.findRoleOnChatRoom(room, messageBody.uid),
     };
   }
 
