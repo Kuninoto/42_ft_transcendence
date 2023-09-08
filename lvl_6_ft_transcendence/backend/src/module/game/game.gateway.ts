@@ -50,8 +50,7 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('queueToLadder')
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
-    if (this.gameService.isPlayerInQueueOrGame(client.data.userId))
-      return;
+    if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) return;
 
     this.logger.log(`${client.data.name} joined the ladder queue`);
 

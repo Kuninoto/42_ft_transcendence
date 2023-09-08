@@ -170,7 +170,8 @@ export class GameEngineService {
         gameRoom.ball.x - BALL_RADIUS > player.paddleX - PADDLE_WIDTH / 2
       ) {
         gameRoom.ball.bounceOnCollidePoint(
-          (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2), -1
+          (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2),
+          -1,
         );
         return true;
       }
@@ -184,7 +185,8 @@ export class GameEngineService {
         gameRoom.ball.x + BALL_RADIUS < player.paddleX + PADDLE_WIDTH / 2
       ) {
         gameRoom.ball.bounceOnCollidePoint(
-          (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2), 1
+          (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2),
+          1,
         );
         return true;
       }
