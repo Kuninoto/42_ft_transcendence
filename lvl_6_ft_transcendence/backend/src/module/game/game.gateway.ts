@@ -5,6 +5,7 @@ import {
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
@@ -49,9 +50,8 @@ export class GameGateway implements OnGatewayInit {
 
   @SubscribeMessage('queueToLadder')
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
-    if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) {
+    if (this.gameService.isPlayerInQueueOrGame(client.data.userId))
       return;
-    }
 
     this.logger.log(`${client.data.name} joined the ladder queue`);
 
@@ -74,7 +74,7 @@ export class GameGateway implements OnGatewayInit {
       this.logger.warn(
         `${client.data.name} tried to send a wrong PlayerReadyMessage`,
       );
-      return;
+      throw new WsException('Wrongly formated message');
     }
 
     this.gameService.playerReady(messageBody.gameRoomId, client.id);
@@ -89,7 +89,7 @@ export class GameGateway implements OnGatewayInit {
       this.logger.warn(
         `${client.data.name} tried to send a wrong PaddleMoveMessage`,
       );
-      return;
+      throw new WsException('Wrongly formated message');
     }
 
     this.gameService.paddleMove(

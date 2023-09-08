@@ -33,14 +33,14 @@ export class GameEngineService {
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
-    private readonly GameRoomMap: GameRoomMap,
+    private readonly gameRoomMap: GameRoomMap,
     @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
   ) {}
 
   public startGame(roomId: string): void {
     const gameRoom: GameRoom | undefined =
-      this.GameRoomMap.findGameRoomById(roomId);
+      this.gameRoomMap.findGameRoomById(roomId);
 
     /* If a user disconnects right upon game start
     gameRoom will end up undefined and the remaining user
@@ -51,7 +51,7 @@ export class GameEngineService {
     gameRoom.gameLoopIntervalId = setInterval(() => {
       // Fetch the game room info (which can possibly be updated by
       // game-gateway on 'paddle-move' message) and pass it to the gameLoop()
-      this.gameLoop(this.GameRoomMap.findGameRoomById(roomId));
+      this.gameLoop(this.gameRoomMap.findGameRoomById(roomId));
     }, GAME_LOOP_INTERVAL);
   }
 
@@ -167,11 +167,10 @@ export class GameEngineService {
       if (
         gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH / 2 &&
         isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
-        gameRoom.ball.x - BALL_RADIUS > player.paddleX - PADDLE_WIDTH / 2 &&
-        gameRoom.ball.speed.x < 0
+        gameRoom.ball.x - BALL_RADIUS > player.paddleX - PADDLE_WIDTH / 2
       ) {
         gameRoom.ball.bounceOnCollidePoint(
-          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+          (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2), -1
         );
         return true;
       }
@@ -182,11 +181,10 @@ export class GameEngineService {
       if (
         gameRoom.ball.x + BALL_RADIUS >= player.paddleX - PADDLE_WIDTH / 2 &&
         isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
-        gameRoom.ball.x + BALL_RADIUS < player.paddleX + PADDLE_WIDTH / 2 &&
-        gameRoom.ball.speed.x > 0
+        gameRoom.ball.x + BALL_RADIUS < player.paddleX + PADDLE_WIDTH / 2
       ) {
         gameRoom.ball.bounceOnCollidePoint(
-          player.paddleY + PADDLE_HEIGHT / 2 - gameRoom.ball.y + BALL_RADIUS,
+          (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2), 1
         );
         return true;
       }
