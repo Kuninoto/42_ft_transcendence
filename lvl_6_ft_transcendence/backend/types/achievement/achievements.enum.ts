@@ -15,7 +15,7 @@ export enum Achievements {
   // 1 Friend
   FIRST_BUDDY = 'First Buddy',
   // 1 Sent friend request declined
-  DECLINED_TOMORROW_BUDDIES = 'Declined Tomorrow Buddies',
+  REJECTED_BUT_NOT_DEJECTED = 'Rejected But Not Dejected',
   // 1 User unfriended someone
   BREAKING_THE_PADDLE_BOND = 'Breaking The Paddle Bond',
   // 5 Wins

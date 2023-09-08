@@ -401,7 +401,7 @@ export class FriendshipsService {
   }
 
   private async declineFriendRequest(friendship: Friendship): Promise<void> {
-    await this.achievementsService.grantDeclinedTomorrowBuddies(
+    await this.achievementsService.grantRejectedButNotDejected(
       friendship.sender.id,
     );
     await this.friendshipRepository.delete(friendship);
