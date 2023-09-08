@@ -27,8 +27,8 @@ export class FriendshipsGateway implements OnGatewayInit {
     private readonly connectionService: ConnectionService,
     private readonly friendshipService: FriendshipsService,
     private readonly chatService: ChatService,
-    ) {}
-    
+  ) {}
+
   private readonly logger: Logger = new Logger(FriendshipsGateway.name);
 
   afterInit(server: Server) {
