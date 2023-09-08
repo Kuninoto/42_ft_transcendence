@@ -12,6 +12,7 @@ export interface GameRoom {
   roomId: string;
   gameType: GameType;
   gameLoopIntervalId?: NodeJS.Timeout;
+  syncGameRoomIntervalId?: NodeJS.Timeout;
   ball: Ball;
   leftPlayer: Player;
   rightPlayer: Player;

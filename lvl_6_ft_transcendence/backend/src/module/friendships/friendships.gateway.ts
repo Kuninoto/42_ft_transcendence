@@ -5,6 +5,7 @@ import {
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
@@ -19,8 +20,6 @@ import { FriendshipsService } from './friendships.service';
   namespace: 'connection',
 })
 export class FriendshipsGateway implements OnGatewayInit {
-  private readonly logger: Logger = new Logger(FriendshipsGateway.name);
-
   constructor(
     @Inject(forwardRef(() => ConnectionGateway))
     private readonly connectionGateway: ConnectionGateway,
@@ -28,15 +27,17 @@ export class FriendshipsGateway implements OnGatewayInit {
     private readonly connectionService: ConnectionService,
     private readonly friendshipService: FriendshipsService,
     private readonly chatService: ChatService,
-  ) {}
-
-  /******************************
-   *          MESSAGES          *
-   ******************************/
+    ) {}
+    
+  private readonly logger: Logger = new Logger(FriendshipsGateway.name);
 
   afterInit(server: Server) {
     this.logger.log('Friendships-Gateway Initialized');
   }
+
+  /******************************
+   *          MESSAGES          *
+   ******************************/
 
   @SubscribeMessage('sendDirectMessage')
   async sendDirectMessage(
@@ -47,12 +48,12 @@ export class FriendshipsGateway implements OnGatewayInit {
       this.logger.warn(
         `${client.data.name} tried to send a wrong SendMessageSMessage`,
       );
-      return;
+      throw new WsException('Wrongly formated message');
     }
 
     if (client.data.userId == messageBody.receiverId) {
       // self message
-      return;
+      throw new WsException('Cannot self message');
     }
 
     const areTheyFriends: boolean = await this.friendshipService.areTheyFriends(
@@ -60,10 +61,8 @@ export class FriendshipsGateway implements OnGatewayInit {
       messageBody.receiverId,
     );
 
-    if (!areTheyFriends) {
-      // Only able to send messages to friends
-      return;
-    }
+    if (!areTheyFriends)
+      throw new WsException("You're only allowed to DM your friends");
 
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(messageBody.receiverId);

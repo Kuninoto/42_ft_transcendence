@@ -5,6 +5,7 @@ import {
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
+  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
@@ -49,9 +50,9 @@ export class ChatGateway implements OnGatewayInit {
   ): Promise<void> {
     if (!this.isValidSendMessageSMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong SendMessageSMessage`,
+        `"${client.data.name}" tried to send a wrong SendMessageSMessage`,
       );
-      return;
+      throw new WsException('Wrongly formated message');
     }
 
     const room: ChatRoom | null = await this.chatService.findRoomById(
@@ -59,9 +60,9 @@ export class ChatGateway implements OnGatewayInit {
     );
     if (!room) {
       this.logger.warn(
-        `${client.data.name} tried to send a message to a non-existing room`,
+        `"${client.data.name}" tried to send a message to a non-existing room`,
       );
-      return;
+      throw new WsException('Room not found');
     }
 
     const canUserSendMessages: boolean =
@@ -71,7 +72,7 @@ export class ChatGateway implements OnGatewayInit {
 
     if (!canUserSendMessages) {
       this.logger.log(
-        `${client.data.name} tried to send a message to a room where he's not allowed to (muted, banned or kicked)`,
+        `"${client.data.name}" tried to send a message to a room where he's not allowed to (muted, banned or kicked)`,
       );
       return;
     }
@@ -114,12 +115,12 @@ export class ChatGateway implements OnGatewayInit {
   async getChatterRole(
     @ConnectedSocket() client: Socket,
     @MessageBody() messageBody: GetChatterRoleMessage,
-  ): Promise<GetChatterRoleEvent | void> {
+  ): Promise<GetChatterRoleEvent> {
     if (!this.isValidGetChatterRoleMessage(messageBody)) {
       this.logger.warn(
-        `${client.data.name} tried to send a wrong GetChatterRoleMessage`,
+        `"${client.data.name}" tried to send a wrong GetChatterRoleMessage`,
       );
-      return;
+      throw new WsException('Wrongly formated message');
     }
 
     const room: ChatRoom | null = await this.chatService.findRoomById(
@@ -127,9 +128,9 @@ export class ChatGateway implements OnGatewayInit {
     );
     if (!room) {
       this.logger.warn(
-        `${client.data.name} tried to send a message to a non-existing room`,
+        `"${client.data.name}" tried to send a message to a non-existing room`,
       );
-      return;
+      throw new WsException('Room not found');
     }
 
     return {

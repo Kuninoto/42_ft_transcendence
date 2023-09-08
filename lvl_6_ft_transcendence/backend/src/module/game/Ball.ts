@@ -1,15 +1,14 @@
-/* import { CANVAS_HEIGHT, CANVAS_WIDTH } from './GameRoom';
-import { PADDLE_HEIGHT } from './Player';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 
 export const BALL_RADIUS = 4;
 
 // 45 degrees
 const MAX_ANGLE: number = Math.PI / 4;
 
-const BALL_INIT_SPEED: number = 2;
-const MAX_BALL_INIT_SPEED: number = 4;
+const BALL_INIT_SPEED: number = 1.5;
+const MAX_BALL_INIT_SPEED: number = 2.5;
 
-const randomBallStartingHeight = (): number =>
+const randomBallHeight = (): number =>
   Math.round(Math.random() * CANVAS_HEIGHT);
 
 const randomBallAngle = (): number => Math.random() * MAX_ANGLE; // range 0.0-45.0
@@ -22,10 +21,10 @@ export class Ball {
 
   /* Ball's x & y represent the coordinates of the ball's center
   To consider the ball edges we should add the radius
-  e.g left edge = this.x - BALL_RADIUS
+  e.g left edge = this.x - BALL_RADIUS */
   constructor() {
     this.x = CANVAS_WIDTH / 2;
-    this.y = randomBallStartingHeight();
+    this.y = randomBallHeight();
 
     const angle: number = randomBallAngle();
 
@@ -34,7 +33,10 @@ export class Ball {
         Math.round(
           Math.cos(angle) * BALL_INIT_SPEED * randomBallDirection() * 100,
         ) / 100,
-      y: Math.round(Math.sin(angle) * BALL_INIT_SPEED * 100) / 100,
+      y:
+        Math.round(
+          Math.sin(angle) * BALL_INIT_SPEED * randomBallDirection() * 100,
+        ) / 100,
     };
   }
 
@@ -46,13 +48,18 @@ export class Ball {
     this.speed.y *= -1;
   }
 
-  bounceOnCollidePoint(collidePoint: number): void {
-    const normalizedCollidePoint: number = collidePoint / PADDLE_HEIGHT;
-    const bounceAngle: number = normalizedCollidePoint * MAX_ANGLE;
+  bounceOnCollidePoint(collidePoint: number, newDirection: 1 | -1): void {
+    const bounceAngle: number = collidePoint * MAX_ANGLE;
 
-    this.speed.x = MAX_BALL_INIT_SPEED * Math.cos(bounceAngle);
+    this.speed.x =
+      Math.round(
+        Math.cos(bounceAngle) * MAX_BALL_INIT_SPEED * newDirection * 100,
+      ) / 100;
+    this.speed.y =
+      Math.round(
+        Math.sin(bounceAngle) * MAX_BALL_INIT_SPEED * newDirection * 100,
+      ) / 100;
     this.bounceInX();
-    this.speed.y = MAX_BALL_INIT_SPEED * -Math.sin(bounceAngle);
   }
 
   moveBySpeed(): void {
@@ -74,44 +81,45 @@ export class Ball {
 
   reset(): void {
     this.x = CANVAS_WIDTH / 2;
-    this.y = randomBallStartingHeight();
+    this.y = randomBallHeight();
 
     const angle: number = randomBallAngle();
 
     this.speed = {
       x:
         Math.round(
-          Math.cos(angle) * BALL_INIT_SPEED * randomBallDirection() * 100,
+          BALL_INIT_SPEED * Math.cos(angle) * randomBallDirection() * 100,
         ) / 100,
-      y: Math.round(Math.sin(angle) * BALL_INIT_SPEED * 100) / 100,
+      y:
+        Math.round(
+          BALL_INIT_SPEED * Math.sin(angle) * randomBallDirection() * 100,
+        ) / 100,
     };
   }
 }
- */
 
 // TODO
 // New physics (ball speed) above
 
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './GameRoom';
+/* import { CANVAS_HEIGHT, CANVAS_WIDTH } from './GameRoom';
 import { PADDLE_HEIGHT } from './Player';
 
-export const BALL_RADIUS = 4;
+export const BALL_RADIUS: number = 4;
 
-const MAX_BOUNCE_SPEED = 8.5;
+const MAX_BOUNCE_SPEED: number = 8.5;
 
 // 45 degrees
 const ANGLE: number = Math.PI / 4;
+const MAX_ANGLE: number = Math.PI / 4;
 
-const BALL_SPEED: number = 2.5;
+const BALL_INIT_SPEED: number = 2.5;
 const BALL_SPEED_INCREASE: number = 0.3;
 
-const randomBallStartingHeight = (): number => {
-  return Math.round(Math.random() * CANVAS_HEIGHT);
-};
+const randomBallStartingHeight = (): number =>
+  Math.round(Math.random() * CANVAS_HEIGHT);
 
-const randomBallAngle = (): number => {
-  return Math.random() * ANGLE; // range 0.0-45.0
-};
+const randomBallAngle = (): number => Math.random() * MAX_ANGLE; // range 0.0-45.0
+const randomBallDirection = (): number => (Math.random() > 0.5 ? 1 : -1);
 
 export class Ball {
   speed: { x: number; y: number };
@@ -126,8 +134,8 @@ export class Ball {
     const angle: number = randomBallAngle();
 
     this.speed = {
-      x: BALL_SPEED * Math.cos(angle),
-      y: BALL_SPEED * Math.sin(angle),
+      x: BALL_INIT_SPEED * Math.cos(angle) * randomBallDirection(),
+      y: BALL_INIT_SPEED * Math.sin(angle) * randomBallDirection(),
     };
   }
 
@@ -155,6 +163,17 @@ export class Ball {
     this.y += this.speed.y + BALL_SPEED_INCREASE;
   }
 
+  normalizeSpeed(): void {
+    const speedMagnitude: number = Math.sqrt(
+      this.speed.x * this.speed.x + this.speed.y * this.speed.y,
+    );
+
+    if (speedMagnitude > MAX_BALL_INIT_SPEED) {
+      this.speed.x = (this.speed.x / speedMagnitude) * MAX_BALL_INIT_SPEED;
+      this.speed.y = (this.speed.y / speedMagnitude) * MAX_BALL_INIT_SPEED;
+    }
+  }
+
   reset(): void {
     this.x = CANVAS_WIDTH / 2;
     this.y = randomBallStartingHeight();
@@ -162,8 +181,9 @@ export class Ball {
     const angle: number = randomBallAngle();
 
     this.speed = {
-      x: BALL_SPEED * Math.cos(angle),
-      y: BALL_SPEED * Math.sin(angle),
+      x: BALL_INIT_SPEED * Math.cos(angle),
+      y: BALL_INIT_SPEED * Math.sin(angle),
     };
   }
 }
+ */

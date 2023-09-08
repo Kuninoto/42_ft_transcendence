@@ -25,14 +25,14 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy, '42') {
     console.log('INTRA_REDIRECT_URI= ' + process.env.INTRA_REDIRECT_URI);
 
     super({
-      callbackURL: process.env.INTRA_REDIRECT_URI,
       clientID: process.env.INTRA_CLIENT_UID,
       clientSecret: process.env.INTRA_CLIENT_SECRET,
+      callbackURL: process.env.INTRA_REDIRECT_URI,
+      scope: 'public',
       profileFields: {
         avatar: 'image.versions.medium',
         username: 'login',
       },
-      scope: 'public',
     });
   }
 
