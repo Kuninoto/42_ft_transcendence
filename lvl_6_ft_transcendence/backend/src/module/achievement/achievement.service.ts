@@ -95,8 +95,8 @@ export class AchievementService {
       await this.grantAchievement(userId, Achievements.FRIENDLY);
   }
 
-  public async grantDeclinedTomorrowBuddies(userId: number): Promise<void> {
-    await this.grantAchievement(userId, Achievements.DECLINED_TOMORROW_BUDDIES);
+  public async grantRejectedButNotDejected(userId: number): Promise<void> {
+    await this.grantAchievement(userId, Achievements.REJECTED_BUT_NOT_DEJECTED);
   }
 
   public async grantBreakingThePaddleBond(userId: number): Promise<void> {
@@ -125,7 +125,7 @@ export class AchievementService {
       this.connectionGateway.sendAchievementUnlocked(userId);
     }
 
-    this.logger.log(`User with id= ${userId} just received ${achievement}!`);
+    this.logger.log(`UID= ${userId} just received ${achievement}!`);
   }
 
   private async userAlreadyHaveThisAchievement(

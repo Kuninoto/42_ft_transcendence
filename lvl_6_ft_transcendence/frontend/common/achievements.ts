@@ -26,8 +26,8 @@ export const AchievementsList: IAchievements = {
 	'First Buddy': {
 		image: 'first_friend.jpeg',
 	},
-	'Declined Tomorrow Buddies': {
-		image: 'declined_buddies_tomorrow.jpg',
+	'Rejected But Not Dejected': {
+		image: 'rejected_but_not_dejected.jpg',
 	},
 	'Breaking The Paddle Bond': {
 		image: 'breaking_paddle_bond.jpg',

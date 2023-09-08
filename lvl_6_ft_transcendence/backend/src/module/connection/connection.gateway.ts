@@ -164,8 +164,6 @@ export class ConnectionGateway
     const socketId: string | undefined =
       this.connectionService.findSocketIdByUID(userId);
 
-    // If user is online send the 'notification' that an achievement
-    // was unlocked
     if (socketId) this.server.to(socketId).emit('achievementUnlocked');
   }
 
