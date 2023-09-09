@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Patch,
-  Delete,
   Param,
   Body,
   Logger,
@@ -153,35 +152,9 @@ export class GameController {
         receiverSocketId,
       );
     } else {
-      this.gameService.gameInviteDeclined(inviteId);
+      this.gameService.gameInviteDeclined(user.id);
     }
 
     return { message: 'Successfully responded to game invite' };
-  }
-
-  @ApiOperation({ description: 'Delete game invite' })
-  @ApiBadRequestResponse({
-    description: "If invite isn't meant for the requesting user",
-  })
-  @ApiConflictResponse({
-    description: 'If user accepts the invite but is offline',
-  })
-  @ApiNotFoundResponse({ description: 'If invite is not found' })
-  @ApiOkResponse({
-    description: 'Successfully deleted game invite',
-  })
-  @Delete('/:inviteId')
-  async cancelGameInvite(
-    @ExtractUser() user: User,
-    @Param('inviteId') inviteId: string,
-  ): Promise<SuccessResponse | ErrorResponse> {
-    if (!inviteId)
-      throw new BadRequestException('No inviteId was provided');
-
-    if (!this.gameService.correctInviteUsage(user.id, inviteId, true))
-      throw new BadRequestException("Invite isn't meant for you");
-
-    this.gameService.gameInviteCanceled(inviteId);
-    return { message: 'Successfully deleted game invite' };
   }
 }

@@ -1,7 +1,7 @@
-import { Chatter } from '../../chatter.interface'
+import { UserBasicProfile } from '@/common/types/user'
 
 export interface RoomMessageReceivedEvent {
-	readonly author: Chatter
+	readonly author: UserBasicProfile
 	readonly content: string
 	readonly id: number
 	readonly uniqueId: string
