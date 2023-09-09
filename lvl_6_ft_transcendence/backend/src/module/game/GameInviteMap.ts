@@ -15,6 +15,7 @@ export class GameInviteMap {
     const inviteId: string = nanoid();
 
     this.gameInviteMap.set(inviteId, {
+      id: inviteId,
       recipientUID: createGameInviteDto.recipientUID,
       sender: createGameInviteDto.sender,
     });
@@ -26,13 +27,18 @@ export class GameInviteMap {
     this.gameInviteMap.delete(inviteId);
   }
 
-  public deleteAllInvitesToUser(userId: number): void {
-    this.gameInviteMap.forEach((value: GameInvite, key: string): void => {
-      if (userId == value.recipientUID) this.gameInviteMap.delete(key);
-    });
-  }
-
   public findInviteById(inviteId: string): GameInvite | undefined {
     return this.gameInviteMap.get(inviteId);
+  }
+
+  public findAllInvitesWithUser(userId: number): GameInvite[] {
+    let invites: GameInvite[] = [];
+
+    this.gameInviteMap.forEach((invite: GameInvite): void => {
+      if (userId == invite.recipientUID || userId == invite.sender.userId)
+        invites.push(invite);
+    })
+
+    return invites;
   }
 }
