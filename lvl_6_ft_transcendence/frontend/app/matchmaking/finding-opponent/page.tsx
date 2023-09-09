@@ -1,17 +1,19 @@
 'use client'
 
+import { api } from '@/api/api'
 import { useAuth } from '@/contexts/AuthContext'
+import { useFriends } from '@/contexts/FriendsContext'
 import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
 import { useEffect } from 'react'
 
 export default function Loading() {
 	const { canCancel, cancel, opponentFound, queue } = useGame()
-
 	const { user } = useAuth()
+	const { challengedName } = useFriends()
 
 	useEffect(() => {
-		queue()
+		if (!challengedName) queue()
 	}, [])
 
 	return (
@@ -22,7 +24,7 @@ export default function Loading() {
 					<div className="text-xl">vs.</div>
 					<div>
 						{opponentFound?.opponentInfo?.name || (
-							<span className="animate-blink">????</span>
+							<span className="animate-blink">{challengedName || '????'}</span>
 						)}
 					</div>
 				</div>
@@ -35,7 +37,7 @@ export default function Loading() {
 						src={'/catpong.gif'}
 					/>
 				</div>
-				<div>IN QUEUE</div>
+				<div>{!challengedName ? "IN QUEUE" : "WAITING RESPONSE"}</div>
 				{canCancel && (
 					<button
 						className="rounded border border-white px-4 py-2 hover:bg-white hover:text-[#170317]"

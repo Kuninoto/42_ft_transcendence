@@ -20,6 +20,7 @@ import {
 } from 'react'
 
 import { socket } from './SocketContext'
+import { useFriends } from './FriendsContext'
 
 type GameContextType = {
 	ballPosition: Ball
@@ -51,6 +52,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		{} as GameEndEvent
 	)
 
+	const { clearChallengedName } = useFriends()
+
 	const router = useRouter()
 	const pathname = usePathname()
 
@@ -63,7 +66,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	function queue() {
 		if (!socket) return
-
 		socket.emit('queueToLadder', {})
 	}
 
@@ -73,6 +75,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		else {
 			socket?.on('opponentFound', function (data: OpponentFoundEvent) {
 				setOpponentFound(data)
+				clearChallengedName()	
 				setTimeout(() => {
 					router.push('/matchmaking')
 				}, 2 * 1000)

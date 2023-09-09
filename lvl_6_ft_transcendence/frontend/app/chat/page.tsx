@@ -14,7 +14,6 @@ import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { socket } from '@/contexts/SocketContext'
 import Tippy from '@tippyjs/react'
-import { UUID } from 'crypto'
 import md5 from 'md5'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -321,6 +320,7 @@ export default function Chat() {
 		isOpen,
 		openChats,
 		removeInvite,
+		respondGameInvite,
 		sendMessage,
 	} = useFriends()
 
@@ -340,7 +340,8 @@ export default function Chat() {
 		)
 	}
 
-	function respondeToRoomInvite(inviteId: UUID, accepted: boolean) {
+
+	function respondeToRoomInvite(inviteId: string, accepted: boolean) {
 		const newJoinRequest: RespondToRoomInviteRequest = {
 			accepted,
 			inviteId: inviteId,
@@ -501,10 +502,21 @@ export default function Chat() {
 												className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
 												key={index}
 											>
-												<span>Challenged you</span>
-												<button className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black">
+												<span className="text-xs">Challenged you</span>
+											<div className="flex space-x-2">
+												<button
+													className="rounded border border-white py-1 px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													onClick={() => respondGameInvite(currentOpenChat?.friend?.name, message.id, true)}
+												>
 													Accept
 												</button>
+												<button
+													className="rounded border border-white px-1 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													onClick={() => respondGameInvite(currentOpenChat?.friend?.name, message.id, !true)}
+												>
+													<AiOutlineClose size={20}/>
+												</button>
+											</div>
 											</div>
 										)
 									}
