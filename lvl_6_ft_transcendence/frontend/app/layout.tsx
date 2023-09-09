@@ -19,7 +19,7 @@ import './globals.css'
 
 const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
-function FixedPanel({ handle }: { handle: any }) {
+function FixedPanel({handle} : {handle : any}) {
 	const path = usePathname()
 
 	return (
@@ -43,8 +43,7 @@ function FixedPanel({ handle }: { handle: any }) {
 	)
 }
 
-function Body({ children }: { children: React.ReactNode }) {
-	const handle = useFullScreenHandle()
+function Body({ handle, children }: { handle:any, children: React.ReactNode }) {
 
 	const [isMobile, setIsMobile] = useState(false)
 
@@ -76,7 +75,7 @@ function Body({ children }: { children: React.ReactNode }) {
 		<>
 			{children}
 			<Chat />
-			<FixedPanel handle={handle} />
+			<FixedPanel handle={handle}/>
 			<Link href={'/profile'}>
 				<ToastContainer
 					autoClose={2500}
@@ -122,7 +121,7 @@ export default function RootLayout({
 						<body className={`overflow-hidden ${pressStart.className}`}>
 							<FullScreen handle={handle}>
 								<div className="h-screen bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80%">
-									<Body>{children}</Body>
+									<Body handle={handle}>{children}</Body>
 								</div>
 							</FullScreen>
 						</body>

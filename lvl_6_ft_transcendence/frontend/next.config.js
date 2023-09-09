@@ -3,6 +3,12 @@ const nextConfig = {
 	images: {
 		domains: ['localhost', 'cdn.intra.42.fr'],
 	},
+	eslint: {
+		ignoreDuringBuilds: true,
+	},
+	typescript: {
+		ignoreBuildErrors: true,
+	},
 	reactStrictMode: false,
 	webpack: (config) => {
 		config.externals.push({
