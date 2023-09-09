@@ -75,7 +75,6 @@ export default function Game() {
 	useEffect(() => {
 		const handleNavigation = () => {
 			// This function will be called when the user navigates.
-			console.log('User navigated back. Calling your function.')
 			// Call your function logic here
 		}
 

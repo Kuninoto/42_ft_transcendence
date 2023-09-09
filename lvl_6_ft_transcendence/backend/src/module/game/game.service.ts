@@ -28,7 +28,8 @@ import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
 import { nanoid } from 'nanoid';
 
-const GAME_START_TIMEOUT: number = 1000 * 3;
+const GAME_START_TIMEOUT: number = 3 * 1000;
+const OPPONENT_INFO_DELAY_ON_ACCEPTED: number = 5 * 1000;
 
 @Injectable()
 export class GameService {
@@ -208,13 +209,15 @@ export class GameService {
       ),
     });
 
-    this.gameGateway.emitOpponentFoundEvent(playerTwo.socketId, {
-      roomId: roomId,
-      side: playerTwo.side,
-      opponentInfo: await this.usersService.findUserBasicProfileByUID(
-        playerOne.userId,
-      ),
-    });
+    setTimeout(async () => {
+      this.gameGateway.emitOpponentFoundEvent(playerTwo.socketId, {
+        roomId: roomId,
+        side: playerTwo.side,
+        opponentInfo: await this.usersService.findUserBasicProfileByUID(
+          playerOne.userId,
+          ),
+      });
+    }, OPPONENT_INFO_DELAY_ON_ACCEPTED)
   }
 
   public paddleMove(gameRoomId: string, socketId: string, newY: number): void {
@@ -310,8 +313,8 @@ export class GameService {
     
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    if (cancelInvite) return gameInvite.sender.userId === userId;
-    return gameInvite.recipientUID === userId;
+    if (cancelInvite) return gameInvite.sender.userId == userId;
+    return gameInvite.recipientUID == userId;
   }
 
   private async saveGameResult(
