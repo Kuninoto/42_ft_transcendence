@@ -24,6 +24,7 @@ import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity';
 import {
   ErrorResponse,
+  GameInviteSentResponse,
   PlayerSide,
   RespondToGameInviteRequest,
   SendGameInviteRequest,
@@ -81,7 +82,7 @@ export class GameController {
   async sendGameInvite(
     @ExtractUser() user: User,
     @Body() body: SendGameInviteRequest,
-  ): Promise<SuccessResponse | ErrorResponse> {
+  ): Promise<GameInviteSentResponse | ErrorResponse> {
     if (this.gameService.isPlayerInQueueOrGame(user.id))
       throw new ConflictException(
         'You cannot send a game invite while in a game',
@@ -110,7 +111,7 @@ export class GameController {
       inviterUID: Number(user.id),
     });
 
-    return { message: 'Successfully sent game invite' };
+    return { inviteId: inviteId };
   }
 
   @ApiOperation({ description: 'Respond to game invite' })
