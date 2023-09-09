@@ -141,10 +141,11 @@ export class GameController {
       const receiverSocketId: string | undefined =
         this.connectionService.findSocketIdByUID(user.id);
 
-      if (!receiverSocketId)
+      if (!receiverSocketId) {
         throw new ConflictException(
           'You cannot accept a game invite while being offline',
-        );
+          );
+      }
 
       await this.gameService.gameInviteAccepted(
         inviteId,
