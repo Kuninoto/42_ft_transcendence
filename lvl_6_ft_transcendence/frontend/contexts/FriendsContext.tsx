@@ -548,7 +548,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			api.post(`/game/invite`, newGameInvite)
 			.then(() => {
 				setChallengedName(name)
-				router.push("/matchmaking/finding-opponent")
+				router.push("/matchmaking/challenge")
 			})
 			.catch(() => {throw "Network error"})
 		} catch (error: any) {
@@ -588,7 +588,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				removeInvite(id)
 				if (!accepted) return
 				setChallengedName(name)
-				router.push("/matchmaking/finding-opponent")
+				router.push("/matchmaking/challenge")
 			})
 			.catch(() => {throw "Network error"})
 		} catch (error: any) {
