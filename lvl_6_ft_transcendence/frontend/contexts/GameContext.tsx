@@ -21,6 +21,7 @@ import {
 
 import { socket } from './SocketContext'
 import { useFriends } from './FriendsContext'
+import { api } from '@/api/api'
 
 type GameContextType = {
 	ballPosition: Ball
@@ -52,7 +53,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		{} as GameEndEvent
 	)
 
-	const { clearChallengedName } = useFriends()
+	const { clearChallengedName, removeInvite} = useFriends()
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -61,13 +62,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		router?.push('/dashboard')
 
 		if (!socket) return
-		socket?.emit('leaveQueueOrGame')
+		socket.emit('leaveQueueOrGame')
 	}
 
 	function queue() {
 		if (!socket) return
 		socket.emit('queueToLadder', {})
 	}
+
+	useEffect(() => {
+		if(socket) {
+			socket.on('gameInviteCanceled', function (data: any) {
+				removeInvite(data.inviteId)
+			 })
+		}
+	}, [socket])
 
 	useEffect(() => {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))

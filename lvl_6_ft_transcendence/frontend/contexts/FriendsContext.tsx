@@ -42,7 +42,7 @@ type FriendsContextType = {
 	isOpen: boolean
 	newFriendNotification: boolean
 	open: (id: number, isRoom: boolean) => void
-	challengedName: string
+	challengeInfo: Challenge
 	openChats: IChat[]
 	refreshFriends: () => void
 	refreshRooms: () => void
@@ -69,6 +69,11 @@ interface Invite {
 	game: boolean
 	id: string // Challenge id or invite id
 	roomName?: string
+}
+
+interface Challenge {
+	opponentName: string
+	invite: boolean 
 }
 
 type IChat = (
@@ -104,7 +109,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	const [exists, setExists] = useState(false)
 	const [newFriendNotification, setNewFriendNotification] = useState(false)
 	
-	const [challengedName, setChallengedName] = useState('')
+	const [challengeInfo, setChallengeInfo] = useState<Challenge>({} as Challenge)
 
 	// ======================== General ========================
 
@@ -326,7 +331,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					}
 					if ('author' in data && !('id' in data))
 						return chat.friend.uid === data.author.id
-					if ('inviterUID' in data) return chat.friend.uid === data.inviterUID
+					if ('inviterUID' in data) return chat.friend.uid == data.inviterUID
 					return false
 				})
 
@@ -361,7 +366,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							if ('id' in data) return room.id === data.id
 							return room.id === data.roomId
 						})
-						if (!room) throw 'error'
+						if (!room) return
 
 						newChat.push({
 							canWrite: true,
@@ -376,9 +381,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							return friend.uid == data.inviterUID
 						})
 
-						console.log(friend)
-
-						if (!friend) throw 'error'
+						if (!friend) return
 
 						newChat.push({
 							display: true,
@@ -408,7 +411,9 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			const newFriends = [...prevFriends]
 			const index = newFriends.findIndex((friend) => friend.uid === data.uid)
 
-			newFriends[index].status = data.newStatus
+			if (index !== -1) {
+				newFriends[index].status = data.newStatus
+			}
 			return newFriends
 		})
 	}
@@ -450,19 +455,25 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
+	function onInviteDeclined() { 
+		router.push('/dashboard')
+	}
+
 	useEffect(() => {
 		if (socket) {
-			socket.on('friendRequestReceived', function () {
-				setNewFriendNotification(true)
-			})
 
-			socket.on('refreshUser', function () {
-				refreshUser()
-				getFriends()
-				getRooms()
-			})
+		socket.on('friendRequestReceived', function () {
+			setNewFriendNotification(true)
+		})
 
-			socket.on('newUserStatus', updateFriendStatus)
+		socket.on('refreshUser', function () {
+			refreshUser()
+			getFriends()
+			getRooms()
+		})
+		socket.on('newUserStatus', updateFriendStatus)
+		socket.on('inviteDeclined', onInviteDeclined)
+
 		}
 	}, [socket])
 
@@ -488,6 +499,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	function removeInvite(id: string) {
 		console.log(id)
+
 		setOpenChats((prevChats) => {
 			return prevChats.map((chat) => {
 				return {
@@ -547,7 +559,10 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		try {
 			api.post(`/game/invite`, newGameInvite)
 			.then(() => {
-				setChallengedName(name)
+				setChallengeInfo({
+					name,
+					invite: true
+				})
 				router.push("/matchmaking/challenge")
 			})
 			.catch(() => {throw "Network error"})
@@ -579,7 +594,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		// parameter in user
 		const response: RespondToGameInviteRequest = {
 			accepted,
-			inviteId: id,
 		}
 
 		try {
@@ -587,7 +601,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			.then(() => {
 				removeInvite(id)
 				if (!accepted) return
-				setChallengedName(name)
+				setChallengeInfo(prevChallenge => ({ name, invite: false }))
 				router.push("/matchmaking/challenge")
 			})
 			.catch(() => {throw "Network error"})
@@ -614,8 +628,8 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		refreshRooms: getRooms,
 		removeInvite,
 		respondGameInvite,
-		challengedName,
-		clearChallengedName: () => setChallengedName(''),
+		challengeInfo,
+		clearChallengedName: () => setChallengeInfo({} as Challenge),
 		rooms,
 		seeNewFriendNotification: () => setNewFriendNotification(false),
 		sendGameInvite,
