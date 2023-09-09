@@ -1,17 +1,16 @@
 import { api } from '@/api/api'
 import {
 	ChatRoomInterface,
-	Chatter,
 	DirectMessageReceivedEvent,
 	Friend,
 	InvitedToGameEvent,
 	NewUserStatusEvent,
-	OpponentFoundEvent,
 	RoomInviteReceivedEvent,
 	RoomMessageReceivedEvent,
 	RoomWarning,
 	RoomWarningEvent,
 	SendMessageSMessage,
+	UserBasicProfile,
 } from '@/common/types'
 import { useRouter } from 'next/navigation'
 import {
@@ -55,7 +54,7 @@ type FriendsContextType = {
 }
 
 interface Message {
-	author?: Chatter
+	author?: UserBasicProfile
 	content: string
 	sendByMe: boolean
 	uniqueID: string
@@ -579,7 +578,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		// parameter in user
 		const response: RespondToGameInviteRequest = {
 			accepted,
-			inviteId: id,
 		}
 
 		try {

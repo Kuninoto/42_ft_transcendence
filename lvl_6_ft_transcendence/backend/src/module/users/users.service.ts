@@ -133,17 +133,18 @@ export class UsersService {
     const matchHistory: GameResultInterface[] = gameResults.map(
       (result: GameResult): GameResultInterface => {
         return {
-          loser: {
-            userId: result.loser.id,
-            name: result.loser.name,
-            avatar_url: result.loser.avatar_url,
-            score: result.loser_score,
-          },
           winner: {
             userId: result.winner.id,
             name: result.winner.name,
             avatar_url: result.winner.avatar_url,
             score: result.winner_score,
+          },
+
+          loser: {
+            userId: result.loser.id,
+            name: result.loser.name,
+            avatar_url: result.loser.avatar_url,
+            score: result.loser_score,
           },
 
           gameType: result.game_type,

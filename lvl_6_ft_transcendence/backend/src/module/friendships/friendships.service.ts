@@ -227,7 +227,7 @@ export class FriendshipsService {
       sender: sender,
     });
 
-    this.connectionGateway.friendRequestReceived(receiver.id);
+    this.connectionGateway.sendfriendRequestReceived(receiver.id);
     return { message: 'Friend request successfully sent' };
   }
 
