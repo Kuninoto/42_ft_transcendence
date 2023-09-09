@@ -304,12 +304,13 @@ export class GameService {
     }
   }
 
-  public correctInviteUsage(userId: number, inviteId: string): boolean {
+  public correctInviteUsage(userId: number, inviteId: string, cancelInvite: boolean): boolean {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
     
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
+    if (cancelInvite) return gameInvite.sender.userId === userId;
     return gameInvite.recipientUID === userId;
   }
 
