@@ -310,8 +310,8 @@ export class GameService {
     
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    if (cancelInvite) return gameInvite.sender.userId === userId;
-    return gameInvite.recipientUID === userId;
+    if (cancelInvite) return gameInvite.sender.userId == userId;
+    return gameInvite.recipientUID == userId;
   }
 
   private async saveGameResult(
