@@ -128,12 +128,12 @@ export class GameController {
   @Patch('/:inviteId/status')
   async respondToGameInvite(
     @ExtractUser() user: User,
-    @Param() inviteId: string,
+    @Param('inviteId') inviteId: string,
     @Body() body: RespondToGameInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-     if (!inviteId || Number.isNaN(inviteId))
+    if (!inviteId)
       throw new BadRequestException('No inviteId was provided');
-    
+
     if (!this.gameService.correctInviteUsage(user.id, inviteId, false))
       throw new BadRequestException("Invite isn't meant for you");
 
@@ -172,8 +172,11 @@ export class GameController {
   @Delete('/:inviteId')
   async cancelGameInvite(
     @ExtractUser() user: User,
-    @Param() inviteId: string,
+    @Param('inviteId') inviteId: string,
   ): Promise<SuccessResponse | ErrorResponse> {
+    if (!inviteId)
+      throw new BadRequestException('No inviteId was provided');
+
     if (!this.gameService.correctInviteUsage(user.id, inviteId, true))
       throw new BadRequestException("Invite isn't meant for you");
 

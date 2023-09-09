@@ -261,7 +261,7 @@ export default function FriendsList() {
 										</button>
 										<button
 											className="hover:text-[#F32E7C]"
-											onClick={() => sendGameInvite(friend.uid.toString())}
+											onClick={() => sendGameInvite(friend.name, friend.uid)}
 										>
 											<LuSwords size={24} />
 										</button>
