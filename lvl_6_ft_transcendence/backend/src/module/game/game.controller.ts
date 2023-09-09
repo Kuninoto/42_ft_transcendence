@@ -181,8 +181,7 @@ export class GameController {
     if (!this.gameService.correctInviteUsage(user.id, inviteId, true))
       throw new BadRequestException("Invite isn't meant for you");
 
-    this.gameService.cancelGameInvite(inviteId);
-
+    this.gameService.gameInviteCanceled(inviteId);
     return { message: 'Successfully deleted game invite' };
   }
 }

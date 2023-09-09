@@ -10,7 +10,7 @@ import { Repository } from 'typeorm';
 import {
   GameInvite,
   GameType,
-  InviteDeclinedEvent,
+  InviteCanceledEvent,
   PlayerSide,
   UserStatus,
 } from 'types';
@@ -29,7 +29,7 @@ import { Player } from './Player';
 import { nanoid } from 'nanoid';
 
 const GAME_START_TIMEOUT: number = 3 * 1000;
-const OPPONENT_INFO_DELAY_ON_ACCEPTED: number = 5 * 1000;
+const OPPONENT_INFO_DELAY_ON_ACCEPTED: number = 3 * 1000;
 
 @Injectable()
 export class GameService {
@@ -75,15 +75,15 @@ export class GameService {
   }
 
   public gameInviteDeclined(inviteId: string): void {
-    const inviteDeclined: InviteDeclinedEvent = {
+    this.connectionGateway.server.emit('inviteDeclined');
+  }
+
+  public gameInviteCanceled(inviteId: string): void {
+    const inviteCanceled: InviteCanceledEvent = {
       inviteId: inviteId,
     };
 
-    this.connectionGateway.server.emit('inviteDeclined', inviteDeclined);
-    this.gameInviteMap.deleteInviteByInviteId(inviteId);
-  }
-
-  public cancelGameInvite(inviteId: string): void {
+    this.connectionGateway.server.emit('inviteCanceled', inviteCanceled);
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
@@ -96,7 +96,7 @@ export class GameService {
    * @param playerUserId userId of the disconnecting player
    */
   public async disconnectPlayer(playerUserId: number): Promise<void> {
-    this.gameInviteMap.deleteAllInvitesToUser(playerUserId);
+    this.deleteAllInvitesToUser(playerUserId);
     const playerRoom: GameRoom | null =
       this.gameRoomMap.findRoomWithPlayerByUID(playerUserId);
 
@@ -302,8 +302,8 @@ export class GameService {
 
       this.joinPlayersToRoom(playerOne, playerTwo, GameType.LADDER);
       
-      this.gameInviteMap.deleteAllInvitesToUser(playerOne.userId);
-      this.gameInviteMap.deleteAllInvitesToUser(playerTwo.userId);
+      this.deleteAllInvitesToUser(playerOne.userId);
+      this.deleteAllInvitesToUser(playerTwo.userId);
     }
   }
 
@@ -335,5 +335,17 @@ export class GameService {
       winner_score: winner.score,
     });
     await this.gameResultRepository.save(newGameResult);
+  }
+
+  private deleteAllInvitesToUser(userId: number): void {
+    const invites: GameInvite[] = this.gameInviteMap.findAllInvitesWithUser(userId);
+    if (invites.length === 0) return;
+    
+    invites.forEach((invite: GameInvite): void => {
+      if (userId == invite.sender.userId)
+        this.gameInviteCanceled(invite.id);
+      else
+        this.gameInviteDeclined(invite.id);
+    });
   }
 }
