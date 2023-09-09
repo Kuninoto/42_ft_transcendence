@@ -24,7 +24,6 @@ import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity';
 import {
   ErrorResponse,
-  GameInvite,
   PlayerSide,
   RespondToGameInviteRequest,
   SendGameInviteRequest,
@@ -134,7 +133,7 @@ export class GameController {
      if (!inviteId || Number.isNaN(inviteId))
       throw new BadRequestException('No inviteId was provided');
     
-    if (!this.gameService.correctInviteUsage(user.id, inviteId))
+    if (!this.gameService.correctInviteUsage(user.id, inviteId, false))
       throw new BadRequestException("Invite isn't meant for you");
 
     if (body.accepted === true) {
