@@ -3,6 +3,8 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
+  Param,
   Body,
   Logger,
   UseGuards,
@@ -113,7 +115,7 @@ export class GameController {
 
   @ApiOperation({ description: 'Respond to game invite' })
   @ApiBadRequestResponse({
-    description: "If invite isn't meant for the requesting user",
+    description: "If request is malformed or if invite isn't meant for the requesting user",
   })
   @ApiConflictResponse({
     description: 'If user accepts the invite but is offline',
@@ -125,9 +127,13 @@ export class GameController {
   @Patch('/:inviteId/status')
   async respondToGameInvite(
     @ExtractUser() user: User,
+    @Param() inviteId: string,
     @Body() body: RespondToGameInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!this.gameService.correctInviteUsage(user.id, body.inviteId))
+     if (!inviteId || Number.isNaN(inviteId))
+      throw new BadRequestException('No inviteId was provided');
+    
+    if (!this.gameService.correctInviteUsage(user.id, inviteId))
       throw new BadRequestException("Invite isn't meant for you");
 
     if (body.accepted === true) {
@@ -140,14 +146,38 @@ export class GameController {
         );
 
       await this.gameService.gameInviteAccepted(
-        body.inviteId,
+        inviteId,
         user.id,
         receiverSocketId,
       );
     } else {
-      this.gameService.gameInviteDeclined(body.inviteId);
+      this.gameService.gameInviteDeclined(inviteId);
     }
 
     return { message: 'Successfully responded to game invite' };
+  }
+
+  @ApiOperation({ description: 'Delete game invite' })
+  @ApiBadRequestResponse({
+    description: "If invite isn't meant for the requesting user",
+  })
+  @ApiConflictResponse({
+    description: 'If user accepts the invite but is offline',
+  })
+  @ApiNotFoundResponse({ description: 'If invite is not found' })
+  @ApiOkResponse({
+    description: 'Successfully deleted game invite',
+  })
+  @Delete('/:inviteId')
+  async cancelGameInvite(
+    @ExtractUser() user: User,
+    @Param() inviteId: string,
+  ): Promise<SuccessResponse | ErrorResponse> {
+    if (!this.gameService.correctInviteUsage(user.id, inviteId))
+      throw new BadRequestException("Invite isn't meant for you");
+
+    this.gameService.cancelGameInvite(inviteId);
+
+    return { message: 'Successfully deleted game invite' };
   }
 }
