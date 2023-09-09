@@ -213,7 +213,6 @@ export class ChatController {
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!roomId || Number.isNaN(roomId) || roomId < 1)
       throw new BadRequestException('Invalid roomId parameter');
-
     return await this.chatService.joinRoom(user, roomId, body.password);
   }
 
@@ -388,7 +387,6 @@ export class ChatController {
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!userId || Number.isNaN(userId) || userId < 1)
       throw new BadRequestException('Invalid userId parameter');
-
     return await this.chatService.unbanFromRoom(userId, roomId);
   }
 

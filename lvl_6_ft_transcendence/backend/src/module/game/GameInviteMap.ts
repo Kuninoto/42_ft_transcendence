@@ -23,10 +23,6 @@ export class GameInviteMap {
     return inviteId;
   }
 
-  public deleteInviteByInviteId(inviteId: string): void {
-    this.gameInviteMap.delete(inviteId);
-  }
-
   public findInviteById(inviteId: string): GameInvite | undefined {
     return this.gameInviteMap.get(inviteId);
   }
@@ -40,5 +36,9 @@ export class GameInviteMap {
     })
 
     return invites;
+  }
+
+  public deleteInviteByInviteId(inviteId: string): void {
+    this.gameInviteMap.delete(inviteId);
   }
 }

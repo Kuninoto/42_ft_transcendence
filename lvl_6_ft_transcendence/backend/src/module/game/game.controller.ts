@@ -24,7 +24,6 @@ import { User } from 'src/entity';
 import {
   ErrorResponse,
   GameInviteSentResponse,
-  PlayerSide,
   RespondToGameInviteRequest,
   SendGameInviteRequest,
   SuccessResponse,
@@ -33,9 +32,7 @@ import {
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { ConnectionService } from '../connection/connection.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
-import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
-import { Player } from './Player';
 
 @ApiTags('game')
 @ApiBearerAuth('JWT')
@@ -45,7 +42,6 @@ export class GameController {
   constructor(
     private readonly userStatsService: UserStatsService,
     private readonly gameService: GameService,
-    private readonly gameGateway: GameGateway,
     private readonly connectionService: ConnectionService,
   ) {}
 
@@ -82,34 +78,8 @@ export class GameController {
     @ExtractUser() user: User,
     @Body() body: SendGameInviteRequest,
   ): Promise<GameInviteSentResponse | ErrorResponse> {
-    if (this.gameService.isPlayerInQueueOrGame(user.id))
-      throw new ConflictException(
-        'You cannot send a game invite while in a game',
-      );
-
-    if (this.gameService.isPlayerInQueueOrGame(body.recipientUID))
-      throw new ConflictException('Recipient is in game');
-
-    const socketIdOfPlayer: string | undefined =
-      this.connectionService.findSocketIdByUID(user.id);
-    if (!socketIdOfPlayer)
-      throw new ConflictException(
-        "You cannot send a game invite if you're offline",
-      );
-
-    const newPlayer: Player = new Player(Number(user.id), socketIdOfPlayer);
-    newPlayer.setPlayerSide(PlayerSide.LEFT);
-
-    const inviteId: string = this.gameService.createGameInvite({
-      recipientUID: body.recipientUID,
-      sender: newPlayer,
-    });
-
-    this.gameGateway.emitInvitedToGameEvent(body.recipientUID, {
-      inviteId: inviteId,
-      inviterUID: Number(user.id),
-    });
-
+    const inviteId: string =
+      await this.gameService.sendGameInvite(user.id, body.recipientUID);
     return { inviteId: inviteId };
   }
 
