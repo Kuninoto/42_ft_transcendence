@@ -22,6 +22,21 @@ export class RoomInviteMap {
     return inviteId;
   }
 
+  public findInviteById(inviteId: string): RoomInvite {
+    return this.roomInviteMap.get(inviteId);
+  }
+
+  public findAllInvitesWithUser(userId: number): RoomInvite[] {
+    let invites: RoomInvite[] = [];
+
+    this.roomInviteMap.forEach((invite: RoomInvite): void => {
+      if (userId == invite.inviterUID || userId == invite.receiverUID)
+        invites.push(invite);
+    })
+
+    return invites;
+  }
+
   public deleteInviteByInviteId(inviteId: string): void {
     this.roomInviteMap.delete(inviteId);
   }
@@ -30,9 +45,5 @@ export class RoomInviteMap {
     this.roomInviteMap.forEach((value: RoomInvite, key: string): void => {
       if (userId == value.receiverUID) this.roomInviteMap.delete(key);
     });
-  }
-
-  public findInviteById(inviteId: string): RoomInvite {
-    return this.roomInviteMap.get(inviteId);
   }
 }
