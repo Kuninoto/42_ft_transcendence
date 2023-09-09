@@ -7,6 +7,7 @@ import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { hasValues } from '@/common/utils/hasValues'
 
 export default function Loading() {
 
@@ -14,10 +15,10 @@ export default function Loading() {
 
 	const { canCancel, cancel, opponentFound } = useGame()
 	const { user } = useAuth()
-	const { challengedName } = useFriends()
+	const { challengeInfo } = useFriends()
 
 	useEffect(() => {
-		if (!challengedName) router.push('/dashboard')
+		if (!hasValues(challengeInfo)) router.push('/dashboard')
 	}, [])
 
 	return (
@@ -28,7 +29,7 @@ export default function Loading() {
 					<div className="text-xl">vs.</div>
 					<div>
 						{opponentFound?.opponentInfo?.name || (
-							<span className="animate-blink">{challengedName || '????'}</span>
+							<span className="animate-blink">{challengeInfo.name || '????'}</span>
 						)}
 					</div>
 				</div>
@@ -42,7 +43,7 @@ export default function Loading() {
 					/>
 				</div>
 				<div>WAITING RESPONSE</div>
-				{canCancel && (
+				{canCancel && challengeInfo.invite && (
 					<button
 						className="rounded border border-white px-4 py-2 hover:bg-white hover:text-[#170317]"
 						onClick={cancel}

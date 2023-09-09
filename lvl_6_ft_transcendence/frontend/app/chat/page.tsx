@@ -499,7 +499,7 @@ export default function Chat() {
 									if (message.game) {
 										return (
 											<div
-												className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
+												className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2"
 												key={index}
 											>
 												<span className="text-xs">Challenged you</span>
@@ -523,7 +523,7 @@ export default function Chat() {
 
 									return (
 										<div
-											className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white p-2 px-4"
+											className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white py-2 px-4"
 											key={index}
 										>
 											<div className="flex flex-col">
