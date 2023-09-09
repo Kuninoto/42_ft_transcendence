@@ -131,20 +131,22 @@ export class UsersService {
     });
 
     const matchHistory: GameResultInterface[] = gameResults.map(
-      (gameResult: GameResult): GameResultInterface => {
+      (result: GameResult): GameResultInterface => {
         return {
           loser: {
-            userId: gameResult.loser.id,
-            name: gameResult.loser.name,
-            avatar_url: gameResult.loser.avatar_url,
-            score: gameResult.loser_score,
+            userId: result.loser.id,
+            name: result.loser.name,
+            avatar_url: result.loser.avatar_url,
+            score: result.loser_score,
           },
           winner: {
-            userId: gameResult.winner.id,
-            name: gameResult.winner.name,
-            avatar_url: gameResult.winner.avatar_url,
-            score: gameResult.winner_score,
+            userId: result.winner.id,
+            name: result.winner.name,
+            avatar_url: result.winner.avatar_url,
+            score: result.winner_score,
           },
+
+          gameType: result.game_type,
         };
       },
     );
