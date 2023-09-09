@@ -1,5 +1,4 @@
 export * from './request'
-export * from './chatter.interface'
 export * from './socket'
 export * from './chat-room-roles.enum'
 export * from './chat-room-search-info.interface'

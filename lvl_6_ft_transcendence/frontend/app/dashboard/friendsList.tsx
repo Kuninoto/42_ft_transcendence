@@ -123,13 +123,10 @@ export default function FriendsList() {
 
 	function leaveRoom(roomId: number) {
 		api
-			.post('/chat/leave-room', {
-				roomId: parseInt(roomId),
+			.post(`/chat/${roomId}/leave-room`, {
 				userId: parseInt(user.id),
 			})
-			.then(() => {
-				exitRoom(roomId)
-			})
+			.then(() => exitRoom(roomId))
 	}
 
 	return (
