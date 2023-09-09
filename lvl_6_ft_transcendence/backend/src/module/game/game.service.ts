@@ -10,7 +10,6 @@ import { Repository } from 'typeorm';
 import {
   GameInvite,
   GameType,
-  InviteCanceledEvent,
   PlayerSide,
   UserStatus,
 } from 'types';
@@ -29,7 +28,6 @@ import { Player } from './Player';
 import { nanoid } from 'nanoid';
 
 const GAME_START_TIMEOUT: number = 3 * 1000;
-const OPPONENT_INFO_DELAY_ON_ACCEPTED: number = 3 * 1000;
 
 @Injectable()
 export class GameService {
@@ -62,6 +60,8 @@ export class GameService {
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
+    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+
     const recipientPlayer: Player = new Player(receiver, receiverSocketId);
     recipientPlayer.setPlayerSide(PlayerSide.RIGHT);
 
@@ -70,21 +70,14 @@ export class GameService {
       recipientPlayer,
       GameType.ONEVSONE,
     );
-
-    this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
-  public gameInviteDeclined(inviteId: string): void {
-    this.connectionGateway.server.emit('inviteDeclined');
+  public gameInviteDeclined(userId: number): void {
+    this.gameGateway.emitGameInviteDeclined(userId);
   }
 
-  public gameInviteCanceled(inviteId: string): void {
-    const inviteCanceled: InviteCanceledEvent = {
-      inviteId: inviteId,
-    };
-
-    this.connectionGateway.server.emit('inviteCanceled', inviteCanceled);
-    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+  public gameInviteCanceled(userId: number): void {
+    this.gameGateway.emitGameInviteCanceled(userId);
   }
 
   /**
@@ -157,6 +150,8 @@ export class GameService {
       newStatus: UserStatus.ONLINE,
     });
 
+    if (gameType === GameType.ONEVSONE) return;
+
     await this.userStatsService.updateUserStatsUponGameEnd(
       winner.userId,
       loser.userId,
@@ -209,15 +204,13 @@ export class GameService {
       ),
     });
 
-    setTimeout(async () => {
-      this.gameGateway.emitOpponentFoundEvent(playerTwo.socketId, {
-        roomId: roomId,
-        side: playerTwo.side,
-        opponentInfo: await this.usersService.findUserBasicProfileByUID(
-          playerOne.userId,
-          ),
-      });
-    }, OPPONENT_INFO_DELAY_ON_ACCEPTED)
+    this.gameGateway.emitOpponentFoundEvent(playerTwo.socketId, {
+      roomId: roomId,
+      side: playerTwo.side,
+      opponentInfo: await this.usersService.findUserBasicProfileByUID(
+        playerOne.userId,
+        ),
+    });
   }
 
   public paddleMove(gameRoomId: string, socketId: string, newY: number): void {
@@ -343,9 +336,9 @@ export class GameService {
     
     invites.forEach((invite: GameInvite): void => {
       if (userId == invite.sender.userId)
-        this.gameInviteCanceled(invite.id);
+        this.gameInviteCanceled(userId);
       else
-        this.gameInviteDeclined(invite.id);
+        this.gameInviteDeclined(userId);
     });
   }
 }

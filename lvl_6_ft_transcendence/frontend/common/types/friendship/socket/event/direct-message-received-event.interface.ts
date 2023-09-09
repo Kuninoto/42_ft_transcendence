@@ -1,7 +1,7 @@
-import { Chatter } from '../../../chat/chatter.interface';
+import { UserBasicProfile } from '@/common/types/user';
 
 export interface DirectMessageReceivedEvent {
   uniqueId: string;
-  author: Chatter;
+  author: UserBasicProfile;
   content: string;
 }

@@ -102,6 +102,24 @@ export class GameGateway implements OnGatewayInit {
    *           EVENTS           *
    ******************************/
 
+  public emitGameInviteDeclined(userId: number): void {
+    const recipientSocketId: string =
+      this.connectionService.findSocketIdByUID(userId);
+
+    this.connectionGateway.server
+      .to(recipientSocketId)
+      .emit('gameInviteDeclined');
+  }
+
+  public emitGameInviteCanceled(userId: number): void {
+    const recipientSocketId: string =
+      this.connectionService.findSocketIdByUID(userId);
+
+    this.connectionGateway.server
+      .to(recipientSocketId)
+      .emit('gameInviteCanceled');
+  }
+
   public emitInvitedToGameEvent(
     recipientUID: number,
     event: InvitedToGameEvent,
