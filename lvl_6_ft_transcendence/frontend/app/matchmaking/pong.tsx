@@ -86,9 +86,6 @@ export default function Pong() {
 				)
 			}
 
-			console.log(playerPaddleRef.current.y)
-			console.log(opponentPaddleRef.current.y)
-
 			paddleImage.onload = () => {
 				context.drawImage(
 					paddleImageRef.current,

@@ -278,7 +278,6 @@ export default function Profile() {
 			<div className="mx-64 grid h-full grid-cols-2">
 				<div className="mx-auto flex h-full flex-col items-center space-y-6 py-12 text-center">
 					<div className="relative aspect-square w-80 overflow-hidden rounded-xl">
-						{console.log(userProfile?.avatar_url)}
 						<Image
 							alt={'player profile picture'}
 							className="h-max w-max object-cover"
