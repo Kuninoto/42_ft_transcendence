@@ -364,12 +364,15 @@ export class ChatService {
     );
     if (!receiver)
       throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
-
+      
     if (
       !(await this.friendshipsService.areTheyFriends(inviterUID, receiverUID))
     ) {
       throw new ForbiddenException('You cannot invite non-friends to rooms');
     }
+
+    if (this.hasSenderAlreadySentRoomInviteToThisReceiver(inviterUID, receiverUID, roomId))
+      throw new ConflictException('You have an active room invite to that user');
 
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
@@ -752,13 +755,11 @@ export class ChatService {
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
+    if (!room)
       throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
-    }
 
-    if (room.type != ChatRoomType.PROTECTED) {
+    if (room.type != ChatRoomType.PROTECTED)
       throw new BadRequestException('Room is not protected');
-    }
 
     room.type = ChatRoomType.PUBLIC;
     room.password = null;
@@ -865,5 +866,21 @@ export class ChatService {
 
     this.roomInviteMap.deleteInviteByInviteId(inviteId);
     return { message: `Successfully joined room "${room.name}"` };
+  }
+
+  private hasSenderAlreadySentRoomInviteToThisReceiver(
+    senderUID: number,
+    receiverUID: number,
+    roomId: number
+  ): boolean {
+    const invitesWithUser: RoomInvite[] =
+      this.roomInviteMap.findAllInvitesWithUser(senderUID);
+
+    invitesWithUser.forEach((invite: RoomInvite): boolean | void => {
+      if (invite.inviterUID == senderUID && invite.receiverUID == receiverUID && invite.roomId == roomId)
+        return true;
+    })
+
+    return false;
   }
 }

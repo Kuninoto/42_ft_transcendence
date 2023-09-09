@@ -18,7 +18,6 @@ import {
   GetChatterRoleMessage,
   RoomMessageReceivedEvent,
   SendMessageSMessage,
-  UserBasicProfile,
 } from 'types';
 import { ConnectionService } from '../connection/connection.service';
 import { ChatService } from './chat.service';
@@ -80,15 +79,14 @@ export class ChatGateway implements OnGatewayInit {
     const user: User = await this.usersService.findUserByUID(
       client.data.userId,
     );
-    const messageAuthor: UserBasicProfile = {
-      id: client.data.userId,
-      name: user.name,
-      avatar_url: user.avatar_url,
-    };
     const message: RoomMessageReceivedEvent = {
       id: room.id,
       uniqueId: messageBody.uniqueId,
-      author: messageAuthor,
+      author: {
+        id: client.data.userId,
+        name: user.name,
+        avatar_url: user.avatar_url,
+      },
       content: messageBody.content,
     };
 
