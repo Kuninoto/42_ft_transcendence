@@ -73,12 +73,16 @@ export class GameService {
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
-  public gameInviteDeclined(inviteId: string) {
+  public gameInviteDeclined(inviteId: string): void {
     const inviteDeclined: InviteDeclinedEvent = {
       inviteId: inviteId,
     };
 
     this.connectionGateway.server.emit('inviteDeclined', inviteDeclined);
+    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+  }
+
+  public cancelGameInvite(inviteId: string): void {
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
   }
 
@@ -294,14 +298,19 @@ export class GameService {
       const playerTwo: Player = this.gameQueue.dequeue();
 
       this.joinPlayersToRoom(playerOne, playerTwo, GameType.LADDER);
+      
+      this.gameInviteMap.deleteAllInvitesToUser(playerOne.userId);
+      this.gameInviteMap.deleteAllInvitesToUser(playerTwo.userId);
     }
   }
 
   public correctInviteUsage(userId: number, inviteId: string): boolean {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
+    
+    if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    return gameInvite?.recipientUID === userId;
+    return gameInvite.recipientUID === userId;
   }
 
   private async saveGameResult(

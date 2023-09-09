@@ -306,9 +306,8 @@ export class ChatService {
     password?: string,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
-    if (!room) {
+    if (!room)
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
-    }
 
     if (room.type === ChatRoomType.PRIVATE)
       throw new ForbiddenException('Private rooms are only joinable by invite');
@@ -363,9 +362,8 @@ export class ChatService {
     const receiver: User | null = await this.usersService.findUserByUID(
       receiverUID,
     );
-    if (!receiver) {
+    if (!receiver)
       throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
-    }
 
     if (
       !(await this.friendshipsService.areTheyFriends(inviterUID, receiverUID))
