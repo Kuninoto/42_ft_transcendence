@@ -192,6 +192,7 @@ export class ChatController {
 
   @ApiOperation({ description: 'Join a chat room' })
   @ApiBody({ type: JoinRoomRequest })
+  @ApiBadRequestResponse({ description: 'If request is malformed' })
   @ApiNotFoundResponse({
     description: "The room doesn't exist",
   })
@@ -210,11 +211,15 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: JoinRoomRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
+    if (!roomId || Number.isNaN(roomId) || roomId < 1)
+      throw new BadRequestException('Invalid roomId parameter');
+
     return await this.chatService.joinRoom(user, roomId, body.password);
   }
 
   @ApiOperation({ description: 'Leave a chat room' })
   @ApiBody({ type: RoomOperationRequest })
+  @ApiBadRequestResponse({ description: 'If request is malformed' })
   @ApiNotFoundResponse({ description: "If room doesn't exist" })
   @ApiOkResponse({
     description: 'Successfully left room with id=body.roomId',
@@ -226,6 +231,9 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
+    if (!roomId || Number.isNaN(roomId) || roomId < 1)
+      throw new BadRequestException('Invalid roomId parameter');
+
     const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
     if (!room) {
       this.logger.warn(`${user.name} tried to leave a non-existing room`);
@@ -306,7 +314,7 @@ export class ChatController {
     @ExtractUser() user: User,
     @Query('friendId') friendId: number,
   ): Promise<ChatRoomInterface[] | ErrorResponse> {
-    if (!friendId || Number.isNaN(friendId))
+    if (!friendId || Number.isNaN(friendId) || friendId < 1)
       throw new BadRequestException('No friendId was provided');
     return await this.chatService.findPossibleInvites(user, friendId);
   }
@@ -362,7 +370,7 @@ export class ChatController {
     description: 'The id of the user to unban',
   })
   @ApiBadRequestResponse({
-    description: 'If invalid roomId or userId are passed',
+    description: 'If the roomId or the userId is invalid',
   })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
@@ -378,7 +386,7 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Query('userId') userId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!userId || Number.isNaN(userId))
+    if (!userId || Number.isNaN(userId) || userId < 1)
       throw new BadRequestException('Invalid userId parameter');
 
     return await this.chatService.unbanFromRoom(userId, roomId);
@@ -475,7 +483,7 @@ export class ChatController {
 
   @ApiOperation({ description: 'Update chat room password' })
   @ApiBody({ type: UpdateRoomPasswordRequest })
-  @ApiBadRequestResponse({ description: 'If an invalid roomId is sent' })
+  @ApiBadRequestResponse({ description: 'If an Invalid roomId parameter is sent' })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
   })
