@@ -90,7 +90,7 @@ export class ConnectionGateway
     this.logger.log(`${client.data.name} is now offline`);
   }
 
-  friendRequestReceived(receiverUID: number) {
+  sendfriendRequestReceived(receiverUID: number) {
     const receiverSocketId: string | undefined =
       this.connectionService.findSocketIdByUID(receiverUID);
 
