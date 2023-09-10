@@ -21,6 +21,7 @@ import {
   CreateRoomRequest,
   DirectMessageReceivedEvent,
   ErrorResponse,
+  MuteDuration,
   RoomInvite,
   RoomWarning,
   SuccessResponse,
@@ -690,7 +691,7 @@ export class ChatService {
 
   public async muteUser(
     userToMuteId: number,
-    durationInMs: number,
+    duration: MuteDuration,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom = await this.findRoomById(roomId);
@@ -704,10 +705,28 @@ export class ChatService {
       );
     }
 
+    // Calculate the mute duration in ms to later use on setTimeout()
+    let durationInMs: number;
+    switch (duration) {
+      case MuteDuration.THIRTEEN_SECS:
+        durationInMs = 30 * 1000;
+        break;
+      case MuteDuration.FIVE_MINS:
+        durationInMs = 5 * 60 * 1000;
+        break;
+    }
+
     this.mutedUsers.push({
       roomId: room.id,
       userId: userToMuteId,
     });
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userToMute.id,
+      warning: `${userToMute.name} was muted for ${duration}`,
+      warningType: RoomWarning.MUTE,
+    })
 
     setTimeout(async (): Promise<void> => {
       await this.unmuteUser(userToMuteId, roomId);
@@ -744,6 +763,14 @@ export class ChatService {
         `${userToUnmute.name} was unmuted on room: "${room.name}"`,
       );
     }
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userToUnmute.id,
+      warning: `${userToUnmute.name} was unmuted`,
+      warningType: RoomWarning.UNMUTE,
+    })
+
     return { message: `Successfully unmuted "${userToUnmute.name}"` };
   }
 

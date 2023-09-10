@@ -38,7 +38,6 @@ import {
   CreateRoomRequest,
   ErrorResponse,
   JoinRoomRequest,
-  MuteDuration,
   MuteUserRequest,
   RoomOperationRequest,
   SendRoomInviteRequest,
@@ -314,7 +313,7 @@ export class ChatController {
     @Query('friendId') friendId: number,
   ): Promise<ChatRoomInterface[] | ErrorResponse> {
     if (!friendId || Number.isNaN(friendId) || friendId < 1)
-      throw new BadRequestException('No friendId was provided');
+      throw new BadRequestException('Invalid friendId parameter');
     return await this.chatService.findPossibleInvites(user, friendId);
   }
 
@@ -334,8 +333,8 @@ export class ChatController {
   @Post('/:roomId/kick')
   public async kickFromRoom(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationRequest,
     @Param('roomId') roomId: number,
+    @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.kickFromRoom(user.id, body.userId, roomId);
   }
@@ -351,8 +350,8 @@ export class ChatController {
   @Post('/:roomId/ban')
   public async banFromRoom(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationRequest,
     @Param('roomId') roomId: number,
+    @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.banFromRoom(user.id, body.userId, roomId);
   }
@@ -407,21 +406,10 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   @Post('/:roomId/mute')
   public async muteUser(
-    @Body() body: MuteUserRequest,
     @Param('roomId') roomId: number,
+    @Body() body: MuteUserRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    // Calculate the mute duration in ms to later use on setTimeout()
-    let muteDuration: number;
-    switch (body.duration) {
-      case MuteDuration.THIRTEEN_SECS:
-        muteDuration = 30 * 1000;
-        break;
-      case MuteDuration.FIVE_MINS:
-        muteDuration = 5 * 60 * 1000;
-        break;
-    }
-
-    return await this.chatService.muteUser(body.userId, muteDuration, roomId);
+    return await this.chatService.muteUser(body.userId, body.duration, roomId);
   }
 
   @ApiOperation({
