@@ -469,7 +469,9 @@ export class ChatController {
 
   @ApiOperation({ description: 'Update chat room password' })
   @ApiBody({ type: UpdateRoomPasswordRequest })
-  @ApiBadRequestResponse({ description: 'If an Invalid roomId parameter is sent' })
+  @ApiBadRequestResponse({
+    description: 'If an Invalid roomId parameter is sent',
+  })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
   })

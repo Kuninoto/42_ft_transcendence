@@ -25,7 +25,13 @@ export class AdminGuard implements CanActivate {
 
     const roomId: number | undefined = parseInt(request.params.roomId);
 
-    if (!roomId || Number.isNaN(roomId) || roomId < 1 || !body.userId || body.userId < 1) {
+    if (
+      !roomId ||
+      Number.isNaN(roomId) ||
+      roomId < 1 ||
+      !body.userId ||
+      body.userId < 1
+    ) {
       this.logger.warn(
         `${requestingUser.name} tried to request an admin action with an invalid request`,
       );

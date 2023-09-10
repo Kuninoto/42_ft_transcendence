@@ -368,16 +368,26 @@ export class ChatService {
       throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
 
     if (receiver.status !== UserStatus.ONLINE)
-      throw new ConflictException(`You cannot invite user because he is ${receiver.status}`);
-      
+      throw new ConflictException(
+        `You cannot invite user because he is ${receiver.status}`,
+      );
+
     if (
       !(await this.friendshipsService.areTheyFriends(inviterUID, receiverUID))
     ) {
       throw new ForbiddenException('You cannot invite non-friends to rooms');
     }
 
-    if (this.hasSenderAlreadySentRoomInviteToThisReceiver(inviterUID, receiverUID, roomId))
-      throw new ConflictException('You have an active room invite to that user');
+    if (
+      this.hasSenderAlreadySentRoomInviteToThisReceiver(
+        inviterUID,
+        receiverUID,
+        roomId,
+      )
+    )
+      throw new ConflictException(
+        'You have an active room invite to that user',
+      );
 
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
@@ -418,8 +428,10 @@ export class ChatService {
   ): Promise<SuccessResponse | ErrorResponse> {
     if (accepted) {
       if (user.status !== UserStatus.OFFLINE)
-        throw new ConflictException(`You cannot accept a room invite while being ${user.status}`)
-  
+        throw new ConflictException(
+          `You cannot accept a room invite while being ${user.status}`,
+        );
+
       return this.joinRoomByInvite(inviteId, user);
     }
 
@@ -726,7 +738,7 @@ export class ChatService {
       affectedUID: userToMute.id,
       warning: `${userToMute.name} was muted for ${duration}`,
       warningType: RoomWarning.MUTE,
-    })
+    });
 
     setTimeout(async (): Promise<void> => {
       await this.unmuteUser(userToMuteId, roomId);
@@ -769,7 +781,7 @@ export class ChatService {
       affectedUID: userToUnmute.id,
       warning: `${userToUnmute.name} was unmuted`,
       warningType: RoomWarning.UNMUTE,
-    })
+    });
 
     return { message: `Successfully unmuted "${userToUnmute.name}"` };
   }
@@ -805,7 +817,7 @@ export class ChatService {
   }
 
   public disconnectChatter(userId: number): void {
-    this.roomInviteMap.deleteAllInvitesToUser(userId);
+    this.roomInviteMap.deleteAllInvitesWithUser(userId);
   }
 
   public async removeUserFromRoom(room: ChatRoom, uid: number): Promise<void> {
@@ -816,9 +828,8 @@ export class ChatService {
 
   public checkForValidRoomName(name: string): void {
     // If room name doesn't respect the boundaries (4-10 chars longs)
-    if (!(name.length >= 4 && name.length <= 10)) {
+    if (!(name.length >= 4 && name.length <= 10))
       throw new BadRequestException('Room names must be 4-10 chars long');
-    }
 
     // If room name is not composed only by a-z, A-Z, 0-9, _
     if (!name.match('^[a-zA-Z0-9_]+$')) {
@@ -907,15 +918,19 @@ export class ChatService {
   private hasSenderAlreadySentRoomInviteToThisReceiver(
     senderUID: number,
     receiverUID: number,
-    roomId: number
+    roomId: number,
   ): boolean {
     const invitesWithUser: RoomInvite[] =
       this.roomInviteMap.findAllInvitesWithUser(senderUID);
 
     invitesWithUser.forEach((invite: RoomInvite): boolean | void => {
-      if (invite.inviterUID == senderUID && invite.receiverUID == receiverUID && invite.roomId == roomId)
+      if (
+        invite.inviterUID == senderUID &&
+        invite.receiverUID == receiverUID &&
+        invite.roomId == roomId
+      )
         return true;
-    })
+    });
 
     return false;
   }

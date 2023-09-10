@@ -63,7 +63,7 @@ export class GameController {
   }
 
   @ApiOperation({ description: 'Send a game invite' })
-  @ApiNotFoundResponse({ description: "If receiver doesn't exist"})
+  @ApiNotFoundResponse({ description: "If receiver doesn't exist" })
   @ApiConflictResponse({
     description:
       'If requesting user or receiver are not online (cannot be in queue, game or offline)\n',
@@ -76,14 +76,17 @@ export class GameController {
     @ExtractUser() user: User,
     @Body() body: SendGameInviteRequest,
   ): Promise<GameInviteSentResponse | ErrorResponse> {
-    const inviteId: string =
-      await this.gameService.sendGameInvite(user.id, body.receiverUID);
+    const inviteId: string = await this.gameService.sendGameInvite(
+      user.id,
+      body.receiverUID,
+    );
     return { inviteId: inviteId };
   }
 
   @ApiOperation({ description: 'Respond to game invite' })
   @ApiBadRequestResponse({
-    description: "If request is malformed or if invite isn't meant for the requesting user",
+    description:
+      "If request is malformed or if invite isn't meant for the requesting user",
   })
   @ApiConflictResponse({
     description: 'If user accepts the invite but is offline',
@@ -98,17 +101,13 @@ export class GameController {
     @Param('inviteId') inviteId: string,
     @Body() body: RespondToGameInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!inviteId)
-      throw new BadRequestException('No inviteId was provided');
+    if (!inviteId) throw new BadRequestException('No inviteId was provided');
 
     if (!this.gameService.correctInviteUsage(user.id, inviteId, false))
       throw new BadRequestException("Invite isn't meant for you");
 
-    if (body.accepted === true) {      
-      await this.gameService.gameInviteAccepted(
-        inviteId,
-        user.id,
-      );
+    if (body.accepted === true) {
+      await this.gameService.gameInviteAccepted(inviteId, user.id);
     } else {
       this.gameService.gameInviteDeclined(user.id);
     }
