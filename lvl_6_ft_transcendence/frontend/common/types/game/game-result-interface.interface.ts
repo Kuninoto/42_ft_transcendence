@@ -1,3 +1,5 @@
+import { GameType } from "./game-type.enum";
+
 export interface GameResultInterface {
   winner: {
     userId: number;
@@ -12,4 +14,6 @@ export interface GameResultInterface {
     avatar_url: string;
     score: number;
   };
+
+  gameType: GameType;
 }
