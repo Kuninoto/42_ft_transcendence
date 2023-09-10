@@ -21,7 +21,7 @@ function HorizontalCard({ player, score, side }: card) {
 	return (
 		<div className="my-4 flex gap-4">
 			<div className={`my-auto ${textOrientation}`}>
-				<h3 className="text-2xl">{player?.name}</h3>
+				<h3 className="text-2xl">{player?.name || 'NOT FOUND'}</h3>
 				{score}
 			</div>
 			<div className="relative aspect-square w-20 overflow-hidden rounded">
@@ -40,38 +40,6 @@ function HorizontalCard({ player, score, side }: card) {
 export default function Game() {
 	const { user } = useAuth()
 	const { leftPlayerScore, opponentFound, rightPlayerScore } = useGame()
-
-	useEffect(() => {
-		const handleNavigation = () => {
-			// This function will be called when the user navigates.
-			// Call your function logic here
-		}
-
-		// Listen for the 'popstate' event which is triggered when the user goes back
-		window.addEventListener('popstate', handleNavigation)
-
-		// Clean up the event listener when the component is unmounted
-		return () => {
-			window.removeEventListener('popstate', handleNavigation)
-		}
-	}, [])
-
-	useEffect(() => {
-		const handleBeforeUnload = (e) => {
-			e.preventDefault()
-			e.returnValue = '' // This is needed for some browsers to show a confirmation message
-			// Your function to trigger goes here
-			if (window.confirm('You sure, you want to forfeit?')) {
-				// Perform any cleanup or actions here if needed
-			}
-		}
-
-		window.addEventListener('beforeunload', handleBeforeUnload)
-
-		return () => {
-			window.removeEventListener('beforeunload', handleBeforeUnload)
-		}
-	}, [])
 
 	return (
 		<div className="flex h-full flex-col">
