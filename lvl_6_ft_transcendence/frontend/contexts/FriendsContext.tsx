@@ -459,6 +459,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
+		console.log('asdaswh')
 		router.push('/dashboard')
 	}
 
@@ -474,7 +475,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				getRooms()
 			})
 			socket.on('newUserStatus', updateFriendStatus)
-			socket.on('inviteDeclined', onInviteDeclined)
+			socket.on('gameInviteDeclined', onInviteDeclined)
 		}
 	}, [socket])
 

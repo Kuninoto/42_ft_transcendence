@@ -24,7 +24,7 @@ export default function Loading() {
 		<div className="flex h-full">
 			<div className="m-auto flex flex-col place-content-center items-center space-y-10 text-4xl">
 				<div className="flex items-end space-x-4 text-center text-3xl">
-					<div>{user?.name}</div>
+					<div>{user?.name || 'NOT FOUND'}</div>
 					<div className="text-xl">vs.</div>
 					<div>
 						{opponentFound?.opponentInfo?.name || (
