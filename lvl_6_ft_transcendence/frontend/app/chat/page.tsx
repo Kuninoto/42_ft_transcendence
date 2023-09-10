@@ -3,6 +3,7 @@
 import { api } from '@/api/api'
 import {
 	ChatRoomRoles,
+	ChatRoomType,
 	GetChatterRoleEvent,
 	GetChatterRoleMessage,
 	MuteDuration,
@@ -38,9 +39,11 @@ interface ITooltip extends IMuteTooltip {
 function RoomSettings({
 	closeModal,
 	id,
+	roomType,
 }: {
 	closeModal: () => void
 	id: number
+	roomType: ChatRoomType
 }) {
 	const [bans, setBans] = useState<UserBasicProfile[]>([])
 
@@ -115,15 +118,17 @@ function RoomSettings({
 										<input
 											className="h-full rounded border border-white px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 											type="submit"
-											value="Change"
+											value={roomType === 'protected' ? 'Change' : 'Add'}
 										/>
 									</form>
-									<button
-										className="h-full rounded border border-red-600 px-2 text-red-600 hover:bg-red-600 hover:text-white"
-										onClick={removePassword}
-									>
-										Remove
-									</button>
+									{roomType === 'protected' && (
+									  <button
+									    className="h-full rounded border border-red-600 px-2 text-red-600 hover:bg-red-600 hover:text-white"
+									    onClick={removePassword}
+									  >
+									    Remove
+									  </button>
+									)}
 								</div>
 							</div>
 						</div>
@@ -384,6 +389,7 @@ export default function Chat() {
 				<RoomSettings
 					closeModal={() => setSettings(false)}
 					id={currentOpenChat.room.id}
+					roomType={currentOpenChat.room.type}
 				/>
 			)}
 			<div

@@ -21,7 +21,7 @@ export default function History({
 	return (
 		<div className="h-full w-full space-y-2 overflow-auto scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 			{!hasValues(history) ? (
-				<div className="w-full py-8 text-center text-2xl">Go play outside</div>
+				<div className="w-full py-8 text-center text-2xl">Go play outside instead...</div>
 			) : (
 				history?.map((match, index) => {
 					const userWon = match.winner.userId === userProfile.id
