@@ -540,7 +540,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		if (!socket) return
 
 		const newGameInvite: SendGameInviteRequest = {
-			recipientUID: parseInt(id),
+			receiverUID: parseInt(id),
 		}
 
 		try {

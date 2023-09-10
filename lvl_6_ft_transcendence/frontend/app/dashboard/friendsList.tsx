@@ -1,7 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomInterface, InviteToRoomRequest } from '@/common/types'
+import { ChatRoomInterface, SendRoomInviteRequest } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Image from 'next/image'
@@ -49,7 +49,7 @@ function InviteRoomsModal({
 	}, [id])
 
 	function inviteToRoom(roomId: number) {
-		const newInvite: InviteToRoomRequest = {
+		const newInvite: SendRoomInviteRequest = {
 			receiverUID: parseInt(id),
 			roomId: parseInt(roomId),
 		}
@@ -123,7 +123,7 @@ export default function FriendsList() {
 
 	function leaveRoom(roomId: number) {
 		api
-			.post(`/chat/${roomId}/leave-room`, {
+			.post(`/chat/${roomId}/leave`, {
 				userId: parseInt(user.id),
 			})
 			.then(() => exitRoom(roomId))

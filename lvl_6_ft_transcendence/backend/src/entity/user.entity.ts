@@ -53,7 +53,7 @@ export class User {
     nullable: false,
     default: UserStatus.ONLINE,
   })
-  status: string;
+  status: UserStatus;
 
   @ApiProperty()
   @Column({

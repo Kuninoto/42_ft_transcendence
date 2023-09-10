@@ -446,7 +446,7 @@ export class FriendshipsService {
     if (isBlocked) {
       const message: string =
         userType === 'sender'
-          ? 'You are blocked by the recipient of this friend request'
+          ? 'You are blocked by the receiver of this friend request'
           : "You've blocked the user that you're trying to send a friend request to";
       throw new ForbiddenException(message);
     }
