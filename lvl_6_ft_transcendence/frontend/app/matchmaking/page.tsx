@@ -1,11 +1,9 @@
 'use client'
 
 import { PlayerSide, UserSearchInfo } from '@/common/types'
-import { hasValues } from '@/common/utils/hasValues'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useEffect } from 'react'
 
 import Pong from './pong'
@@ -35,35 +33,6 @@ function HorizontalCard({ player, score, side }: card) {
 					src={player?.avatar_url || '/placeholder.gif'}
 				/>
 			</div>
-		</div>
-	)
-}
-
-function FinalModal() {
-	const { gameEndInfo } = useGame()
-	const { user } = useAuth()
-
-	if (!hasValues(gameEndInfo)) return
-
-	return (
-		<div className="absolute flex h-full w-full flex-col place-content-center items-center space-y-12 bg-black/50">
-			<h1 className="text-6xl">
-				{gameEndInfo?.winner?.userId == user?.id ? (
-					<div>
-						You <span className="animate-blink">win!</span>
-					</div>
-				) : (
-					<div>
-						Game <span className="animate-blink"> over</span>!
-					</div>
-				)}
-			</h1>
-			<Link
-				className="rounded border border-white px-16 py-3 text-center text-white mix-blend-lighten hover:bg-white hover:text-black"
-				href="/dashboard"
-			>
-				Home
-			</Link>
 		</div>
 	)
 }
@@ -106,7 +75,6 @@ export default function Game() {
 
 	return (
 		<div className="flex h-full flex-col">
-			<FinalModal />
 			<div className="mx-auto my-8 flex gap-x-8">
 				<HorizontalCard
 					player={

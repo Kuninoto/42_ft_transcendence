@@ -4,6 +4,7 @@ import { api } from '@/api/api'
 import { ChatRoomInterface, InviteToRoomRequest } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
+import Tippy,  from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -11,7 +12,7 @@ import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { HiOutlineChatAlt2 } from 'react-icons/hi'
 import { LuSwords } from 'react-icons/lu'
-import { RxTriangleUp } from 'react-icons/rx'
+import { RxTriangleDown, RxTriangleUp } from 'react-icons/rx'
 import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'
@@ -105,13 +106,8 @@ function InviteRoomsModal({
 
 export default function FriendsList() {
 	const { user } = useAuth()
-	const {
-		exitRoom,
-		friends,
-		newFriendNotification,
-		rooms,
-		seeNewFriendNotification,
-	} = useFriends()
+	const { friends, newFriendNotification, rooms, seeNewFriendNotification } =
+		useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
