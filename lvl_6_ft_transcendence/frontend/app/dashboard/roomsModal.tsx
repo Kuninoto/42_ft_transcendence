@@ -242,7 +242,14 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
-			{createRoom && <CreateRoom closeModal={() => setCreateRoom(false)} />}
+			{createRoom && (
+				<CreateRoom
+					closeModal={() => {
+						setCreateRoom(false)
+						closeModal()
+					}}
+				/>
+			)}
 
 			<button
 				className="absolute left-0 top-0 h-screen w-screen bg-black/70"

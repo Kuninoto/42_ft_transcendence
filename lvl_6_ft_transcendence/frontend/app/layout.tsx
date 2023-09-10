@@ -1,6 +1,6 @@
 'use client'
 
-import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { FriendsProvider } from '@/contexts/FriendsContext'
 import { SocketProvider } from '@/contexts/SocketContext'
 import { detect } from 'detect-browser'
@@ -19,7 +19,7 @@ import './globals.css'
 
 const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
-function FixedPanel({handle} : {handle : any}) {
+function FixedPanel({ handle }: { handle: any }) {
 	const path = usePathname()
 
 	return (
@@ -43,8 +43,13 @@ function FixedPanel({handle} : {handle : any}) {
 	)
 }
 
-function Body({ handle, children }: { handle:any, children: React.ReactNode }) {
-
+function Body({
+	children,
+	handle,
+}: {
+	children: React.ReactNode
+	handle: any
+}) {
 	const [isMobile, setIsMobile] = useState(false)
 
 	useEffect(() => {
@@ -75,24 +80,22 @@ function Body({ handle, children }: { handle:any, children: React.ReactNode }) {
 		<>
 			{children}
 			<Chat />
-			<FixedPanel handle={handle}/>
-			<Link href={'/profile'}>
-				<ToastContainer
-					autoClose={2500}
-					closeButton={false}
-					closeOnClick
-					draggable
-					icon={false}
-					limit={2}
-					newestOnTop
-					pauseOnFocusLoss
-					pauseOnHover={false}
-					position="top-center"
-					progressClassName={'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'}
-					theme="dark"
-					toastClassName={`font-xs whitespace-nowrap w-max bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% ${pressStart.className}`}
-				/>
-			</Link>
+			<FixedPanel handle={handle} />
+			<ToastContainer
+				autoClose={2500}
+				closeButton={false}
+				closeOnClick
+				draggable
+				icon={false}
+				limit={2}
+				newestOnTop
+				pauseOnFocusLoss
+				pauseOnHover
+				position="bottom-right"
+				progressClassName={'bg-gradient-to-r from-[#FB37FF] to-[#F32E7C]'}
+				theme="dark"
+				toastClassName={`bg-gradient-to-r from-primary-fushia/30 to-primary-shoque/30  ${pressStart.className}`}
+			/>
 		</>
 	)
 }
@@ -106,9 +109,9 @@ export default function RootLayout({
 	const browser = detect()
 
 	useEffect(() => {
-		if (browser.name != 'chrome') {
+		if (browser?.name != 'chrome') {
 			console.warn(
-				`Not supported for ${browser.name}! May contain minor issues or inconsistencies`
+				`Not supported for ${browser?.name}! May contain minor issues or inconsistencies`
 			)
 		}
 	})

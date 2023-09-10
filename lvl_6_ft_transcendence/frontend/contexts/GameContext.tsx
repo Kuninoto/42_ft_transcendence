@@ -1,3 +1,4 @@
+import { api } from '@/api/api'
 import { Ball } from '@/app/matchmaking/definitions'
 import {
 	GameEndEvent,
@@ -9,8 +10,8 @@ import {
 	PlayerSide,
 } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
-import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
@@ -19,9 +20,8 @@ import {
 	useState,
 } from 'react'
 
-import { socket } from './SocketContext'
 import { useFriends } from './FriendsContext'
-import { api } from '@/api/api'
+import { socket } from './SocketContext'
 
 type GameContextType = {
 	ballPosition: Ball
@@ -53,7 +53,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		{} as GameEndEvent
 	)
 
-	const { clearChallengedName, removeInvite} = useFriends()
+	const { clearChallengedName, removeInvite } = useFriends()
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -71,10 +71,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
-		if(socket) {
+		if (socket) {
 			socket.on('gameInviteCanceled', function (data: any) {
+				if (!data) return
 				removeInvite(data.inviteId)
-			 })
+			})
 		}
 	}, [socket])
 
@@ -84,7 +85,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		else {
 			socket?.on('opponentFound', function (data: OpponentFoundEvent) {
 				setOpponentFound(data)
-				clearChallengedName()	
+				clearChallengedName()
 				setTimeout(() => {
 					router.push('/matchmaking')
 				}, 2 * 1000)

@@ -12,6 +12,9 @@ import {
 	SendMessageSMessage,
 	UserBasicProfile,
 } from '@/common/types'
+import { SendGameInviteRequest } from '@/common/types/game/request'
+import { RespondToGameInviteRequest } from '@/common/types/game/request/respond-to-game-invite-request'
+import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import {
 	createContext,
@@ -22,26 +25,23 @@ import {
 	useState,
 } from 'react'
 import { toast } from 'react-toastify'
-import { nanoid } from 'nanoid';
+
 import { useAuth } from './AuthContext'
 import { socket } from './SocketContext'
-import { SendGameInviteRequest } from '@/common/types/game/request'
-import { RespondToGameInviteRequest } from '@/common/types/game/request/respond-to-game-invite-request'
 
 type FriendsContextType = {
+	challengeInfo: Challenge
 	changeOpenState: () => void
+	clearChallengedName: () => void
 	close: (id: number, isRoom: boolean) => void
 	closeAll: () => void
 	currentOpenChat: IChat
 	exists: boolean
-	exitRoom: (id: number) => void
-	clearChallengedName: () => void
 	focus: (id: number, isRoom: boolean) => void
 	friends: Friend[]
 	isOpen: boolean
 	newFriendNotification: boolean
 	open: (id: number, isRoom: boolean) => void
-	challengeInfo: Challenge
 	openChats: IChat[]
 	refreshFriends: () => void
 	refreshRooms: () => void
@@ -49,7 +49,7 @@ type FriendsContextType = {
 	respondGameInvite: (name: string, id: string, accepted: boolean) => void
 	rooms: ChatRoomInterface[]
 	seeNewFriendNotification: () => void
-	sendGameInvite: (name:string, id: number) => void
+	sendGameInvite: (name: string, id: number) => void
 	sendMessage: (message: string) => void
 }
 
@@ -71,8 +71,8 @@ interface Invite {
 }
 
 interface Challenge {
+	invite: boolean
 	opponentName: string
-	invite: boolean 
 }
 
 type IChat = (
@@ -94,7 +94,6 @@ const FriendsContext = createContext<FriendsContextType>(
 )
 
 export function FriendsProvider({ children }: { children: ReactNode }) {
-
 	const router = useRouter()
 	const { isAuth, refreshUser, user } = useAuth()
 
@@ -107,7 +106,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false)
 	const [exists, setExists] = useState(false)
 	const [newFriendNotification, setNewFriendNotification] = useState(false)
-	
+
 	const [challengeInfo, setChallengeInfo] = useState<Challenge>({} as Challenge)
 
 	// ======================== General ========================
@@ -289,6 +288,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		if (
 			warningType === RoomWarning.BAN ||
 			warningType === RoomWarning.KICK ||
+			warningType === RoomWarning.LEAVE ||
 			warningType === RoomWarning.OWNER_LEFT
 		) {
 			setOpenChats((prevChat: any) => {
@@ -321,17 +321,22 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
+				const id =
+					'author' in data && !('id' in data)
+						? data.author.id
+						: 'inviterUID' in data
+						? data.inviterUID
+						: 'id' in data
+						? data.id
+						: 'roomId' in data && !('inviteId' in data)
+						? data.roomId
+						: -1
+
 				const index = newChat?.findIndex((chat) => {
 					if ('room' in chat) {
-						if ('id' in data) return chat.room.id === data.id
-						if ('roomId' in data && !('inviteId' in data))
-							return chat.room.id === data.roomId
-						return false
+						return chat.room.id === id
 					}
-					if ('author' in data && !('id' in data))
-						return chat.friend.uid === data.author.id
-					if ('inviterUID' in data) return chat.friend.uid == data.inviterUID
-					return false
+					return chat.friend.uid === id
 				})
 
 				if (
@@ -359,13 +364,15 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 								uniqueID: data.uniqueId,
 						  }
 
+				const isRoom = 'id' in data || 'warning' in data
+
 				if (index === -1) {
-					if ('id' in data || 'warning' in data) {
+					if (isRoom) {
 						const room = rooms.find((room) => {
 							if ('id' in data) return room.id === data.id
 							return room.id === data.roomId
 						})
-						if (!room) return
+						if (!room) return []
 
 						newChat.push({
 							canWrite: true,
@@ -380,7 +387,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							return friend.uid == data.inviterUID
 						})
 
-						if (!friend) return
+						if (!friend) return []
 
 						newChat.push({
 							display: true,
@@ -398,9 +405,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					newChat[index].display = true
 					newChat[index]?.messages.unshift(newMessage)
 				}
+
+				setExists((prevExist) => {
+					if (!prevExist) focus(id, isRoom)
+					return true
+				})
+
 				return newChat
 			})
-			setExists(true)
 		},
 		[friends, rooms, actionBasedOnWarning]
 	)
@@ -454,25 +466,23 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	function onInviteDeclined() { 
+	function onInviteDeclined() {
 		router.push('/dashboard')
 	}
 
 	useEffect(() => {
 		if (socket) {
+			socket.on('friendRequestReceived', function () {
+				setNewFriendNotification(true)
+			})
 
-		socket.on('friendRequestReceived', function () {
-			setNewFriendNotification(true)
-		})
-
-		socket.on('refreshUser', function () {
-			refreshUser()
-			getFriends()
-			getRooms()
-		})
-		socket.on('newUserStatus', updateFriendStatus)
-		socket.on('inviteDeclined', onInviteDeclined)
-
+			socket.on('refreshUser', function () {
+				refreshUser()
+				getFriends()
+				getRooms()
+			})
+			socket.on('newUserStatus', updateFriendStatus)
+			socket.on('inviteDeclined', onInviteDeclined)
 		}
 	}, [socket])
 
@@ -497,8 +507,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	// ======================== Room messages ========================
 
 	function removeInvite(id: string) {
-		console.log(id)
-
 		setOpenChats((prevChats) => {
 			return prevChats.map((chat) => {
 				return {
@@ -516,39 +524,9 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		}
 	}
 
-	function exitRoom(id: number) {
-		setOpenChats((prevChats) => {
-			if (!prevChats) return []
-
-			const newChat = [...prevChats]
-
-			const updatedChat = newChat.filter((chat) => {
-				if (!('room' in chat)) return true
-				return chat.room.id !== id
-			})
-
-			if ('room' in currentOpenChat && currentOpenChat?.room?.id === id) {
-				const oneDisplay: IChat | undefined = updatedChat.find(
-					(chat) => chat.display
-				)
-
-				if (oneDisplay) {
-					setCurrentOpenChat(oneDisplay)
-				}
-
-				if (exists) {
-					setExists(!!oneDisplay)
-				}
-			}
-			return updatedChat
-		})
-
-		getRooms()
-	}
-
 	// ======================== Direct messages ========================
 
-	function sendGameInvite(name:string, id: number) {
+	function sendGameInvite(name: string, id: number) {
 		if (!socket) return
 
 		const newGameInvite: SendGameInviteRequest = {
@@ -556,17 +534,20 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		}
 
 		try {
-			api.post(`/game/invite`, newGameInvite)
-			.then(() => {
-				setChallengeInfo({
-					name,
-					invite: true
+			api
+				.post(`/game/invite`, newGameInvite)
+				.then(() => {
+					setChallengeInfo({
+						invite: true,
+						name,
+					})
+					router.push('/matchmaking/challenge')
 				})
-				router.push("/matchmaking/challenge")
-			})
-			.catch(() => {throw "Network error"})
+				.catch(() => {
+					throw 'Network error'
+				})
 		} catch (error: any) {
-			toast.warning(error)	
+			toast.warning(error)
 		}
 
 		const newMessage: Warning = {
@@ -587,7 +568,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
-	function respondGameInvite(name: string, id:string, accepted: boolean) {
+	function respondGameInvite(name: string, id: string, accepted: boolean) {
 		if (!socket) return
 
 		// parameter in user
@@ -596,27 +577,30 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		}
 
 		try {
-			api.patch(`/game/${id}/status`, response)
-			.then(() => {
-				removeInvite(id)
-				if (!accepted) return
-				setChallengeInfo(prevChallenge => ({ name, invite: false }))
-				router.push("/matchmaking/challenge")
-			})
-			.catch(() => {throw "Network error"})
+			api
+				.patch(`/game/${id}/status`, response)
+				.then(() => {
+					removeInvite(id)
+					if (!accepted) return
+					setChallengeInfo({ invite: false, name })
+					router.push('/matchmaking/challenge')
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
 		} catch (error: any) {
-			toast.warning(error)	
+			toast.warning(error)
 		}
-
 	}
 
 	const value: FriendsContextType = {
+		challengeInfo,
 		changeOpenState: () => setIsOpen((prevState) => !prevState),
+		clearChallengedName: () => setChallengeInfo({} as Challenge),
 		close,
 		closeAll,
 		currentOpenChat,
 		exists,
-		exitRoom,
 		focus,
 		friends,
 		isOpen,
@@ -627,8 +611,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		refreshRooms: getRooms,
 		removeInvite,
 		respondGameInvite,
-		challengeInfo,
-		clearChallengedName: () => setChallengeInfo({} as Challenge),
 		rooms,
 		seeNewFriendNotification: () => setNewFriendNotification(false),
 		sendGameInvite,

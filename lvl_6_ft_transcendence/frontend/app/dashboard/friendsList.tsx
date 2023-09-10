@@ -122,11 +122,13 @@ export default function FriendsList() {
 	const { open, sendGameInvite } = useFriends()
 
 	function leaveRoom(roomId: number) {
-		api
-			.post(`/chat/${roomId}/leave-room`, {
+		try {
+			api.post(`/chat/${roomId}/leave-room`, {
 				userId: parseInt(user.id),
 			})
-			.then(() => exitRoom(roomId))
+		} catch (error: any) {
+			toast.error('Network error')
+		}
 	}
 
 	return (
@@ -169,7 +171,7 @@ export default function FriendsList() {
 							</a>
 						</div>
 					</div>
-					<div className="text-2xl">#{user.ladder_level || "#"} </div>
+					<div className="text-2xl">#{user.ladder_level || '#'} </div>
 				</div>
 
 				<div className="my-2 space-y-2">
