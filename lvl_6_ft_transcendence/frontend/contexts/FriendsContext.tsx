@@ -336,7 +336,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					if (!isRoom && 'friend' in chat) return chat.friend.uid == id
 					return false
 				})
-				console.log(index)
 
 				if (
 					'warning' in data &&
@@ -459,7 +458,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
-		console.log('asdaswh')
 		router.push('/dashboard')
 	}
 
