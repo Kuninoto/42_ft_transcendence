@@ -26,7 +26,6 @@ import { IoIosClose } from 'react-icons/io'
 import { toast } from 'react-toastify'
 
 interface IMuteTooltip {
-	close: () => void
 	id: number | undefined
 	roomId: number
 }
@@ -57,7 +56,7 @@ function RoomSettings({
 		api.delete(`/chat/${id}/password`)
 	}
 
-	function getBans() { 
+	function getBans() {
 		try {
 			api
 				.get(`/chat/${id}/bans`)
@@ -77,18 +76,13 @@ function RoomSettings({
 	}, [])
 
 	function unban(userId: number) {
-
-		const newRoomOperation: RoomOperationRequest = {
-			roomId: parseInt(id),
-			userId: parseInt(userId)
-		}
-
 		try {
-			api.delete(`/chat/${roomId}/ban?roomId=${id}&userId=${userId}`)
+			api
+				.delete(`/chat/${id}/ban?userId=${userId}`)
 				.then(() => getBans())
 				.catch(() => {
 					throw 'Network Error'
-		})
+				})
 		} catch (error: any) {
 			toast.error(error)
 		}
@@ -103,62 +97,77 @@ function RoomSettings({
 			<div className="px-8 py-32">
 				<div className="group relative grid items-start justify-center  gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
-					<div className="relative flex flex-col h-full items-center place-content-center space-y-4 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
-
-					<div className="flex">
-						<div className="flex flex-col space-y-2">
-							<span>ROOM PASSWORD</span>
-							<div className="flex space-x-2 h-8">
-								<form className="space-x-2" onSubmit={handleSubmit(changePassword)}>
-									<input className="border h-full w-64 border-white rounded bg-transparent px-2 py-1 text-white"
-										placeholder="New password" 
-										type="password"
-										{...register('password')}
-									/>
-									<input 
-									className="rounded border border-white px-2 h-full text-white mix-blend-lighten hover:bg-white hover:text-black"
-									 type="submit" 
-									 value="Change" />
-								</form>
-								<button 
-									className="rounded border border-red-600 px-2 h-full text-red-600 hover:bg-red-600 hover:text-white"
-									onClick={removePassword}>Remove</button>
+					<div className="relative flex h-full flex-col place-content-center items-center space-y-4 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
+						<div className="flex">
+							<div className="flex flex-col space-y-2">
+								<span>ROOM PASSWORD</span>
+								<div className="flex h-8 space-x-2">
+									<form
+										className="space-x-2"
+										onSubmit={handleSubmit(changePassword)}
+									>
+										<input
+											className="h-full w-64 rounded border border-white bg-transparent px-2 py-1 text-white"
+											placeholder="New password"
+											type="password"
+											{...register('password')}
+										/>
+										<input
+											className="h-full rounded border border-white px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+											type="submit"
+											value="Change"
+										/>
+									</form>
+									<button
+										className="h-full rounded border border-red-600 px-2 text-red-600 hover:bg-red-600 hover:text-white"
+										onClick={removePassword}
+									>
+										Remove
+									</button>
+								</div>
 							</div>
 						</div>
-					</div>
 
-					<div className="flex flex-col w-full">
-						<h3 className="text-xl">Bans</h3>
-						<div className="flex flex-col overflow-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-white space-y-2 h-48 py-2 w-full">
-							{ bans.length === 0 ?
-								<div className="w-full text-center my-4 h-48 align-center">Go ahead, ban someone</div>
-							: bans.map((ban) => {
-								return (
-									<div 
-									className="border border-white place-content-between px-4 py-2 rounded flex"
-									key={ban.id}>
-										<div className="flex items-center space-x-4">
-											<div className="relative overflow-hidden aspect-square w-8 rounded-sm">
-												<Image
-													alt="profile picture"
-													className="object-cover"
-													fill
-													loader={removeParams}
-													sizes="100%"
-													src={ban.avatar_url || '/placeholder.gif'}
-													unoptimized
-												/>
-											</div>
-											<span> {ban.name} </span>
-										</div>
-										<button
-											className="rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-										 	onClick={() => unban(ban.id)}>unban</button>
+						<div className="flex w-full flex-col">
+							<h3 className="text-xl">Bans</h3>
+							<div className="flex h-48 w-full flex-col space-y-2 overflow-auto py-2 scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+								{bans.length === 0 ? (
+									<div className="align-center my-4 h-48 w-full text-center">
+										Go ahead, ban someone
 									</div>
-								)
-							})}
+								) : (
+									bans.map((ban) => {
+										return (
+											<div
+												className="flex place-content-between rounded border border-white px-4 py-2"
+												key={ban.id}
+											>
+												<div className="flex items-center space-x-4">
+													<div className="relative aspect-square w-8 overflow-hidden rounded-sm">
+														<Image
+															alt="profile picture"
+															className="object-cover"
+															fill
+															loader={removeParams}
+															sizes="100%"
+															src={ban.avatar_url || '/placeholder.gif'}
+															unoptimized
+														/>
+													</div>
+													<span> {ban.name} </span>
+												</div>
+												<button
+													className="rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													onClick={() => unban(ban.id)}
+												>
+													unban
+												</button>
+											</div>
+										)
+									})
+								)}
+							</div>
 						</div>
-					</div>
 					</div>
 				</div>
 			</div>
@@ -166,11 +175,10 @@ function RoomSettings({
 	)
 }
 
-function MuteTooltip({ close, id, roomId }: IMuteTooltip) {
+function MuteTooltip({ id, roomId }: IMuteTooltip) {
 	const { handleSubmit, register } = useForm()
 
 	function mute({ duration }: { duration: MuteDuration }) {
-		close()
 		api.post(`/chat/${roomId}/mute`, {
 			duration,
 			userId: parseInt(id),
@@ -213,30 +221,26 @@ function MuteTooltip({ close, id, roomId }: IMuteTooltip) {
 	)
 }
 
-function Tooltip({ close, authorRole, id, role, roomId }: ITooltip) {
+function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	function promote() {
-		close()
 		api.post(`/chat/${roomId}/add-admin`, {
 			userId: parseInt(id),
 		})
 	}
 
 	function demote() {
-		close()
 		api.post(`/chat/${roomId}/remove-admin`, {
 			userId: parseInt(id),
 		})
 	}
 
 	function kick() {
-		close()
 		api.post(`/chat/${roomId}/kick`, {
 			userId: parseInt(id),
 		})
 	}
 
 	function ban() {
-		close()
 		api.post(`/chat/${roomId}/ban`, {
 			userId: parseInt(id),
 		})
@@ -272,7 +276,7 @@ function Tooltip({ close, authorRole, id, role, roomId }: ITooltip) {
 				authorRole !== null && (
 					<>
 						<Tippy
-							content={<MuteTooltip close={close} id={id} roomId={roomId} />}
+							content={<MuteTooltip id={id} roomId={roomId} />}
 							interactive
 							placement={'right'}
 							trigger={'click'}
@@ -302,7 +306,6 @@ function Tooltip({ close, authorRole, id, role, roomId }: ITooltip) {
 export default function Chat() {
 	const [message, setMessage] = useState('')
 	const [settings, setSettings] = useState(false)
-	const [visible, setVisible] = useState(false)
 	const pathname = usePathname()
 
 	const { user } = useAuth()
@@ -339,7 +342,6 @@ export default function Chat() {
 			}
 		)
 	}
-
 
 	function respondeToRoomInvite(inviteId: string, accepted: boolean) {
 		const newJoinRequest: RespondToRoomInviteRequest = {
@@ -503,27 +505,39 @@ export default function Chat() {
 												key={index}
 											>
 												<span className="text-xs">Challenged you</span>
-											<div className="flex space-x-2">
-												<button
-													className="rounded border border-white py-1 px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-													onClick={() => respondGameInvite(currentOpenChat?.friend?.name, message.id, true)}
-												>
-													Accept
-												</button>
-												<button
-													className="rounded border border-white px-1 text-white mix-blend-lighten hover:bg-white hover:text-black"
-													onClick={() => respondGameInvite(currentOpenChat?.friend?.name, message.id, !true)}
-												>
-													<AiOutlineClose size={20}/>
-												</button>
-											</div>
+												<div className="flex space-x-2">
+													<button
+														onClick={() =>
+															respondGameInvite(
+																currentOpenChat?.friend?.name,
+																message.id,
+																true
+															)
+														}
+														className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													>
+														Accept
+													</button>
+													<button
+														onClick={() =>
+															respondGameInvite(
+																currentOpenChat?.friend?.name,
+																message.id,
+																!true
+															)
+														}
+														className="rounded border border-white px-1 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													>
+														<AiOutlineClose size={20} />
+													</button>
+												</div>
 											</div>
 										)
 									}
 
 									return (
 										<div
-											className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white py-2 px-4"
+											className="mx-auto mb-4 flex w-11/12 place-content-between items-center rounded border border-white px-4 py-2"
 											key={index}
 										>
 											<div className="flex flex-col">
@@ -534,16 +548,18 @@ export default function Chat() {
 											</div>
 											<div className="flex space-x-2">
 												<button
-													className="rounded border border-white py-1 px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													className="rounded border border-white px-2 py-1 text-white mix-blend-lighten hover:bg-white hover:text-black"
 													onClick={() => respondeToRoomInvite(message.id, true)}
 												>
 													Join
 												</button>
 												<button
+													onClick={() =>
+														respondeToRoomInvite(message.id, false)
+													}
 													className="rounded border border-white px-1 text-white mix-blend-lighten hover:bg-white hover:text-black"
-													onClick={() => respondeToRoomInvite(message.id, false)}
 												>
-													<AiOutlineClose size={20}/>
+													<AiOutlineClose size={20} />
 												</button>
 											</div>
 										</div>
@@ -571,12 +587,17 @@ export default function Chat() {
 												<Tippy
 													content={
 														<Tooltip
-														close={() => setVisible(false)}
 															authorRole={authorRole}
 															id={message.author?.id}
 															role={role}
 															roomId={currentOpenChat.room.id}
 														/>
+													}
+													onShow={() =>
+														openTippy(
+															currentOpenChat.room.id,
+															message.author?.id
+														)
 													}
 													placement={
 														role === ChatRoomRoles.CHATTER ||
@@ -585,15 +606,11 @@ export default function Chat() {
 															? 'right'
 															: 'top'
 													}
+													hideOnClick
 													interactive
 													trigger={'click'}
-													visible={visible}
-													onShow={() => openTippy(
-																currentOpenChat.room.id,
-																message.author?.id
-													)}
 												>
-													<button onClick={() => setVisible(true)} className="text-[0.5rem] text-gray-500 hover:underline" >
+													<button className="text-[0.5rem] text-gray-500 hover:underline">
 														{message.author?.name}
 													</button>
 												</Tippy>
@@ -631,7 +648,7 @@ export default function Chat() {
 								className={`mx-2 mb-2 h-16 resize-none rounded border border-white bg-transparent p-2 text-sm caret-white outline-none scrollbar-none placeholder:text-white/80`}
 								cols={2}
 								onChange={handleChange}
-								placeholder="Write something beutiful"
+								placeholder="Write something beautiful"
 								value={message}
 							/>
 						)}

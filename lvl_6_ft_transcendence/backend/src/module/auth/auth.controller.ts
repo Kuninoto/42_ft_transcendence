@@ -188,7 +188,6 @@ export class AuthController {
   @Patch('2fa/disable')
   public async disable2fa(@ExtractUser() user: User): Promise<SuccessResponse> {
     this.logger.log(`Disabling 2FA for "${user.name}"`);
-
     return await this.usersService.disable2fa(user.id);
   }
 

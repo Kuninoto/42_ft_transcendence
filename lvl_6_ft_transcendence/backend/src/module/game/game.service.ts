@@ -125,12 +125,20 @@ export class GameService {
     );
   }
 
-  public gameInviteDeclined(userId: number): void {
-    this.gameGateway.emitGameInviteDeclined(userId);
+  public gameInviteDeclined(inviteId: string): void {
+    const gameInvite: GameInvite | undefined =
+      this.gameInviteMap.findInviteById(inviteId);
+    if (!gameInvite) throw new NotFoundException('Invite not found');
+
+    this.gameGateway.emitGameInviteDeclined(gameInvite.receiverUID);
   }
 
-  public gameInviteCanceled(userId: number): void {
-    this.gameGateway.emitGameInviteCanceled(userId);
+  public gameInviteCanceled(inviteId: string): void {
+    const gameInvite: GameInvite | undefined =
+      this.gameInviteMap.findInviteById(inviteId);
+    if (!gameInvite) throw new NotFoundException('Invite not found');
+
+    this.gameGateway.emitGameInviteCanceled(gameInvite.sender.userId);
   }
 
   /**
@@ -407,9 +415,8 @@ export class GameService {
     if (invites.length === 0) return;
 
     invites.forEach((invite: GameInvite): void => {
-      if (userId == invite.sender.userId)
-        this.gameInviteCanceled(invite.receiverUID);
-      else this.gameInviteDeclined(invite.sender.userId);
+      if (userId == invite.sender.userId) this.gameInviteCanceled(invite.id);
+      else this.gameInviteDeclined(invite.id);
 
       this.gameInviteMap.deleteInviteByInviteId(invite.id);
     });
@@ -421,8 +428,7 @@ export class GameService {
     if (invites.length === 0) return;
 
     invites.forEach((invite: GameInvite): void => {
-      if (userId == invite.receiverUID)
-        this.gameInviteDeclined(invite.sender.userId);
+      if (userId == invite.receiverUID) this.gameInviteDeclined(invite.id);
     });
   }
 }

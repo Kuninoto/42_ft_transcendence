@@ -1,6 +1,7 @@
 'use client'
 
 import Cookies from 'js-cookie'
+import Link from 'next/link'
 import { createContext, ReactNode, useContext, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import io from 'socket.io-client'
@@ -13,6 +14,10 @@ type SocketContextType = {
 
 const SocketContext = createContext<SocketContextType>({} as SocketContextType)
 
+const AchievementLink = () => (
+	<Link href={'/profile'}>🎉 New achievement unlocked!</Link>
+)
+
 export function SocketProvider({ children }: { children: ReactNode }) {
 	const connect = () => {
 		socket = io(`${process.env.NEXT_PUBLIC_BACKEND_URL}/connection`, {
@@ -22,7 +27,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 		})
 
 		socket.on('achievementUnlocked', () => {
-			toast('🎉 New achievement unlocked!')
+			toast(<AchievementLink />)
 		})
 	}
 

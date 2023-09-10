@@ -1,4 +1,4 @@
 export interface AchievementInterface {
-  readonly achievement: string;
-  readonly description: string;
+	readonly achievement: string
+	readonly description: string
 }

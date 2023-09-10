@@ -1,16 +1,15 @@
 'use client'
 
 import { api } from '@/api/api'
+import { hasValues } from '@/common/utils/hasValues'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { hasValues } from '@/common/utils/hasValues'
+import { useEffect } from 'react'
 
 export default function Loading() {
-
 	const router = useRouter()
 
 	const { canCancel, cancel, opponentFound } = useGame()
@@ -29,7 +28,9 @@ export default function Loading() {
 					<div className="text-xl">vs.</div>
 					<div>
 						{opponentFound?.opponentInfo?.name || (
-							<span className="animate-blink">{challengeInfo.name || '????'}</span>
+							<span className="animate-blink">
+								{challengeInfo.name || '????'}
+							</span>
 						)}
 					</div>
 				</div>
