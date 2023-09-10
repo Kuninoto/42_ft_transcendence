@@ -225,15 +225,12 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 		try {
 			api
 				.post(`/chat/${id}/join`, roomInfo)
-				.then((data) => {
-					api.get(`/chat/rooms/search`).then((result) => {
-						refreshRooms()
-						searchRoom('')
-					})
+				.then(() => {
+					refreshRooms()
+					searchRoom('')
 				})
 				.catch((e) => {
-					toast.error('Wrong password')
-					throw 'Network error'
+					throw 'Wrong password'
 				})
 		} catch (error: any) {
 			toast.error(error)
