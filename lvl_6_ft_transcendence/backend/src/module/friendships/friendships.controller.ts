@@ -86,7 +86,7 @@ export class FriendshipsController {
    * Update the friendship status according to the "newStatus"
    * field of the JSON sent on the body
    */
-  @ApiOperation({ description: 'Update a friendship status' })
+  @ApiOperation({ description: 'Update the status of a friendship' })
   @ApiBody({ type: FriendshipStatusUpdationRequest })
   @ApiNotFoundResponse({
     description: "If a friendship which id=friendshipId doesn't exist",

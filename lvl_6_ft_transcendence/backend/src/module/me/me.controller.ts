@@ -74,7 +74,6 @@ export class MeController {
   @Get('friendlist')
   public async findMyFriendlist(@ExtractUser() user: User): Promise<Friend[]> {
     this.logger.log(`"${user.name}" requested his friendlist`);
-
     return await this.usersService.findMyFriendlist(user.id);
   }
 
@@ -93,7 +92,6 @@ export class MeController {
     @ExtractUser() user: User,
   ): Promise<FriendRequest[]> {
     this.logger.log(`"${user.name}" requested his received friend-requests`);
-
     return await this.usersService.findMyFriendRequests(user.id);
   }
 

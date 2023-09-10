@@ -87,7 +87,7 @@ export class GameController {
     return { inviteId: inviteId };
   }
 
-  @ApiOperation({ description: 'Respond to game invite' })
+  @ApiOperation({ description: 'Respond to a game invite' })
   @ApiBadRequestResponse({
     description:
       "If request is malformed or if invite isn't meant for the requesting user",
