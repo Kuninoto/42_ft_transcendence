@@ -741,13 +741,14 @@ export class ChatService {
       warningType: RoomWarning.MUTE,
     });
 
+    this.logger.log(
+      `"${userToMute.name}" is now muted on room: "${room.name}"`,
+    );
+
     setTimeout(async (): Promise<void> => {
       await this.unmuteUser(userToMuteId, roomId);
     }, durationInMs);
 
-    this.logger.log(
-      `"${userToMute.name}" is now muted on room: "${room.name}"`,
-    );
     return { message: `Successfully muted "${userToMute.name}"` };
   }
 
