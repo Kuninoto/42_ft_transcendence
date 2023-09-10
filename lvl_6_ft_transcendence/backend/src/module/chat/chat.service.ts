@@ -793,6 +793,8 @@ export class ChatService {
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom = await this.findRoomById(roomId);
+    if (room.type === ChatRoomType.PRIVATE)
+      throw new ForbiddenException('Private rooms cannot have passwords')
 
     room.type = ChatRoomType.PROTECTED;
     room.password = newPassword;

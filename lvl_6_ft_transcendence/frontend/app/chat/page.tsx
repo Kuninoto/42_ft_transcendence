@@ -57,7 +57,7 @@ function RoomSettings({
 			newPassword: md5(password),
 		})
 
-		if (roomType === ChatRoomType.PUBLIC)
+		if (roomType !== ChatRoomType.PROTECTED)
 			setChangeStatusMessage('Successfully added password')
 		else
 			setChangeStatusMessage('Successfully changed password')

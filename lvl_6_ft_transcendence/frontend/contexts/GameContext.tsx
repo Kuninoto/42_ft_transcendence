@@ -29,7 +29,9 @@ type GameContextType = {
 	cancel: () => void
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
+	forfeit: () => void
 	gameEndInfo: GameEndEvent
+	inGame: boolean
 	leftPlayerScore: number
 	opponentFound: OpponentFoundEvent
 	opponentPosition: number
@@ -58,26 +60,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const router = useRouter()
 	const pathname = usePathname()
 
-	function cancel() {
-		router?.push('/dashboard')
-
+	function forfeit() {
 		if (!socket) return
 		socket.emit('leaveQueueOrGame')
+	}
+
+	function cancel() {
+		forfeit()
+		router.push('/dashboard')
 	}
 
 	function queue() {
 		if (!socket) return
 		socket.emit('queueToLadder', {})
 	}
-
-	useEffect(() => {
-		if (socket) {
-			socket.on('gameInviteCanceled', function (data: any) {
-				if (!data) return
-				removeInvite(data.inviteId)
-			})
-		}
-	}, [socket])
 
 	useEffect(() => {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))
@@ -98,24 +94,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}, [])
 
 	useEffect(() => {
-		if (
-			pathname === '/matchmaking/finding-opponent' &&
-			hasValues(opponentFound)
-		) {
-			socket?.emit('leaveQueueOrGame')
-			history.go(2)
-			setOpponentFound({} as OpponentFoundEvent)
-		}
-
-		return () => {
-			if (pathname === '/matchmaking') {
-				socket?.emit('leaveQueueOrGame')
-				setOpponentFound({} as OpponentFoundEvent)
-			}
-		}
-	}, [pathname])
-
-	useEffect(() => {
 		socket?.on('gameRoomInfo', function (data: GameRoomInfoEvent) {
 			if (opponentFound.side === PlayerSide.LEFT) {
 				setOpponentPosition(data.rightPlayer.paddleY)
@@ -125,16 +103,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 			setBallPosition(data.ball)
 		})
-
-		socket?.on('gameEnd', function (data: GameEndEvent) {
-			setGameEndInfo(data)
-		})
-
-		socket?.on('playerScored', function (data: PlayerScoredEvent) {
-			setLeftPlayerScore(data.leftPlayerScore)
-			setRightPlayerScore(data.rightPlayerScore)
-		})
 	}, [opponentFound])
+
+	useEffect(() => {
+		if (socket) {
+			socket.once('gameEnd', function (data: GameEndEvent) {
+				setGameEndInfo(data)
+			})
+
+			socket.on('playerScored', function (data: PlayerScoredEvent) {
+				setLeftPlayerScore(data.leftPlayerScore)
+				setRightPlayerScore(data.rightPlayerScore)
+			})
+
+			socket.once('gameInviteCanceled', function (data: any) {
+				if (!data) return
+				removeInvite(data.inviteId)
+			})
+		}
+	}, [socket])
 
 	function emitPaddleMovement(newY: number) {
 		if (!socket) return
@@ -163,7 +150,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		cancel,
 		emitOnReady,
 		emitPaddleMovement,
+		forfeit,
 		gameEndInfo,
+		inGame: hasValues(opponentFound) && !hasValues(gameEndInfo),
 		leftPlayerScore,
 		opponentFound,
 		opponentPosition,
