@@ -37,11 +37,11 @@ import {
   ChatRoomSearchInfo,
   CreateRoomRequest,
   ErrorResponse,
-  InviteToRoomRequest,
   JoinRoomRequest,
   MuteDuration,
   MuteUserRequest,
   RoomOperationRequest,
+  SendRoomInviteRequest,
   SuccessResponse,
   UpdateRoomPasswordRequest,
   UserBasicProfile,
@@ -224,7 +224,7 @@ export class ChatController {
     description: 'Successfully left room with id=body.roomId',
   })
   @HttpCode(HttpStatus.OK)
-  @Post('/:roomId/leave-room')
+  @Post('/:roomId/leave')
   public async leaveRoom(
     @ExtractUser() user: User,
     @Param('roomId') roomId: number,
@@ -244,7 +244,7 @@ export class ChatController {
   }
 
   @ApiOperation({ description: 'Invite a user (friend) to a chat room' })
-  @ApiBody({ type: InviteToRoomRequest })
+  @ApiBody({ type: SendRoomInviteRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
   @ApiForbiddenResponse({
     description: 'If sender is not a friend of receiver',
@@ -258,11 +258,11 @@ export class ChatController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('/invite')
-  public async inviteToRoom(
+  public async sendRoomInvite(
     @ExtractUser() user: User,
-    @Body() body: InviteToRoomRequest,
+    @Body() body: SendRoomInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.inviteToRoom(
+    return await this.chatService.sendRoomInvite(
       user.id,
       body.receiverUID,
       body.roomId,
@@ -433,7 +433,7 @@ export class ChatController {
   })
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiConflictResponse({
-    description: 'If recipient already have admin privileges',
+    description: 'If receiver already have admin privileges',
   })
   @ApiOkResponse({
     description:
@@ -463,7 +463,7 @@ export class ChatController {
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiBadRequestResponse({
     description:
-      "If request's body is malformed or if recipient doesn't have admin privileges",
+      "If request's body is malformed or if receiver doesn't have admin privileges",
   })
   @ApiOkResponse({
     description:

@@ -1,23 +1,22 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
   Get,
-  Post,
-  Patch,
-  Param,
-  Body,
   Logger,
+  Param,
+  Patch,
+  Post,
   UseGuards,
-  ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiConflictResponse,
   ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
   ApiNotFoundResponse,
-  ApiTags,
+  ApiOkResponse,
   ApiOperation,
+  ApiTags,
 } from '@nestjs/swagger';
 import { ExtractUser } from 'src/common/decorator/extract-user.decorator';
 import { User } from 'src/entity';
@@ -30,7 +29,6 @@ import {
   UserStatsForLeaderboard,
 } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { ConnectionService } from '../connection/connection.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { GameService } from './game.service';
 
@@ -42,7 +40,6 @@ export class GameController {
   constructor(
     private readonly userStatsService: UserStatsService,
     private readonly gameService: GameService,
-    private readonly connectionService: ConnectionService,
   ) {}
 
   private readonly logger: Logger = new Logger(GameController.name);
@@ -66,9 +63,10 @@ export class GameController {
   }
 
   @ApiOperation({ description: 'Send a game invite' })
+  @ApiNotFoundResponse({ description: "If receiver doesn't exist"})
   @ApiConflictResponse({
     description:
-      'If requesting user is in game or offlineIf recipient is in game\n',
+      'If requesting user or receiver are not online (cannot be in queue, game or offline)\n',
   })
   @ApiOkResponse({
     description: 'Successfully sent game invite',
@@ -79,7 +77,7 @@ export class GameController {
     @Body() body: SendGameInviteRequest,
   ): Promise<GameInviteSentResponse | ErrorResponse> {
     const inviteId: string =
-      await this.gameService.sendGameInvite(user.id, body.recipientUID);
+      await this.gameService.sendGameInvite(user.id, body.receiverUID);
     return { inviteId: inviteId };
   }
 
@@ -106,20 +104,10 @@ export class GameController {
     if (!this.gameService.correctInviteUsage(user.id, inviteId, false))
       throw new BadRequestException("Invite isn't meant for you");
 
-    if (body.accepted === true) {
-      const receiverSocketId: string | undefined =
-        this.connectionService.findSocketIdByUID(user.id);
-
-      if (!receiverSocketId) {
-        throw new ConflictException(
-          'You cannot accept a game invite while being offline',
-          );
-      }
-
+    if (body.accepted === true) {      
       await this.gameService.gameInviteAccepted(
         inviteId,
         user.id,
-        receiverSocketId,
       );
     } else {
       this.gameService.gameInviteDeclined(user.id);

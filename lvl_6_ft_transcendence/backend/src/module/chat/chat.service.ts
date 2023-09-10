@@ -25,6 +25,7 @@ import {
   RoomWarning,
   SuccessResponse,
   UserBasicProfile,
+  UserStatus,
 } from 'types';
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -58,7 +59,7 @@ export class ChatService {
    *           DMs            *
    *****************************/
 
-  async createDirectMessage(
+  public async createDirectMessage(
     senderUID: number,
     receiverUID: number,
     uniqueId: string,
@@ -74,7 +75,7 @@ export class ChatService {
     return await this.directMessageRepository.save(newMessage);
   }
 
-  async sendMissedDirectMessages(
+  public async sendMissedDirectMessages(
     receiverSocketId: string,
     receiverUID: number,
   ): Promise<void> {
@@ -354,7 +355,7 @@ export class ChatService {
     client.join(roomSocketIds);
   }
 
-  public async inviteToRoom(
+  public async sendRoomInvite(
     inviterUID: number,
     receiverUID: number,
     roomId: number,
@@ -364,6 +365,9 @@ export class ChatService {
     );
     if (!receiver)
       throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
+
+    if (receiver.status !== UserStatus.ONLINE)
+      throw new ConflictException(`You cannot invite user because he is ${receiver.status}`);
       
     if (
       !(await this.friendshipsService.areTheyFriends(inviterUID, receiverUID))
@@ -411,7 +415,12 @@ export class ChatService {
     accepted: boolean,
     user: User,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (accepted) return this.joinRoomByInvite(inviteId, user);
+    if (accepted) {
+      if (user.status !== UserStatus.OFFLINE)
+        throw new ConflictException(`You cannot accept a room invite while being ${user.status}`)
+  
+      return this.joinRoomByInvite(inviteId, user);
+    }
 
     this.roomInviteMap.deleteInviteByInviteId(inviteId);
     return { message: 'Successfully declined chat room invite' };

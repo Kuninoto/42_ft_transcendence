@@ -103,32 +103,32 @@ export class GameGateway implements OnGatewayInit {
    ******************************/
 
   public emitGameInviteDeclined(userId: number): void {
-    const recipientSocketId: string =
+    const receiverSocketId: string =
       this.connectionService.findSocketIdByUID(userId);
 
     this.connectionGateway.server
-      .to(recipientSocketId)
+      .to(receiverSocketId)
       .emit('gameInviteDeclined');
   }
 
   public emitGameInviteCanceled(userId: number): void {
-    const recipientSocketId: string =
+    const receiverSocketId: string =
       this.connectionService.findSocketIdByUID(userId);
 
     this.connectionGateway.server
-      .to(recipientSocketId)
+      .to(receiverSocketId)
       .emit('gameInviteCanceled');
   }
 
   public emitInvitedToGameEvent(
-    recipientUID: number,
+    receiverUID: number,
     event: InvitedToGameEvent,
   ): void {
-    const recipientSocketId: string =
-      this.connectionService.findSocketIdByUID(recipientUID);
+    const receiverSocketId: string =
+      this.connectionService.findSocketIdByUID(receiverUID);
 
     this.connectionGateway.server
-      .to(recipientSocketId)
+      .to(receiverSocketId)
       .emit('invitedToGame', event);
   }
 

@@ -1,11 +1,12 @@
 import {
-  forwardRef,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
-  ConflictException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { nanoid } from 'nanoid';
 import { GameResult, User } from 'src/entity';
 import { Repository } from 'typeorm';
 import {
@@ -15,18 +16,17 @@ import {
   UserStatus,
 } from 'types';
 import { ConnectionGateway } from '../connection/connection.gateway';
+import { ConnectionService } from '../connection/connection.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { UsersService } from '../users/users.service';
 import { Ball } from './Ball';
-import { GameEngineService } from './game-engine.service';
-import { GameGateway } from './game.gateway';
 import { GameInviteMap } from './GameInviteMap';
 import { GameQueue } from './GameQueue';
 import { GameRoom } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
-import { nanoid } from 'nanoid';
-import { ConnectionService } from '../connection/connection.service';
+import { GameEngineService } from './game-engine.service';
+import { GameGateway } from './game.gateway';
 
 const GAME_START_TIMEOUT: number = 3 * 1000;
 
@@ -50,18 +50,25 @@ export class GameService {
     private readonly connectionService: ConnectionService,
   ) {}
 
-  public async sendGameInvite(senderUID: number, recipientUID: number): Promise<string> {
+  public async sendGameInvite(senderUID: number, receiverUID: number): Promise<string> {
     if (this.isPlayerInQueueOrGame(senderUID)) {
       throw new ConflictException(
         'You cannot send a game invite while in a game',
       );
     }
 
-    if (this.hasSenderAlreadySentGameInviteToThisReceiver(senderUID, recipientUID))
+    const receiver: User | null = await this.usersService.findUserByUID(receiverUID);
+    if (!receiver)
+      throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
+
+    if (receiver.status !== UserStatus.ONLINE)
+      throw new ConflictException(`You cannot invite user because he is ${receiver.status}`);
+
+    if (this.hasSenderAlreadySentGameInviteToThisReceiver(senderUID, receiverUID))
       throw new ConflictException('You have an active game invite to that user');
 
-    if (this.isPlayerInQueueOrGame(recipientUID))
-      throw new ConflictException('Recipient is in game');
+    if (this.isPlayerInQueueOrGame(receiverUID))
+      throw new ConflictException('Receiver is in game');
 
     const socketIdOfPlayer: string | undefined =
       this.connectionService.findSocketIdByUID(senderUID);
@@ -75,11 +82,11 @@ export class GameService {
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
     const inviteId: string = this.gameInviteMap.createGameInvite({
-      recipientUID: recipientUID,
+      receiverUID: receiverUID,
       sender: newPlayer,
     });
 
-    this.gameGateway.emitInvitedToGameEvent(recipientUID, {
+    this.gameGateway.emitInvitedToGameEvent(receiverUID, {
       inviteId: inviteId,
       inviterUID: Number(senderUID),
     });
@@ -89,21 +96,30 @@ export class GameService {
 
   public async gameInviteAccepted(
     inviteId: string,
-    receiver: number,
-    receiverSocketId: string,
+    receiverUID: number,
   ): Promise<void> {
+    const receiverStatus: UserStatus =
+      (await this.usersService.findUserByUID(receiverUID)).status;
+    if (receiverStatus !== UserStatus.ONLINE)
+      throw new ConflictException(
+        `You cannot accept a game invite while being ${receiverStatus}`,
+      );
+
+    const receiverSocketId: string  =
+        this.connectionService.findSocketIdByUID(receiverUID);
+
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
 
-    const recipientPlayer: Player = new Player(receiver, receiverSocketId);
-    recipientPlayer.setPlayerSide(PlayerSide.RIGHT);
+    const receiverPlayer: Player = new Player(receiverUID, receiverSocketId);
+    receiverPlayer.setPlayerSide(PlayerSide.RIGHT);
 
     this.joinPlayersToRoom(
       gameInvite.sender,
-      recipientPlayer,
+      receiverPlayer,
       GameType.ONEVSONE,
     );
   }
@@ -343,7 +359,7 @@ export class GameService {
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
     if (cancelInvite) return gameInvite.sender.userId == userId;
-    return gameInvite.recipientUID == userId;
+    return gameInvite.receiverUID == userId;
   }
 
   public hasSenderAlreadySentGameInviteToThisReceiver(senderId: number, receiverId: number): boolean {
@@ -351,7 +367,7 @@ export class GameService {
       this.gameInviteMap.findAllInvitesWithUser(senderId);
 
     allInvitesToUser.forEach((invite: GameInvite): boolean | void => {
-      if (invite.sender.userId == senderId && invite.recipientUID == receiverId)
+      if (invite.sender.userId == senderId && invite.receiverUID == receiverId)
         return true;
     })
 
