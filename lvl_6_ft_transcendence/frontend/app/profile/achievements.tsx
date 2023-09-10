@@ -36,7 +36,6 @@ export default function Achievements({
 					followCursor={true}
 					key={achievement?.achievement}
 					placement="left"
-					trigger="click"
 				>
 					<button className="flex w-full space-x-4 rounded-sm border border-white px-4 py-3 text-start text-xl">
 						<div className="relative aspect-square w-24 overflow-hidden rounded">
