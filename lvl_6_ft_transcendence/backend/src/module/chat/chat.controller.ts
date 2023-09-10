@@ -268,7 +268,7 @@ export class ChatController {
     );
   }
 
-  @ApiOperation({ description: 'Respond to chat room invite' })
+  @ApiOperation({ description: 'Respond to a chat room invite' })
   @ApiBody({ type: RespondToRoomInviteRequest })
   @ApiNotFoundResponse({ description: 'Invite or room not found' })
   @ApiForbiddenResponse({
