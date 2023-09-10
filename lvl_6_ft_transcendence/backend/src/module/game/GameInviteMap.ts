@@ -33,7 +33,7 @@ export class GameInviteMap {
     this.gameInviteMap.forEach((invite: GameInvite): void => {
       if (userId == invite.receiverUID || userId == invite.sender.userId)
         invites.push(invite);
-    })
+    });
 
     return invites;
   }

@@ -32,7 +32,7 @@ export class RoomInviteMap {
     this.roomInviteMap.forEach((invite: RoomInvite): void => {
       if (userId == invite.inviterUID || userId == invite.receiverUID)
         invites.push(invite);
-    })
+    });
 
     return invites;
   }
@@ -41,7 +41,7 @@ export class RoomInviteMap {
     this.roomInviteMap.delete(inviteId);
   }
 
-  public deleteAllInvitesToUser(userId: number): void {
+  public deleteAllInvitesWithUser(userId: number): void {
     this.roomInviteMap.forEach((value: RoomInvite, key: string): void => {
       if (userId == value.receiverUID) this.roomInviteMap.delete(key);
     });
