@@ -3,11 +3,11 @@
 import { api } from '@/api/api'
 import {
 	ChatRoomRoles,
+	ChatRoomType,
 	GetChatterRoleEvent,
 	GetChatterRoleMessage,
 	MuteDuration,
 	RespondToRoomInviteRequest,
-	RoomOperationRequest,
 	UserBasicProfile,
 } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
@@ -38,11 +38,17 @@ interface ITooltip extends IMuteTooltip {
 function RoomSettings({
 	closeModal,
 	id,
+	type,
+	updateRoomType,
 }: {
 	closeModal: () => void
 	id: number
+	type: ChatRoomType
+	updateRoomType: (newType: ChatRoomType) => void
 }) {
 	const [bans, setBans] = useState<UserBasicProfile[]>([])
+	const [changeStatusMessage, setChangeStatusMessage] = useState<string>('');
+	const [roomType, setRoomType] = useState<ChatRoomType>(type);
 
 	const { handleSubmit, register } = useForm()
 
@@ -50,10 +56,21 @@ function RoomSettings({
 		api.patch(`/chat/${id}/password`, {
 			newPassword: md5(password),
 		})
+
+		if (roomType === ChatRoomType.PUBLIC)
+			setChangeStatusMessage('Successfully added password')
+		else
+			setChangeStatusMessage('Successfully changed password')
+	
+		setRoomType(ChatRoomType.PROTECTED); 
+		updateRoomType(ChatRoomType.PROTECTED)
 	}
 
 	function removePassword() {
 		api.delete(`/chat/${id}/password`)
+		setRoomType(ChatRoomType.PUBLIC);
+		updateRoomType(ChatRoomType.PUBLIC)
+		setChangeStatusMessage('Successfully removed password')
 	}
 
 	function getBans() {
@@ -95,7 +112,7 @@ function RoomSettings({
 				onClick={closeModal}
 			></button>
 			<div className="px-8 py-32">
-				<div className="group relative grid items-start justify-center  gap-8">
+				<div className="group relative grid items-start justify-center gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative flex h-full flex-col place-content-center items-center space-y-4 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
 						<div className="flex">
@@ -111,20 +128,26 @@ function RoomSettings({
 											placeholder="New password"
 											type="password"
 											{...register('password')}
+											
 										/>
 										<input
 											className="h-full rounded border border-white px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 											type="submit"
-											value="Change"
+											value={roomType === ChatRoomType.PROTECTED ? 'Change' : 'Add'}
 										/>
 									</form>
-									<button
-										className="h-full rounded border border-red-600 px-2 text-red-600 hover:bg-red-600 hover:text-white"
-										onClick={removePassword}
-									>
-										Remove
-									</button>
+									{roomType === ChatRoomType.PROTECTED && (
+									  <button
+									    className="h-full rounded border border-red-600 px-2 text-red-600 hover:bg-red-600 hover:text-white"
+									    onClick={removePassword}
+									  >
+									    Remove
+									  </button>
+									)}
 								</div>
+								{changeStatusMessage && (
+              						<div className="text-white">{changeStatusMessage}</div>
+            					)}
 							</div>
 						</div>
 
@@ -384,6 +407,10 @@ export default function Chat() {
 				<RoomSettings
 					closeModal={() => setSettings(false)}
 					id={currentOpenChat.room.id}
+					type={currentOpenChat.room.type}
+					updateRoomType={(newType) => {
+  					  currentOpenChat.room.type = newType
+  					}}
 				/>
 			)}
 			<div

@@ -128,7 +128,7 @@ export class UsersService {
     // and sort them from the newest to the latest (biggest id at index 0)
     const gameResults = await this.gameResultRepository
       .createQueryBuilder('game_result')
-      .select('*')
+      .select()
       .leftJoinAndSelect('game_result.winner', 'winner')
       .leftJoinAndSelect('game_result.loser', 'loser')
       .where('winner.id = :userId OR loser.id = :userId', {
@@ -136,6 +136,7 @@ export class UsersService {
       })
       .orderBy('game_result.id', 'DESC')
       .getMany();
+
 
     const matchHistory: GameResultInterface[] = gameResults.map(
       (result: GameResult): GameResultInterface => {
@@ -158,6 +159,7 @@ export class UsersService {
         };
       },
     );
+    console.log(matchHistory);
     return matchHistory;
   }
 
