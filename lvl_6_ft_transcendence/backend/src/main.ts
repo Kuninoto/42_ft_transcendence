@@ -10,6 +10,7 @@ import {
 import session from 'express-session';
 import helmet from 'helmet';
 import passport from 'passport';
+import { SwaggerTheme } from 'swagger-themes';
 import { AppModule } from './app.module';
 import { AppCorsOption } from './common/option/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
@@ -64,17 +65,9 @@ function configureSwagger(app: NestExpressApplication): void {
     swaggerConfig,
   );
 
-  const HEX_NORDIC_BLUE: string = '#1c4966';
   const options: SwaggerCustomOptions = {
-    customfavIcon: 'backend/public/swagger/favicon.ico',
-    customSiteTitle: 'ft_transcendence docs', //add site title to swagger for nice SEO
-    customCss: `
-      .topbar { display: none }
-      .swagger-ui {
-        background-color: ${HEX_NORDIC_BLUE}
-        color: #ffffff
-      }
-    `,
+    customSiteTitle: 'ft_transcendence docs',
+    customCss: new SwaggerTheme('v3').getBuffer('dark'),
     swaggerOptions: { persistAuthorization: true },
   };
 

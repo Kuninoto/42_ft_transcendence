@@ -81,7 +81,7 @@ export class GameController {
     @Body() body: SendGameInviteRequest,
   ): Promise<GameInviteSentResponse | ErrorResponse> {
     const inviteId: string = await this.gameService.sendGameInvite(
-      user.id,
+      user,
       body.receiverUID,
     );
     return { inviteId: inviteId };

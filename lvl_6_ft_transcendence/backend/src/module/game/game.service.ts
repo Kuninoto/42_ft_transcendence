@@ -2,6 +2,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
@@ -45,11 +46,13 @@ export class GameService {
     private readonly connectionService: ConnectionService,
   ) {}
 
+  private readonly logger: Logger = new Logger(GameService.name);
+
   public async sendGameInvite(
-    senderUID: number,
+    sender: User,
     receiverUID: number,
   ): Promise<string> {
-    if (this.isPlayerInQueueOrGame(senderUID)) {
+    if (this.isPlayerInQueueOrGame(sender.id)) {
       throw new ConflictException(
         'You cannot send a game invite while in a game',
       );
@@ -66,21 +69,21 @@ export class GameService {
         `You cannot invite user because he is ${receiver.status}`,
       );
 
-    if (this.doesSenderHaveAnActiveGameInvite(senderUID))
+    if (this.doesSenderHaveAnActiveGameInvite(sender.id))
       throw new ConflictException('You have an active game invite');
 
     if (this.isPlayerInQueueOrGame(receiverUID))
       throw new ConflictException('Receiver is in game');
 
     const socketIdOfPlayer: string | undefined =
-      this.connectionService.findSocketIdByUID(senderUID);
+      this.connectionService.findSocketIdByUID(sender.id);
     if (!socketIdOfPlayer) {
       throw new ConflictException(
         "You cannot send a game invite if you're offline",
       );
     }
 
-    const newPlayer: Player = new Player(Number(senderUID), socketIdOfPlayer);
+    const newPlayer: Player = new Player(Number(sender.id), socketIdOfPlayer);
     newPlayer.setPlayerSide(PlayerSide.LEFT);
 
     const inviteId: string = this.gameInviteMap.createGameInvite({
@@ -90,9 +93,10 @@ export class GameService {
 
     this.gameGateway.emitInvitedToGameEvent(receiverUID, {
       inviteId: inviteId,
-      inviterUID: Number(senderUID),
+      inviterUID: Number(sender.id),
     });
 
+    this.logger.log(`${sender.name} sent a game invite to ${receiver.name}`);
     return inviteId;
   }
 
@@ -364,17 +368,6 @@ export class GameService {
     return gameInvite.receiverUID == userId;
   }
 
-  public doesSenderHaveAnActiveGameInvite(senderId: number): boolean {
-    const allInvitesToUser: GameInvite[] =
-      this.gameInviteMap.findAllInvitesWithUser(senderId);
-
-    allInvitesToUser.forEach((invite: GameInvite): boolean | void => {
-      if (invite.sender.userId == senderId) return true;
-    });
-
-    return false;
-  }
-
   private async saveGameResult(
     gameType: GameType,
     winner: Player,
@@ -395,6 +388,19 @@ export class GameService {
     await this.gameResultRepository.save(newGameResult);
   }
 
+  private doesSenderHaveAnActiveGameInvite(senderId: number): boolean {
+    const allInvitesWithUser: GameInvite[] =
+      this.gameInviteMap.findAllInvitesWithUser(senderId);
+
+    if (!allInvitesWithUser) return false;
+
+    allInvitesWithUser.forEach((invite: GameInvite): boolean | void => {
+      if (invite.sender.userId == senderId) return true;
+    });
+
+    return false;
+  }
+
   private deleteAllInvitesWithUser(userId: number): void {
     const invites: GameInvite[] =
       this.gameInviteMap.findAllInvitesWithUser(userId);
@@ -404,6 +410,8 @@ export class GameService {
       if (userId == invite.sender.userId)
         this.gameInviteCanceled(invite.receiverUID);
       else this.gameInviteDeclined(invite.sender.userId);
+
+      this.gameInviteMap.deleteInviteByInviteId(invite.id);
     });
   }
 
