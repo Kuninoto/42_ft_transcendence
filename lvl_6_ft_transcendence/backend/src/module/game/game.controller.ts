@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Get,
   Logger,
@@ -27,9 +28,11 @@ import {
   SendGameInviteRequest,
   SuccessResponse,
   UserStatsForLeaderboard,
+  UserStatus,
 } from 'types';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { UserStatsService } from '../user-stats/user-stats.service';
+import { UsersService } from '../users/users.service';
 import { GameService } from './game.service';
 
 @ApiTags('game')
@@ -39,6 +42,7 @@ import { GameService } from './game.service';
 export class GameController {
   constructor(
     private readonly userStatsService: UserStatsService,
+    private readonly usersService: UsersService,
     private readonly gameService: GameService,
   ) {}
 
@@ -105,6 +109,15 @@ export class GameController {
 
     if (!this.gameService.correctInviteUsage(user.id, inviteId, false))
       throw new BadRequestException("Invite isn't meant for you");
+
+    const receiverStatus: UserStatus = (
+      await this.usersService.findUserByUID(user.id)
+    ).status;
+    if (receiverStatus !== UserStatus.ONLINE) {
+      throw new ConflictException(
+        `You cannot respond to a game invite while being ${receiverStatus}`,
+      );
+    }
 
     if (body.accepted === true) {
       await this.gameService.gameInviteAccepted(inviteId, user.id);

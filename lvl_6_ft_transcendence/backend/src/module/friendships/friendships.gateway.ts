@@ -71,6 +71,7 @@ export class FriendshipsGateway implements OnGatewayInit {
       uniqueId: messageBody.uniqueId,
       author: await this.chatService.findChatterInfoByUID(client.data.userId),
       content: messageBody.content,
+      sentAt: new Date(),
     };
 
     if (!receiverSocketId) {
