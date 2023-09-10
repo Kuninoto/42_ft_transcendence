@@ -1,10 +1,10 @@
 export enum RoomWarning {
-  JOIN = 'joined',
-  BAN = 'banned',
-  KICK = 'kicked',
-  PROMOTED = 'promoted',
-  DEMOTED = 'demoted',
-  MUTE = 'muted',
-  LEAVE = 'left',
-  OWNER_LEFT= 'owner left',
+	BAN = 'banned',
+	DEMOTED = 'demoted',
+	JOIN = 'joined',
+	KICK = 'kicked',
+	LEAVE = 'left',
+	MUTE = 'muted',
+	OWNER_LEFT = 'owner left',
+	PROMOTED = 'promoted',
 }

@@ -4,12 +4,12 @@ import {
 	UserProfile as IUserProfile,
 } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
-import { IoPodiumOutline } from 'react-icons/io5'
-import { LiaUserFriendsSolid } from 'react-icons/lia'
 import { removeParams } from '@/contexts/AuthContext'
 import Tippy from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { IoPodiumOutline } from 'react-icons/io5'
+import { LiaUserFriendsSolid } from 'react-icons/lia'
 
 export default function History({
 	history,
@@ -31,33 +31,34 @@ export default function History({
 
 					const score = userWon ? (
 						<>
-							{match.winner.score}{' '}
-							{match.loser.score}
+							{match.winner.score} {match.loser.score}
 						</>
 					) : (
 						<>
-							{match.winner.score}{' '}
-							{match.loser.score}
+							{match.winner.score} {match.loser.score}
 						</>
 					)
 
 					return (
 						<div
 							className={`flex w-full place-content-between items-center rounded-sm bg-gradient-to-r 
-							${userWon ? "from-gray-400/40" : "from-primary-fushia/40"} px-4 py-3 text-xl`}
+							${userWon ? 'from-gray-400/40' : 'from-primary-fushia/40'} px-4 py-3 text-xl`}
 							key={index}
 						>
 							<Link
 								className="flex items-center space-x-4 hover:underline"
 								href={`/profile?id=${opponent.userId}`}
 							>
-								<Tippy className="text-xs" content={
-									<div className="p-2 border border-white rounded bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80%">
-										{isLadder ? "Ladder" : "Friendly"}
-									</div>
-								}>
+								<Tippy
+									content={
+										<div className="rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-2">
+											{isLadder ? 'Ladder' : 'Friendly'}
+										</div>
+									}
+									className="text-xs"
+								>
 									<button>
-										{isLadder ? <IoPodiumOutline/> : <LiaUserFriendsSolid/>}
+										{isLadder ? <IoPodiumOutline /> : <LiaUserFriendsSolid />}
 									</button>
 								</Tippy>
 								<div className="relative aspect-square w-12 overflow-hidden rounded">
@@ -73,7 +74,7 @@ export default function History({
 								<span className="text-start">{opponent.name}</span>
 							</Link>
 							<p className="text-2xl">{score}</p>
-							<p className="text-2xl">{userWon ? "Victory" : "Defeat"  }</p>
+							<p className="text-2xl">{userWon ? 'Victory' : 'Defeat'}</p>
 						</div>
 					)
 				})

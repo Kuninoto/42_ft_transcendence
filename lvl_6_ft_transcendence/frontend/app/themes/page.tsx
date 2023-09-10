@@ -91,22 +91,34 @@ export default function Themes() {
 				/>
 			</Link>
 
-			<div className="flex flex-col h-full w-full place-content-center items-center space-y-6 overflow-hidden">
+			<div className="flex h-full w-full flex-col place-content-center items-center space-y-6 overflow-hidden">
 				<div className="flex items-center space-x-2 ">
-					<button className="border rounded-l border-white text-white mix-blend-lighten hover:bg-white hover:text-black" onClick={goBackward}>
+					<button
+						className="rounded-l border border-white text-white mix-blend-lighten hover:bg-white hover:text-black"
+						onClick={goBackward}
+					>
 						<FiChevronLeft size={48} />
 					</button>
 					{user.game_theme == themeKeys[selected] || saving ? (
-						<div className="px-4 text-2xl text-black border border-white py-2 bg-white mix-blend-lighten">{saving ? 'SAVING...' : 'IN USE'}</div>
+						<div className="border border-white bg-white px-4 py-2 text-2xl text-black mix-blend-lighten">
+							{saving ? 'SAVING...' : 'IN USE'}
+						</div>
 					) : (
-						<button className="px-4 text-2xl border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black" onClick={save}>SAVE</button>
+						<button
+							className="border border-white px-4 py-2 text-2xl text-white mix-blend-lighten hover:bg-white hover:text-black"
+							onClick={save}
+						>
+							SAVE
+						</button>
 					)}
-					<button className="border rounded-r border-white text-white mix-blend-lighten hover:bg-white hover:text-black" onClick={goForward}>
+					<button
+						className="rounded-r border border-white text-white mix-blend-lighten hover:bg-white hover:text-black"
+						onClick={goForward}
+					>
 						<FiChevronRight size={48} />
 					</button>
 				</div>
 				<div className="relative flex h-2/3 w-2/3 place-content-center items-center border-2 border-white">
-
 					<Image
 						alt="background"
 						className="object-cover"
