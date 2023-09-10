@@ -147,7 +147,7 @@ export class ChatService {
       createRoomRequest.password
     ) {
       this.logger.warn(
-        `${owner.name} tried to create a ${createRoomRequest.type} CreateRoomRequest with password`,
+        `"${owner.name}" tried to create a ${createRoomRequest.type} room with password`,
       );
       throw new BadRequestException(
         `A ${createRoomRequest.type} room cannot have a password`,
@@ -320,7 +320,7 @@ export class ChatService {
 
     if (this.isUserInRoom(room, joiningUser.id)) {
       this.logger.warn(
-        `${joiningUser.name} tried to join a room where he's already in (room: "${room.name}")`,
+        `"${joiningUser.name}" tried to join a room where he's already in (room: "${room.name}")`,
       );
       throw new ConflictException(`You're already in room "${room.name}"`);
     }

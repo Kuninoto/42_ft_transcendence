@@ -1,8 +1,6 @@
 'use client'
 
-import { api } from '@/api/api'
 import { useAuth } from '@/contexts/AuthContext'
-import { useFriends } from '@/contexts/FriendsContext'
 import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
 import { useEffect } from 'react'

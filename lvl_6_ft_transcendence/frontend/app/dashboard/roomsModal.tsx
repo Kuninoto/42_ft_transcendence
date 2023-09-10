@@ -225,15 +225,12 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 		try {
 			api
 				.post(`/chat/${id}/join`, roomInfo)
-				.then((data) => {
-					api.get(`/chat/rooms/search`).then((result) => {
-						refreshRooms()
-						searchRoom('')
-					})
+				.then(() => {
+					refreshRooms()
+					searchRoom('')
 				})
 				.catch((e) => {
-					toast.error('Wrong password')
-					throw 'Network error'
+					throw 'Wrong password'
 				})
 		} catch (error: any) {
 			toast.error(error)
@@ -242,7 +239,14 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 
 	return (
 		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
-			{createRoom && <CreateRoom closeModal={() => setCreateRoom(false)} />}
+			{createRoom && (
+				<CreateRoom
+					closeModal={() => {
+						setCreateRoom(false)
+						closeModal()
+					}}
+				/>
+			)}
 
 			<button
 				className="absolute left-0 top-0 h-screen w-screen bg-black/70"

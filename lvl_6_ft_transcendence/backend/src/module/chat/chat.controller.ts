@@ -234,7 +234,7 @@ export class ChatController {
 
     const room: ChatRoom | null = await this.chatService.findRoomById(roomId);
     if (!room) {
-      this.logger.warn(`${user.name} tried to leave a non-existing room`);
+      this.logger.warn(`"${user.name}" tried to leave a non-existing room`);
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
