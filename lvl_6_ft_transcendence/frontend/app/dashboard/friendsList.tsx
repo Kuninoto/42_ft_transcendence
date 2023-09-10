@@ -1,7 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomInterface, InviteToRoomRequest } from '@/common/types'
+import { ChatRoomInterface, SendRoomInviteRequest } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Tippy,  from '@tippyjs/react'
@@ -50,7 +50,7 @@ function InviteRoomsModal({
 	}, [id])
 
 	function inviteToRoom(roomId: number) {
-		const newInvite: InviteToRoomRequest = {
+		const newInvite: SendRoomInviteRequest = {
 			receiverUID: parseInt(id),
 			roomId: parseInt(roomId),
 		}

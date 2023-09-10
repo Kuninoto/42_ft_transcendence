@@ -125,10 +125,17 @@ export class UsersService {
     userId: number,
   ): Promise<GameResultInterface[]> {
     // Find game results where winner or loser id = userId
-    const gameResults: GameResult[] = await this.gameResultRepository.find({
-      where: [{ winner: { id: userId } }, { loser: { id: userId } }],
-      relations: { winner: true, loser: true },
-    });
+    // and sort them from the newest to the latest (biggest id at index 0)
+    const gameResults = await this.gameResultRepository
+      .createQueryBuilder('game_result')
+      .select('*')
+      .leftJoinAndSelect('game_result.winner', 'winner')
+      .leftJoinAndSelect('game_result.loser', 'loser')
+      .where('winner.id = :userId OR loser.id = :userId', {
+        userId,
+      })
+      .orderBy('game_result.id', 'DESC')
+      .getMany();
 
     const matchHistory: GameResultInterface[] = gameResults.map(
       (result: GameResult): GameResultInterface => {

@@ -5,5 +5,5 @@ export class SendGameInviteRequest {
   @ApiProperty()
   @IsNumber()
   @IsPositive()
-  readonly recipientUID: number;
+  readonly receiverUID: number;
 }

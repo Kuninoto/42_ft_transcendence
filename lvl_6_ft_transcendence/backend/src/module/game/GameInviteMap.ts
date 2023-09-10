@@ -16,7 +16,7 @@ export class GameInviteMap {
 
     this.gameInviteMap.set(inviteId, {
       id: inviteId,
-      recipientUID: createGameInviteDto.recipientUID,
+      receiverUID: createGameInviteDto.receiverUID,
       sender: createGameInviteDto.sender,
     });
 
@@ -31,9 +31,9 @@ export class GameInviteMap {
     let invites: GameInvite[] = [];
 
     this.gameInviteMap.forEach((invite: GameInvite): void => {
-      if (userId == invite.recipientUID || userId == invite.sender.userId)
+      if (userId == invite.receiverUID || userId == invite.sender.userId)
         invites.push(invite);
-    })
+    });
 
     return invites;
   }
