@@ -1,7 +1,7 @@
-import { UserBasicProfile } from '@/common/types/user';
+import { UserBasicProfile } from '@/common/types/user'
 
 export interface DirectMessageReceivedEvent {
-  uniqueId: string;
-  author: UserBasicProfile;
-  content: string;
+	author: UserBasicProfile
+	content: string
+	uniqueId: string
 }

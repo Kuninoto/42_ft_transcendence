@@ -321,6 +321,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
 
+				const isRoom = 'id' in data || 'warning' in data
 				const id =
 					'author' in data && !('id' in data)
 						? data.author.id
@@ -328,16 +329,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 						? data.inviterUID
 						: 'id' in data
 						? data.id
-						: 'roomId' in data && !('inviteId' in data)
-						? data.roomId
-						: -1
+						: data.roomId
 
 				const index = newChat?.findIndex((chat) => {
-					if ('room' in chat) {
-						return chat.room.id === id
-					}
-					return chat.friend.uid === id
+					if (isRoom && 'room' in chat) return chat.room.id == id
+					if (!isRoom && 'friend' in chat) return chat.friend.uid == id
+					return false
 				})
+				console.log(index)
 
 				if (
 					'warning' in data &&
@@ -363,8 +362,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 								content: data.content,
 								uniqueID: data.uniqueId,
 						  }
-
-				const isRoom = 'id' in data || 'warning' in data
 
 				if (index === -1) {
 					if (isRoom) {
@@ -405,16 +402,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					newChat[index].display = true
 					newChat[index]?.messages.unshift(newMessage)
 				}
-
-				setExists((prevExist) => {
-					if (!prevExist) focus(id, isRoom)
-					return true
-				})
-
 				return newChat
 			})
+			setExists(true)
 		},
-		[friends, rooms, actionBasedOnWarning]
+		[friends, rooms, actionBasedOnWarning, exists]
 	)
 
 	function updateFriendStatus(data: NewUserStatusEvent) {

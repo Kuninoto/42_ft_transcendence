@@ -76,14 +76,9 @@ function RoomSettings({
 	}, [])
 
 	function unban(userId: number) {
-		const newRoomOperation: RoomOperationRequest = {
-			roomId: parseInt(id),
-			userId: parseInt(userId),
-		}
-
 		try {
 			api
-				.delete(`/chat/${roomId}/ban?roomId=${id}&userId=${userId}`)
+				.delete(`/chat/${id}/ban?userId=${userId}`)
 				.then(() => getBans())
 				.catch(() => {
 					throw 'Network Error'
