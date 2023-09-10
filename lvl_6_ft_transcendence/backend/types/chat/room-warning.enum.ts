@@ -5,6 +5,7 @@ export enum RoomWarning {
   PROMOTED = 'promoted',
   DEMOTED = 'demoted',
   MUTE = 'muted',
+  UNMUTE = 'unmuted',
   LEAVE = 'left',
   OWNER_LEFT= 'owner left',
 }

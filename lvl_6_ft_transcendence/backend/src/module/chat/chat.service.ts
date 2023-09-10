@@ -21,10 +21,12 @@ import {
   CreateRoomRequest,
   DirectMessageReceivedEvent,
   ErrorResponse,
+  MuteDuration,
   RoomInvite,
   RoomWarning,
   SuccessResponse,
   UserBasicProfile,
+  UserStatus,
 } from 'types';
 import { ChatRoomRoles } from 'types/chat/chat-room-roles.enum';
 import { ConnectionGateway } from '../connection/connection.gateway';
@@ -58,7 +60,7 @@ export class ChatService {
    *           DMs            *
    *****************************/
 
-  async createDirectMessage(
+  public async createDirectMessage(
     senderUID: number,
     receiverUID: number,
     uniqueId: string,
@@ -74,7 +76,7 @@ export class ChatService {
     return await this.directMessageRepository.save(newMessage);
   }
 
-  async sendMissedDirectMessages(
+  public async sendMissedDirectMessages(
     receiverSocketId: string,
     receiverUID: number,
   ): Promise<void> {
@@ -100,6 +102,7 @@ export class ChatService {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),
         content: dm.content,
+        sentAt: new Date(),
       };
 
       this.connectionGateway.server
@@ -354,7 +357,7 @@ export class ChatService {
     client.join(roomSocketIds);
   }
 
-  public async inviteToRoom(
+  public async sendRoomInvite(
     inviterUID: number,
     receiverUID: number,
     roomId: number,
@@ -364,15 +367,28 @@ export class ChatService {
     );
     if (!receiver)
       throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
-      
+
+    if (receiver.status !== UserStatus.ONLINE)
+      throw new ConflictException(
+        `You cannot invite user because he is ${receiver.status}`,
+      );
+
     if (
       !(await this.friendshipsService.areTheyFriends(inviterUID, receiverUID))
     ) {
       throw new ForbiddenException('You cannot invite non-friends to rooms');
     }
 
-    if (this.hasSenderAlreadySentRoomInviteToThisReceiver(inviterUID, receiverUID, roomId))
-      throw new ConflictException('You have an active room invite to that user');
+    if (
+      this.hasSenderAlreadySentRoomInviteToThisReceiver(
+        inviterUID,
+        receiverUID,
+        roomId,
+      )
+    )
+      throw new ConflictException(
+        'You have an active room invite to that user',
+      );
 
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room) {
@@ -411,7 +427,14 @@ export class ChatService {
     accepted: boolean,
     user: User,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (accepted) return this.joinRoomByInvite(inviteId, user);
+    if (accepted) {
+      if (user.status !== UserStatus.OFFLINE)
+        throw new ConflictException(
+          `You cannot accept a room invite while being ${user.status}`,
+        );
+
+      return this.joinRoomByInvite(inviteId, user);
+    }
 
     this.roomInviteMap.deleteInviteByInviteId(inviteId);
     return { message: 'Successfully declined chat room invite' };
@@ -681,7 +704,7 @@ export class ChatService {
 
   public async muteUser(
     userToMuteId: number,
-    durationInMs: number,
+    duration: MuteDuration,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom = await this.findRoomById(roomId);
@@ -695,18 +718,37 @@ export class ChatService {
       );
     }
 
+    // Calculate the mute duration in ms to later use on setTimeout()
+    let durationInMs: number;
+    switch (duration) {
+      case MuteDuration.THIRTEEN_SECS:
+        durationInMs = 30 * 1000;
+        break;
+      case MuteDuration.FIVE_MINS:
+        durationInMs = 5 * 60 * 1000;
+        break;
+    }
+
     this.mutedUsers.push({
       roomId: room.id,
       userId: userToMuteId,
     });
 
-    setTimeout(async (): Promise<void> => {
-      await this.unmuteUser(userToMuteId, roomId);
-    }, durationInMs);
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userToMute.id,
+      warning: `${userToMute.name} was muted for ${duration}`,
+      warningType: RoomWarning.MUTE,
+    });
 
     this.logger.log(
       `"${userToMute.name}" is now muted on room: "${room.name}"`,
     );
+
+    setTimeout(async (): Promise<void> => {
+      await this.unmuteUser(userToMuteId, roomId);
+    }, durationInMs);
+
     return { message: `Successfully muted "${userToMute.name}"` };
   }
 
@@ -735,6 +777,14 @@ export class ChatService {
         `${userToUnmute.name} was unmuted on room: "${room.name}"`,
       );
     }
+
+    this.connectionGateway.sendRoomWarning(room.id, {
+      roomId: room.id,
+      affectedUID: userToUnmute.id,
+      warning: `${userToUnmute.name} was unmuted`,
+      warningType: RoomWarning.UNMUTE,
+    });
+
     return { message: `Successfully unmuted "${userToUnmute.name}"` };
   }
 
@@ -769,7 +819,7 @@ export class ChatService {
   }
 
   public disconnectChatter(userId: number): void {
-    this.roomInviteMap.deleteAllInvitesToUser(userId);
+    this.roomInviteMap.deleteAllInvitesWithUser(userId);
   }
 
   public async removeUserFromRoom(room: ChatRoom, uid: number): Promise<void> {
@@ -780,9 +830,8 @@ export class ChatService {
 
   public checkForValidRoomName(name: string): void {
     // If room name doesn't respect the boundaries (4-10 chars longs)
-    if (!(name.length >= 4 && name.length <= 10)) {
+    if (!(name.length >= 4 && name.length <= 10))
       throw new BadRequestException('Room names must be 4-10 chars long');
-    }
 
     // If room name is not composed only by a-z, A-Z, 0-9, _
     if (!name.match('^[a-zA-Z0-9_]+$')) {
@@ -871,15 +920,19 @@ export class ChatService {
   private hasSenderAlreadySentRoomInviteToThisReceiver(
     senderUID: number,
     receiverUID: number,
-    roomId: number
+    roomId: number,
   ): boolean {
     const invitesWithUser: RoomInvite[] =
       this.roomInviteMap.findAllInvitesWithUser(senderUID);
 
     invitesWithUser.forEach((invite: RoomInvite): boolean | void => {
-      if (invite.inviterUID == senderUID && invite.receiverUID == receiverUID && invite.roomId == roomId)
+      if (
+        invite.inviterUID == senderUID &&
+        invite.receiverUID == receiverUID &&
+        invite.roomId == roomId
+      )
         return true;
-    })
+    });
 
     return false;
   }

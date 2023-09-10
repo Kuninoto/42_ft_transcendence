@@ -88,6 +88,7 @@ export class ChatGateway implements OnGatewayInit {
         avatar_url: user.avatar_url,
       },
       content: messageBody.content,
+      sentAt: new Date(),
     };
 
     const idsOfUsersInRoom: number[] = room.users.map(

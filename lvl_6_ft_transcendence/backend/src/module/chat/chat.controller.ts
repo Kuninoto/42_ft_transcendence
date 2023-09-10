@@ -37,11 +37,10 @@ import {
   ChatRoomSearchInfo,
   CreateRoomRequest,
   ErrorResponse,
-  InviteToRoomRequest,
   JoinRoomRequest,
-  MuteDuration,
   MuteUserRequest,
   RoomOperationRequest,
+  SendRoomInviteRequest,
   SuccessResponse,
   UpdateRoomPasswordRequest,
   UserBasicProfile,
@@ -224,7 +223,7 @@ export class ChatController {
     description: 'Successfully left room with id=body.roomId',
   })
   @HttpCode(HttpStatus.OK)
-  @Post('/:roomId/leave-room')
+  @Post('/:roomId/leave')
   public async leaveRoom(
     @ExtractUser() user: User,
     @Param('roomId') roomId: number,
@@ -244,7 +243,7 @@ export class ChatController {
   }
 
   @ApiOperation({ description: 'Invite a user (friend) to a chat room' })
-  @ApiBody({ type: InviteToRoomRequest })
+  @ApiBody({ type: SendRoomInviteRequest })
   @ApiNotFoundResponse({ description: "If room or receiver don't exist" })
   @ApiForbiddenResponse({
     description: 'If sender is not a friend of receiver',
@@ -258,11 +257,11 @@ export class ChatController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('/invite')
-  public async inviteToRoom(
+  public async sendRoomInvite(
     @ExtractUser() user: User,
-    @Body() body: InviteToRoomRequest,
+    @Body() body: SendRoomInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.inviteToRoom(
+    return await this.chatService.sendRoomInvite(
       user.id,
       body.receiverUID,
       body.roomId,
@@ -314,7 +313,7 @@ export class ChatController {
     @Query('friendId') friendId: number,
   ): Promise<ChatRoomInterface[] | ErrorResponse> {
     if (!friendId || Number.isNaN(friendId) || friendId < 1)
-      throw new BadRequestException('No friendId was provided');
+      throw new BadRequestException('Invalid friendId parameter');
     return await this.chatService.findPossibleInvites(user, friendId);
   }
 
@@ -334,8 +333,8 @@ export class ChatController {
   @Post('/:roomId/kick')
   public async kickFromRoom(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationRequest,
     @Param('roomId') roomId: number,
+    @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.kickFromRoom(user.id, body.userId, roomId);
   }
@@ -351,8 +350,8 @@ export class ChatController {
   @Post('/:roomId/ban')
   public async banFromRoom(
     @ExtractUser() user: User,
-    @Body() body: RoomOperationRequest,
     @Param('roomId') roomId: number,
+    @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     return await this.chatService.banFromRoom(user.id, body.userId, roomId);
   }
@@ -407,21 +406,10 @@ export class ChatController {
   @HttpCode(HttpStatus.OK)
   @Post('/:roomId/mute')
   public async muteUser(
-    @Body() body: MuteUserRequest,
     @Param('roomId') roomId: number,
+    @Body() body: MuteUserRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    // Calculate the mute duration in ms to later use on setTimeout()
-    let muteDuration: number;
-    switch (body.duration) {
-      case MuteDuration.THIRTEEN_SECS:
-        muteDuration = 30 * 1000;
-        break;
-      case MuteDuration.FIVE_MINS:
-        muteDuration = 5 * 60 * 1000;
-        break;
-    }
-
-    return await this.chatService.muteUser(body.userId, muteDuration, roomId);
+    return await this.chatService.muteUser(body.userId, body.duration, roomId);
   }
 
   @ApiOperation({
@@ -433,7 +421,7 @@ export class ChatController {
   })
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiConflictResponse({
-    description: 'If recipient already have admin privileges',
+    description: 'If receiver already have admin privileges',
   })
   @ApiOkResponse({
     description:
@@ -463,7 +451,7 @@ export class ChatController {
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
   @ApiBadRequestResponse({
     description:
-      "If request's body is malformed or if recipient doesn't have admin privileges",
+      "If request's body is malformed or if receiver doesn't have admin privileges",
   })
   @ApiOkResponse({
     description:
@@ -481,7 +469,9 @@ export class ChatController {
 
   @ApiOperation({ description: 'Update chat room password' })
   @ApiBody({ type: UpdateRoomPasswordRequest })
-  @ApiBadRequestResponse({ description: 'If an Invalid roomId parameter is sent' })
+  @ApiBadRequestResponse({
+    description: 'If an Invalid roomId parameter is sent',
+  })
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have owner privileges",
   })
