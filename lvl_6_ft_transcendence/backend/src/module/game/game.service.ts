@@ -98,28 +98,20 @@ export class GameService {
 
   public async gameInviteAccepted(
     inviteId: string,
-    receiverUID: number,
+    userId: number,
   ): Promise<void> {
-    const receiverStatus: UserStatus = (
-      await this.usersService.findUserByUID(receiverUID)
-    ).status;
-    if (receiverStatus !== UserStatus.ONLINE)
-      throw new ConflictException(
-        `You cannot accept a game invite while being ${receiverStatus}`,
-      );
-
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
     // Delete this invite and all invites where user is the receiver
     // because user is entering a game
-    this.deleteInvitesWhereUserIsTheReceiver(receiverUID);
+    this.deleteInvitesWhereUserIsTheReceiver(userId);
 
     const receiverSocketId: string =
-      this.connectionService.findSocketIdByUID(receiverUID);
+      this.connectionService.findSocketIdByUID(userId);
 
-    const receiverPlayer: Player = new Player(receiverUID, receiverSocketId);
+    const receiverPlayer: Player = new Player(userId, receiverSocketId);
     receiverPlayer.setPlayerSide(PlayerSide.RIGHT);
 
     this.joinPlayersToRoom(

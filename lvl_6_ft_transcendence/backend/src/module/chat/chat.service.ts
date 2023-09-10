@@ -102,6 +102,7 @@ export class ChatService {
         uniqueId: dm.unique_id,
         author: await this.findChatterInfoByUID(dm.sender.id),
         content: dm.content,
+        sentAt: new Date(),
       };
 
       this.connectionGateway.server
