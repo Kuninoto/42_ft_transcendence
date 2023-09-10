@@ -61,7 +61,7 @@ export class GameGateway implements OnGatewayInit {
   @SubscribeMessage('leaveQueueOrGame')
   async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
     await this.gameService.disconnectPlayer(client.data.userId);
-    this.logger.log(`${client.data.name} left the queue or a game`);
+    this.logger.log(`${client.data.name} left the queue (possibly canceling game invites) or a game`);
   }
 
   @SubscribeMessage('playerReady')

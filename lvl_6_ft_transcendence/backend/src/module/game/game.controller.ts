@@ -87,7 +87,7 @@ export class GameController {
     return { inviteId: inviteId };
   }
 
-  @ApiOperation({ description: 'Respond to game invite' })
+  @ApiOperation({ description: 'Respond to a game invite' })
   @ApiBadRequestResponse({
     description:
       "If request is malformed or if invite isn't meant for the requesting user",
@@ -122,7 +122,7 @@ export class GameController {
     if (body.accepted === true) {
       await this.gameService.gameInviteAccepted(inviteId, user.id);
     } else {
-      this.gameService.gameInviteDeclined(user.id);
+      this.gameService.gameInviteDeclined(inviteId);
     }
 
     return { message: 'Successfully responded to game invite' };

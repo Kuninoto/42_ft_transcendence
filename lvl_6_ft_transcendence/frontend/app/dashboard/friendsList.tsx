@@ -119,9 +119,10 @@ export default function FriendsList() {
 
 	function leaveRoom(roomId: number) {
 		try {
-			api.post(`/chat/${roomId}/leave-room`, {
-				userId: parseInt(user.id),
-			})
+			api
+				.post(`/chat/${roomId}/leave`, {
+					userId: parseInt(user.id),
+				})
 		} catch (error: any) {
 			toast.error('Network error')
 		}

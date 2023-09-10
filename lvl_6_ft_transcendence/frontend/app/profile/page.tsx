@@ -308,13 +308,13 @@ export default function Profile() {
 					</div>
 
 					<h2 className="text-4xl">
-						Rank: #{userProfile?.ladder_level || '#'}
+						Rank: #{userProfile?.ladder_level || '?'}
 					</h2>
 
 					<div className="text-xl opacity-80">
-						<div> Wins: {userProfile?.stats?.wins || '0'} </div>
-						<div> Losses: {userProfile?.stats?.losses || '0'} </div>
-						<div> Win Rate: {userProfile?.stats?.win_rate || '0'}% </div>
+						<div> Wins: {userProfile?.stats?.wins || '?'} </div>
+						<div> Losses: {userProfile?.stats?.losses || '?'} </div>
+						<div> Win Rate: {userProfile?.stats?.win_rate || '?'}% </div>
 					</div>
 					<div className="text-gray-400">
 						since{' '}
@@ -323,7 +323,7 @@ export default function Profile() {
 									userProfile?.created_at,
 									moment.HTML5_FMT.DATETIME_LOCAL_SECONDS
 							  ).format('DD/MM/YY')
-							: 'XX/XX/XX'}
+							: '??/??/??'}
 					</div>
 				</div>
 

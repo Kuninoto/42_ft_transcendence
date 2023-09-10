@@ -39,7 +39,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		if (type === ChatRoomType.PROTECTED) {
 			if (password.length < 4 || password.length > 20) {
 				setError('name', {
-					message: 'Password must be 4-20 characters',
+					message: 'Passwords must be 4-20 characters long',
 					type: 'alreadyInUser',
 				})
 				return
@@ -98,13 +98,13 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 							<fieldset className="flex w-full flex-col">
 								<input
 									{...register('name', {
-										maxLength: {
-											message: 'Room names must have up to 10 characters long ',
-											value: 10,
-										},
 										minLength: {
 											message: 'Room names must be at least 4 characters long',
 											value: 4,
+										},
+										maxLength: {
+											message: 'Room names must have up to 10 characters long ',
+											value: 10,
 										},
 										pattern: {
 											message: 'Invalid character',
@@ -165,8 +165,8 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 											{...register('password', {
 												required: roomType === ChatRoomType.PROTECTED,
 											})}
-											className=" w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
-											placeholder="Password"
+											className="w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
+											placeholder="password"
 											type="password"
 										/>
 									</div>
@@ -174,7 +174,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 							</fieldset>
 
 							<input
-								className=" mx-auto w-1/2 rounded border border-white py-3 text-white mix-blend-lighten hover:bg-white hover:text-black"
+								className="mx-auto w-1/2 rounded border border-white py-3 text-white mix-blend-lighten hover:bg-white hover:text-black"
 								type="submit"
 								value={'Create'}
 							/>
@@ -309,7 +309,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 																		: 'w-0'
 																} rounded bg-transparent text-white transition-all duration-300 `}
 																onChange={(e) => setPassword(e.target.value)}
-																placeholder="Password"
+																placeholder="password"
 																required
 																type="password"
 																value={password}
