@@ -1,3 +1,3 @@
 export interface SendGameInviteRequest {
-  receiverUID: number;
+	receiverUID: number
 }

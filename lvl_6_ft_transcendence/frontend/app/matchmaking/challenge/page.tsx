@@ -29,7 +29,7 @@ export default function Loading() {
 					<div>
 						{opponentFound?.opponentInfo?.name || (
 							<span className="animate-blink">
-								{challengeInfo.name || '????'}
+								{challengeInfo.opponentName || '????'}
 							</span>
 						)}
 					</div>
