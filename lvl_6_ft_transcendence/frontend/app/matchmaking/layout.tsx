@@ -89,9 +89,7 @@ function Control({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		window.onpopstate = () => {
-			console.log('aqui')
 			if (inGame) {
-				console.log('aqui2')
 				setModal(true)
 				history.go(1)
 			}

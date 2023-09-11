@@ -1,7 +1,7 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomInterface, SendRoomInviteRequest } from '@/common/types'
+import { ChatRoomInterface, SendRoomInviteRequest, UserStatus } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import Tippy,  from '@tippyjs/react'
@@ -255,12 +255,14 @@ export default function FriendsList() {
 										>
 											<HiOutlineChatAlt2 size={24} />
 										</button>
+										{ friend.status === UserStatus.ONLINE && 
 										<button
 											className="hover:text-[#F32E7C]"
 											onClick={() => sendGameInvite(friend.name, friend.uid)}
 										>
 											<LuSwords size={24} />
 										</button>
+										}
 									</div>
 								</div>
 							))}

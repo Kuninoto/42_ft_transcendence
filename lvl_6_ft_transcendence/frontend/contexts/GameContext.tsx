@@ -82,9 +82,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			socket?.on('opponentFound', function (data: OpponentFoundEvent) {
 				setOpponentFound(data)
 				clearChallengedName()
-				setTimeout(() => {
-					router.push('/matchmaking')
-				}, 2 * 1000)
+				router.push('/matchmaking')
 			})
 
 			socket?.on('connect_error', (err: any) => console.log(err))
@@ -93,21 +91,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	useEffect(() => {
-		socket?.on('gameRoomInfo', function (data: GameRoomInfoEvent) {
-			if (opponentFound.side === PlayerSide.LEFT) {
-				setOpponentPosition(data.rightPlayer.paddleY)
-			} else {
-				setOpponentPosition(data.leftPlayer.paddleY)
-			}
+	function onGameRoomInfo(data: GameRoomInfoEvent) {
+		if (opponentFound.side === PlayerSide.LEFT) {
+			setOpponentPosition(data.rightPlayer.paddleY)
+		} else {
+			setOpponentPosition(data.leftPlayer.paddleY)
+		}
 
-			setBallPosition(data.ball)
-		})
+		setBallPosition(data.ball)
+	}
+
+	useEffect(() => {
+		socket?.on('gameRoomInfo', onGameRoomInfo)
+		return () => {
+			socket?.off('gameRoomInfo', onGameRoomInfo)
+		}
 	}, [opponentFound])
 
 	useEffect(() => {
 		if (socket) {
-			socket.once('gameEnd', function (data: GameEndEvent) {
+			socket.on('gameEnd', function (data: GameEndEvent) {
 				setGameEndInfo(data)
 			})
 
@@ -116,11 +119,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				setRightPlayerScore(data.rightPlayerScore)
 			})
 
-			socket.on('gameInviteCanceled', function (data: any) {
-				console.log("gameInviteCanceled received");
-				if (!data) return
-				removeInvite(data.inviteId)
-			})
 		}
 	}, [socket])
 
