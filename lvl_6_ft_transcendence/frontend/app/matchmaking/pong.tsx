@@ -26,6 +26,10 @@ export default function Pong() {
 		emitPaddleMovement,
 		opponentFound,
 		opponentPosition,
+		startCountDown,
+		emitReady,
+		newY,
+		changeY
 	} = useGame()
 	const { user } = useAuth()
 
@@ -85,24 +89,6 @@ export default function Pong() {
 					CANVAS_HEIGHT
 				)
 			}
-
-			paddleImage.onload = () => {
-				context.drawImage(
-					paddleImageRef.current,
-					playerPaddleRef.current.x - PADDLE_WIDTH / 2,
-					playerPaddleRef.current.y - PADDLE_HEIGHT / 2,
-					PADDLE_WIDTH,
-					PADDLE_HEIGHT
-				)
-				context.drawImage(
-					paddleImageRef.current,
-					opponentPaddleRef.current.x - PADDLE_WIDTH / 2,
-					opponentPaddleRef.current.y - PADDLE_HEIGHT / 2,
-					PADDLE_WIDTH,
-					PADDLE_HEIGHT
-				)
-			}
-
 			emitOnReady()
 
 			const draw = () => {
@@ -151,6 +137,7 @@ export default function Pong() {
 				requestAnimationFrame(update)
 			}
 
+
 			let isMovingDown = false
 			let isMovingUp = false
 
@@ -180,7 +167,15 @@ export default function Pong() {
 			document.addEventListener('keydown', handleKeyDown)
 			document.addEventListener('keyup', handleKeyUp)
 
-			update()
+			if (emitReady) {
+				update()
+				changeY()
+				playerPaddleRef.current.y = newY
+			} else {
+				startCountDown()
+				setTimeout(update, 3 * 1000)
+			}
+
 			return () => {
 				document.removeEventListener('keydown', handleKeyDown)
 				document.removeEventListener('keyup', handleKeyUp)

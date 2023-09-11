@@ -16,7 +16,7 @@ export class Player {
 
   // Paddle's x & y represent the coordinates of the paddle's center
   constructor(userId: number, socketId: string) {
-    this.paddleY = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2;
+    this.paddleY = CANVAS_HEIGHT / 2;
     // PaddleX is later assigned based
     // on the side the player is assigned
 

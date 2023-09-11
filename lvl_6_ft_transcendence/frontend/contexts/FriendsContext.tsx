@@ -14,6 +14,7 @@ import {
 } from '@/common/types'
 import { SendGameInviteRequest } from '@/common/types/game/request'
 import { RespondToGameInviteRequest } from '@/common/types/game/request/respond-to-game-invite-request'
+import { GameInviteCanceledEvent } from '@/common/types/game/socket/event/game-invite-canceled-event.interface'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import {
@@ -217,6 +218,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	function focus(id: number, isRoom: boolean) {
 		setOpenChats((prevChat) => {
+			if (!prevChat) return []
 			const newChat = [...prevChat]
 
 			const read = newChat?.map((chat) => {
@@ -285,10 +287,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function actionBasedOnWarning(warningType: RoomWarning, id: number) {
 		getRooms()
 
+		const write = warningType === RoomWarning.UNMUTE ? true : false
+
 		if (
 			warningType === RoomWarning.BAN ||
 			warningType === RoomWarning.KICK ||
 			warningType === RoomWarning.LEAVE ||
+			warningType === RoomWarning.MUTE ||
+			warningType === RoomWarning.UNMUTE ||
 			warningType === RoomWarning.OWNER_LEFT
 		) {
 			setOpenChats((prevChat: any) => {
@@ -296,7 +302,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 				const update = newChat?.map((chat) => {
 					if ('room' in chat && chat.room.id === id) {
-						return { ...chat, canWrite: false }
+						return { ...chat, canWrite: write }
 					}
 					return chat
 				})
@@ -369,7 +375,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					(!isRoom &&
 						'friend' in currentOpenChat &&
 						id == currentOpenChat.friend.uid)
-				console.log(instantlyRead)
 
 				if (index === -1) {
 					if (isRoom) {
@@ -488,8 +493,18 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				getFriends()
 				getRooms()
 			})
+
 			socket.on('newUserStatus', updateFriendStatus)
-			socket.on('gameInviteDeclined', onInviteDeclined)
+
+			socket.on('gameInviteCanceled', function (data: GameInviteCanceledEvent) {
+				console.log("gameInviteCanceled received");
+				if (!data) return
+				removeInvite(data.inviteId)
+			})
+
+			socket.on('gameInviteDeclined', function() {
+				router.push('/dashboard')
+			})
 		}
 	}, [socket])
 
@@ -515,20 +530,22 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	function removeInvite(id: string) {
 		setOpenChats((prevChats) => {
-			return prevChats.map((chat) => {
+			if (!prevChats) return []
+			const newChats = [...prevChats]
+	
+			const updated = newChats.map((chat) => {
 				return {
 					...chat,
 					messages: chat.messages.filter((message) => {
-						if ('game' in message) return message.id !== id
+						if ('game' in message) return message.id != id
 						return true
 					}),
 				}
 			})
+
+			return updated
 		})
 
-		if ('friend' in currentOpenChat) {
-			focus(currentOpenChat.friend.uid, false)
-		}
 	}
 
 	// ======================== Direct messages ========================

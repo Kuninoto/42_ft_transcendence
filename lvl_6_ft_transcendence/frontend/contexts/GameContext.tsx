@@ -31,12 +31,18 @@ type GameContextType = {
 	emitPaddleMovement: (newY: number) => void
 	forfeit: () => void
 	gameEndInfo: GameEndEvent
+	changeY: () => void,
+	newY: number
+	countDown: () => void
 	inGame: boolean
 	leftPlayerScore: number
+	countDownIsTiking: boolean
+	startCountDown: () => void
 	opponentFound: OpponentFoundEvent
 	opponentPosition: number
 	queue: () => void
 	rightPlayerScore: number
+	emitReady: boolean
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType)
@@ -51,11 +57,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
+	const [emitReady, setEmitReady] = useState(false)
+	const [countDown, setCountDown] = useState(-1)
+	const [countDownIsTiking, setCountDownIsTiking] = useState(false)
+
+	const [newY, setNewY] = useState(false)
+
 	const [gameEndInfo, setGameEndInfo] = useState<GameEndEvent>(
 		{} as GameEndEvent
 	)
 
-	const { clearChallengedName, removeInvite } = useFriends()
+	const { clearChallengedName } = useFriends()
 
 	const router = useRouter()
 	const pathname = usePathname()
@@ -75,6 +87,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		socket.emit('queueToLadder', {})
 	}
 
+	function changeY() {
+		setNewY(prevY => {
+				emitPaddleMovement(prevY)
+				return prevY
+		})
+	}
+
+	function startCountDown() {
+
+		setCountDownIsTiking(true)
+		setCountDown(3)
+		const interval = setInterval(() => setCountDown(prevCount => prevCount - 1), 1000)
+
+		setTimeout(() => {
+			clearInterval(interval)
+			setCountDownIsTiking(false)
+		}, 3 * 1000)
+
+
+	}
+
 	useEffect(() => {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))
 			router.push('/dashboard')
@@ -82,9 +115,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			socket?.on('opponentFound', function (data: OpponentFoundEvent) {
 				setOpponentFound(data)
 				clearChallengedName()
-				setTimeout(() => {
-					router.push('/matchmaking')
-				}, 2 * 1000)
+				router.push('/matchmaking')
 			})
 
 			socket?.on('connect_error', (err: any) => console.log(err))
@@ -93,21 +124,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	useEffect(() => {
-		socket?.on('gameRoomInfo', function (data: GameRoomInfoEvent) {
-			if (opponentFound.side === PlayerSide.LEFT) {
-				setOpponentPosition(data.rightPlayer.paddleY)
-			} else {
-				setOpponentPosition(data.leftPlayer.paddleY)
-			}
+	function onGameRoomInfo(data: GameRoomInfoEvent) {
+		if (opponentFound.side === PlayerSide.LEFT) {
+			setOpponentPosition(data.rightPlayer.paddleY)
+		} else {
+			setOpponentPosition(data.leftPlayer.paddleY)
+		}
 
-			setBallPosition(data.ball)
-		})
+		setBallPosition(data.ball)
+	}
+
+	useEffect(() => {
+		socket?.on('gameRoomInfo', onGameRoomInfo)
+		return () => {
+			socket?.off('gameRoomInfo', onGameRoomInfo)
+		}
 	}, [opponentFound])
 
 	useEffect(() => {
 		if (socket) {
-			socket.once('gameEnd', function (data: GameEndEvent) {
+			socket.on('gameEnd', function (data: GameEndEvent) {
 				setGameEndInfo(data)
 			})
 
@@ -116,15 +152,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				setRightPlayerScore(data.rightPlayerScore)
 			})
 
-			socket.on('gameInviteCanceled', function (data: any) {
-				console.log("gameInviteCanceled received");
-				if (!data) return
-				removeInvite(data.inviteId)
-			})
 		}
 	}, [socket])
 
 	function emitPaddleMovement(newY: number) {
+		setNewY(newY)
 		if (!socket) return
 
 		const PaddleMoveMessage: PaddleMoveMessage = {
@@ -136,12 +168,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}
 
 	function emitOnReady() {
-		if (!socket) return
+		if (!socket || emitReady) return
 
 		const PlayerReadyMessage: PlayerReadyMessage = {
 			gameRoomId: opponentFound.roomId,
 		}
 
+		setEmitReady(true)
 		socket.emit('playerReady', PlayerReadyMessage)
 	}
 
@@ -150,13 +183,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		canCancel: !hasValues(opponentFound),
 		cancel,
 		emitOnReady,
+		countDown,
+		startCountDown,
+		newY,
 		emitPaddleMovement,
 		forfeit,
 		gameEndInfo,
+		countDownIsTiking,
 		inGame: hasValues(opponentFound) && !hasValues(gameEndInfo),
 		leftPlayerScore,
 		opponentFound,
+		changeY,
 		opponentPosition,
+		emitReady,
 		queue,
 		rightPlayerScore,
 	}
