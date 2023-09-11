@@ -255,7 +255,10 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 		api.post(`/chat/${roomId}/mute`, {
 			duration,
 			userId: parseInt(id),
-		})
+		}).catch(e => {
+			toast.error('Already muted')}
+		)
+
 	}
 
 	return (
@@ -298,24 +301,33 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	function promote() {
 		api.post(`/chat/${roomId}/add-admin`, {
 			userId: parseInt(id),
-		})
+		}).catch(e => {
+			toast.error('Already promoted')}
+		)
 	}
 
 	function demote() {
 		api.post(`/chat/${roomId}/remove-admin`, {
 			userId: parseInt(id),
-		})
+		}).catch(e => {
+			toast.error('Already demoted')}
+		)
 	}
 
 	function kick() {
 		api.post(`/chat/${roomId}/kick`, {
 			userId: parseInt(id),
-		})
+		}).catch(e => {
+			toast.error('Already kicked')}
+		)
+
 	}
 
 	function ban() {
 		api.post(`/chat/${roomId}/ban`, {
 			userId: parseInt(id),
+		}).catch(e => {
+			toast.error('Already banned, sorry :(') 
 		})
 	}
 

@@ -95,7 +95,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}
 
 	function startCountDown() {
-
 		setCountDownIsTiking(true)
 		setCountDown(3)
 		const interval = setInterval(() => setCountDown(prevCount => prevCount - 1), 1000)
@@ -104,8 +103,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			clearInterval(interval)
 			setCountDownIsTiking(false)
 		}, 3 * 1000)
-
-
 	}
 
 	useEffect(() => {

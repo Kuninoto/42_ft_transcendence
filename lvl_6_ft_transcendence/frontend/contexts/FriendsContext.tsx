@@ -478,7 +478,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
-		console.log("gameInviteDeclined received");
+		toast.error("Challange rejected")
 		router.push('/dashboard')
 	}
 
@@ -502,9 +502,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				removeInvite(data.inviteId)
 			})
 
-			socket.on('gameInviteDeclined', function() {
-				router.push('/dashboard')
-			})
+			socket.on('gameInviteDeclined', onInviteDeclined)
 		}
 	}, [socket])
 
@@ -532,7 +530,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		setOpenChats((prevChats) => {
 			if (!prevChats) return []
 			const newChats = [...prevChats]
-	
+
+			let index = -1
+			newChats.map((chat, idx) => {
+				if (chat.messages.some(message => 'game' in message && message.id === id)) {
+				index = idx
+				}
+			})
+
 			const updated = newChats.map((chat) => {
 				return {
 					...chat,
@@ -542,6 +547,16 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					}),
 				}
 			})
+
+			if (index != -1) {
+				setCurrentOpenChat(prevCurrent => {
+					if ('friend' in prevCurrent && 'friend' in updated[index] && prevCurrent.friend.uid === updated[index].friend.uid) {
+						return updated[index]
+					}
+					return prevCurrent
+				})
+			}
+
 
 			return updated
 		})
@@ -595,19 +610,18 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	function respondGameInvite(name: string, id: string, accepted: boolean) {
 		if (!socket) return
 
+		if (accepted) {
+			setChallengeInfo({ invite: false, name })
+			router.push('/matchmaking/challenge')
+		}
+
 		// parameter in user
 		const response: RespondToGameInviteRequest = {
 			accepted,
 		}
 
 		try {
-			api
-				.patch(`/game/${id}/status`, response)
-				.then(() => {
-					if (!accepted) return
-					setChallengeInfo({ invite: false, name })
-					router.push('/matchmaking/challenge')
-				})
+			api.patch(`/game/${id}/status`, response)
 				.catch(() => {
 					throw 'Network error'
 				})

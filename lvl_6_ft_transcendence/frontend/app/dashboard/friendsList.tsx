@@ -246,6 +246,8 @@ export default function FriendsList() {
 										>
 											<BiUser size={24} />
 										</Link>
+										{ friend.status === UserStatus.ONLINE && 
+										<>
 										<button
 											onClick={() => {
 												setOpenModal(openModalType.INVITEROOM)
@@ -255,13 +257,13 @@ export default function FriendsList() {
 										>
 											<HiOutlineChatAlt2 size={24} />
 										</button>
-										{ friend.status === UserStatus.ONLINE && 
 										<button
 											className="hover:text-[#F32E7C]"
 											onClick={() => sendGameInvite(friend.name, friend.uid)}
 										>
 											<LuSwords size={24} />
 										</button>
+										</>
 										}
 									</div>
 								</div>
