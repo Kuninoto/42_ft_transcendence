@@ -68,7 +68,7 @@ export class ConnectionGateway
       await this.joinFriendsRooms(client, user.id),
         await this.chatService.sendMissedDirectMessages(client.id, user.id);
 
-      this.logger.log(`${user.name} is online`);
+      this.logger.log(`"${user.name}" is online`);
     } catch (error: any) {
       this.logger.warn(`${error.message}. Disconnecting...`);
       client.disconnect();
@@ -87,7 +87,7 @@ export class ConnectionGateway
 
     this.connectionService.deleteSocketIdByUID(client.data.userId);
 
-    this.logger.log(`${client.data.name} is now offline`);
+    this.logger.log(`"${client.data.name}" is now offline`);
   }
 
   sendfriendRequestReceived(receiverUID: number) {

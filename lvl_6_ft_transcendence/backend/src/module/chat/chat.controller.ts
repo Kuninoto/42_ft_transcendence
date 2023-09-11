@@ -344,6 +344,7 @@ export class ChatController {
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
+  @ApiConflictResponse({ description: 'If sender tries to ban himself or if user is already banned' })
   @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -395,6 +396,7 @@ export class ChatController {
     description: "If sender doesn't have admin privileges",
   })
   @ApiNotFoundResponse({ description: "If room or user doesn't exist" })
+  @ApiConflictResponse({ description: 'If user is already muted' })
   @ApiForbiddenResponse({
     description: 'If sender (admin) tries to ban another admin',
   })

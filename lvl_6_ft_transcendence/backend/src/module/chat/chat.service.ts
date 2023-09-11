@@ -428,7 +428,7 @@ export class ChatService {
     user: User,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (accepted) {
-      if (user.status !== UserStatus.OFFLINE)
+      if (user.status !== UserStatus.ONLINE)
         throw new ConflictException(
           `You cannot accept a room invite while being ${user.status}`,
         );
@@ -533,7 +533,7 @@ export class ChatService {
     });
 
     this.logger.log(
-      `${userToRemoveRole.name} is no longer an admin in room: "${room.name}"`,
+      `"${userToRemoveRole.name}" is no longer an admin in room: "${room.name}"`,
     );
     return {
       message: `Successfully removed admin privileges from "${userToRemoveRole.name}" on room "${room.name}"`,
@@ -551,8 +551,11 @@ export class ChatService {
       this.logger.warn(
         `UID= ${senderId} tried to ban himself from room: "${room.name}"`,
       );
-      throw new ConflictException(`You cannot ban yourself`);
+      throw new ConflictException('You cannot ban yourself');
     }
+
+    if (room.bans.some((bannedUser: User): boolean => bannedUser.id == userToBanId))
+      throw new ConflictException('User is already banned');
 
     const userToBan: User | null = await this.usersService.findUserByUID(
       userToBanId,
@@ -598,7 +601,7 @@ export class ChatService {
     await this.chatRoomRepository.save(room);
 
     this.logger.log(
-      `${userToUnban.name} was unbanned from room "${room.name}"`,
+      `"${userToUnban.name}" was unbanned from room "${room.name}"`,
     );
     return {
       message: `Successfully unbanned "${userToUnban.name}" from room "${room.name}"`,
@@ -646,7 +649,7 @@ export class ChatService {
 
     await this.leaveRoom(room, userToKickId, false);
 
-    this.logger.log(`${userToKick.name} was kicked from room "${room.name}"`);
+    this.logger.log(`"${userToKick.name}" was kicked from room "${room.name}"`);
     return {
       message: `Successfully kicked "${userToKick.name}" from room "${room.name}"`,
     };
@@ -718,6 +721,12 @@ export class ChatService {
       );
     }
 
+    if (this.mutedUsers.some(
+      (mutedUser: { roomId: number, userId: number }): boolean => roomId == mutedUser.roomId && userToMuteId == mutedUser.userId
+    )) {
+      throw new ConflictException('User is already muted');
+    };
+
     // Calculate the mute duration in ms to later use on setTimeout()
     let durationInMs: number;
     switch (duration) {
@@ -774,7 +783,7 @@ export class ChatService {
     if (indexToRemove !== -1) {
       this.mutedUsers.splice(indexToRemove, 1);
       this.logger.log(
-        `${userToUnmute.name} was unmuted on room: "${room.name}"`,
+        `"${userToUnmute.name}" was unmuted on room: "${room.name}"`,
       );
     }
 
