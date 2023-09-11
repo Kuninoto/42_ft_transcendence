@@ -83,31 +83,25 @@ function ExitModal({
 }
 
 function Control({ children }: { children: ReactNode }) {
-	const { inGame } = useGame()
+	const { inGame, countDown, countDownIsTiking } = useGame()
 
 	const [modal, setModal] = useState(false)
 
-<<<<<<< HEAD
-	window.onpopstate = () => {
-		if (inGame) {
-			history.go(1)
-			setModal(true)
-=======
 	useEffect(() => {
 		window.onpopstate = () => {
-			console.log('aqui')
 			if (inGame) {
-				console.log('aqui2')
 				setModal(true)
 				history.go(1)
 			}
->>>>>>> d59479fa5be41bc17dd845b1d68177c615d120f8
 		}
 	}, [inGame])
 
 	return (
 		<>
 			<ExitModal closeModal={() => setModal(false)} modal={modal} />
+			{ countDownIsTiking && 
+				<div className="absolute w-screen h-screen place-content-center items-center text-9xl flex">{countDown}</div>}
+
 			{children}
 		</>
 	)

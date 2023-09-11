@@ -29,10 +29,10 @@ export default function page() {
 					<div className="h-auto w-8 rounded-md border-8 border-[#413F3F] bg-black"></div>
 					<Image
 						alt="coin"
-						className="absolute translate-x-8 translate-y-12 opacity-0 transition-all duration-700 group-hover:translate-x-3 group-hover:translate-y-2 group-hover:opacity-100"
-						height={35}
+						className="absolute translate-x-8 translate-y-16 opacity-0 transition-all duration-700 group-hover:translate-x-3 group-hover:translate-y-2 group-hover:opacity-100"
+						height={45}
 						src={'/coin.png'}
-						width={50}
+						width={60}
 					/>
 				</a>
 			</div>

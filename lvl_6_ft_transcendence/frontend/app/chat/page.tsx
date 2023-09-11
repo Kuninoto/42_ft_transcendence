@@ -344,7 +344,7 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 				</button>
 			)}
 			{(role === ChatRoomRoles.OWNER ||
-				(role === ChatRoomRoles.ADMIN && authorRole !== ChatRoomRoles.ADMIN)) &&
+				(role === ChatRoomRoles.ADMIN && authorRole === ChatRoomRoles.CHATTER)) &&
 				role !== null &&
 				authorRole !== null && (
 					<>
