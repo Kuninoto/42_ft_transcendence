@@ -98,13 +98,13 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 							<fieldset className="flex w-full flex-col">
 								<input
 									{...register('name', {
-										minLength: {
-											message: 'Room names must be at least 4 characters long',
-											value: 4,
-										},
 										maxLength: {
 											message: 'Room names must have up to 10 characters long ',
 											value: 10,
+										},
+										minLength: {
+											message: 'Room names must be at least 4 characters long',
+											value: 4,
 										},
 										pattern: {
 											message: 'Invalid character',
@@ -272,7 +272,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 								<AiOutlinePlus size={24} />
 							</button>
 						</div>
-						<div className="mt-8 h-56 space-y-3 overflow-auto border-none ">
+						<div className="mt-8 h-56 space-y-3 border-none ">
 							{search.length !== 0 && (
 								<div className="mb-4">
 									Searching for &quot;
