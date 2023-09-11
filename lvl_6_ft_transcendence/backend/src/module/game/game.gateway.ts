@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { GatewayCorsOption } from 'src/common/option/cors.option';
 import {
   GameEndEvent,
+  GameInviteCanceledEvent,
   GameRoomInfoEvent,
   InvitedToGameEvent,
   OpponentFoundEvent,
@@ -113,13 +114,15 @@ export class GameGateway implements OnGatewayInit {
       .emit('gameInviteDeclined');
   }
 
-  public emitGameInviteCanceled(userId: number): void {
+  public emitGameInviteCanceled(userId: number, inviteId: string): void {
     const receiverSocketId: string =
       this.connectionService.findSocketIdByUID(userId);
 
+    const gameInviteCanceledEvent: GameInviteCanceledEvent = { inviteId: inviteId };
+  
     this.connectionGateway.server
       .to(receiverSocketId)
-      .emit('gameInviteCanceled');
+      .emit('gameInviteCanceled', gameInviteCanceledEvent);
   }
 
   public emitInvitedToGameEvent(
