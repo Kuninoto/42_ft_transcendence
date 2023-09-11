@@ -31,7 +31,7 @@ export default function History({
 
 					const score = userWon
 						? `${match.winner.score} ${match.loser.score}`
-						: `${match.winner.score} ${match.winner.score}`
+						: `${match.loser.score} ${match.winner.score}`
 
 					return (
 						<div
