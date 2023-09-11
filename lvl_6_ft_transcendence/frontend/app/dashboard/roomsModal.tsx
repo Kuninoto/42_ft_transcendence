@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AiOutlinePlus } from 'react-icons/ai'
 import { BiLockAlt } from 'react-icons/bi'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 
 function CreateRoom({ closeModal }: { closeModal: () => void }) {
@@ -24,6 +25,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		watch,
 	} = useForm()
 	const roomType = watch('type')
+	const [showPassword, setShowPassword] = useState(false);
 
 	const { refreshRooms } = useFriends()
 
@@ -167,8 +169,16 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 											})}
 											className="w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
 											placeholder="password"
-											type="password"
-										/>
+											type={showPassword ? 'text' : 'password'}
+                							/>
+                							<button
+                								type="button"
+												disabled={roomType !== ChatRoomType.PROTECTED}
+											  	className={roomType !== ChatRoomType.PROTECTED ? 'opacity-40' : ''}
+                							  	onClick={() => setShowPassword(!showPassword)}
+                							>
+                								{showPassword ? <FaEyeSlash /> : <FaEye />}
+                							</button>
 									</div>
 								</label>
 							</fieldset>
