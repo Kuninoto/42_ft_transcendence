@@ -217,6 +217,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	function focus(id: number, isRoom: boolean) {
 		setOpenChats((prevChat) => {
+			if (!prevChat) return []
 			const newChat = [...prevChat]
 
 			const read = newChat?.map((chat) => {
@@ -473,7 +474,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
-		console.log("gameInviteDeclined received");
+		console.log("eameInviteDeclined received");
 		router.push('/dashboard')
 	}
 
@@ -489,7 +490,16 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				getRooms()
 			})
 			socket.on('newUserStatus', updateFriendStatus)
-			socket.on('gameInviteDeclined', onInviteDeclined)
+
+			socket.on('gameInviteCanceled', function (data: any) {
+				console.log("gameInviteCanceled received");
+				if (!data) return
+				removeInvite(data.inviteId)
+			})
+
+			socket.on('gameInviteDeclined', function() {
+				router.push('/dashboard')
+			})
 		}
 	}, [socket])
 
@@ -514,16 +524,24 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	// ======================== Room messages ========================
 
 	function removeInvite(id: string) {
+		console.log(id)
 		setOpenChats((prevChats) => {
-			return prevChats.map((chat) => {
+			console.log(prevChats)
+			if (!prevChats) return []
+			const newChats = [...prevChats]
+
+			const updated = newChats.map((chat) => {
 				return {
 					...chat,
 					messages: chat.messages.filter((message) => {
-						if ('game' in message) return message.id !== id
+						console.log(message)
+						if ('game' in message) return message.id != id
 						return true
 					}),
 				}
 			})
+			console.log(updated)
+				return updated
 		})
 
 		if ('friend' in currentOpenChat) {
