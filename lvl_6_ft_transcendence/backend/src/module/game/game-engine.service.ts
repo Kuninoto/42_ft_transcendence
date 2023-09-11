@@ -107,8 +107,8 @@ export class GameEngineService {
   }
 
   private gameLoop(gameRoom: GameRoom): void {
-
     if (!gameRoom) return;
+
     gameRoom.ball.moveBySpeed();
     this.gameGateway.broadcastGameRoomInfo(gameRoom);
 
