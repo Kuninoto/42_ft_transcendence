@@ -384,7 +384,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							display: true,
 							messages: [newMessage],
 							room,
-							unread: instantlyRead,
+							unread: true,
 						})
 					} else {
 						const friend = friends.find((friend) => {
@@ -398,11 +398,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							display: true,
 							friend,
 							messages: [newMessage],
-							unread: instantlyRead,
+							unread: true,
 						})
 					}
 				} else {
-					newChat[index].unread = true
+					newChat[index].unread = !instantlyRead
 					newChat[index].display = true
 					newChat[index]?.messages.unshift(newMessage)
 				}
@@ -587,13 +587,15 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			api
 				.patch(`/game/${id}/status`, response)
 				.then(() => {
-					removeInvite(id)
 					if (!accepted) return
 					setChallengeInfo({ invite: false, name })
 					router.push('/matchmaking/challenge')
 				})
 				.catch(() => {
 					throw 'Network error'
+				})
+				.finally(() => {
+					removeInvite(id)
 				})
 		} catch (error: any) {
 			toast.warning(error)
