@@ -12,7 +12,7 @@ import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
 import { BiUser } from 'react-icons/bi'
 import { HiOutlineChatAlt2 } from 'react-icons/hi'
 import { LuSwords } from 'react-icons/lu'
-import { RxTriangleDown, RxTriangleUp } from 'react-icons/rx'
+import { RxTriangleUp } from 'react-icons/rx'
 import { toast } from 'react-toastify'
 
 import FriendsModal from './friendsModal'

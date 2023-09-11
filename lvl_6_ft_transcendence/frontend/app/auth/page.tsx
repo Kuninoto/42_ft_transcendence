@@ -72,7 +72,7 @@ export default function Auth() {
 				</div>
 			) : (
 				<h1 className="text-5xl after:inline-block after:w-0 after:animate-ellipsis after:overflow-hidden after:align-bottom after:content-['\2026']">
-					Loading
+					Booting up
 				</h1>
 			)}
 		</div>

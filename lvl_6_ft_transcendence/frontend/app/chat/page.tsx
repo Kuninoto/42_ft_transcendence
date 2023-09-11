@@ -24,6 +24,7 @@ import { AiOutlineClose } from 'react-icons/ai'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
 import { toast } from 'react-toastify'
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 interface IMuteTooltip {
 	id: number | undefined
@@ -49,6 +50,7 @@ function RoomSettings({
 	const [bans, setBans] = useState<UserBasicProfile[]>([])
 	const [changeStatusMessage, setChangeStatusMessage] = useState<string>('');
 	const [roomType, setRoomType] = useState<ChatRoomType>(type);
+	const [showPassword, setShowPassword] = useState<boolean>(false);
 
 	const { handleSubmit, register } = useForm()
 
@@ -126,10 +128,16 @@ function RoomSettings({
 										<input
 											className="h-full w-64 rounded border border-white bg-transparent px-2 py-1 text-white"
 											placeholder="New password"
-											type="password"
+											type={showPassword ? 'text' : 'password'}
 											{...register('password')}
-											
 										/>
+										<button
+            							  type="button"
+            							  className="h-full rounded border border-white px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+            							  onClick={() => setShowPassword(!showPassword)}
+            							>
+            							  {showPassword ? <FaEyeSlash /> : <FaEye />}
+            							</button>
 										<input
 											className="h-full rounded border border-white px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 											type="submit"
