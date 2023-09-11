@@ -116,7 +116,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				setRightPlayerScore(data.rightPlayerScore)
 			})
 
-			socket.once('gameInviteCanceled', function (data: any) {
+			socket.on('gameInviteCanceled', function (data: any) {
+				console.log("gameInviteCanceled received");
 				if (!data) return
 				removeInvite(data.inviteId)
 			})
