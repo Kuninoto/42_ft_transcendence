@@ -117,7 +117,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			})
 
 			socket.on('gameInviteCanceled', function (data: any) {
-				console.log("here");
+				console.log("gameInviteCanceled received");
 				if (!data) return
 				removeInvite(data.inviteId)
 			})

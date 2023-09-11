@@ -458,6 +458,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
+		console.log("gameInviteDeclined received");
 		router.push('/dashboard')
 	}
 
