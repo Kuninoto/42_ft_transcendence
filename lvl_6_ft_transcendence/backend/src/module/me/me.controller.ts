@@ -201,7 +201,7 @@ export class MeController {
       );
       throw new BadRequestException('Invalid file');
     }
-    this.logger.log(`${user.name} updated his avatar`);
+    this.logger.log(`"${user.name}" updated his avatar`);
 
     return await this.usersService.updateUserAvatarByUID(
       user.id,
@@ -228,7 +228,7 @@ export class MeController {
     @ExtractUser() user: User,
     @Body() body: GameThemeUpdationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    this.logger.log(`${user.name} is updating his game theme`);
+    this.logger.log(`"${user.name}" updated his game theme`);
 
     return await this.usersService.updateGameThemeByUID(
       user.id,

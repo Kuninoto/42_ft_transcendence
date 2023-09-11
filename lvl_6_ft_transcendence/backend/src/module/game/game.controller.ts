@@ -62,7 +62,7 @@ export class GameController {
   public async getLeaderboard(
     @ExtractUser() user: User,
   ): Promise<UserStatsForLeaderboard[]> {
-    this.logger.log(`${user.name} requested the leaderboard`);
+    this.logger.log(`"${user.name}" requested the leaderboard`);
     return await this.userStatsService.getLeaderboard();
   }
 

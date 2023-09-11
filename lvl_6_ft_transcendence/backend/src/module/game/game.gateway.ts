@@ -53,7 +53,7 @@ export class GameGateway implements OnGatewayInit {
   async queueToLadder(@ConnectedSocket() client: Socket): Promise<void> {
     if (this.gameService.isPlayerInQueueOrGame(client.data.userId)) return;
 
-    this.logger.log(`${client.data.name} joined the ladder queue`);
+    this.logger.log(`"${client.data.name}" joined the ladder queue`);
 
     const newPlayer: Player = new Player(client.data.userId, client.id);
     await this.gameService.queueToLadder(newPlayer);
@@ -63,7 +63,7 @@ export class GameGateway implements OnGatewayInit {
   async leaveQueueOrGame(@ConnectedSocket() client: Socket): Promise<void> {
     await this.gameService.disconnectPlayer(client.data.userId);
     this.logger.log(
-      `${client.data.name} left the queue (possibly canceling game invites) or a game`,
+      `"${client.data.name}" left the queue (possibly canceling game invites) or a game`,
     );
   }
 

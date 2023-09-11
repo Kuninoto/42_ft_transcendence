@@ -96,7 +96,7 @@ export class GameService {
       inviterUID: Number(sender.id),
     });
 
-    this.logger.log(`${sender.name} sent a game invite to ${receiver.name}`);
+    this.logger.log(`"${sender.name}" sent a game invite to ${receiver.name}`);
     return inviteId;
   }
 
