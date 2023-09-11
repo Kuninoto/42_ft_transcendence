@@ -137,7 +137,6 @@ export class UsersService {
       .orderBy('game_result.id', 'DESC')
       .getMany();
 
-
     const matchHistory: GameResultInterface[] = gameResults.map(
       (result: GameResult): GameResultInterface => {
         return {
