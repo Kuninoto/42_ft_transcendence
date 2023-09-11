@@ -362,6 +362,15 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 								uniqueID: data.uniqueId,
 						  }
 
+				const instantlyRead =
+					(isRoom &&
+						'room' in currentOpenChat &&
+						id == currentOpenChat.room.id) ||
+					(!isRoom &&
+						'friend' in currentOpenChat &&
+						id == currentOpenChat.friend.uid)
+				console.log(instantlyRead)
+
 				if (index === -1) {
 					if (isRoom) {
 						const room = rooms.find((room) => {
@@ -375,7 +384,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							display: true,
 							messages: [newMessage],
 							room,
-							unread: true,
+							unread: instantlyRead,
 						})
 					} else {
 						const friend = friends.find((friend) => {
@@ -389,23 +398,29 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							display: true,
 							friend,
 							messages: [newMessage],
-							unread: true,
+							unread: instantlyRead,
 						})
-					}
-
-					if (newChat.length === 1) {
-						setCurrentOpenChat(newChat[0])
 					}
 				} else {
 					newChat[index].unread = true
 					newChat[index].display = true
 					newChat[index]?.messages.unshift(newMessage)
 				}
+
+				if (
+					newChat.length === 1 ||
+					newChat.filter((chat) => chat.display).length === 1
+				) {
+					const oneDisplay: IChat | undefined = newChat.find(
+						(chat) => chat.display
+					)
+					if (oneDisplay) setCurrentOpenChat(oneDisplay)
+				}
 				return newChat
 			})
 			setExists(true)
 		},
-		[friends, rooms, actionBasedOnWarning, exists]
+		[friends, rooms, actionBasedOnWarning, exists, currentOpenChat]
 	)
 
 	function updateFriendStatus(data: NewUserStatusEvent) {
@@ -458,6 +473,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
+		console.log('nigger')
 		router.push('/dashboard')
 	}
 

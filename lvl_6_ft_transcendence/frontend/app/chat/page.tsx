@@ -21,6 +21,7 @@ import { usePathname } from 'next/navigation'
 import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AiOutlineClose } from 'react-icons/ai'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
 import { toast } from 'react-toastify'
@@ -48,6 +49,7 @@ function RoomSettings({
 }) {
 	const [bans, setBans] = useState<UserBasicProfile[]>([])
 	const [roomType, setRoomType] = useState<ChatRoomType>(type)
+	const [showPassword, setShowPassword] = useState<boolean>(false)
 
 	const {
 		formState: { errors },
@@ -142,17 +144,26 @@ function RoomSettings({
 												className="flex w-full space-x-2"
 												onSubmit={handleSubmit(changePassword)}
 											>
-												<input
-													className="h-full w-64 rounded border border-white bg-transparent px-2 text-white"
-													placeholder="New password"
-													type="password"
-													{...register('password', {
-														required: {
-															message: "Password can't be empty",
-															value: true,
-														},
-													})}
-												/>
+												<fieldset className="relative flex items-center">
+													<input
+														className="h-full w-64 rounded border border-white bg-transparent px-2 text-white"
+														placeholder="New password"
+														type={showPassword ? 'text' : 'password'}
+														{...register('password', {
+															required: {
+																message: "Password can't be empty",
+																value: true,
+															},
+														})}
+													/>
+													<button
+														className="absolute right-2"
+														onClick={() => setShowPassword(!showPassword)}
+														type="button"
+													>
+														{showPassword ? <FaEyeSlash /> : <FaEye />}
+													</button>
+												</fieldset>
 												<fieldset
 													className={
 														roomType !== ChatRoomType.PROTECTED

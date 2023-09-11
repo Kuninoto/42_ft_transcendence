@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AiOutlinePlus } from 'react-icons/ai'
 import { BiLockAlt } from 'react-icons/bi'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 
 function CreateRoom({ closeModal }: { closeModal: () => void }) {
@@ -24,6 +25,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		watch,
 	} = useForm()
 	const roomType = watch('type')
+	const [showPassword, setShowPassword] = useState(false)
 
 	const { refreshRooms } = useFriends()
 
@@ -116,7 +118,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 									type="text"
 								/>
 								{errors.name && (
-									<span className="text-xs text-red-600">
+									<span className="mt-4 text-xs text-red-600">
 										{errors.name.message}
 									</span>
 								)}
@@ -132,7 +134,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										type="radio"
 										value={ChatRoomType.PUBLIC}
 									/>
-									<span className="text-white peer-checked:text-primary-fushia">
+									<span className="text-gray-400 peer-checked:text-primary-fushia">
 										Public
 									</span>
 								</label>
@@ -145,7 +147,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										type="radio"
 										value={ChatRoomType.PRIVATE}
 									/>
-									<span className="text-white peer-checked:text-primary-fushia">
+									<span className="text-gray-400 peer-checked:text-primary-fushia">
 										Private (Invite only)
 									</span>
 								</label>
@@ -158,17 +160,28 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										type="radio"
 										value={ChatRoomType.PROTECTED}
 									/>
-									<div className="w-full space-x-2 text-white peer-checked:text-primary-fushia">
+									<div className="flex w-full items-center space-x-2 text-gray-400 peer-checked:text-primary-fushia">
 										<span>Protected</span>
-										<input
-											disabled={roomType !== ChatRoomType.PROTECTED}
-											{...register('password', {
-												required: roomType === ChatRoomType.PROTECTED,
-											})}
-											className="w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
-											placeholder="password"
-											type="password"
-										/>
+										<fieldset className="relative flex w-1/2 items-center">
+											<input
+												disabled={roomType !== ChatRoomType.PROTECTED}
+												{...register('password', {
+													required: roomType === ChatRoomType.PROTECTED,
+												})}
+												className="w-full rounded border border-primary-fushia bg-transparent p-2 text-white outline-none ring-0 focus:border-primary-fushia disabled:border-white"
+												placeholder="Password"
+												type={showPassword ? 'text' : 'password'}
+											/>
+											<button
+												className={`absolute right-2
+													${roomType !== ChatRoomType.PROTECTED ? 'text-gray-400' : 'text-white'}`}
+												disabled={roomType !== ChatRoomType.PROTECTED}
+												onClick={() => setShowPassword(!showPassword)}
+												type="button"
+											>
+												{showPassword ? <FaEyeSlash /> : <FaEye />}
+											</button>
+										</fieldset>
 									</div>
 								</label>
 							</fieldset>

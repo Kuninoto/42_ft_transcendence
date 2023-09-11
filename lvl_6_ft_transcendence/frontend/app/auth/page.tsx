@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import OtpInput from 'react18-input-otp'
 
+const LOADING_PHRASES = ['Booting up', 'Loading', 'Cleaning the dust']
+
 export default function Auth() {
 	const { login, login2fa } = useAuth()
 
@@ -14,6 +16,13 @@ export default function Auth() {
 
 	const [otp, setOtp] = useState('')
 	const [get2fa, setGet2fa] = useState(false)
+	const [randomPhrase, setRandomPhrase] = useState('Loading')
+
+	useEffect(() => {
+		setRandomPhrase(
+			LOADING_PHRASES[Math.floor(Math.random() * LOADING_PHRASES.length)]
+		)
+	}, [])
 
 	const send2fa = async () => {
 		try {
@@ -72,7 +81,7 @@ export default function Auth() {
 				</div>
 			) : (
 				<h1 className="text-5xl after:inline-block after:w-0 after:animate-ellipsis after:overflow-hidden after:align-bottom after:content-['\2026']">
-					Loading
+					{randomPhrase}
 				</h1>
 			)}
 		</div>

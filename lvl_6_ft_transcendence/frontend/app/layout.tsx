@@ -16,6 +16,7 @@ import 'react-toastify/dist/ReactToastify.css'
 
 import Chat from './chat/page'
 import './globals.css'
+import Head from 'next/head'
 
 const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
@@ -111,7 +112,7 @@ export default function RootLayout({
 	useEffect(() => {
 		if (browser?.name != 'chrome') {
 			console.warn(
-				`Not supported for ${browser?.name}! May contain minor issues or inconsistencies`
+				`Pongfight is not supported for ${browser?.name}! May contain minor issues or inconsistencies`
 			)
 		}
 	})
@@ -121,6 +122,9 @@ export default function RootLayout({
 			<AuthProvider>
 				<FriendsProvider>
 					<html lang="en">
+						<Head>
+			              <link rel="icon" href="/favicon.ico" sizes="any" />
+            			</Head>
 						<body className={`overflow-hidden ${pressStart.className}`}>
 							<FullScreen handle={handle}>
 								<div className="h-screen bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80%">
