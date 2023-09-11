@@ -88,7 +88,6 @@ function Control({ children }: { children: ReactNode }) {
 	const [modal, setModal] = useState(false)
 
 	window.onpopstate = () => {
-		console.log(inGame)
 		if (inGame) {
 			history.go(1)
 			setModal(true)
