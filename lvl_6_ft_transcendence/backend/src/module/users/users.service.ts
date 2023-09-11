@@ -158,7 +158,6 @@ export class UsersService {
         };
       },
     );
-    console.log(matchHistory);
     return matchHistory;
   }
 
