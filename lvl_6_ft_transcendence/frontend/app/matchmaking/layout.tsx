@@ -14,7 +14,7 @@ function FinalModal() {
 	if (!hasValues(gameEndInfo)) return
 
 	return (
-		<div className="absolute flex h-full w-full flex-col place-content-center items-center space-y-12 bg-black/50">
+		<div className="absolute z-50 flex h-full w-full flex-col place-content-center items-center space-y-12 bg-black/50">
 			<h1 className="text-6xl">
 				{gameEndInfo?.winner?.userId == user?.id ? (
 					<div>
@@ -87,13 +87,16 @@ function Control({ children }: { children: ReactNode }) {
 
 	const [modal, setModal] = useState(false)
 
-	window.onpopstate = () => {
-		console.log(inGame)
-		if (inGame) {
-			history.go(1)
-			setModal(true)
+	useEffect(() => {
+		window.onpopstate = () => {
+			console.log('aqui')
+			if (inGame) {
+				console.log('aqui2')
+				setModal(true)
+				history.go(1)
+			}
 		}
-	}
+	}, [inGame])
 
 	return (
 		<>
