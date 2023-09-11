@@ -77,12 +77,12 @@ interface Challenge {
 
 type IChat = (
 	| {
-		canWrite: boolean
-		room: ChatRoomInterface
-	}
+			canWrite: boolean
+			room: ChatRoomInterface
+	  }
 	| {
-		friend: Friend
-	}
+			friend: Friend
+	  }
 ) & {
 	display: boolean
 	messages: (Invite | Message | Warning)[]
@@ -112,7 +112,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	// ======================== General ========================
 
 	const getFriends = useCallback(
-		function() {
+		function () {
 			try {
 				if (isAuth) {
 					api
@@ -132,7 +132,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	)
 
 	const getRooms = useCallback(
-		function() {
+		function () {
 			try {
 				if (isAuth) {
 					api
@@ -310,7 +310,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	const onMessageReceived = useCallback(
-		function(
+		function (
 			data:
 				| DirectMessageReceivedEvent
 				| InvitedToGameEvent
@@ -326,10 +326,10 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					'author' in data && !('id' in data)
 						? data.author.id
 						: 'inviterUID' in data
-							? data.inviterUID
-							: 'id' in data
-								? data.id
-								: data.roomId
+						? data.inviterUID
+						: 'id' in data
+						? data.id
+						: data.roomId
 
 				const index = newChat?.findIndex((chat) => {
 					if (isRoom && 'room' in chat) return chat.room.id == id
@@ -348,19 +348,28 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 				const newMessage: Invite | Message | Warning =
 					'warning' in data
 						? {
-							warning: data.warning,
-						}
+								warning: data.warning,
+						  }
 						: 'inviteId' in data
-							? {
+						? {
 								game: !('roomName' in data),
 								id: data.inviteId,
 								roomName: 'roomName' in data ? data.roomName : undefined,
-							}
-							: {
+						  }
+						: {
 								author: data.author,
 								content: data.content,
 								uniqueID: data.uniqueId,
-							}
+						  }
+
+				const instantlyRead =
+					(isRoom &&
+						'room' in currentOpenChat &&
+						id == currentOpenChat.room.id) ||
+					(!isRoom &&
+						'friend' in currentOpenChat &&
+						id == currentOpenChat.friend.uid)
+				console.log(instantlyRead)
 
 				if (index === -1) {
 					if (isRoom) {
@@ -392,20 +401,26 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 							unread: true,
 						})
 					}
-
-					if (newChat.length === 1) {
-						setCurrentOpenChat(newChat[0])
-					}
 				} else {
-					newChat[index].unread = true
+					newChat[index].unread = !instantlyRead
 					newChat[index].display = true
 					newChat[index]?.messages.unshift(newMessage)
+				}
+
+				if (
+					newChat.length === 1 ||
+					newChat.filter((chat) => chat.display).length === 1
+				) {
+					const oneDisplay: IChat | undefined = newChat.find(
+						(chat) => chat.display
+					)
+					if (oneDisplay) setCurrentOpenChat(oneDisplay)
 				}
 				return newChat
 			})
 			setExists(true)
 		},
-		[friends, rooms, actionBasedOnWarning, exists]
+		[friends, rooms, actionBasedOnWarning, exists, currentOpenChat]
 	)
 
 	function updateFriendStatus(data: NewUserStatusEvent) {
@@ -464,11 +479,11 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		if (socket) {
-			socket.on('friendRequestReceived', function() {
+			socket.on('friendRequestReceived', function () {
 				setNewFriendNotification(true)
 			})
 
-			socket.on('refreshUser', function() {
+			socket.on('refreshUser', function () {
 				refreshUser()
 				getFriends()
 				getRooms()
@@ -572,13 +587,15 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			api
 				.patch(`/game/${id}/status`, response)
 				.then(() => {
-					removeInvite(id)
 					if (!accepted) return
 					setChallengeInfo({ invite: false, name })
 					router.push('/matchmaking/challenge')
 				})
 				.catch(() => {
 					throw 'Network error'
+				})
+				.finally(() => {
+					removeInvite(id)
 				})
 		} catch (error: any) {
 			toast.warning(error)

@@ -21,10 +21,10 @@ import { usePathname } from 'next/navigation'
 import { ChangeEventHandler, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AiOutlineClose } from 'react-icons/ai'
+import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { FiSettings } from 'react-icons/fi'
 import { IoIosClose } from 'react-icons/io'
 import { toast } from 'react-toastify'
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 interface IMuteTooltip {
 	id: number | undefined
@@ -48,31 +48,48 @@ function RoomSettings({
 	updateRoomType: (newType: ChatRoomType) => void
 }) {
 	const [bans, setBans] = useState<UserBasicProfile[]>([])
-	const [changeStatusMessage, setChangeStatusMessage] = useState<string>('');
-	const [roomType, setRoomType] = useState<ChatRoomType>(type);
-	const [showPassword, setShowPassword] = useState<boolean>(false);
+	const [roomType, setRoomType] = useState<ChatRoomType>(type)
+	const [showPassword, setShowPassword] = useState<boolean>(false)
 
-	const { handleSubmit, register } = useForm()
+	const {
+		formState: { errors },
+		handleSubmit,
+		register,
+		setError,
+		setValue,
+	} = useForm()
 
 	function changePassword({ password }: { password: string }) {
-		api.patch(`/chat/${id}/password`, {
-			newPassword: md5(password),
-		})
+		if (password.length < 4 || password.length > 20) {
+			setError('password', {
+				message: 'Passwords must be 4-20 characters long',
+				type: 'alreadyInUser',
+			})
+			return
+		}
 
-		if (roomType !== ChatRoomType.PROTECTED)
-			setChangeStatusMessage('Successfully added password')
-		else
-			setChangeStatusMessage('Successfully changed password')
-	
-		setRoomType(ChatRoomType.PROTECTED); 
-		updateRoomType(ChatRoomType.PROTECTED)
+		if (!password.match('^[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~=/\\|-]+$')) {
+			setError('password', {
+				message: 'Invalid character',
+				type: 'invalid',
+			})
+			return
+		}
+
+		api
+			.patch(`/chat/${id}/password`, {
+				newPassword: md5(password),
+			})
+			.then(() => {
+				setValue('password', '')
+			})
+		setRoomType(ChatRoomType.PROTECTED)
 	}
 
 	function removePassword() {
 		api.delete(`/chat/${id}/password`)
-		setRoomType(ChatRoomType.PUBLIC);
+		setRoomType(ChatRoomType.PUBLIC)
 		updateRoomType(ChatRoomType.PUBLIC)
-		setChangeStatusMessage('Successfully removed password')
 	}
 
 	function getBans() {
@@ -116,46 +133,71 @@ function RoomSettings({
 			<div className="px-8 py-32">
 				<div className="group relative grid items-start justify-center gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
-					<div className="relative flex h-full flex-col place-content-center items-center space-y-4 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-12 py-8 leading-none">
+					<div className="relative flex h-full flex-col place-content-center items-center space-y-4 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-8 leading-none">
 						<div className="flex">
 							<div className="flex flex-col space-y-2">
-								<span>ROOM PASSWORD</span>
-								<div className="flex h-8 space-x-2">
-									<form
-										className="space-x-2"
-										onSubmit={handleSubmit(changePassword)}
-									>
-										<input
-											className="h-full w-64 rounded border border-white bg-transparent px-2 py-1 text-white"
-											placeholder="New password"
-											type={showPassword ? 'text' : 'password'}
-											{...register('password')}
-										/>
-										<button
-            							  type="button"
-            							  className="h-full rounded border border-white px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-            							  onClick={() => setShowPassword(!showPassword)}
-            							>
-            							  {showPassword ? <FaEyeSlash /> : <FaEye />}
-            							</button>
-										<input
-											className="h-full rounded border border-white px-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
-											type="submit"
-											value={roomType === ChatRoomType.PROTECTED ? 'Change' : 'Add'}
-										/>
-									</form>
-									{roomType === ChatRoomType.PROTECTED && (
-									  <button
-									    className="h-full rounded border border-red-600 px-2 text-red-600 hover:bg-red-600 hover:text-white"
-									    onClick={removePassword}
-									  >
-									    Remove
-									  </button>
-									)}
-								</div>
-								{changeStatusMessage && (
-              						<div className="text-white">{changeStatusMessage}</div>
-            					)}
+								{roomType !== ChatRoomType.PRIVATE && (
+									<>
+										<span>ROOM PASSWORD</span>
+										<div className="flex h-8 space-x-2">
+											<form
+												className="flex w-full space-x-2"
+												onSubmit={handleSubmit(changePassword)}
+											>
+												<fieldset className="relative flex items-center">
+													<input
+														className="h-full w-64 rounded border border-white bg-transparent px-2 text-white"
+														placeholder="New password"
+														type={showPassword ? 'text' : 'password'}
+														{...register('password', {
+															required: {
+																message: "Password can't be empty",
+																value: true,
+															},
+														})}
+													/>
+													<button
+														className="absolute right-2"
+														onClick={() => setShowPassword(!showPassword)}
+														type="button"
+													>
+														{showPassword ? <FaEyeSlash /> : <FaEye />}
+													</button>
+												</fieldset>
+												<fieldset
+													className={
+														roomType !== ChatRoomType.PROTECTED
+															? 'flex w-56'
+															: ''
+													}
+												>
+													<input
+														value={
+															roomType === ChatRoomType.PROTECTED
+																? 'Change'
+																: 'Add'
+														}
+														className={`h-full w-full rounded border border-white px-4 text-white mix-blend-lighten hover:bg-white hover:text-black`}
+														type="submit"
+													/>
+												</fieldset>
+											</form>
+											{roomType === ChatRoomType.PROTECTED && (
+												<button
+													className="h-full rounded px-2 text-red-600 hover:underline"
+													onClick={removePassword}
+												>
+													Remove
+												</button>
+											)}
+										</div>
+										{errors.password && (
+											<span className="text-xs text-red-600">
+												{errors.password.message}
+											</span>
+										)}
+									</>
+								)}
 							</div>
 						</div>
 
@@ -188,7 +230,7 @@ function RoomSettings({
 													<span> {ban.name} </span>
 												</div>
 												<button
-													className="rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+													className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 													onClick={() => unban(ban.id)}
 												>
 													unban
@@ -413,12 +455,12 @@ export default function Chat() {
 		<>
 			{settings && 'room' in currentOpenChat && (
 				<RoomSettings
+					updateRoomType={(newType) => {
+						currentOpenChat.room.type = newType
+					}}
 					closeModal={() => setSettings(false)}
 					id={currentOpenChat.room.id}
 					type={currentOpenChat.room.type}
-					updateRoomType={(newType) => {
-  					  currentOpenChat.room.type = newType
-  					}}
 				/>
 			)}
 			<div

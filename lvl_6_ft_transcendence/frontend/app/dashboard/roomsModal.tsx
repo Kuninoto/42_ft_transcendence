@@ -25,7 +25,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		watch,
 	} = useForm()
 	const roomType = watch('type')
-	const [showPassword, setShowPassword] = useState(false);
+	const [showPassword, setShowPassword] = useState(false)
 
 	const { refreshRooms } = useFriends()
 
@@ -100,13 +100,13 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 							<fieldset className="flex w-full flex-col">
 								<input
 									{...register('name', {
-										minLength: {
-											message: 'Room names must be at least 4 characters long',
-											value: 4,
-										},
 										maxLength: {
 											message: 'Room names must have up to 10 characters long ',
 											value: 10,
+										},
+										minLength: {
+											message: 'Room names must be at least 4 characters long',
+											value: 4,
 										},
 										pattern: {
 											message: 'Invalid character',
@@ -118,7 +118,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 									type="text"
 								/>
 								{errors.name && (
-									<span className="text-xs text-red-600">
+									<span className="mt-4 text-xs text-red-600">
 										{errors.name.message}
 									</span>
 								)}
@@ -134,7 +134,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										type="radio"
 										value={ChatRoomType.PUBLIC}
 									/>
-									<span className="text-white peer-checked:text-primary-fushia">
+									<span className="text-gray-400 peer-checked:text-primary-fushia">
 										Public
 									</span>
 								</label>
@@ -147,7 +147,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										type="radio"
 										value={ChatRoomType.PRIVATE}
 									/>
-									<span className="text-white peer-checked:text-primary-fushia">
+									<span className="text-gray-400 peer-checked:text-primary-fushia">
 										Private (Invite only)
 									</span>
 								</label>
@@ -160,25 +160,28 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										type="radio"
 										value={ChatRoomType.PROTECTED}
 									/>
-									<div className="w-full space-x-2 text-white peer-checked:text-primary-fushia">
+									<div className="flex w-full items-center space-x-2 text-gray-400 peer-checked:text-primary-fushia">
 										<span>Protected</span>
-										<input
-											disabled={roomType !== ChatRoomType.PROTECTED}
-											{...register('password', {
-												required: roomType === ChatRoomType.PROTECTED,
-											})}
-											className="w-1/2 rounded border border-primary-fushia bg-transparent px-2 py-1 text-white disabled:border-white"
-											placeholder="password"
-											type={showPassword ? 'text' : 'password'}
-                							/>
-                							<button
-                								type="button"
+										<fieldset className="relative flex w-1/2 items-center">
+											<input
 												disabled={roomType !== ChatRoomType.PROTECTED}
-											  	className={roomType !== ChatRoomType.PROTECTED ? 'opacity-40' : ''}
-                							  	onClick={() => setShowPassword(!showPassword)}
-                							>
-                								{showPassword ? <FaEyeSlash /> : <FaEye />}
-                							</button>
+												{...register('password', {
+													required: roomType === ChatRoomType.PROTECTED,
+												})}
+												className="w-full rounded border border-primary-fushia bg-transparent p-2 text-white outline-none ring-0 focus:border-primary-fushia disabled:border-white"
+												placeholder="Password"
+												type={showPassword ? 'text' : 'password'}
+											/>
+											<button
+												className={`absolute right-2
+													${roomType !== ChatRoomType.PROTECTED ? 'text-gray-400' : 'text-white'}`}
+												disabled={roomType !== ChatRoomType.PROTECTED}
+												onClick={() => setShowPassword(!showPassword)}
+												type="button"
+											>
+												{showPassword ? <FaEyeSlash /> : <FaEye />}
+											</button>
+										</fieldset>
 									</div>
 								</label>
 							</fieldset>
@@ -282,7 +285,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 								<AiOutlinePlus size={24} />
 							</button>
 						</div>
-						<div className="mt-8 h-56 space-y-3 overflow-auto border-none ">
+						<div className="mt-8 h-56 space-y-3 border-none ">
 							{search.length !== 0 && (
 								<div className="mb-4">
 									Searching for &quot;

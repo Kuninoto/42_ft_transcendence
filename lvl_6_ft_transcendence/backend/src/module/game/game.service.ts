@@ -138,7 +138,7 @@ export class GameService {
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    this.gameGateway.emitGameInviteCanceled(gameInvite.receiverUID);
+    this.gameGateway.emitGameInviteCanceled(gameInvite.receiverUID, inviteId);
   }
 
   /**
