@@ -473,7 +473,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
-		console.log('nigger')
+		console.log("gameInviteDeclined received");
 		router.push('/dashboard')
 	}
 

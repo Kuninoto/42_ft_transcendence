@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 		Cookies.set('pong.token', data.accessToken, {
 			expires: 1,
+			sameSite: 'None'
 		})
 
 		const login = await api

@@ -130,7 +130,7 @@ export class GameService {
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    this.gameGateway.emitGameInviteDeclined(gameInvite.receiverUID);
+    this.gameGateway.emitGameInviteDeclined(gameInvite.sender.userId);
   }
 
   public gameInviteCanceled(inviteId: string): void {
@@ -138,7 +138,7 @@ export class GameService {
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    this.gameGateway.emitGameInviteCanceled(gameInvite.sender.userId);
+    this.gameGateway.emitGameInviteCanceled(gameInvite.receiverUID);
   }
 
   /**
