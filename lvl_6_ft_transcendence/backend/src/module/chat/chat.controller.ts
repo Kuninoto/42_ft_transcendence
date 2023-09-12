@@ -134,7 +134,7 @@ export class ChatController {
   @ApiNotFoundResponse({ description: "Room with id=roomId doesn't exist" })
   @ApiOkResponse({
     description:
-      'Returns an array of the UIDs of the banned users on room with id=room-id',
+      'Returns a basic profile of each banned users on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
   @Get('/:roomId/bans')
@@ -171,7 +171,7 @@ export class ChatController {
   })
   @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
   @ApiOkResponse({
-    description: 'Returns an array of the user ids of the admins',
+    description: 'Returns a basic profile of each admin on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
   @Get('/:roomId/admins')
@@ -185,6 +185,43 @@ export class ChatController {
         id: admin.id,
         name: admin.name,
         avatar_url: admin.avatar_url,
+      }),
+    );
+  }
+
+  /**
+   * GET /api/chat/:roomId/participants
+   *
+   * This is the route to visit to get the ids
+   * of the participants on the room which id=room-id
+   */
+  @ApiOperation({
+    description: 'Get the ids of the participants of a room',
+  })
+  @ApiParam({
+    description: 'The room id',
+    name: 'roomId',
+    type: 'number',
+  })
+  @ApiUnauthorizedResponse({
+    description: "If requesting user isn't the owner of the room",
+  })
+  @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
+  @ApiOkResponse({
+    description: 'Returns a basic profile of each participant on room with id=room-id',
+  })
+  @UseGuards(OwnerGuard)
+  @Get('/:roomId/participants')
+  public async findRoomParticipants(
+    @Param('roomId') roomId: number,
+  ): Promise<UserBasicProfile[]> {
+    const room: ChatRoom = await this.chatService.findRoomById(roomId);
+
+    return room.users.map(
+      (participant: User): UserBasicProfile => ({
+        id: participant.id,
+        name: participant.name,
+        avatar_url: participant.avatar_url,
       }),
     );
   }
