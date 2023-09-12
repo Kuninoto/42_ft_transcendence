@@ -1,6 +1,5 @@
 'use client'
 
-import { api } from '@/api/api'
 import { hasValues } from '@/common/utils/hasValues'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
@@ -14,10 +13,11 @@ export default function Loading() {
 
 	const { canCancel, cancel, opponentFound } = useGame()
 	const { user } = useAuth()
-	const { challengeInfo } = useFriends()
+	const { challengeInfo, getChallengeData } = useFriends()
 
 	useEffect(() => {
 		if (!hasValues(challengeInfo)) router.push('/dashboard')
+		else getChallengeData()
 	}, [])
 
 	return (

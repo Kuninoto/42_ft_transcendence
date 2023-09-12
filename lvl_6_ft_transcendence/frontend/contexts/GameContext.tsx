@@ -1,5 +1,11 @@
 import { api } from '@/api/api'
-import { Ball } from '@/app/matchmaking/definitions'
+import {
+	Ball,
+	CANVAS_WIDTH,
+	Paddle,
+	PADDLE_WALL_OFFSET,
+	PADDLE_WIDTH,
+} from '@/app/matchmaking/definitions'
 import {
 	GameEndEvent,
 	GameRoomInfoEvent,
@@ -15,8 +21,10 @@ import { usePathname } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
+	useCallback,
 	useContext,
 	useEffect,
+	useRef,
 	useState,
 } from 'react'
 
@@ -27,22 +35,22 @@ type GameContextType = {
 	ballPosition: Ball
 	canCancel: boolean
 	cancel: () => void
+	countDown: number
+	countDownIsTiking: boolean
 	emitOnReady: () => void
 	emitPaddleMovement: (newY: number) => void
+	emitReady: boolean
 	forfeit: () => void
 	gameEndInfo: GameEndEvent
-	changeY: () => void,
-	newY: number
-	countDown: () => void
 	inGame: boolean
 	leftPlayerScore: number
-	countDownIsTiking: boolean
-	startCountDown: () => void
 	opponentFound: OpponentFoundEvent
+	opponentPaddle: Paddle | undefined
 	opponentPosition: number
+	playerPaddle: Paddle | undefined
 	queue: () => void
 	rightPlayerScore: number
-	emitReady: boolean
+	startCountDown: () => void
 }
 
 const GameContext = createContext<GameContextType>({} as GameContextType)
@@ -57,16 +65,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	const [rightPlayerScore, setRightPlayerScore] = useState(0)
 	const [leftPlayerScore, setLeftPlayerScore] = useState(0)
 
+	const [playerPaddle, setPlayerPaddle] = useState<Paddle>()
+	const [opponentPaddle, setOpponentPaddle] = useState<Paddle>()
 	const [emitReady, setEmitReady] = useState(false)
 	const [countDown, setCountDown] = useState(-1)
 	const [countDownIsTiking, setCountDownIsTiking] = useState(false)
 
-	const [newY, setNewY] = useState(false)
-
 	const [gameEndInfo, setGameEndInfo] = useState<GameEndEvent>(
 		{} as GameEndEvent
 	)
-
 	const { clearChallengedName } = useFriends()
 
 	const router = useRouter()
@@ -87,39 +94,53 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		socket.emit('queueToLadder', {})
 	}
 
-	function changeY() {
-		setNewY(prevY => {
-				emitPaddleMovement(prevY)
-				return prevY
-		})
-	}
-
 	function startCountDown() {
 		setCountDownIsTiking(true)
 		setCountDown(3)
-		const interval = setInterval(() => setCountDown(prevCount => prevCount - 1), 1000)
+		const interval = setInterval(
+			() => setCountDown((prevCount) => prevCount - 1),
+			1000
+		)
 
 		setTimeout(() => {
 			clearInterval(interval)
 			setCountDownIsTiking(false)
+			setEmitReady(true)
 		}, 3 * 1000)
+	}
+
+	function onOpponentFound(data: OpponentFoundEvent) {
+		setOpponentFound(data)
+		clearChallengedName()
+
+		setPlayerPaddle(
+			new Paddle(
+				emitPaddleMovement,
+				data.side === PlayerSide.LEFT
+					? PADDLE_WALL_OFFSET
+					: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
+			)
+		)
+
+		setOpponentPaddle(
+			new Paddle(
+				emitPaddleMovement,
+				data.side === PlayerSide.RIGHT
+					? PADDLE_WALL_OFFSET
+					: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
+			)
+		)
+
+		router.push('/matchmaking')
 	}
 
 	useEffect(() => {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))
 			router.push('/dashboard')
 		else {
-			socket?.on('opponentFound', function (data: OpponentFoundEvent) {
-				setOpponentFound(data)
-				clearChallengedName()
-				router.push('/matchmaking')
-			})
-
-			socket?.on('connect_error', (err: any) => console.log(err))
-			socket?.on('connect_failed', (err: any) => console.log(err))
-			socket?.on('disconnect', (err: any) => console.log(err))
+			socket?.on('opponentFound', onOpponentFound)
 		}
-	}, [])
+	}, [socket])
 
 	function onGameRoomInfo(data: GameRoomInfoEvent) {
 		if (opponentFound.side === PlayerSide.LEFT) {
@@ -148,20 +169,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				setLeftPlayerScore(data.leftPlayerScore)
 				setRightPlayerScore(data.rightPlayerScore)
 			})
-
 		}
 	}, [socket])
 
 	function emitPaddleMovement(newY: number) {
-		setNewY(newY)
 		if (!socket) return
 
-		const PaddleMoveMessage: PaddleMoveMessage = {
-			gameRoomId: opponentFound.roomId,
-			newY: newY,
-		}
+		setOpponentFound((prevFound) => {
+			const PaddleMoveMessage: PaddleMoveMessage = {
+				gameRoomId: prevFound.roomId,
+				newY: newY,
+			}
+			socket.emit('paddleMove', PaddleMoveMessage)
 
-		socket.emit('paddleMove', PaddleMoveMessage)
+			return prevFound
+		})
 	}
 
 	function emitOnReady() {
@@ -171,30 +193,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			gameRoomId: opponentFound.roomId,
 		}
 
-		setEmitReady(true)
 		socket.emit('playerReady', PlayerReadyMessage)
+		startCountDown()
 	}
 
 	const value: GameContextType = {
 		ballPosition,
 		canCancel: !hasValues(opponentFound),
 		cancel,
-		emitOnReady,
 		countDown,
-		startCountDown,
-		newY,
+		countDownIsTiking,
+		emitOnReady,
 		emitPaddleMovement,
+		emitReady,
 		forfeit,
 		gameEndInfo,
-		countDownIsTiking,
 		inGame: hasValues(opponentFound) && !hasValues(gameEndInfo),
 		leftPlayerScore,
 		opponentFound,
-		changeY,
+		opponentPaddle,
 		opponentPosition,
-		emitReady,
+		playerPaddle,
 		queue,
 		rightPlayerScore,
+		startCountDown,
 	}
 
 	return <GameContext.Provider value={value}>{children}</GameContext.Provider>

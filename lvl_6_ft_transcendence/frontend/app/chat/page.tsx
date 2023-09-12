@@ -252,13 +252,14 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 	const { handleSubmit, register } = useForm()
 
 	function mute({ duration }: { duration: MuteDuration }) {
-		api.post(`/chat/${roomId}/mute`, {
-			duration,
-			userId: parseInt(id),
-		}).catch(e => {
-			toast.error('Already muted')}
-		)
-
+		api
+			.post(`/chat/${roomId}/mute`, {
+				duration,
+				userId: parseInt(id),
+			})
+			.catch((e) => {
+				toast.error('Already muted')
+			})
 	}
 
 	return (
@@ -299,36 +300,43 @@ function MuteTooltip({ id, roomId }: IMuteTooltip) {
 
 function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 	function promote() {
-		api.post(`/chat/${roomId}/add-admin`, {
-			userId: parseInt(id),
-		}).catch(e => {
-			toast.error('Already promoted')}
-		)
+		api
+			.post(`/chat/${roomId}/add-admin`, {
+				userId: parseInt(id),
+			})
+			.catch((e) => {
+				toast.error('Already promoted')
+			})
 	}
 
 	function demote() {
-		api.post(`/chat/${roomId}/remove-admin`, {
-			userId: parseInt(id),
-		}).catch(e => {
-			toast.error('Already demoted')}
-		)
+		api
+			.post(`/chat/${roomId}/remove-admin`, {
+				userId: parseInt(id),
+			})
+			.catch((e) => {
+				toast.error('Already demoted')
+			})
 	}
 
 	function kick() {
-		api.post(`/chat/${roomId}/kick`, {
-			userId: parseInt(id),
-		}).catch(e => {
-			toast.error('Already kicked')}
-		)
-
+		api
+			.post(`/chat/${roomId}/kick`, {
+				userId: parseInt(id),
+			})
+			.catch((e) => {
+				toast.error('Already kicked')
+			})
 	}
 
 	function ban() {
-		api.post(`/chat/${roomId}/ban`, {
-			userId: parseInt(id),
-		}).catch(e => {
-			toast.error('Already banned, sorry :(') 
-		})
+		api
+			.post(`/chat/${roomId}/ban`, {
+				userId: parseInt(id),
+			})
+			.catch((e) => {
+				toast.error('Already banned, sorry :(')
+			})
 	}
 
 	return (
@@ -356,7 +364,8 @@ function Tooltip({ authorRole, id, role, roomId }: ITooltip) {
 				</button>
 			)}
 			{(role === ChatRoomRoles.OWNER ||
-				(role === ChatRoomRoles.ADMIN && authorRole === ChatRoomRoles.CHATTER)) &&
+				(role === ChatRoomRoles.ADMIN &&
+					authorRole === ChatRoomRoles.CHATTER)) &&
 				role !== null &&
 				authorRole !== null && (
 					<>
