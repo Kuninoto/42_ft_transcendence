@@ -108,9 +108,7 @@ export class GameService {
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    console.log('inviteId = ' + inviteId);
     this.gameInviteMap.deleteInviteByInviteId(inviteId);
-    console.log(this.gameInviteMap.findInviteById(inviteId));
 
     // Delete this invite and all invites where user is the receiver
     // because user is entering a game
@@ -432,7 +430,7 @@ export class GameService {
     if (invites.length === 0) return;
 
     invites.forEach((invite: GameInvite): void => {
-      console.log('inviteId = ' + invite.id);
+      ('inviteId = ' + invite.id);
       if (userId == invite.receiverUID) this.gameInviteDeclined(invite.id);
     });
   }

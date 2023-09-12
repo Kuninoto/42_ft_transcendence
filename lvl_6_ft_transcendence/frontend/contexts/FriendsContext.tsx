@@ -500,7 +500,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			socket.on('newUserStatus', updateFriendStatus)
 
 			socket.on('gameInviteCanceled', function (data: GameInviteCanceledEvent) {
-				console.log('gameInviteCanceled received')
 				if (!data) return
 				removeInvite(data.inviteId)
 			})

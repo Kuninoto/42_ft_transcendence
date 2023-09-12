@@ -39,21 +39,18 @@ function QRCode() {
 	const { logout, user } = useAuth()
 
 	const enable2fa = () => {
-		try {
-			api
-				.patch('/auth/2fa/enable', {
-					otp,
-				})
-				.then(() => {
-					setOtp('')
-					logout()
-				})
-				.catch(() => {
-					throw 'Network error'
-				})
-		} catch (error: any) {
-			toast.error(error)
-		}
+		api
+			.patch('/auth/2fa/enable', {
+				otp,
+			})
+			.then(() => {
+				setOtp('')
+				toast.info('Please login again')
+				logout()
+			})
+			.catch((err) => {
+				toast.error(err.response.data.message)
+			})
 	}
 
 	const disable2fa = () => {
