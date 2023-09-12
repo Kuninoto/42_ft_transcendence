@@ -171,7 +171,8 @@ export class ChatController {
   })
   @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
   @ApiOkResponse({
-    description: 'Returns a basic profile of each admin on room with id=room-id',
+    description:
+      'Returns a basic profile of each admin on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
   @Get('/:roomId/admins')
@@ -208,7 +209,8 @@ export class ChatController {
   })
   @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
   @ApiOkResponse({
-    description: 'Returns a basic profile of each participant on room with id=room-id',
+    description:
+      'Returns a basic profile of each participant on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
   @Get('/:roomId/participants')
@@ -380,7 +382,9 @@ export class ChatController {
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
-  @ApiConflictResponse({ description: 'If sender tries to ban himself or if user is already banned' })
+  @ApiConflictResponse({
+    description: 'If sender tries to ban himself or if user is already banned',
+  })
   @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)

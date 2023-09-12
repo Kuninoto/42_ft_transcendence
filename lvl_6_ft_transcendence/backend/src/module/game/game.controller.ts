@@ -121,8 +121,7 @@ export class GameController {
 
     if (body.accepted === true)
       await this.gameService.gameInviteAccepted(inviteId, user.id);
-    else
-      this.gameService.gameInviteDeclined(inviteId);
+    else this.gameService.gameInviteDeclined(inviteId);
 
     return { message: 'Successfully responded to game invite' };
   }

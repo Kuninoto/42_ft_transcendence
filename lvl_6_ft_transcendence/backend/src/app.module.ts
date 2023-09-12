@@ -21,8 +21,8 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      useClass: PostgresConfigService,
       imports: [ConfigModule],
+      useClass: PostgresConfigService,
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'public'),
@@ -33,7 +33,7 @@ import { UserStatsModule } from './module/user-stats/user-stats.module';
       serveStaticOptions: {
         // Don't display a directory index
         index: false,
-        // Don't redirect to a similar file if the requested one isn't found
+        // Don't redirect to a similar filename if the requested one isn't found
         redirect: false,
       },
     }),

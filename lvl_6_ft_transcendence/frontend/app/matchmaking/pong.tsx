@@ -3,7 +3,7 @@ import { PlayerSide } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
 import { useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
 	Ball,
@@ -24,12 +24,11 @@ export default function Pong() {
 		ballPosition,
 		emitOnReady,
 		emitPaddleMovement,
-		opponentFound,
-		opponentPosition,
-		startCountDown,
 		emitReady,
-		newY,
-		changeY
+		opponentFound,
+		opponentPaddle,
+		opponentPosition,
+		playerPaddle,
 	} = useGame()
 	const { user } = useAuth()
 
@@ -37,59 +36,46 @@ export default function Pong() {
 	const backgroundImageRef = useRef(null)
 	const paddleImageRef = useRef(null)
 
-	const playerPaddleRef = useRef<Paddle>(
-		new Paddle(
-			emitPaddleMovement,
-			opponentFound.side === PlayerSide.LEFT
-				? PADDLE_WALL_OFFSET
-				: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
-		)
-	)
-
-	const opponentPaddleRef = useRef<Paddle>(
-		new Paddle(
-			emitPaddleMovement,
-			opponentFound.side === PlayerSide.RIGHT
-				? PADDLE_WALL_OFFSET
-				: CANVAS_WIDTH - PADDLE_WIDTH - PADDLE_WALL_OFFSET
-		)
-	)
-
 	const ball = useRef<Ball>(new Ball())
 
 	useEffect(() => {
-		opponentPaddleRef.current.y = opponentPosition
+		if (opponentPaddle) opponentPaddle.y = opponentPosition
 	}, [opponentPosition])
+
+	useEffect(() => {
+		const canvas = canvasRef.current
+		const context = canvas && canvas.getContext('2d')
+
+		const backgroundImage = new Image()
+		const paddleImage = new Image()
+
+		backgroundImage.src = `/game/backgrounds/${themes[user.game_theme]
+			?.background}`
+		paddleImage.src = `/game/paddles/${themes[user.game_theme]?.paddle}`
+		backgroundImageRef.current = backgroundImage
+		paddleImageRef.current = paddleImage
+
+		backgroundImage.onload = () => {
+			context.drawImage(
+				backgroundImageRef.current,
+				0,
+				0,
+				CANVAS_WIDTH,
+				CANVAS_HEIGHT
+			)
+		}
+
+		emitOnReady()
+	}, [])
 
 	useEffect(() => {
 		ball.current.move(ballPosition)
 	}, [ballPosition])
 
 	useEffect(() => {
-		if (hasValues(user)) {
+		if (emitReady) {
 			const canvas = canvasRef.current
 			const context = canvas && canvas.getContext('2d')
-
-			const backgroundImage = new Image()
-			const paddleImage = new Image()
-
-			backgroundImage.src = `/game/backgrounds/${themes[user.game_theme]
-				?.background}`
-			paddleImage.src = `/game/paddles/${themes[user.game_theme]?.paddle}`
-
-			backgroundImageRef.current = backgroundImage
-			paddleImageRef.current = paddleImage
-
-			backgroundImage.onload = () => {
-				context.drawImage(
-					backgroundImageRef.current,
-					0,
-					0,
-					CANVAS_WIDTH,
-					CANVAS_HEIGHT
-				)
-			}
-			emitOnReady()
 
 			const draw = () => {
 				if (context) {
@@ -106,15 +92,15 @@ export default function Pong() {
 					context.fillStyle = themes[user.game_theme].ball
 					context.drawImage(
 						paddleImageRef.current,
-						playerPaddleRef.current.x - PADDLE_WIDTH / 2,
-						playerPaddleRef.current.y - PADDLE_HEIGHT / 2,
+						playerPaddle.x - PADDLE_WIDTH / 2,
+						playerPaddle.y - PADDLE_HEIGHT / 2,
 						PADDLE_WIDTH,
 						PADDLE_HEIGHT
 					)
 					context.drawImage(
 						paddleImageRef.current,
-						opponentPaddleRef.current.x - PADDLE_WIDTH / 2,
-						opponentPaddleRef.current.y - PADDLE_HEIGHT / 2,
+						opponentPaddle.x - PADDLE_WIDTH / 2,
+						opponentPaddle.y - PADDLE_HEIGHT / 2,
 						PADDLE_WIDTH,
 						PADDLE_HEIGHT
 					)
@@ -127,16 +113,15 @@ export default function Pong() {
 
 			const update = () => {
 				if (isMovingDown) {
-					playerPaddleRef.current.moveDown()
+					playerPaddle.moveDown()
 				} else if (isMovingUp) {
-					playerPaddleRef.current.moveUp()
+					playerPaddle.moveUp()
 				}
-				opponentPaddleRef.current.move()
+				opponentPaddle.move()
 
 				draw()
 				requestAnimationFrame(update)
 			}
-
 
 			let isMovingDown = false
 			let isMovingUp = false
@@ -149,7 +134,7 @@ export default function Pong() {
 						isMovingUp = true
 					}
 
-					playerPaddleRef.current.allowMove(isMovingDown)
+					playerPaddle.allowMove(isMovingDown)
 				}
 			}
 
@@ -160,7 +145,7 @@ export default function Pong() {
 					} else {
 						isMovingUp = false
 					}
-					playerPaddleRef.current.blockMove()
+					playerPaddle.blockMove()
 				}
 			}
 
@@ -169,11 +154,6 @@ export default function Pong() {
 
 			if (emitReady) {
 				update()
-				changeY()
-				playerPaddleRef.current.y = newY
-			} else {
-				startCountDown()
-				setTimeout(update, 3 * 1000)
 			}
 
 			return () => {
@@ -182,7 +162,7 @@ export default function Pong() {
 				context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 			}
 		}
-	}, [canvasRef])
+	}, [canvasRef, emitReady, user.game_theme, playerPaddle, opponentPaddle])
 
 	return (
 		<canvas

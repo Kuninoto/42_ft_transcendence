@@ -22,7 +22,7 @@ function FinalModal() {
 					</div>
 				) : (
 					<div>
-						Game <span className="animate-blink"> over</span>!
+						Game <span className="animate-blink">over!</span>
 					</div>
 				)}
 			</h1>
@@ -43,13 +43,11 @@ function ExitModal({
 	closeModal: () => void
 	modal: boolean
 }) {
-	const { forfeit } = useGame()
 	const router = useRouter()
 
 	if (!modal) return <></>
 
 	function goBack() {
-		forfeit()
 		router.push('/dashboard')
 	}
 
@@ -83,15 +81,18 @@ function ExitModal({
 }
 
 function Control({ children }: { children: ReactNode }) {
-	const { inGame, countDown, countDownIsTiking } = useGame()
+	const { countDown, countDownIsTiking, gameEndInfo, inGame } = useGame()
 
 	const [modal, setModal] = useState(false)
+	const router = useRouter()
 
 	useEffect(() => {
 		window.onpopstate = () => {
-			if (inGame) {
+			if (hasValues(gameEndInfo)) {
+				router.push('/dashboard')
+			} else if (inGame) {
 				setModal(true)
-				history.go(1)
+				router.push('/matchmaking')
 			}
 		}
 	}, [inGame])
@@ -99,8 +100,11 @@ function Control({ children }: { children: ReactNode }) {
 	return (
 		<>
 			<ExitModal closeModal={() => setModal(false)} modal={modal} />
-			{ countDownIsTiking && 
-				<div className="absolute w-screen h-screen place-content-center items-center text-9xl flex">{countDown}</div>}
+			{countDownIsTiking && (
+				<div className="absolute flex h-screen w-screen place-content-center items-center text-9xl">
+					{countDown}
+				</div>
+			)}
 
 			{children}
 		</>

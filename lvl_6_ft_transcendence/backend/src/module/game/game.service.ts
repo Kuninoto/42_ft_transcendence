@@ -133,7 +133,7 @@ export class GameService {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
-    
+
     this.gameGateway.emitGameInviteDeclined(gameInvite.sender.userId);
   }
 
