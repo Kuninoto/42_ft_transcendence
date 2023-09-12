@@ -12,18 +12,23 @@ import OtpInput from 'react18-input-otp'
 
 function Tooltip() {
 	return (
-		<div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-2 ">
-			<span className="py-2">
-				<b>Step 1</b>: Install Google Authenticator
-			</span>
-			<span className="py-2">
-				<b>Step 2</b>: Scan the QRCode to register the app
-			</span>
-			<span className="py-2">
-				<b>Step 3</b>: Type down the OTP on your phone&apos;s screen and press
-				&quot;enable&quot;
-			</span>
-		</div>
+	  <div className="flex flex-col divide-y divide-white rounded border border-white bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-8">
+	    <span className="py-2">
+	      <b>Step 1</b>: Install Google Authenticator
+	    </span>
+	    <span className="py-2">
+	      <b>Step 2</b>: Scan the QRCode to register pongfight
+	    </span>
+	    <span className="py-2">
+	      <b>Step 3</b>: Type down the OTP on your phone&apos;s screen and press &quot;enable&quot;
+	    </span>
+	    <span className="py-2">
+	      <b>Step 4</b>: You&apos;re gonna be redirected to login again, this time with 2fa
+	    </span>
+	    <span className="py-2">
+	      <b><span className="text-red-500">Caution:</span></b> If you delete pongfight from Google Authenticator with 2fa enabled you're not gonna be able to login again
+	    </span>
+	  </div>
 	)
 }
 
@@ -247,11 +252,16 @@ export default function SettingsModal({
 						<div className="flex flex-col space-y-8">
 							<h2 className="flex items-center space-x-2">
 								<span>2FA Authentication</span>
-								<Tippy content={<Tooltip />} placement={'right'}>
-									<button>
-										<AiOutlineQuestionCircle size={24} />
-									</button>
-								</Tippy>
+								{
+									!user.has_2fa &&
+									(<Tippy content={<Tooltip />} placement={'right'}>
+										<button>
+											<AiOutlineQuestionCircle size={24} />
+										</button>
+									 </Tippy>
+									)
+								}
+								
 							</h2>
 							<QRCode />
 						</div>

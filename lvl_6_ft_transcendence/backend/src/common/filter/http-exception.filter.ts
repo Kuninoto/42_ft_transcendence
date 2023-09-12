@@ -16,8 +16,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status: number = exception.getStatus();
 
     status < 500
-      ? this.logger.debug(`${response.status}: ${exception.stack}`)
-      : this.logger.error(`${response.status}: ${exception.stack}`);
+      ? this.logger.debug(`${status}: ${exception.stack}`)
+      : this.logger.error(`${status}: ${exception.stack}`);
     response.status(status).json(exception.getResponse());
   }
 }
