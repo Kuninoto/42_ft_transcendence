@@ -208,6 +208,7 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 
 	const [showPasswordField, setShowPassowordField] = useState(-1)
 	const [password, setPassword] = useState('')
+	const [showPassword, setShowPassword] = useState(-1)
 
 	const { refreshRooms } = useFriends()
 
@@ -315,23 +316,50 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 															<div>
 																<BiLockAlt size={24} />
 															</div>
-															<input
-																className={`${
-																	showPasswordField === room.id
-																		? 'w-40 border border-white px-3 py-1'
-																		: 'w-0'
-																} rounded bg-transparent text-white transition-all duration-300 `}
-																onChange={(e) => setPassword(e.target.value)}
-																placeholder="password"
-																required
-																type="password"
-																value={password}
-															/>
+															<fieldset className="relative flex items-center">
+																<input
+																	className={`${
+																		showPasswordField === room.id
+																			? 'w-52 border border-white px-3 py-1'
+																			: 'w-0'
+																	} peer rounded bg-transparent text-white transition-all duration-300 `}
+																	type={
+																		showPassword === room.id
+																			? 'text'
+																			: 'password'
+																	}
+																	onChange={(e) => setPassword(e.target.value)}
+																	placeholder="password"
+																	required
+																	value={password}
+																/>
+
+																<button
+																	className={`absolute right-2 text-gray-400 peer-hover:text-white peer-focus:text-white hover:text-white ${
+																		showPasswordField !== room.id && 'invisible'
+																	}`}
+																	onClick={() =>
+																		setShowPassword((prevPass) =>
+																			prevPass === -1 || prevPass !== room.id
+																				? room.id
+																				: -1
+																		)
+																	}
+																	type="button"
+																>
+																	{showPassword === room.id ? (
+																		<FaEyeSlash />
+																	) : (
+																		<FaEye />
+																	)}
+																</button>
+															</fieldset>
 															<button
 																onClick={() => {
 																	if (showPasswordField === room.id) {
 																		joinRoom(room.id, true)
 																	} else {
+																		setPassword('')
 																		setShowPassowordField(room.id)
 																	}
 																}}
