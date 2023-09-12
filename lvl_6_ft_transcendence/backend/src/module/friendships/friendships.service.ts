@@ -246,9 +246,7 @@ export class FriendshipsService {
 
     if (!userToUnblock) {
       this.logger.warn(`"${sender.name}" tried to unblock a non-existing user`);
-      throw new NotFoundException(
-        `User with id= ${userToUnblockId} doesn't exist`,
-      );
+      throw new NotFoundException("User doesn't exist");
     }
 
     await this.blockedUserRepository.delete({
@@ -490,7 +488,7 @@ export class FriendshipsService {
       this.logger.warn(
         `"${sender.name}" tried to friend request a user that doesn't exist`,
       );
-      throw new NotFoundException(`User with id= ${receiverUID} doesn't exist`);
+      throw new NotFoundException("User doesn't exist");
     }
     if (receiverUID === sender.id) {
       this.logger.warn(`"${sender.name}" tried to add himself as a friend`);

@@ -54,7 +54,13 @@ export class GameService {
   ): Promise<string> {
     if (this.isPlayerInQueueOrGame(sender.id)) {
       throw new ConflictException(
-        'You cannot send a game invite while in game',
+        'You cannot send a game invite while in queue or game',
+      );
+    }
+
+    if (this.isPlayerInQueueOrGame(receiverUID)) {
+      throw new ConflictException(
+        'You cannot send a game invite to a user in queue or game',
       );
     }
 
@@ -94,12 +100,17 @@ export class GameService {
       sender: newPlayer,
     });
 
+    this.connectionGateway.updateUserStatus({
+      uid: sender.id,
+      newStatus: UserStatus.IN_QUEUE,
+    });
+
     this.gameGateway.emitInvitedToGameEvent(receiverUID, {
       inviteId: inviteId,
       inviterUID: Number(sender.id),
     });
 
-    this.logger.log(`"${sender.name}" sent a game invite to ${receiver.name}`);
+    this.logger.log(`"${sender.name}" sent a game invite to "${receiver.name}"`);
     return inviteId;
   }
 

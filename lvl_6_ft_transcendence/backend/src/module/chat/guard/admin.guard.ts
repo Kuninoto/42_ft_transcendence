@@ -43,7 +43,7 @@ export class AdminGuard implements CanActivate {
       this.logger.warn(
         `${requestingUser.name} tried to do an admin action on a non-existing room`,
       );
-      throw new NotFoundException(`Room with id=${room.id} doesn't exist`);
+      throw new NotFoundException(`Room doesn't exist`);
     }
 
     if (!this.chatService.isUserAnAdmin(room, requestingUser.id)) {

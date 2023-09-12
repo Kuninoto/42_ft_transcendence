@@ -41,8 +41,6 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Unauthenticated request');
     }
 
-    // TODO
-    // Uncomment
     // if (!this.authService.tokenWhitelist.get(user.id.toString())) {
     //   this.logger.warn('A request was made with a blacklisted token');
     //   throw new UnauthorizedException('Unauthenticated request');
