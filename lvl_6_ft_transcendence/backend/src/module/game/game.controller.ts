@@ -107,8 +107,8 @@ export class GameController {
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!inviteId) throw new BadRequestException('Invalid inviteId parameter');
 
-    if (!this.gameService.correctInviteUsage(user.id, inviteId, false))
-      throw new BadRequestException("Invite isn't meant for you");
+    if (!await this.gameService.correctInviteUsage(user.id, inviteId, false))
+      throw new BadRequestException("You're not allowed to answer that invite");
 
     const receiverStatus: UserStatus = (
       await this.usersService.findUserByUID(user.id)

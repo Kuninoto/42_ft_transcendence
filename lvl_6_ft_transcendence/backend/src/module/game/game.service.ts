@@ -23,6 +23,7 @@ import { GameRoomMap } from './GameRoomMap';
 import { Player } from './Player';
 import { GameEngineService } from './game-engine.service';
 import { GameGateway } from './game.gateway';
+import { FriendshipsService } from '../friendships/friendships.service';
 
 const GAME_START_TIMEOUT: number = 3 * 1000;
 
@@ -44,6 +45,7 @@ export class GameService {
     private readonly connectionGateway: ConnectionGateway,
     @Inject(forwardRef(() => ConnectionService))
     private readonly connectionService: ConnectionService,
+    private readonly friendshipsService: FriendshipsService,
   ) {}
 
   private readonly logger: Logger = new Logger(GameService.name);
@@ -378,18 +380,20 @@ export class GameService {
     }
   }
 
-  public correctInviteUsage(
+  public async correctInviteUsage(
     userId: number,
     inviteId: string,
     cancelInvite: boolean,
-  ): boolean {
+  ): Promise<boolean> {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
-
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
-    if (cancelInvite) return gameInvite.sender.userId == userId;
-    return gameInvite.receiverUID == userId;
+    const areTheyFriends: boolean =
+      await this.friendshipsService.areTheyFriends(gameInvite.sender.userId, gameInvite.receiverUID);
+
+    if (cancelInvite) return areTheyFriends && gameInvite.sender.userId == userId;
+    return areTheyFriends && gameInvite.receiverUID == userId;
   }
 
   private async saveGameResult(
@@ -457,7 +461,6 @@ export class GameService {
     if (invites.length === 0) return;
 
     invites.forEach((invite: GameInvite): void => {
-      ('inviteId = ' + invite.id);
       if (userId == invite.receiverUID) this.gameInviteDeclined(invite.id);
     });
   }

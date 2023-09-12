@@ -33,6 +33,21 @@ type buttons = {
 function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 	const { user } = useAuth()
 
+	function cancelFriendship(friendshipId: null | number) {
+		try {
+			api
+				.patch(`/friendships/${friendshipId}/status`, {
+					newStatus: FriendshipStatus.CANCEL,
+				})
+				.then(() => refreshProfile())
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
+
 	function removeFriendship(friendshipId: null | number) {
 		try {
 			api
@@ -175,7 +190,7 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 		return (
 			<button
 				className="w-full rounded border bg-white py-2 text-black mix-blend-lighten hover:bg-transparent hover:text-white"
-				onClick={() => removeFriendship(userProfile.friendship_id)}
+				onClick={() => cancelFriendship(userProfile.friendship_id)}
 			>
 				Cancel
 			</button>

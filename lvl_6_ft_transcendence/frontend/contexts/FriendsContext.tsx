@@ -623,18 +623,15 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			accepted: true,
 		}
 
-		try {
-			api
-				.patch(`/game/${challengeInfo.id}/status`, response)
-				.catch(() => {
-					throw 'Network error'
-				})
-				.finally(() => {
-					removeInvite(challengeInfo.id)
-				})
-		} catch (error: any) {
-			toast.warning(error)
-		}
+		api
+			.patch(`/game/${challengeInfo.id}/status`, response)
+			.catch((error: any) => {
+				toast.error(error.response.data.message)
+				router.push('/dashboard')
+			})
+			.finally(() => {
+				removeInvite(challengeInfo.id)
+			})
 	}
 
 	function respondGameInvite(name: string, id: string, accepted: boolean) {
@@ -654,18 +651,14 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			accepted,
 		}
 
-		try {
-			api
-				.patch(`/game/${id}/status`, response)
-				.catch(() => {
-					throw 'Network error'
-				})
-				.finally(() => {
-					removeInvite(id)
-				})
-		} catch (error: any) {
-			toast.warning(error)
-		}
+		api
+			.patch(`/game/${id}/status`, response)
+			.catch((error: any) => {
+				toast.error(error.response.data.message)
+			})
+			.finally(() => {
+				removeInvite(id)
+			})
 	}
 
 	const value: FriendsContextType = {

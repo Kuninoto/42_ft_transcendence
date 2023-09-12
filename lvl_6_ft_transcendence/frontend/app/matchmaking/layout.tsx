@@ -44,11 +44,12 @@ function ExitModal({
 	modal: boolean
 }) {
 	const router = useRouter()
+	const { cancel } = useGame()
 
 	if (!modal) return <></>
 
 	function goBack() {
-		router.push('/dashboard')
+		cancel()
 	}
 
 	return (
@@ -81,7 +82,7 @@ function ExitModal({
 }
 
 function Control({ children }: { children: ReactNode }) {
-	const { countDown, countDownIsTiking, gameEndInfo, inGame } = useGame()
+	const { countDown, countDownIsTiking, gameEndInfo, forfeit, inGame } = useGame()
 
 	const [modal, setModal] = useState(false)
 	const router = useRouter()
@@ -89,10 +90,10 @@ function Control({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		window.onpopstate = () => {
 			if (hasValues(gameEndInfo)) {
+				forfeit()
 				router.push('/dashboard')
 			} else if (inGame) {
 				setModal(true)
-				console.log("entrou aqui")
 			}
 		}
 	}, [inGame])
