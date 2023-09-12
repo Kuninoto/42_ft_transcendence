@@ -79,6 +79,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 			api
 				.post('/chat/rooms/create', newRoom)
 				.then(() => {
+					toast("Room created with success!")
 					closeModal()
 					refreshRooms()
 				})
