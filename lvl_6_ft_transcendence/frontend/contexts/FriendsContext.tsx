@@ -293,12 +293,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		const write = warningType === RoomWarning.UNMUTE ? true : false
 
 		if (
-			warningType === RoomWarning.BAN ||
+			(warningType === RoomWarning.BAN ||
 			warningType === RoomWarning.KICK ||
 			warningType === RoomWarning.LEAVE ||
 			warningType === RoomWarning.MUTE ||
 			warningType === RoomWarning.UNMUTE ||
-			warningType === RoomWarning.OWNER_LEFT
+			warningType === RoomWarning.OWNER_LEFT) && exists
 		) {
 			setOpenChats((prevChat: any) => {
 				const newChat = [...prevChat]
@@ -315,7 +315,10 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			if ('room' in currentOpenChat && currentOpenChat.room.id === id) {
 				focus(id, true)
 			}
+
+			return true
 		}
+		return false
 	}
 
 	const onMessageReceived = useCallback(
@@ -329,6 +332,16 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		) {
 			setOpenChats((prevChat) => {
 				const newChat = [...prevChat]
+
+				if (
+					'warning' in data &&
+					(data.affectedUID == user.id ||
+						data.warningType === RoomWarning.OWNER_LEFT)
+				) {
+					if(actionBasedOnWarning(data.warningType, data.roomId))
+						return newChat
+				}
+
 
 				const isRoom = 'id' in data || 'warning' in data
 				const id =
@@ -346,14 +359,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					return false
 				})
 
-				if (
-					'warning' in data &&
-					(data.affectedUID == user.id ||
-						data.warningType === RoomWarning.OWNER_LEFT)
-				) {
-					actionBasedOnWarning(data.warningType, data.roomId)
-				}
-
 				const newMessage: Invite | Message | Warning =
 					'warning' in data
 						? {
@@ -370,6 +375,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 								content: data.content,
 								uniqueID: data.uniqueId,
 						  }
+
 
 				const instantlyRead =
 					(isRoom &&
@@ -424,9 +430,9 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					)
 					if (oneDisplay) setCurrentOpenChat(oneDisplay)
 				}
+				setExists(true)
 				return newChat
 			})
-			setExists(true)
 		},
 		[friends, rooms, actionBasedOnWarning, exists, currentOpenChat]
 	)

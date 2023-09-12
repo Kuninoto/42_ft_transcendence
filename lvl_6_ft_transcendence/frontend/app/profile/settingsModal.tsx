@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { AiOutlineQuestionCircle } from 'react-icons/ai'
+import { AxiosError } from 'axios'
 import { toast } from 'react-toastify'
 import OtpInput from 'react18-input-otp'
 
@@ -34,21 +35,20 @@ function QRCode() {
 	const { logout, user } = useAuth()
 
 	const enable2fa = () => {
-		try {
-			api
-				.patch('/auth/2fa/enable', {
-					otp,
-				})
-				.then(() => {
-					setOtp('')
+		api
+			.patch('/auth/2fa/enable', {
+				otp,
+			})
+			.then(() => {
+				setOtp('')
+				toast("Redirecting to login...")
+				setTimeout(() => {
 					logout()
-				})
-				.catch(() => {
-					throw 'Network error'
-				})
-		} catch (error: any) {
-			toast.error(error)
-		}
+				}, 3 * 1000)
+			})
+			.catch((error: Error | AxiosError) => {
+				toast.error(error.response.data.message || error.message)
+			})
 	}
 
 	const disable2fa = () => {
