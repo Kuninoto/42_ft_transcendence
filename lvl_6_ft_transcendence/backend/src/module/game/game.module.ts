@@ -4,6 +4,7 @@ import { GameResult } from 'src/entity/index';
 import { AuthModule } from '../auth/auth.module';
 import { ChatModule } from '../chat/chat.module';
 import { ConnectionModule } from '../connection/connection.module';
+import { FriendshipsModule } from '../friendships/friendships.module';
 import { UserStatsModule } from '../user-stats/user-stats.module';
 import { UsersModule } from '../users/users.module';
 import { GameEngineService } from './game-engine.service';
@@ -22,6 +23,7 @@ import { GameRoomMap } from './GameRoomMap';
     UserStatsModule,
     forwardRef(() => ChatModule),
     forwardRef(() => ConnectionModule),
+    FriendshipsModule,
   ],
   controllers: [GameController],
   providers: [

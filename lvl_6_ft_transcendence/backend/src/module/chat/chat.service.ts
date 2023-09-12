@@ -310,7 +310,7 @@ export class ChatService {
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room)
-      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
+      throw new NotFoundException(`Room doesn't exist`);
 
     if (room.type === ChatRoomType.PRIVATE)
       throw new ForbiddenException('Private rooms are only joinable by invite');
@@ -820,7 +820,7 @@ export class ChatService {
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom | null = await this.findRoomById(roomId);
     if (!room)
-      throw new NotFoundException(`Room with id=${roomId}" doesn't exist`);
+      throw new NotFoundException(`Room doesn't exist`);
 
     if (room.type != ChatRoomType.PROTECTED)
       throw new BadRequestException('Room is not protected');

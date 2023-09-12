@@ -17,7 +17,6 @@ import {
   ErrorResponse,
   Friend,
   FriendRequest,
-  FriendshipStatus,
   GameResultInterface,
   GameThemes,
   MeUserInfo,
@@ -272,6 +271,7 @@ export class UsersService {
       id: user.id,
       name: user.name,
       avatar_url: user.avatar_url,
+      friendship_id: friendship?.id,
       friendship_status: friendship?.status,
       friend_request_sent_by_me: friendship
         ? friendship.sender.id == meUID
@@ -302,21 +302,9 @@ export class UsersService {
           .subQuery()
           .select('*')
           .from(BlockedUser, 'blockedUser')
-          .where('blockedUser.blocked_user = :meUserId', { meUserId })
+          .where('blockedUser.blocked_user.id = :meUserId', { meUserId })
           .getQuery();
         return `NOT EXISTS ${subqueryBlockedMe}`;
-      })
-      .andWhere((qb): string => {
-        const subqueryFriend: string = qb
-          .subQuery()
-          .select('*')
-          .from(Friendship, 'friendship')
-          .where(
-            '(friendship.sender = :meUserId OR friendship.receiver = :meUserId) AND friendship.status = :acceptedStatus',
-            { acceptedStatus: FriendshipStatus.ACCEPTED, meUserId },
-          )
-          .getQuery();
-        return `NOT EXISTS ${subqueryFriend}`;
       })
       .take(5)
       .getMany();
@@ -333,7 +321,8 @@ export class UsersService {
           id: user.id,
           name: user.name,
           avatar_url: user.avatar_url,
-          friendship_status: friendship ? friendship.status : null,
+          friendship_id: friendship?.id,
+          friendship_status: friendship?.status,
           friend_request_sent_by_me: friendship
             ? friendship.sender.id === meUser.id
               ? true

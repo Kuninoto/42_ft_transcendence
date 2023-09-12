@@ -43,7 +43,7 @@ function Podium({
 	return (
 		<Link
 			className="flex flex-col items-center space-y-2"
-			href={`profile?id=${user.uid}`}
+			href={`/profile?id=${user.uid}`}
 		>
 			<div
 				className={`relative ${width} aspect-square overflow-hidden rounded`}
@@ -133,8 +133,8 @@ export default function Leaderboard() {
 									<p className="invisible absolute -left-8 group-hover:visible group-focus:visible">
 										&gt;
 									</p>
-									<Link className="flex items-center space-x-16" href="/">
-										<div className="text-center">#{index + 3}</div>
+									<Link className="flex items-center space-x-16" href={`/profile?id=${player.uid}`}>
+										<div className="text-center">#{index + 4}</div>
 										<div className="relative aspect-square w-10 rounded">
 											<Image
 												alt="third place picture"

@@ -34,7 +34,7 @@ function Buttons({
 
 	const friend: InfoOrRequest = {
 		blocked_by_me: isRequest ? false : request.blocked_by_me,
-		friendship_id: isRequest ? request.friendship_id : null,
+		friendship_id: request?.friendship_id,
 		sent_by_me: isRequest
 			? request.sent_by_me
 			: request.friend_request_sent_by_me,
@@ -49,17 +49,26 @@ function Buttons({
 		e.preventDefault()
 		e.stopPropagation()
 		try {
-			
-		callable()
-		} catch (error) {
-			
-		}
+			() => callable()
+		} catch (error) {}
+	}
+
+	async function removeFriendship(friendshipId: null | number) {
+			await api
+				.patch(`/friendships/${friendshipId}/status`, {
+					newStatus: FriendshipStatus.UNFRIEND,
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
+				.finally(() => refresh())
+
 	}
 
 	async function cancel(friendshipId: null | number) {
 		await api
 			.patch(`/friendships/${friendshipId}/status`, {
-				newStatus: FriendshipStatus.UNFRIEND,
+				newStatus: FriendshipStatus.CANCEL,
 			})
 			.catch((error:any) => toast.error(error.response.data.message))
 			.finally(() => refresh())
@@ -118,6 +127,27 @@ function Buttons({
 		)
 	}
 
+	if (friend.status === FriendshipStatus.ACCEPTED) {
+		return (
+			<div className="flex space-x-2">
+				<button
+					className="rounded border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+					onClick={() => removeFriendship(friend?.friendship_id)}
+				>
+					Remove
+				</button>
+				<button
+						className="rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+						onClick={(e) => basis(e, block(friend?.uid))}
+					>
+						<MdOutlineBlock size={24} />
+					</button>
+			</div>
+			
+		)
+	}
+	
+
 	if (friend.status === FriendshipStatus.PENDING) {
 		if (friend.sent_by_me) {
 			return (
@@ -147,9 +177,9 @@ function Buttons({
 					<span className="hidden group-hover/button:flex">Decline</span>
 				</button>
 				<button
-					className="group/button flex items-center space-x-2 rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
-					onClick={(e) => basis(e, block(friend?.uid))}
-				>
+						className="group/button flex items-center space-x-2 rounded border border-white p-1 text-sm text-white mix-blend-lighten hover:bg-white hover:text-black"
+						onClick={(e) => basis(e, block(friend?.uid))}
+					>
 					<MdOutlineBlock size={24} />
 					<span className="hidden group-hover/button:flex">Block</span>
 				</button>

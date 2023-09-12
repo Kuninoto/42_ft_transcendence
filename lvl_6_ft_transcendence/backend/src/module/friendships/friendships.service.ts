@@ -302,8 +302,12 @@ export class FriendshipsService {
         await this.declineFriendRequest(friendship);
         break;
 
+      case NewFriendshipStatus.CANCEL:
+        await this.deleteFriendRequest(user.id, friendship);
+        break;
+      
       case NewFriendshipStatus.UNFRIEND:
-        await this.unfriendOrDeleteFriendRequest(user.id, friendship);
+        await this.unfriend(user.id, friendship);
         break;
     }
 
@@ -556,7 +560,18 @@ export class FriendshipsService {
     return friendRequest ? true : false;
   }
 
-  private async unfriendOrDeleteFriendRequest(
+   private async deleteFriendRequest(
+    userId: number,
+    friendship: Friendship,
+  ): Promise<void> {
+    if (friendship.status !== FriendshipStatus.PENDING)
+      throw new ConflictException("Friend request already dispatched")
+
+    await this.friendshipRepository.delete(friendship);
+    await this.achievementsService.grantBreakingThePaddleBond(userId);
+  }
+
+  private async unfriend(
     userId: number,
     friendship: Friendship,
   ): Promise<void> {
@@ -571,7 +586,7 @@ export class FriendshipsService {
         : friendship.sender.id;
 
     this.connectionGateway.sendRefreshUser(removedUserId);
-
+    
     await this.friendshipRepository.delete(friendship);
     await this.achievementsService.grantBreakingThePaddleBond(userId);
   }

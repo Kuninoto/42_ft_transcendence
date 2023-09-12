@@ -449,18 +449,10 @@ export default function Chat() {
 			inviteId: inviteId,
 		}
 
-		try {
-			api
-				.patch(`/chat/${inviteId}/status`, newJoinRequest)
-				.then(() => {
-					removeInvite(inviteId)
-				})
-				.catch(() => {
-					throw 'Network error'
-				})
-		} catch (error: any) {
-			toast.error(error)
-		}
+		api.patch(`/chat/${inviteId}/status`, newJoinRequest)
+			.catch((error: any) => {
+				toast.error(error.response.data.message)
+			}).finally(() => removeInvite(inviteId))
 	}
 
 	const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {

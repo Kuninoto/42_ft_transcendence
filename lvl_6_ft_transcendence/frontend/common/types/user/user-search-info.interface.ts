@@ -4,6 +4,7 @@ export interface UserSearchInfo {
   id: number;
   name: string;
   avatar_url: string;
+  friendship_id: number;
   friendship_status: FriendshipStatus | null;
   friend_request_sent_by_me: boolean | null;
   blocked_by_me: boolean;
