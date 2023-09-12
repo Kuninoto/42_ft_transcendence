@@ -1,12 +1,12 @@
 COMPOSE_FILE_PATH=./docker-compose.yml
 
-all: build up_detached ps logs
+all: up_detached ps logs
 
 build:
 	docker-compose -f $(COMPOSE_FILE_PATH) build --progress=plain
 
 up_detached:
-	docker-compose -f $(COMPOSE_FILE_PATH) up -d
+	docker-compose -f $(COMPOSE_FILE_PATH) up --build
 #	sudo bash ./manage_hosts.sh
 
 down:
