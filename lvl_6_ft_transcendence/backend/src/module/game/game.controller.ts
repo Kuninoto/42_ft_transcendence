@@ -105,7 +105,7 @@ export class GameController {
     @Param('inviteId') inviteId: string,
     @Body() body: RespondToGameInviteRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    if (!inviteId) throw new BadRequestException('No inviteId was provided');
+    if (!inviteId) throw new BadRequestException('Invalid inviteId parameter');
 
     if (!this.gameService.correctInviteUsage(user.id, inviteId, false))
       throw new BadRequestException("Invite isn't meant for you");
@@ -121,7 +121,8 @@ export class GameController {
 
     if (body.accepted === true)
       await this.gameService.gameInviteAccepted(inviteId, user.id);
-    else this.gameService.gameInviteDeclined(inviteId);
+    else
+      this.gameService.gameInviteDeclined(inviteId);
 
     return { message: 'Successfully responded to game invite' };
   }

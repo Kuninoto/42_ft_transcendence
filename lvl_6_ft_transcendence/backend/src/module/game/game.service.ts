@@ -315,7 +315,7 @@ export class GameService {
 
     const updatedGameRoom: Partial<GameRoom> = {
       // Access object thru dynamic object key
-      [playerToUpdate === gameRoom.leftPlayer ? 'leftPlayer' : 'rightPlayer']: {
+      [playerToUpdate.userId === gameRoom.leftPlayer.userId ? 'leftPlayer' : 'rightPlayer']: {
         ...playerToUpdate,
         isReady: true,
       },

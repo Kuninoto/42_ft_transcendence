@@ -58,6 +58,7 @@ function QRCode() {
 			api
 				.patch('/auth/2fa/disable')
 				.then(() => {
+					toast.info('Please login again')
 					logout()
 				})
 				.catch(() => {
