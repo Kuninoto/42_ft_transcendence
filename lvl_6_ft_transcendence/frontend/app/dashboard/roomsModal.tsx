@@ -39,6 +39,14 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 		type: ChatRoomType
 	}) {
 		if (type === ChatRoomType.PROTECTED) {
+			if (!password) {
+				setError('name', {
+					message: "Password can't be empty",
+					type: 'alreadyInUser',
+				})
+				return
+			}
+
 			if (password.length < 4 || password.length > 20) {
 				setError('name', {
 					message: 'Passwords must be 4-20 characters long',
@@ -71,6 +79,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 			api
 				.post('/chat/rooms/create', newRoom)
 				.then(() => {
+					toast("Room created with success!")
 					closeModal()
 					refreshRooms()
 				})
@@ -165,9 +174,7 @@ function CreateRoom({ closeModal }: { closeModal: () => void }) {
 										<fieldset className="relative flex w-1/2 items-center">
 											<input
 												disabled={roomType !== ChatRoomType.PROTECTED}
-												{...register('password', {
-													required: roomType === ChatRoomType.PROTECTED,
-												})}
+												{...register('password')}
 												className="w-full rounded border border-primary-fushia bg-transparent p-2 text-white outline-none ring-0 focus:border-primary-fushia disabled:border-white"
 												placeholder="Password"
 												type={showPassword ? 'text' : 'password'}

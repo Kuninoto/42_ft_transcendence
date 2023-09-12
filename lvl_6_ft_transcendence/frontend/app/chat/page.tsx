@@ -82,13 +82,17 @@ function RoomSettings({
 			})
 			.then(() => {
 				setValue('password', '')
-			})
+				toast(`Password ${ roomType === ChatRoomType.PROTECTED ? "changed" : "added"} with success!`)
+			}).catch((error: any) => toast.error(error.response.data.message))
 		setRoomType(ChatRoomType.PROTECTED)
 		updateRoomType(ChatRoomType.PROTECTED)
 	}
 
 	function removePassword() {
 		api.delete(`/chat/${id}/password`)
+			.then(() => {
+				toast("Password removed with success!")
+			}).catch((error: any) => toast.error(error.response.data.message))
 		setRoomType(ChatRoomType.PUBLIC)
 		updateRoomType(ChatRoomType.PUBLIC)
 		updateRoomType(ChatRoomType.PUBLIC)
