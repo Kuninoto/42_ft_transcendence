@@ -13,9 +13,6 @@ export class ConnectionService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    // TODO
-    // UNCOMMENT
-    // private readonly authService: AuthService,
     private userIdToSocketId: UserIdToSocketIdMap,
   ) {}
 
@@ -38,8 +35,6 @@ export class ConnectionService {
       throw new Error('Unauthorized client, unknown');
     }
 
-    // TODO
-    // UNCOMMENT
     // if (authToken != this.authService.tokenWhitelist.get(user.id.toString())) {
     //   throw new Error('Invalid token');
     // }
