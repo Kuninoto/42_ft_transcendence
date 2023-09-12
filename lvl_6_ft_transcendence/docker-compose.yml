@@ -5,12 +5,11 @@ services:
     container_name: postgres
     image: postgres:alpine
     volumes:
-      # - ./data/db:/var/lib/postgresql/data
       - db_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     networks:
-      - app-net
+      - pongfight-net
     env_file:
       - ./backend/.env
     restart: always
@@ -24,7 +23,7 @@ services:
     ports:
       - 8080:8080
     networks:
-      - app-net
+      - pongfight-net
     depends_on:
       - postgres
     restart: always
@@ -49,7 +48,7 @@ services:
     ports:
       - 3000:3000
     networks:
-      - app-net
+      - pongfight-net
     env_file:
       - ./backend/.env
 
@@ -70,9 +69,10 @@ services:
     restart: always
 
 networks:
-  app-net:
-    name: app-net
+  pongfight-net:
+    name: pongfight-net
     driver: bridge
 
 volumes:
   db_data:
+    name: db_data

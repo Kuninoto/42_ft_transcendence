@@ -4,7 +4,6 @@ import { PlayerSide, UserSearchInfo } from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
-import { useEffect } from 'react'
 
 import Pong from './pong'
 

@@ -264,7 +264,6 @@ export class ChatController {
   public async leaveRoom(
     @ExtractUser() user: User,
     @Param('roomId') roomId: number,
-    @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!roomId || Number.isNaN(roomId) || roomId < 1)
       throw new BadRequestException('Invalid roomId parameter');
@@ -275,7 +274,7 @@ export class ChatController {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
-    await this.chatService.leaveRoom(room, body.userId, true);
+    await this.chatService.leaveRoom(room, user, true);
     return { message: `Successfully left room "${room.name}"` };
   }
 
@@ -373,7 +372,7 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.kickFromRoom(user.id, body.userId, roomId);
+    return await this.chatService.kickFromRoom(user, body.userId, roomId);
   }
 
   @ApiOperation({ description: 'Ban a user from a chat room' })
@@ -391,7 +390,7 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.banFromRoom(user.id, body.userId, roomId);
+    return await this.chatService.banFromRoom(user, body.userId, roomId);
   }
 
   @ApiOperation({ description: 'Unban a user from a chat room' })
@@ -474,7 +473,7 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.assignAdminRole(user.id, body.userId, roomId);
+    return await this.chatService.assignAdminRole(user, body.userId, roomId);
   }
 
   @ApiOperation({

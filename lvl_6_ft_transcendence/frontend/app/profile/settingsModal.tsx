@@ -190,7 +190,7 @@ export default function SettingsModal({
 									/>
 									<div className="relative h-full w-full">
 										<div className="absolute z-10 flex h-full w-full cursor-pointer place-content-center items-center bg-black/60">
-											Click me
+											Change Avatar
 										</div>
 										<Image
 											alt={'choose new image - image'}
@@ -238,7 +238,7 @@ export default function SettingsModal({
 							<input
 								className="w-full rounded border border-white py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
 								type="submit"
-								value="Submit"
+								value="Submit Changes"
 							/>
 						</form>
 
