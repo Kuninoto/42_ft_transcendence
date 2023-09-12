@@ -5,6 +5,7 @@ import { FriendsProvider } from '@/contexts/FriendsContext'
 import { SocketProvider } from '@/contexts/SocketContext'
 import { detect } from 'detect-browser'
 import { Press_Start_2P } from 'next/font/google'
+import Head from 'next/head'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -16,7 +17,6 @@ import 'react-toastify/dist/ReactToastify.css'
 
 import Chat from './chat/page'
 import './globals.css'
-import Head from 'next/head'
 
 const pressStart = Press_Start_2P({ subsets: ['latin'], weight: '400' })
 
@@ -123,8 +123,8 @@ export default function RootLayout({
 				<FriendsProvider>
 					<html lang="en">
 						<Head>
-			              <link rel="icon" href="/favicon.ico" sizes="any" />
-            			</Head>
+							<link href="/favicon.ico" rel="icon" sizes="any" />
+						</Head>
 						<body className={`overflow-hidden ${pressStart.className}`}>
 							<FullScreen handle={handle}>
 								<div className="h-screen bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80%">

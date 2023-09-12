@@ -236,19 +236,15 @@ export default function RoomsModal({ closeModal }: { closeModal: () => void }) {
 			password: needPassword ? md5(password) : null,
 		}
 
-		try {
-			api
-				.post(`/chat/${id}/join`, roomInfo)
-				.then(() => {
-					refreshRooms()
-					searchRoom('')
-				})
-				.catch((e) => {
-					throw 'Wrong password'
-				})
-		} catch (error: any) {
-			toast.error(error)
-		}
+		api
+			.post(`/chat/${id}/join`, roomInfo)
+			.then(() => {
+				refreshRooms()
+				searchRoom('')
+			})
+			.catch(() => {
+				toast('Wrong password')
+			})
 	}
 
 	return (

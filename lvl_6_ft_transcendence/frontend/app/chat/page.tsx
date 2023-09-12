@@ -105,7 +105,7 @@ function RoomSettings({
 					throw 'Network Error'
 				})
 		} catch (error: any) {
-			toast.error(error)
+			toast(error)
 		}
 	}
 
