@@ -15,7 +15,9 @@ type SocketContextType = {
 const SocketContext = createContext<SocketContextType>({} as SocketContextType)
 
 const AchievementLink = () => (
-	<Link href={'/profile'}>🎉 New achievement unlocked!</Link>
+	<Link className="hover:underline" href={'/profile'}>
+		🎉 New achievement unlocked!
+	</Link>
 )
 
 export function SocketProvider({ children }: { children: ReactNode }) {
