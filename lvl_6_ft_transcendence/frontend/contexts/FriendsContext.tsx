@@ -478,6 +478,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
+		console.log("gameInviteDeclined received");
 		toast.error("Challenge rejected")
 		router.push('/dashboard')
 	}
@@ -611,7 +612,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		if (!socket) return
 
 		if (accepted) {
-			setChallengeInfo({ invite: false, name })
+			setChallengeInfo({ invite: false, opponentName: name })
 			router.push('/matchmaking/challenge')
 		}
 

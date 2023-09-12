@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiNotFoundResponse,
@@ -54,12 +47,7 @@ export class UsersController {
     @ExtractUser() user: User,
     @Param('userId', NonNegativeIntPipe) userId: number,
   ): Promise<UserProfile | ErrorResponse> {
-    const userProfile: UserProfile | null =
-      await this.usersService.findUserProfileByUID(user, userId);
-
-    if (!userProfile) throw new NotFoundException('User not found');
-
-    return userProfile;
+    return await this.usersService.findUserProfileByUID(user, userId);
   }
 
   /**

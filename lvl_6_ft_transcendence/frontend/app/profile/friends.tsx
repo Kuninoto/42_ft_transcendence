@@ -3,8 +3,8 @@ import { removeParams } from '@/contexts/AuthContext'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export default function Friends({ friends }: { friends: Friend[] }) {
-	if (friends.length === 0) {
+export default function Friends({ friends }: { friends: Friend[] | undefined }) {
+	if (!friends || friends.length === 0) {
 		return (
 			<div className="h-full w-full space-y-4">
 				<div className="flex h-full w-full flex-col place-content-start items-center space-y-8">
