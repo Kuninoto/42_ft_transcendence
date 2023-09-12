@@ -114,8 +114,9 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
+
   app.useGlobalFilters(new Passport42ExceptionFilter());
-  app.useGlobalFilters(new HttpExceptionFilter());
+  if (process.env.NODE_ENV === 'dev') app.useGlobalFilters(new HttpExceptionFilter());
   app.setGlobalPrefix('api');
 
   await app.listen(parseInt(process.env.BACKEND_PORT), () =>
