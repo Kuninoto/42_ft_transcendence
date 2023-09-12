@@ -134,6 +134,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	useEffect(() => {
 		return () => {
 			setGameEndInfo({} as GameEndEvent)
+			setOpponentFound({} as OpponentFoundEvent)
 			forfeit()
 		}
 	}, [])

@@ -1,6 +1,8 @@
 'use client'
 
+import { hasValues } from '@/common/utils/hasValues'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 import { useGame } from '@/contexts/GameContext'
 import Image from 'next/image'
 import { useEffect } from 'react'
@@ -8,8 +10,10 @@ import { useEffect } from 'react'
 export default function Loading() {
 	const { canCancel, cancel, opponentFound, queue } = useGame()
 	const { user } = useAuth()
+	const router = useRouter()
 
 	useEffect(() => {
+		if (hasValues(opponentFound)) router.push('/matchmaking')
 		queue()
 	}, [])
 
