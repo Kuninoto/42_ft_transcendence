@@ -28,6 +28,50 @@ enum openModalType {
 	NULL,
 }
 
+function LeaveModal({
+	closeModal,
+	id,
+	leaveRoom
+}: {
+	closeModal: () => void
+	id: number
+	leaveRoom: (openModal: boolean, roomId: number) => void
+}) {
+	return (
+		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
+			<button
+				className="absolute left-0 top-0 h-screen w-screen bg-black/70"
+				onClick={closeModal}
+			></button>
+			<div className="px-8 py-32">
+				<div className="relative grid items-start justify-center  gap-8">
+					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
+					<div className="relative block items-center space-y-8 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-8 py-12 leading-none">
+						<div className="flex flex-col text-center space-y-2"> 
+							<span className="text-sm">Are you sure you want to leave?</span>
+							<span className="text-gray-200 text-xs">This will delete the room</span>
+						</div>
+						<div className="flex w-full place-content-center space-x-8">
+							<button
+								className="rounded border border-white px-4 py-4 text-white mix-blend-lighten hover:bg-white hover:text-black"
+								onClick={() => {
+									leaveRoom(false, id)
+									closeModal()
+								}}
+							>
+								Leave
+							</button>
+							<button className="hover:underline" onClick={closeModal}>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
 function InviteRoomsModal({
 	closeModal,
 	id,
@@ -118,6 +162,7 @@ export default function FriendsList() {
 		useFriends()
 
 	const [openModal, setOpenModal] = useState(openModalType.NULL)
+	const [exitModal, setExitModal] = useState(-1)
 	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
 	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
 
@@ -125,13 +170,17 @@ export default function FriendsList() {
 
 	const { open, sendGameInvite } = useFriends()
 
-	function leaveRoom(roomId: number) {
-		try {
-			api
-				.post(`/chat/${roomId}/leave`)
-		} catch (error: any) {
-			toast.error('Network error')
+	function leaveRoom(openModal: boolean, roomId: number) {
+
+		if (openModal)
+		{
+			setExitModal(roomId)
+			return
 		}
+
+		api
+			.post(`/chat/${roomId}/leave`)
+			.catch((error: any) => toast.error(error.response.data.message || 'Network error'))
 	}
 
 	return (
@@ -148,6 +197,8 @@ export default function FriendsList() {
 					/>
 				)
 			)}
+
+			{ exitModal != -1 && <LeaveModal id={exitModal} leaveRoom={leaveRoom} closeModal={() => setExitModal(-1)}/>}
 
 			<div className="flex w-full flex-col px-4 py-2">
 				<div className="flex items-center">
@@ -323,7 +374,7 @@ export default function FriendsList() {
 										<div className="visible absolute right-4 top-2">
 											<button
 												className="text-xs text-gray-400 hover:text-red-500"
-												onClick={() => leaveRoom(room.id)}
+												onClick={() => leaveRoom(room.ownerId == user.id, room.id)}
 											>
 												Exit room
 											</button>
