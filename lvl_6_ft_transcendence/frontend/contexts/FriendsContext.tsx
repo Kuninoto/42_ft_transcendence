@@ -15,6 +15,7 @@ import {
 import { SendGameInviteRequest } from '@/common/types/game/request'
 import { RespondToGameInviteRequest } from '@/common/types/game/request/respond-to-game-invite-request'
 import { GameInviteCanceledEvent } from '@/common/types/game/socket/event/game-invite-canceled-event.interface'
+import { hasValues } from '@/common/utils/hasValues'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import {
@@ -40,6 +41,7 @@ type FriendsContextType = {
 	exists: boolean
 	focus: (id: number, isRoom: boolean) => void
 	friends: Friend[]
+	getChallengeData: () => void
 	isOpen: boolean
 	newFriendNotification: boolean
 	open: (id: number, isRoom: boolean) => void
@@ -72,6 +74,7 @@ interface Invite {
 }
 
 interface Challenge {
+	id: string
 	invite: boolean
 	opponentName: string
 }
@@ -478,8 +481,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
-		console.log("gameInviteDeclined received");
-		toast.error("Challenge rejected")
+		toast.error('Challenge rejected')
 		router.push('/dashboard')
 	}
 
@@ -498,7 +500,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			socket.on('newUserStatus', updateFriendStatus)
 
 			socket.on('gameInviteCanceled', function (data: GameInviteCanceledEvent) {
-				console.log("gameInviteCanceled received");
+				console.log('gameInviteCanceled received')
 				if (!data) return
 				removeInvite(data.inviteId)
 			})
@@ -534,8 +536,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 
 			let index = -1
 			newChats.map((chat, idx) => {
-				if (chat.messages.some(message => 'game' in message && message.id === id)) {
-				index = idx
+				if (
+					chat.messages.some(
+						(message) => 'game' in message && message.id === id
+					)
+				) {
+					index = idx
 				}
 			})
 
@@ -550,18 +556,20 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			})
 
 			if (index != -1) {
-				setCurrentOpenChat(prevCurrent => {
-					if ('friend' in prevCurrent && 'friend' in updated[index] && prevCurrent.friend.uid === updated[index].friend.uid) {
+				setCurrentOpenChat((prevCurrent) => {
+					if (
+						'friend' in prevCurrent &&
+						'friend' in updated[index] &&
+						prevCurrent.friend.uid === updated[index].friend.uid
+					) {
 						return updated[index]
 					}
 					return prevCurrent
 				})
 			}
 
-
 			return updated
 		})
-
 	}
 
 	// ======================== Direct messages ========================
@@ -608,21 +616,47 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		})
 	}
 
+	function getChallengeData() {
+		if (!challengeInfo.id) return
+
+		const response: RespondToGameInviteRequest = {
+			accepted: true,
+		}
+
+		try {
+			api
+				.patch(`/game/${challengeInfo.id}/status`, response)
+				.catch(() => {
+					throw 'Network error'
+				})
+				.finally(() => {
+					removeInvite(challengeInfo.id)
+				})
+		} catch (error: any) {
+			toast.warning(error)
+		}
+	}
+
 	function respondGameInvite(name: string, id: string, accepted: boolean) {
 		if (!socket) return
 
 		if (accepted) {
-			setChallengeInfo({ invite: false, opponentName: name })
+			setChallengeInfo({
+				id,
+				invite: false,
+				opponentName: name,
+			})
 			router.push('/matchmaking/challenge')
+			return
 		}
 
-		// parameter in user
 		const response: RespondToGameInviteRequest = {
 			accepted,
 		}
 
 		try {
-			api.patch(`/game/${id}/status`, response)
+			api
+				.patch(`/game/${id}/status`, response)
 				.catch(() => {
 					throw 'Network error'
 				})
@@ -644,6 +678,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		exists,
 		focus,
 		friends,
+		getChallengeData,
 		isOpen,
 		newFriendNotification,
 		open,

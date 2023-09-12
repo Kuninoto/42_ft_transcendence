@@ -1,4 +1,4 @@
 export interface PaddleMoveMessage {
-  gameRoomId: string;
-  newY: number;
+	gameRoomId: string
+	newY: number
 }

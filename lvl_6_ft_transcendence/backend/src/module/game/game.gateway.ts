@@ -118,8 +118,10 @@ export class GameGateway implements OnGatewayInit {
     const receiverSocketId: string =
       this.connectionService.findSocketIdByUID(userId);
 
-    const gameInviteCanceledEvent: GameInviteCanceledEvent = { inviteId: inviteId };
-  
+    const gameInviteCanceledEvent: GameInviteCanceledEvent = {
+      inviteId: inviteId,
+    };
+
     this.connectionGateway.server
       .to(receiverSocketId)
       .emit('gameInviteCanceled', gameInviteCanceledEvent);

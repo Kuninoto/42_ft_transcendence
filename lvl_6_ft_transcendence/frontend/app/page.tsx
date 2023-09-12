@@ -9,6 +9,7 @@ export default function page() {
 					className="object-cover"
 					fill
 					priority
+					sizes="100%"
 					src={'/neon.gif'}
 				/>
 			</div>
@@ -19,6 +20,8 @@ export default function page() {
 						alt="neon arrow light"
 						className="animate-horizontalBounce"
 						fill
+						priority
+						sizes="100%"
 						src={'/neonArrow.png'}
 					/>
 				</div>
@@ -27,13 +30,9 @@ export default function page() {
 					href={process.env.NEXT_PUBLIC_INTRA_REDIRECT_URI}
 				>
 					<div className="h-auto w-8 rounded-md border-8 border-[#413F3F] bg-black"></div>
-					<Image
-						alt="coin"
-						className="absolute translate-x-8 translate-y-16 opacity-0 transition-all duration-700 group-hover:translate-x-3 group-hover:translate-y-2 group-hover:opacity-100"
-						height={45}
-						src={'/coin.png'}
-						width={60}
-					/>
+					<div className="absolute h-24 w-16 translate-x-8 translate-y-16 opacity-0 transition-all duration-700 group-hover:translate-x-3 group-hover:translate-y-4 group-hover:opacity-100">
+						<Image alt="coin" fill priority sizes="100%" src={'/coin.png'} />
+					</div>
 				</a>
 			</div>
 		</div>

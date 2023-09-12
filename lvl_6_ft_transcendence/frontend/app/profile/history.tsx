@@ -21,7 +21,9 @@ export default function History({
 	return (
 		<div className="h-full w-full space-y-2 overflow-auto scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 			{!hasValues(history) ? (
-				<div className="w-full py-8 text-center text-2xl">Go play outside instead...</div>
+				<div className="w-full py-8 text-center text-2xl">
+					Go play outside instead...
+				</div>
 			) : (
 				history?.map((match, index) => {
 					const userWon = match.winner.userId === userProfile.id
@@ -35,7 +37,7 @@ export default function History({
 
 					return (
 						<div
-							className={`grid w-full grid-cols-11 place-content-between items-center rounded-sm bg-gradient-to-r 
+							className={`grid w-full grid-cols-10 place-content-between items-center rounded-sm bg-gradient-to-r 
 							${
 								!userWon
 									? 'from-primary-fushia/10 to-primary-shoque/10 text-gray-400'
@@ -44,7 +46,7 @@ export default function History({
 							key={index}
 						>
 							<Link
-								className="col-span-6 flex items-center space-x-4 hover:underline"
+								className="col-span-4 flex items-center space-x-4 hover:underline"
 								href={`/profile?id=${opponent.userId}`}
 							>
 								<Tippy
@@ -71,7 +73,7 @@ export default function History({
 								</div>
 								<span className="text-start">{opponent.name}</span>
 							</Link>
-							<p className="col-span-2">{score}</p>
+							<p className="col-span-3 text-center">{score}</p>
 							<p className="col-span-3 flex place-content-end text-end text-2xl">
 								{userWon ? 'Victory' : 'Defeat'}
 							</p>

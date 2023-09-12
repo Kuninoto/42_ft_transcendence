@@ -1,10 +1,13 @@
 'use client'
 
 import { api } from '@/api/api'
-import { ChatRoomInterface, SendRoomInviteRequest, UserStatus } from '@/common/types'
+import {
+	ChatRoomInterface,
+	SendRoomInviteRequest,
+	UserStatus,
+} from '@/common/types'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
-import Tippy,  from '@tippyjs/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -75,27 +78,32 @@ function InviteRoomsModal({
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative block max-h-64 items-center space-y-3 overflow-auto rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-4 leading-none scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
 						{inviteRooms.length === 0 ? (
-							<div>Nothing to show</div>
+							<div className="text-center text-2xl leading-8">
+								You need to be <br /> part of something first...
+							</div>
 						) : (
-							inviteRooms.map((room) => {
-								return (
-									<div
-										className="flex w-96 place-content-between items-center rounded border border-white p-2"
-										key={room.id}
-									>
-										{room.name}
-										<button
-											onClick={() => {
-												inviteToRoom(room.id)
-												closeModal()
-											}}
-											className="flex rounded-r border border-white px-4 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+							<div className="flex flex-col items-center space-y-4">
+								<h3>Invite to room</h3>
+								{inviteRooms.map((room) => {
+									return (
+										<div
+											className="flex w-96 place-content-between items-center rounded border border-white p-2"
+											key={room.id}
 										>
-											Invite
-										</button>
-									</div>
-								)
-							})
+											{room.name}
+											<button
+												onClick={() => {
+													inviteToRoom(room.id)
+													closeModal()
+												}}
+												className="flex rounded-r border border-white px-4 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+											>
+												Invite
+											</button>
+										</div>
+									)
+								})}
+							</div>
 						)}
 					</div>
 				</div>
@@ -229,6 +237,7 @@ export default function FriendsList() {
 													loader={removeParams}
 													sizes="100vw"
 													src={friend.avatar_url || '/placeholder.gif'}
+													unoptimized
 												/>
 											</div>
 											<div> {friend.name} </div>
@@ -244,25 +253,27 @@ export default function FriendsList() {
 										>
 											<BiUser size={24} />
 										</Link>
-										{ friend.status === UserStatus.ONLINE && 
-										<>
-										<button
-											onClick={() => {
-												setOpenModal(openModalType.INVITEROOM)
-												setFriendId(friend.uid)
-											}}
-											className="hover:text-[#F32E7C]"
-										>
-											<HiOutlineChatAlt2 size={24} />
-										</button>
-										<button
-											className="hover:text-[#F32E7C]"
-											onClick={() => sendGameInvite(friend.name, friend.uid)}
-										>
-											<LuSwords size={24} />
-										</button>
-										</>
-										}
+										{friend.status === UserStatus.ONLINE && (
+											<>
+												<button
+													onClick={() => {
+														setOpenModal(openModalType.INVITEROOM)
+														setFriendId(friend.uid)
+													}}
+													className="hover:text-[#F32E7C]"
+												>
+													<HiOutlineChatAlt2 size={24} />
+												</button>
+												<button
+													onClick={() =>
+														sendGameInvite(friend.name, friend.uid)
+													}
+													className="hover:text-[#F32E7C]"
+												>
+													<LuSwords size={24} />
+												</button>
+											</>
+										)}
 									</div>
 								</div>
 							))}

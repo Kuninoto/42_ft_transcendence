@@ -12,6 +12,7 @@ import helmet from 'helmet';
 import passport from 'passport';
 import { SwaggerTheme } from 'swagger-themes';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 import { AppCorsOption } from './common/option/cors.option';
 import { Passport42ExceptionFilter } from './module/auth/filter/passport42-exception.filter';
 
@@ -114,6 +115,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
   app.useGlobalFilters(new Passport42ExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.setGlobalPrefix('api');
 
   await app.listen(parseInt(process.env.BACKEND_PORT), () =>

@@ -554,7 +554,11 @@ export class ChatService {
       throw new ConflictException('You cannot ban yourself');
     }
 
-    if (room.bans.some((bannedUser: User): boolean => bannedUser.id == userToBanId))
+    if (
+      room.bans.some(
+        (bannedUser: User): boolean => bannedUser.id == userToBanId,
+      )
+    )
       throw new ConflictException('User is already banned');
 
     const userToBan: User | null = await this.usersService.findUserByUID(
@@ -718,11 +722,14 @@ export class ChatService {
       );
     }
 
-    if (this.mutedUsers.some(
-      (mutedUser: { roomId: number, userId: number }): boolean => roomId == mutedUser.roomId && userToMuteId == mutedUser.userId
-    )) {
+    if (
+      this.mutedUsers.some(
+        (mutedUser: { roomId: number; userId: number }): boolean =>
+          roomId == mutedUser.roomId && userToMuteId == mutedUser.userId,
+      )
+    ) {
       throw new ConflictException('User is already muted');
-    };
+    }
 
     // Calculate the mute duration in ms to later use on setTimeout()
     let durationInMs: number;
