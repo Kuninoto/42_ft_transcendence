@@ -84,11 +84,13 @@ function RoomSettings({
 				setValue('password', '')
 			})
 		setRoomType(ChatRoomType.PROTECTED)
+		updateRoomType(ChatRoomType.PROTECTED)
 	}
 
 	function removePassword() {
 		api.delete(`/chat/${id}/password`)
 		setRoomType(ChatRoomType.PUBLIC)
+		updateRoomType(ChatRoomType.PUBLIC)
 		updateRoomType(ChatRoomType.PUBLIC)
 	}
 

@@ -480,7 +480,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 	}
 
 	function onInviteDeclined() {
-		toast.error('Challange rejected')
+		toast.error('Challenge rejected')
 		router.push('/dashboard')
 	}
 

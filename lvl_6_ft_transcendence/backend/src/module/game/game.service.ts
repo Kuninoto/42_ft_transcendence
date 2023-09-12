@@ -108,6 +108,8 @@ export class GameService {
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
 
+    this.gameInviteMap.deleteInviteByInviteId(inviteId);
+
     // Delete this invite and all invites where user is the receiver
     // because user is entering a game
     this.deleteInvitesWhereUserIsTheReceiver(userId);
@@ -129,7 +131,7 @@ export class GameService {
     const gameInvite: GameInvite | undefined =
       this.gameInviteMap.findInviteById(inviteId);
     if (!gameInvite) throw new NotFoundException('Invite not found');
-
+    
     this.gameGateway.emitGameInviteDeclined(gameInvite.sender.userId);
   }
 
