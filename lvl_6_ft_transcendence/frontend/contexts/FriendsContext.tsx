@@ -293,12 +293,12 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 		const write = warningType === RoomWarning.UNMUTE ? true : false
 
 		if (
-			(warningType === RoomWarning.BAN ||
+			warningType === RoomWarning.BAN ||
 			warningType === RoomWarning.KICK ||
 			warningType === RoomWarning.LEAVE ||
 			warningType === RoomWarning.MUTE ||
 			warningType === RoomWarning.UNMUTE ||
-			warningType === RoomWarning.OWNER_LEFT) && exists
+			warningType === RoomWarning.OWNER_LEFT
 		) {
 			setOpenChats((prevChat: any) => {
 				const newChat = [...prevChat]
@@ -315,10 +315,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			if ('room' in currentOpenChat && currentOpenChat.room.id === id) {
 				focus(id, true)
 			}
-
-			return true
 		}
-		return false
 	}
 
 	const onMessageReceived = useCallback(
@@ -338,8 +335,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					(data.affectedUID == user.id ||
 						data.warningType === RoomWarning.OWNER_LEFT)
 				) {
-					if(actionBasedOnWarning(data.warningType, data.roomId))
-						return newChat
+					actionBasedOnWarning(data.warningType, data.roomId)
 				}
 
 
@@ -430,7 +426,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 					)
 					if (oneDisplay) setCurrentOpenChat(oneDisplay)
 				}
-				setExists(true)
+				setExists(prevExists => !('warning' in data && (data.warningType === RoomWarning.BAN || data.warningType === RoomWarning.OWNER_LEFT || data.warningType === RoomWarning.KICK || data.warningType === RoomWarning.LEAVE) && !prevExists) )
 				return newChat
 			})
 		},

@@ -28,7 +28,7 @@ export default function Auth() {
 		try {
 			setGet2fa(false)
 			await login2fa(otp)
-			router.push('/dashboard')
+			setTimeout(() => router.push('/dashboard'), 1 * 1000 )
 		} catch (error: any) {
 			setGet2fa(true)
 			toast.error(error)
@@ -41,7 +41,7 @@ export default function Auth() {
 				const code = searchParams.get('code')
 				if (!code) throw 'No code provided'
 				if (await login(code)) {
-					router.push('/dashboard')
+					setTimeout(() => router.push('/dashboard'), 1 * 1000 )
 				} else {
 					setGet2fa(true)
 				}
