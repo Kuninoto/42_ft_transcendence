@@ -8,7 +8,7 @@ import {
 import { TokenError } from 'passport-oauth2';
 import { ErrorResponse } from 'types';
 
-const FT_API_ERROR_MSG: string =
+const FT_API_ERROR_MSG =
   'The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.';
 
 @Catch(TokenError)

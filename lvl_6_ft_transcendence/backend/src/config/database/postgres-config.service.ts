@@ -7,7 +7,6 @@ console.log('NODE_ENV = ' + process.env.NODE_ENV);
 
 @Injectable()
 export class PostgresConfigService implements TypeOrmOptionsFactory {
-  constructor() {}
   createTypeOrmOptions(): TypeOrmModuleOptions {
     return {
       type: 'postgres',
@@ -20,7 +19,7 @@ export class PostgresConfigService implements TypeOrmOptionsFactory {
       autoLoadEntities: true,
       logging: false,
       namingStrategy: new SnakeNamingStrategy(),
-      synchronize: process.env.NODE_ENV === 'dev',
+      synchronize: true, // process.env.NODE_ENV === 'dev',
     };
   }
 }

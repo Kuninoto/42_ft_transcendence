@@ -18,7 +18,6 @@ export default function Logout() {
       <h1 className="text-5xl after:inline-block after:w-0 after:animate-ellipsis after:overflow-hidden after:align-bottom after:content-['\2026']">
         Logging out
       </h1>
-      <span>Bye bye</span>
 
       <div className="flex space-x-4">
         <Image src="/pacman_cyan_ghost.gif" alt="Cyan pacman ghost" width={64} height={64} />

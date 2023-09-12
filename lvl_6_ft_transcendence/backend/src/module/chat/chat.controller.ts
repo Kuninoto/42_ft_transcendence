@@ -171,7 +171,8 @@ export class ChatController {
   })
   @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
   @ApiOkResponse({
-    description: 'Returns a basic profile of each admin on room with id=room-id',
+    description:
+      'Returns a basic profile of each admin on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
   @Get('/:roomId/admins')
@@ -208,7 +209,8 @@ export class ChatController {
   })
   @ApiNotFoundResponse({ description: "Room with id= roomId doesn't exist" })
   @ApiOkResponse({
-    description: 'Returns a basic profile of each participant on room with id=room-id',
+    description:
+      'Returns a basic profile of each participant on room with id=room-id',
   })
   @UseGuards(OwnerGuard)
   @Get('/:roomId/participants')
@@ -264,7 +266,6 @@ export class ChatController {
   public async leaveRoom(
     @ExtractUser() user: User,
     @Param('roomId') roomId: number,
-    @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
     if (!roomId || Number.isNaN(roomId) || roomId < 1)
       throw new BadRequestException('Invalid roomId parameter');
@@ -275,7 +276,7 @@ export class ChatController {
       throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
     }
 
-    await this.chatService.leaveRoom(room, body.userId, true);
+    await this.chatService.leaveRoom(room, user, true);
     return { message: `Successfully left room "${room.name}"` };
   }
 
@@ -373,7 +374,7 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.kickFromRoom(user.id, body.userId, roomId);
+    return await this.chatService.kickFromRoom(user, body.userId, roomId);
   }
 
   @ApiOperation({ description: 'Ban a user from a chat room' })
@@ -381,7 +382,9 @@ export class ChatController {
   @ApiUnauthorizedResponse({
     description: "If sender doesn't have admin privileges",
   })
-  @ApiConflictResponse({ description: 'If sender tries to ban himself or if user is already banned' })
+  @ApiConflictResponse({
+    description: 'If sender tries to ban himself or if user is already banned',
+  })
   @ApiNotFoundResponse({ description: "If room or user don't exist" })
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
@@ -391,7 +394,7 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.banFromRoom(user.id, body.userId, roomId);
+    return await this.chatService.banFromRoom(user, body.userId, roomId);
   }
 
   @ApiOperation({ description: 'Unban a user from a chat room' })
@@ -474,7 +477,7 @@ export class ChatController {
     @Param('roomId') roomId: number,
     @Body() body: RoomOperationRequest,
   ): Promise<SuccessResponse | ErrorResponse> {
-    return await this.chatService.assignAdminRole(user.id, body.userId, roomId);
+    return await this.chatService.assignAdminRole(user, body.userId, roomId);
   }
 
   @ApiOperation({

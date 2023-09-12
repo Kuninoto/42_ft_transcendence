@@ -27,7 +27,7 @@ export class AuthService {
     // Set the new accessToken as the new valid token for user with uid= user.id
     // TODO
     // UNCOMMENT
-    //this.tokenWhitelist.set(user.id.toString(), accessToken);
+    // this.tokenWhitelist.set(user.id.toString(), accessToken);
 
     this.logger.log(`"${user.name}" logged in with 42 auth!`);
     return {
