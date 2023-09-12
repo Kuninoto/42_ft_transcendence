@@ -441,7 +441,7 @@ export class ChatService {
   }
 
   public async assignAdminRole(
-    createRoomRequesterUID: number,
+    sender: User,
     userToAssignRoleId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
@@ -455,23 +455,23 @@ export class ChatService {
         `Owner of room "${room.name}" tried to add admin privileges to a non-existing user`,
       );
       throw new NotFoundException(
-        `User with uid=${userToAssignRole} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
     if (this.isUserAnAdmin(room, userToAssignRoleId)) {
       this.logger.warn(
-        `Owner of room "${room.name}" tried to add admin privileges to an admin`,
+        `"${sender.name}" (owner of room "${room.name}") tried to add admin privileges to an admin`,
       );
       throw new ConflictException('User already has admin privileges');
     }
 
     if (!this.isUserInRoom(room, userToAssignRoleId)) {
       this.logger.warn(
-        `UID=${createRoomRequesterUID} tried to add admin privileges to a user that isn't part of the current room`,
+        `"${sender.name}" (owner of room "${room.name}") tried to add admin privileges to a user that isn't part of the current room`,
       );
       throw new BadRequestException(
-        `${userToAssignRole.name} is not part of the room`,
+        `"${userToAssignRole.name}" is not part of the room`,
       );
     }
 
@@ -507,7 +507,7 @@ export class ChatService {
         `Owner of room "${room.name}" tried to remove admin privileges of a non-existing user`,
       );
       throw new NotFoundException(
-        `User with uid=${userIdToRemoveRole} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -516,7 +516,7 @@ export class ChatService {
         `Owner of room "${room.name}" tried to remove admin privileges of a non-admin`,
       );
       throw new BadRequestException(
-        `User with uid=${userIdToRemoveRole} is not an admin`,
+        `User is not an admin`,
       );
     }
 
@@ -541,20 +541,24 @@ export class ChatService {
   }
 
   public async banFromRoom(
-    senderId: number,
+    sender: User,
     userToBanId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom = await this.findRoomById(roomId);
 
-    if (senderId === userToBanId) {
+    if (sender.id === userToBanId) {
       this.logger.warn(
-        `UID= ${senderId} tried to ban himself from room: "${room.name}"`,
+        `"${sender.name}" tried to ban himself from room "${room.name}"`,
       );
       throw new ConflictException('You cannot ban yourself');
     }
 
-    if (room.bans.some((bannedUser: User): boolean => bannedUser.id == userToBanId))
+    if (
+      room.bans.some(
+        (bannedUser: User): boolean => bannedUser.id == userToBanId,
+      )
+    )
       throw new ConflictException('User is already banned');
 
     const userToBan: User | null = await this.usersService.findUserByUID(
@@ -571,10 +575,10 @@ export class ChatService {
       roomId: room.id,
       affectedUID: userToBan.id,
       warningType: RoomWarning.BAN,
-      warning: `${userToBan.name} was banned!`,
+      warning: `${userToBan.name} was banned by ${sender.name}!`,
     });
 
-    await this.leaveRoom(room, userToBanId, false);
+    await this.leaveRoom(room, userToBan, false);
 
     this.logger.log(`"${userToBan.name}" was banned from room "${room.name}"`);
     return {
@@ -593,7 +597,7 @@ export class ChatService {
     );
     if (!userToUnban) {
       throw new NotFoundException(
-        `User with uid=${userToUnbanId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -609,25 +613,25 @@ export class ChatService {
   }
 
   public async kickFromRoom(
-    senderId: number,
+    sender: User,
     userToKickId: number,
     roomId: number,
   ): Promise<SuccessResponse | ErrorResponse> {
     const room: ChatRoom = await this.findRoomById(roomId);
 
-    if (senderId === userToKickId) {
+    if (sender.id === userToKickId) {
       this.logger.warn(
-        `UID= ${senderId} tried to kick himself from room: "${room.name}"`,
+        `${sender.name} tried to kick himself from room "${room.name}"`,
       );
       throw new ConflictException('You cannot kick yourself');
     }
 
     if (!this.isUserInRoom(room, userToKickId)) {
       this.logger.warn(
-        `UID= ${senderId} tried to kick a user that isn't part of the createRoomRequesting room`,
+        `${sender.name} tried to kick a user that isn't part of the createRoomRequesting room`,
       );
       throw new NotFoundException(
-        `User with uid=${userToKickId} isn't on that room`,
+        `User isn't on that room`,
       );
     }
 
@@ -636,7 +640,7 @@ export class ChatService {
     );
     if (!userToKick) {
       throw new NotFoundException(
-        `User with uid=${userToKickId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -644,10 +648,10 @@ export class ChatService {
       roomId: room.id,
       affectedUID: userToKick.id,
       warningType: RoomWarning.KICK,
-      warning: `${userToKick.name} was kicked!`,
+      warning: `${userToKick.name} was kicked by ${sender.name}!`,
     });
 
-    await this.leaveRoom(room, userToKickId, false);
+    await this.leaveRoom(room, userToKick, false);
 
     this.logger.log(`"${userToKick.name}" was kicked from room "${room.name}"`);
     return {
@@ -657,18 +661,18 @@ export class ChatService {
 
   public async leaveRoom(
     room: ChatRoom,
-    userLeavingId: number,
+    userLeaving: User,
     emitUserHasLeftTheRoom: boolean,
   ): Promise<void> {
     // If owner is leaving, emit a ownerHasLeftTheRoom event
     // and delete the room from db
-    if (userLeavingId == room.owner.id) {
+    if (userLeaving.id == room.owner.id) {
       // Send the warning that the owner has left
       this.connectionGateway.sendRoomWarning(room.id, {
         roomId: room.id,
         affectedUID: room.owner.id,
         warningType: RoomWarning.OWNER_LEFT,
-        warning: 'Owner has left the room',
+        warning: `${userLeaving.name} (owner) has left the room`,
       });
 
       // Remove all participants from the room
@@ -679,26 +683,23 @@ export class ChatService {
       await this.chatRoomRepository.remove(room);
     } else {
       // Remove user from chat's table
-      this.removeUserFromRoom(room, userLeavingId);
+      this.removeUserFromRoom(room, userLeaving.id);
 
       /* In case this function is being used by kickFromRoom or banFromRoom
       emitUserHasLeftTheRoom will be false (they will have their own events) */
       if (emitUserHasLeftTheRoom) {
-        const leavingUser: User = await this.usersService.findUserByUID(
-          userLeavingId,
-        );
         this.connectionGateway.sendRoomWarning(room.id, {
           roomId: room.id,
-          affectedUID: leavingUser.id,
+          affectedUID: userLeaving.id,
           warningType: RoomWarning.LEAVE,
-          warning: `${leavingUser.name} has left the room`,
+          warning: `${userLeaving.name} has left the room`,
         });
       }
 
       const socketIdOfLeavingUser: string =
-        this.connectionService.findSocketIdByUID(userLeavingId);
+        this.connectionService.findSocketIdByUID(userLeaving.id);
 
-      // Kick userLeaving from socket room
+      // Remove userLeaving from socket room
       this.connectionGateway.server
         .to(socketIdOfLeavingUser)
         .socketsLeave(`room-${room.id}`);
@@ -717,15 +718,18 @@ export class ChatService {
     );
     if (!userToMute) {
       throw new NotFoundException(
-        `User with uid=${userToMuteId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
-    if (this.mutedUsers.some(
-      (mutedUser: { roomId: number, userId: number }): boolean => roomId == mutedUser.roomId && userToMuteId == mutedUser.userId
-    )) {
+    if (
+      this.mutedUsers.some(
+        (mutedUser: { roomId: number; userId: number }): boolean =>
+          roomId == mutedUser.roomId && userToMuteId == mutedUser.userId,
+      )
+    ) {
       throw new ConflictException('User is already muted');
-    };
+    }
 
     // Calculate the mute duration in ms to later use on setTimeout()
     let durationInMs: number;
@@ -772,7 +776,7 @@ export class ChatService {
     );
     if (!userToUnmute) {
       throw new NotFoundException(
-        `User with uid=${userToUnmuteId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 

@@ -28,7 +28,7 @@ export class GameInviteMap {
   }
 
   public findAllInvitesWithUser(userId: number): GameInvite[] {
-    let invites: GameInvite[] = [];
+    const invites: GameInvite[] = [];
 
     this.gameInviteMap.forEach((invite: GameInvite): void => {
       if (userId == invite.receiverUID || userId == invite.sender.userId)

@@ -506,7 +506,6 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			socket.on('newUserStatus', updateFriendStatus)
 
 			socket.on('gameInviteCanceled', function (data: GameInviteCanceledEvent) {
-				console.log('gameInviteCanceled received')
 				if (!data) return
 				removeInvite(data.inviteId)
 			})
@@ -650,7 +649,7 @@ export function FriendsProvider({ children }: { children: ReactNode }) {
 			setChallengeInfo({
 				id,
 				invite: false,
-				name,
+				opponentName: name,
 			})
 			router.push('/matchmaking/challenge')
 			return

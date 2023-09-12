@@ -155,13 +155,6 @@ export class MeController {
   ): Promise<SuccessResponse | ErrorResponse> {
     this.logger.log(`Updating ${user.name}'s username`);
 
-    if (!body.newUsername) {
-      this.logger.warn(`"${user.name}" failed to update his username`);
-      throw new BadRequestException(
-        "Expected 'newUsername' as a field of the body's JSON",
-      );
-    }
-
     return await this.usersService.updateUsernameByUID(
       user.id,
       body.newUsername,
@@ -199,7 +192,7 @@ export class MeController {
       this.logger.warn(
         `"${user.name}" failed to update his avatar because the file was invalid`,
       );
-      throw new BadRequestException('Invalid file');
+      throw new BadRequestException('Invalid file (extension or size)');
     }
     this.logger.log(`"${user.name}" updated his avatar`);
 

@@ -30,8 +30,8 @@ export default function Auth() {
 			await login2fa(otp)
 			router.push('/dashboard')
 		} catch (error: any) {
+			setGet2fa(true)
 			toast.error(error)
-			router.push('/')
 		}
 	}
 

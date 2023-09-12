@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
@@ -216,15 +217,16 @@ export class UsersService {
     meUser: User,
     userId: number,
   ): Promise<UserProfile | null> {
-    if (await this.friendshipsService.isSenderBlocked(meUser.id, userId)) {
-      return null;
-    }
-
     const user: User | null = await this.usersRepository.findOneBy({
       id: userId,
     });
 
-    if (!user) return null;
+    // If user doesn't exist or if sender is blocked by him
+    if (
+      !user ||
+      (await this.friendshipsService.isSenderBlocked(meUser.id, userId))
+    )
+      throw new NotFoundException('User not found');
 
     const friendship: Friendship | null =
       await this.friendshipsService.findFriendshipBetween2Users(
@@ -384,7 +386,9 @@ export class UsersService {
     );
 
     // Delete the previous avatar from the file system
-    fs.unlink(absoluteAvatarPath, () => {});
+    fs.unlink(absoluteAvatarPath, (err: any) => {
+      if (err) this.logger.error(err);
+    });
 
     await this.usersRepository.update(userId, {
       avatar_url: newAvatarURL,
@@ -398,10 +402,7 @@ export class UsersService {
     newName: string,
   ): Promise<SuccessResponse | ErrorResponse> {
     // Check name length boundaries (4-10)
-    if (newName.length <= 4 || newName.length >= 10) {
-      this.logger.warn(
-        `UID= ${userId} failed to update his username due to length boundaries`,
-      );
+    if (newName.length < 4 || newName.length > 10) {
       throw new BadRequestException(
         'Usernames length must be 4-10 characters long',
       );
@@ -410,20 +411,13 @@ export class UsersService {
     // Check if newName is only composed by
     // a-z, A-Z, 0-9, _ and -
     if (!newName.match('^[a-zA-Z0-9_-]+$')) {
-      this.logger.warn(
-        `UID= ${userId} failed to update his username due to using forbidden chars`,
-      );
       throw new BadRequestException(
         'Usernames can only by composed by letters (both cases), underscore and hiphen',
       );
     }
 
-    if (await this.isNameAlreadyTaken(newName)) {
-      this.logger.warn(
-        'A request to update a name was made with a name already taken',
-      );
+    if (await this.isNameAlreadyTaken(newName))
       throw new ConflictException('Username is already taken');
-    }
 
     if (await this.doesNameConflictWithAnyIntraName(newName, userId)) {
       this.logger.warn(
