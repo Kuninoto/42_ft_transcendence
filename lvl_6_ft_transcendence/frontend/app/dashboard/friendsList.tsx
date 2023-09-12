@@ -238,6 +238,7 @@ export default function FriendsList() {
 													loader={removeParams}
 													sizes="100vw"
 													src={friend.avatar_url || '/placeholder.gif'}
+													unoptimized
 												/>
 											</div>
 											<div> {friend.name} </div>

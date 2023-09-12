@@ -1,4 +1,3 @@
-import { api } from '@/api/api'
 import {
 	Ball,
 	CANVAS_WIDTH,
@@ -21,10 +20,8 @@ import { usePathname } from 'next/navigation'
 import {
 	createContext,
 	ReactNode,
-	useCallback,
 	useContext,
 	useEffect,
-	useRef,
 	useState,
 } from 'react'
 
@@ -135,6 +132,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}
 
 	useEffect(() => {
+		return () => {
+			setGameEndInfo({} as GameEndEvent)
+			forfeit()
+		}
+	}, [])
+
+	useEffect(() => {
 		if (pathname === '/matchmaking' && !hasValues(opponentFound))
 			router.push('/dashboard')
 		else {
@@ -143,6 +147,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}, [socket])
 
 	function onGameRoomInfo(data: GameRoomInfoEvent) {
+		if (!data) return
+
 		if (opponentFound.side === PlayerSide.LEFT) {
 			setOpponentPosition(data.rightPlayer.paddleY)
 		} else {

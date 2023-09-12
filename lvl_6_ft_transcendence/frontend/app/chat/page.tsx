@@ -552,6 +552,7 @@ export default function Chat() {
 													loader={removeParams}
 													sizes="100%"
 													src={display.avatar || '/placeholder.gif'}
+													unoptimized
 												/>
 											</div>
 										)}
