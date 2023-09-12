@@ -15,7 +15,6 @@ import {
 import { SendGameInviteRequest } from '@/common/types/game/request'
 import { RespondToGameInviteRequest } from '@/common/types/game/request/respond-to-game-invite-request'
 import { GameInviteCanceledEvent } from '@/common/types/game/socket/event/game-invite-canceled-event.interface'
-import { hasValues } from '@/common/utils/hasValues'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import {

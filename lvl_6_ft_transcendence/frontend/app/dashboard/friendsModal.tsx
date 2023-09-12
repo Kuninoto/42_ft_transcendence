@@ -4,9 +4,10 @@ import { api } from '@/api/api'
 import { FriendRequest, FriendshipStatus, UserSearchInfo } from '@/common/types'
 import { removeParams } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
+import { BiRefresh } from 'react-icons/bi'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, forwardRef, useRef, useImperativeHandle  } from 'react'
 import { MdOutlineBlock, MdOutlineClear, MdOutlineDone } from 'react-icons/md'
 import { toast } from 'react-toastify'
 
@@ -47,11 +48,11 @@ function Buttons({
 	) {
 		e.preventDefault()
 		e.stopPropagation()
-
 		try {
-			callable()
-		} catch (error: any) {
-			toast.error(error)
+			
+		callable()
+		} catch (error) {
+			
 		}
 	}
 
@@ -60,7 +61,8 @@ function Buttons({
 			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.UNFRIEND,
 			})
-			.then(() => refresh())
+			.catch((error:any) => toast.error(error.response.data.message))
+			.finally(() => refresh())
 	}
 
 	function accept(friendshipId: null | number) {
@@ -69,9 +71,10 @@ function Buttons({
 				newStatus: FriendshipStatus.ACCEPTED,
 			})
 			.then(() => {
-				refresh()
 				refreshFriends()
 			})
+			.catch((error:any) => toast.error(error.response.data.message))
+			.finally(() => refresh())
 	}
 
 	function decline(friendshipId: null | number) {
@@ -79,31 +82,29 @@ function Buttons({
 			.patch(`/friendships/${friendshipId}/status`, {
 				newStatus: FriendshipStatus.DECLINED,
 			})
-			.then(() => refresh())
+			.catch((error:any) => toast.error(error.response.data.message))
+			.finally(() => refresh())
 	}
 
 	function block(userId: number) {
-		api.post(`/friendships/block/${userId}`).then(() => refresh())
+		api.post(`/friendships/block/${userId}`)
+			.catch((error:any) => toast.error(error.response.data.message))
+			.finally(() => refresh())
 	}
 
 	function unblock(userId: number) {
-		try {
-			api
-				.delete(`/friendships/block/${userId}`)
-				.then(() => refresh())
-				.catch(() => {
-					throw 'Network error'
-				})
-		} catch (error: any) {
-			toast.error(error)
-		}
+		api.delete(`/friendships/block/${userId}`)
+			.catch((error:any) => toast.error(error.response.data.message))
+			.finally(() => refresh())
 	}
 
 	function sendFriendRequest(userId: number) {
-		api.post(`/friendships/send-request/${userId}`).then(() => {
-			refresh()
+		api.post(`/friendships/send-request/${userId}`)
+		.then(() => {
 			resetSearch!()
 		})
+		.catch((error:any) => toast.error(error.response.data.message))
+			.finally(() => refresh())
 	}
 
 	if (friend.blocked_by_me) {
@@ -166,9 +167,27 @@ function Buttons({
 	)
 }
 
-function FriendRequests() {
+const FriendRequests = forwardRef(function (props, ref) {
 	const [requests, setRequests] = useState<FriendRequest[]>([])
 	const [loading, setLoading] = useState(true)
+
+	useImperativeHandle(ref, () => ({
+
+
+	async refreshFriendRequest() {
+		try {
+			await api
+				.get(`/me/friend-requests`)
+				.then((result) => {
+					setRequests(result.data)
+				})
+				.catch((error) => console.error(error))
+				.finally(() => setLoading(false))
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
+	}))
 
 	async function getFriendRequests() {
 		try {
@@ -233,7 +252,7 @@ function FriendRequests() {
 			)}
 		</>
 	)
-}
+})
 
 function FriendSearch({
 	loading,
@@ -307,6 +326,8 @@ export default function FriendsModal({
 	const [loading, setLoading] = useState(true)
 	const [users, setUsers] = useState<[] | UserSearchInfo[]>([])
 
+	const childRef = useRef(null)
+
 	function searchFriend() {
 		try {
 			api
@@ -336,14 +357,20 @@ export default function FriendsModal({
 				<div className="group relative grid items-start justify-center  gap-8">
 					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
 					<div className="relative block items-center divide-x divide-gray-600 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-4 py-8 leading-none">
-						<input
-							className="w-[34rem] rounded border border-white bg-transparent p-2 pl-4 text-xl outline-none ring-0"
-							maxLength={18}
-							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Search"
-							type="text"
-							value={search}
-						/>
+						<div className="flex items-center space-x-1">
+							<input
+								className="w-[30rem] rounded-l border border-white bg-transparent p-2 pl-4 text-xl outline-none ring-0"
+								maxLength={18}
+								onChange={(e) => setSearch(e.target.value)}
+								placeholder="Search"
+								type="text"
+								value={search}
+							/>
+							<button className="rounded-r border border-white p-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+								onClick={() => childRef.current.refreshFriendRequest()}>
+								<BiRefresh size={28}/>
+							</button>
+						</div>
 
 						<div className="mt-8 h-56 space-y-3 overflow-auto border-none ">
 							{!!search ? (
@@ -355,7 +382,7 @@ export default function FriendsModal({
 									users={users}
 								/>
 							) : (
-								<FriendRequests />
+								<FriendRequests ref={childRef}/>
 							)}
 						</div>
 					</div>
