@@ -92,7 +92,7 @@ function Control({ children }: { children: ReactNode }) {
 				router.push('/dashboard')
 			} else if (inGame) {
 				setModal(true)
-				router.push('/matchmaking')
+				console.log("entrou aqui")
 			}
 		}
 	}, [inGame])

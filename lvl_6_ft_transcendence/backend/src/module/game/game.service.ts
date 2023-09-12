@@ -54,7 +54,7 @@ export class GameService {
   ): Promise<string> {
     if (this.isPlayerInQueueOrGame(sender.id)) {
       throw new ConflictException(
-        'You cannot send a game invite while in a game',
+        'You cannot send a game invite while in game',
       );
     }
 
@@ -62,7 +62,7 @@ export class GameService {
       receiverUID,
     );
     if (!receiver)
-      throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
+      throw new NotFoundException(`User doesn't exist`);
 
     if (receiver.status !== UserStatus.ONLINE)
       throw new ConflictException(
@@ -71,6 +71,9 @@ export class GameService {
 
     if (this.doesSenderHaveAnActiveGameInvite(sender.id))
       throw new ConflictException('You have an active game invite');
+
+    if (this.doesSenderHaveAnActiveGameInviteFromReceiver(sender.id, receiver.id))
+      throw new ConflictException('You have an active game invite from your friend, check your chat!');
 
     if (this.isPlayerInQueueOrGame(receiverUID))
       throw new ConflictException('Receiver is in game');
@@ -406,6 +409,19 @@ export class GameService {
 
     allInvitesWithUser.forEach((invite: GameInvite): boolean | void => {
       if (invite.sender.userId == senderId) return true;
+    });
+
+    return false;
+  }
+
+  private doesSenderHaveAnActiveGameInviteFromReceiver(senderId: number, receiverId: number): boolean {
+    const allInvitesWithUser: GameInvite[] =
+      this.gameInviteMap.findAllInvitesWithUser(senderId);
+
+    if (!allInvitesWithUser) return false;
+
+    allInvitesWithUser.forEach((invite: GameInvite): boolean | void => {
+      if (invite.sender.userId == senderId && invite.receiverUID == receiverId ) return true;
     });
 
     return false;

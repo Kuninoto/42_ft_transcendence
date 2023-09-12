@@ -16,7 +16,8 @@ export default function Loading() {
 	const { challengeInfo, getChallengeData } = useFriends()
 
 	useEffect(() => {
-		if (!hasValues(challengeInfo)) router.push('/dashboard')
+		if (hasValues(opponentFound)) router.push('/matchmaking')
+		else if (!hasValues(challengeInfo)) router.push('/dashboard')
 		else getChallengeData()
 	}, [])
 

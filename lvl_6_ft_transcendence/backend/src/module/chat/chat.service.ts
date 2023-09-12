@@ -455,7 +455,7 @@ export class ChatService {
         `Owner of room "${room.name}" tried to add admin privileges to a non-existing user`,
       );
       throw new NotFoundException(
-        `User with uid=${userToAssignRole} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -507,7 +507,7 @@ export class ChatService {
         `Owner of room "${room.name}" tried to remove admin privileges of a non-existing user`,
       );
       throw new NotFoundException(
-        `User with uid=${userIdToRemoveRole} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -516,7 +516,7 @@ export class ChatService {
         `Owner of room "${room.name}" tried to remove admin privileges of a non-admin`,
       );
       throw new BadRequestException(
-        `User with uid=${userIdToRemoveRole} is not an admin`,
+        `User is not an admin`,
       );
     }
 
@@ -597,7 +597,7 @@ export class ChatService {
     );
     if (!userToUnban) {
       throw new NotFoundException(
-        `User with uid=${userToUnbanId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -631,7 +631,7 @@ export class ChatService {
         `${sender.name} tried to kick a user that isn't part of the createRoomRequesting room`,
       );
       throw new NotFoundException(
-        `User with uid=${userToKickId} isn't on that room`,
+        `User isn't on that room`,
       );
     }
 
@@ -640,7 +640,7 @@ export class ChatService {
     );
     if (!userToKick) {
       throw new NotFoundException(
-        `User with uid=${userToKickId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -718,7 +718,7 @@ export class ChatService {
     );
     if (!userToMute) {
       throw new NotFoundException(
-        `User with uid=${userToMuteId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
@@ -776,7 +776,7 @@ export class ChatService {
     );
     if (!userToUnmute) {
       throw new NotFoundException(
-        `User with uid=${userToUnmuteId} doesn't exist`,
+        `User doesn't exist`,
       );
     }
 
