@@ -35,6 +35,7 @@ import {
   User,
 } from '../../entity';
 import { AchievementService } from '../achievement/achievement.service';
+import { ConnectionGateway } from '../connection/connection.gateway';
 import { FriendshipsService } from '../friendships/friendships.service';
 import { UserStatsService } from '../user-stats/user-stats.service';
 import { CreateUserDTO } from './dto/create-user.dto';
@@ -50,6 +51,7 @@ export class UsersService {
     @InjectRepository(GameResult)
     private readonly gameResultRepository: Repository<GameResult>,
     private readonly achievementService: AchievementService,
+    private readonly connectionGateway: ConnectionGateway,
   ) {}
 
   private readonly logger: Logger = new Logger(UsersService.name);
@@ -394,6 +396,8 @@ export class UsersService {
       avatar_url: newAvatarURL,
       last_updated_at: new Date(),
     });
+
+    this.connectionGateway.sendRefreshUserToFriendRoom(userId);
     return { message: 'Successfully updated user avatar' };
   }
 
@@ -432,6 +436,8 @@ export class UsersService {
       name: newName,
       last_updated_at: new Date(),
     });
+  
+    this.connectionGateway.sendRefreshUserToFriendRoom(userId);
     return { message: 'Successfully updated username' };
   }
 

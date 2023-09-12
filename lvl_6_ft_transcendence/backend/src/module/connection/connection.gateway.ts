@@ -173,6 +173,10 @@ export class ConnectionGateway
     if (socketId) this.server.to(socketId).emit('refreshUser');
   }
 
+  sendRefreshUserToFriendRoom(userId: number): void {
+    this.server.to(`friend-${userId}`).emit('refreshUser');
+  }
+
   sendRoomWarning(roomId: number, warning: RoomWarningEvent): void {
     this.server.to(`room-${roomId}`).emit('roomWarning', warning);
   }
