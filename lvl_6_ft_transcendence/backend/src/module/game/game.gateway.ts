@@ -45,7 +45,7 @@ export class GameGateway implements OnGatewayInit {
    *          MESSAGES          *
    ******************************/
 
-  afterInit(server: Server) {
+  afterInit(server: Server): void {
     this.logger.log('Game-Gateway Initialized');
   }
 

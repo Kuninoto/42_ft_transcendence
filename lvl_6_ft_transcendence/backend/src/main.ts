@@ -19,8 +19,8 @@ import { Passport42ExceptionFilter } from './module/auth/filter/passport42-excep
 console.log('EXPRESS_SESSION_SECRET= ' + process.env.EXPRESS_SESSION_SECRET);
 
 function ensureRequiredEnvVariables(): void {
-  const RED: string = '\x1b[31m';
-  const RESET: string = '\x1b[0m';
+  const RED = '\x1b[31m';
+  const RESET = '\x1b[0m';
 
   const requiredEnvVariables: string[] = [
     'POSTGRES_HOST',

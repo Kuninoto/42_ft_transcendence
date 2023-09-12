@@ -5,8 +5,8 @@ export const BALL_RADIUS = 4;
 // 45 degrees
 const MAX_ANGLE: number = Math.PI / 4;
 
-const BALL_INIT_SPEED: number = 1.5;
-const MAX_BALL_INIT_SPEED: number = 2.5;
+const BALL_INIT_SPEED = 1.5;
+const MAX_BALL_INIT_SPEED = 2.5;
 
 const randomBallHeight = (): number =>
   Math.round(Math.random() * CANVAS_HEIGHT);

@@ -7,7 +7,6 @@ console.log('NODE_ENV = ' + process.env.NODE_ENV);
 
 @Injectable()
 export class PostgresConfigService implements TypeOrmOptionsFactory {
-  constructor() {}
   createTypeOrmOptions(): TypeOrmModuleOptions {
     return {
       type: 'postgres',

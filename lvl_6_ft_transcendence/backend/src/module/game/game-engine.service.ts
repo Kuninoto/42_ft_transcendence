@@ -7,8 +7,8 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom, MAX_SCORE } from './GameRoom';
 import { GameRoomMap } from './GameRoomMap';
 import { PADDLE_HEIGHT, PADDLE_WIDTH, Player } from './Player';
 
-const GAME_LOOP_INTERVAL: number = 4;
-const RESET_GAME_DELAY: number = 6;
+const GAME_LOOP_INTERVAL = 4;
+const RESET_GAME_DELAY = 6;
 
 // Hacky way to make js 'sleep'
 const sleep = (ms: number): Promise<void> =>

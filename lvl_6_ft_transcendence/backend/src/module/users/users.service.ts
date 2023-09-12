@@ -386,7 +386,9 @@ export class UsersService {
     );
 
     // Delete the previous avatar from the file system
-    fs.unlink(absoluteAvatarPath, () => {});
+    fs.unlink(absoluteAvatarPath, (err: any) => {
+      if (err) this.logger.error(err);
+    });
 
     await this.usersRepository.update(userId, {
       avatar_url: newAvatarURL,
