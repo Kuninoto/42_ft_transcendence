@@ -25,8 +25,6 @@ export class AuthService {
     const accessToken: string = this.jwtService.sign(payload);
 
     // Set the new accessToken as the new valid token for user with uid= user.id
-    // TODO
-    // UNCOMMENT
     // this.tokenWhitelist.set(user.id.toString(), accessToken);
 
     this.logger.log(`"${user.name}" logged in with 42 auth!`);
@@ -47,8 +45,6 @@ export class AuthService {
     const accessToken: string = this.jwtService.sign(payload);
 
     // Set the new accessToken as the new valid token for user with uid= user.id
-    // TODO
-    // UNCOMMENT
     // this.tokenWhitelist.set(user.id.toString(), accessToken);
 
     this.logger.log(`"${user.name}" authenticated with Google Authenticator!`);
