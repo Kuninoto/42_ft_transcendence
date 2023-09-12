@@ -3,6 +3,7 @@
 import { api } from '@/api/api'
 import { FriendshipStatus, UserProfile as IUserProfile } from '@/common/types'
 import { hasValues } from '@/common/utils/hasValues'
+import { useRouter } from 'next/navigation'
 import { removeParams, useAuth } from '@/contexts/AuthContext'
 import { useFriends } from '@/contexts/FriendsContext'
 import moment from 'moment'
@@ -213,6 +214,8 @@ function Buttons({ refreshProfile, setOpenModal, userProfile }: buttons) {
 export default function Profile() {
 	const { user } = useAuth()
 
+	const router = useRouter()
+
 	const [userProfile, setUserProfile] = useState<IUserProfile>(
 		{} as IUserProfile
 	)
@@ -225,36 +228,28 @@ export default function Profile() {
 	const { refreshFriends } = useFriends()
 
 	const refreshProfile = () => {
-		try {
-			api
-				.get(`/users/${id}/profile`)
-				.then((result) => {
-					setUserProfile(result.data)
-					refreshFriends()
-				})
-				.catch(() => {
-					throw 'Network error'
-				})
-		} catch (error: any) {
-			toast.error(error)
-		}
+		api
+			.get(`/users/${id}/profile`)
+			.then((result) => {
+				setUserProfile(result.data)
+				refreshFriends()
+			})
+			.catch(() => {
+				router.replace("/not-found")
+			})
 	}
 
 	useEffect(() => {
 		if (id) {
-			try {
-				setModal(modalPage.HISTORY)
-				api
-					.get(`/users/${id}/profile`)
-					.then((result) => {
-						setUserProfile(result.data)
-					})
-					.catch(() => {
-						throw 'Network error'
-					})
-			} catch (error: any) {
-				toast.error(error)
-			}
+			setModal(modalPage.HISTORY)
+			api
+				.get(`/users/${id}/profile`)
+				.then((result) => {
+					setUserProfile(result.data)
+				})
+				.catch(() => {
+					router.replace("/not-found")
+				})
 		}
 	}, [id, user])
 
