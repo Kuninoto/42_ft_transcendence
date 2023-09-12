@@ -264,7 +264,7 @@ export class ChatService {
     );
     if (!friend) {
       throw new NotFoundException(
-        `Friend (user) with id=${friendUID} not found`,
+        `Friend (user) not found`,
       );
     }
 
@@ -366,7 +366,7 @@ export class ChatService {
       receiverUID,
     );
     if (!receiver)
-      throw new NotFoundException(`User with UID=${receiverUID} doesn't exist`);
+      throw new NotFoundException(`User doesn't exist`);
 
     if (receiver.status !== UserStatus.ONLINE)
       throw new ConflictException(
@@ -395,7 +395,7 @@ export class ChatService {
       this.logger.warn(
         `UID=${inviterUID} tried to invite a user to a non-existing room`,
       );
-      throw new NotFoundException(`Room with id=${roomId} doesn't exist`);
+      throw new NotFoundException(`Room doesn't exist`);
     }
 
     if (this.isUserInRoom(room, receiverUID)) {
@@ -564,9 +564,8 @@ export class ChatService {
     const userToBan: User | null = await this.usersService.findUserByUID(
       userToBanId,
     );
-    if (!userToBan) {
-      throw new NotFoundException(`User with uid=${userToBanId} doesn't exist`);
-    }
+    if (!userToBan)
+      throw new NotFoundException(`User doesn't exist`);
 
     room.bans.push(userToBan);
     await this.chatRoomRepository.save(room);
@@ -899,11 +898,8 @@ export class ChatService {
       throw new ForbiddenException(`Invite isn't meant for you`);
 
     const room: ChatRoom | null = await this.findRoomById(invite.roomId);
-    if (!room) {
-      throw new NotFoundException(
-        `Room with id=${invite.roomId} doesn't exist`,
-      );
-    }
+    if (!room)
+      throw new NotFoundException("Room doesn't exist");
 
     if (this.isUserBannedFromRoom(room, joiningUser.id)) {
       throw new ForbiddenException(`You're banned from room "${room.name}"`);
