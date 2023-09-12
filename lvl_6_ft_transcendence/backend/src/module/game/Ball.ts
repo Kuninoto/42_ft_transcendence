@@ -7,13 +7,12 @@ export enum BallEdge {
   BOTTOM,
 }
 
-export const BALL_RADIUS = 4;
+const BALL_RADIUS: number = 4;
 
-// 45 degrees
-const MAX_ANGLE: number = Math.PI / 4;
+const MAX_ANGLE: number = Math.PI / 4; // 45 degrees
 
-const BALL_INIT_SPEED = 2;
-const MAX_BALL_INIT_SPEED = 3.25;
+const BALL_INIT_SPEED: number = 2;
+const MAX_BALL_INIT_SPEED: number = 3.25;
 
 const randomBallHeight = (): number =>
   Math.round(Math.random() * CANVAS_HEIGHT);
@@ -26,9 +25,6 @@ export class Ball {
   x: number;
   y: number;
 
-  /* Ball's x & y represent the coordinates of the ball's center
-  To consider the ball edges we should add the radius
-  e.g left edge = this.x - BALL_RADIUS */
   constructor() {
     this.x = CANVAS_WIDTH / 2;
     this.y = randomBallHeight();
@@ -104,6 +100,9 @@ export class Ball {
     };
   }
 
+  /* Ball's x & y represent the coordinates of the ball's center.
+  To consider the ball edges we should use the radius
+  e.g left edge = this.x - BALL_RADIUS */
   getEdge(edge: BallEdge): number {
     if (edge === BallEdge.LEFT) return this.x - BALL_RADIUS;
     if (edge === BallEdge.RIGHT) return this.x + BALL_RADIUS;
