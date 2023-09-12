@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PlayerSide } from 'types';
-import { Ball, BALL_RADIUS } from './Ball';
+import { Ball, BallEdge } from './Ball';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, GameRoom, MAX_SCORE } from './GameRoom';
@@ -139,8 +139,8 @@ export class GameEngineService {
   private ballCollidedWithWall(ball: Ball): boolean {
     // TOP || BOTTOM
     if (
-      (ball.y - BALL_RADIUS <= 0 && ball.speed.y < 0) ||
-      (ball.y + BALL_RADIUS >= CANVAS_HEIGHT && ball.speed.y > 0)
+      (ball.getEdge(BallEdge.TOP) <= 0 && ball.speed.y < 0) ||
+      (ball.getEdge(BallEdge.BOTTOM) >= CANVAS_HEIGHT && ball.speed.y > 0)
     ) {
       ball.bounceInY();
       return true;
@@ -151,10 +151,10 @@ export class GameEngineService {
   /* Verifies if the ball is colliding with a paddle and updates
   its direction if so */
   private ballCollidedWithPaddle(gameRoom: GameRoom): boolean {
-    const isWithinPaddleHeight = (ballY: number, paddleY: number): boolean => {
+    const isWithinPaddleHeight = (ball: Ball, paddleY: number): boolean => {
       return (
-        ballY + BALL_RADIUS <= paddleY + PADDLE_HEIGHT / 2 &&
-        ballY - BALL_RADIUS >= paddleY - PADDLE_HEIGHT / 2
+        ball.getEdge(BallEdge.BOTTOM) <= paddleY + PADDLE_HEIGHT / 2 &&
+        ball.getEdge(BallEdge.TOP) >= paddleY - PADDLE_HEIGHT / 2
       );
     };
 
@@ -167,9 +167,10 @@ export class GameEngineService {
 
       // Collided with paddle's right side && is within the paddle height
       if (
-        gameRoom.ball.x - BALL_RADIUS <= player.paddleX + PADDLE_WIDTH / 2 &&
-        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
-        gameRoom.ball.x - BALL_RADIUS > player.paddleX - PADDLE_WIDTH / 2
+        gameRoom.ball.getEdge(BallEdge.LEFT) <=
+          player.paddleX + PADDLE_WIDTH / 2 &&
+        isWithinPaddleHeight(gameRoom.ball, player.paddleY) &&
+        gameRoom.ball.getEdge(BallEdge.LEFT) > player.paddleX - PADDLE_WIDTH / 2
       ) {
         gameRoom.ball.bounceOnCollidePoint(
           (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2),
@@ -182,9 +183,11 @@ export class GameEngineService {
 
       // Collided with paddle's left side && is within the paddle height
       if (
-        gameRoom.ball.x + BALL_RADIUS >= player.paddleX - PADDLE_WIDTH / 2 &&
-        isWithinPaddleHeight(gameRoom.ball.y, player.paddleY) &&
-        gameRoom.ball.x + BALL_RADIUS < player.paddleX + PADDLE_WIDTH / 2
+        gameRoom.ball.getEdge(BallEdge.RIGHT) >=
+          player.paddleX - PADDLE_WIDTH / 2 &&
+        isWithinPaddleHeight(gameRoom.ball, player.paddleY) &&
+        gameRoom.ball.getEdge(BallEdge.RIGHT) <
+          player.paddleX + PADDLE_WIDTH / 2
       ) {
         gameRoom.ball.bounceOnCollidePoint(
           (player.paddleY - gameRoom.ball.y) / (PADDLE_HEIGHT / 2),
@@ -197,7 +200,7 @@ export class GameEngineService {
   }
 
   private somePlayerScored(gameRoom: GameRoom): boolean {
-    if (gameRoom.ball.x - BALL_RADIUS <= 0) {
+    if (gameRoom.ball.getEdge(BallEdge.LEFT) <= 0) {
       // BALL PASSED LEFT SIDE
 
       gameRoom.rightPlayer.score += 1;
@@ -208,7 +211,7 @@ export class GameEngineService {
         gameRoom.rightPlayer.score,
       );
       return true;
-    } else if (gameRoom.ball.x + BALL_RADIUS >= CANVAS_WIDTH) {
+    } else if (gameRoom.ball.getEdge(BallEdge.RIGHT) >= CANVAS_WIDTH) {
       // BALL PASSED RIGHT SIDE
 
       gameRoom.leftPlayer.score += 1;
