@@ -1,8 +1,16 @@
-FROM node:20.3-alpine3.17
+FROM node:current-alpine3.17
+LABEL org.opencontainers.image.authors="Kuninoto"
+LABEL org.opencontainers.image.description="REST API, in NestJS, for ft_transcendence (pongfight)"
 
 WORKDIR /app
+COPY . /app
 
-COPY . .
-RUN npm i -y
+EXPOSE 3000
 
-CMD [ "npm", "run", "start:dev"]
+# DEV
+#RUN npm i -y
+#CMD [ "npm", "run", "start:dev"]
+
+# PROD
+RUN npm i -y && npm run build
+ENTRYPOINT [ "npm", "run", "start:prod" ]

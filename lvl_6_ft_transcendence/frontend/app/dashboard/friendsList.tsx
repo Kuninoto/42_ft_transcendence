@@ -1,105 +1,391 @@
-"use client";
+'use client'
 
-import { useAuth } from "@/contexts/AuthContext";
-import Link from "next/link";
-import { useState } from "react";
+import { api } from '@/api/api'
+import {
+	ChatRoomInterface,
+	SendRoomInviteRequest,
+	UserStatus,
+} from '@/common/types'
+import { removeParams, useAuth } from '@/contexts/AuthContext'
+import { useFriends } from '@/contexts/FriendsContext'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { AiOutlineUserAdd, AiOutlineUsergroupAdd } from 'react-icons/ai'
+import { BiUser } from 'react-icons/bi'
+import { HiOutlineChatAlt2 } from 'react-icons/hi'
+import { LuSwords } from 'react-icons/lu'
+import { RxTriangleUp } from 'react-icons/rx'
+import { toast } from 'react-toastify'
 
-import { BiUser } from "react-icons/bi";
-import { LuSwords } from "react-icons/lu";
+import FriendsModal from './friendsModal'
+import RoomsModal from './roomsModal'
 
-export default function FriendsList(): JSX.Element {
-  const { user } = useAuth();
+enum openModalType {
+	FRIENDS,
+	GROUPS,
+	INVITEROOM,
+	NULL,
+}
 
-  const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true);
-  const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true);
+function LeaveModal({
+	closeModal,
+	id,
+	leaveRoom
+}: {
+	closeModal: () => void
+	id: number
+	leaveRoom: (openModal: boolean, roomId: number) => void
+}) {
+	return (
+		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
+			<button
+				className="absolute left-0 top-0 h-screen w-screen bg-black/70"
+				onClick={closeModal}
+			></button>
+			<div className="px-8 py-32">
+				<div className="relative grid items-start justify-center  gap-8">
+					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
+					<div className="relative block items-center space-y-8 rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% px-8 py-12 leading-none">
+						<div className="flex flex-col text-center space-y-2"> 
+							<span className="text-sm">Are you sure you want to leave?</span>
+							<span className="text-gray-200 text-xs">This will delete the room</span>
+						</div>
+						<div className="flex w-full place-content-center space-x-8">
+							<button
+								className="rounded border border-white px-4 py-4 text-white mix-blend-lighten hover:bg-white hover:text-black"
+								onClick={() => {
+									leaveRoom(false, id)
+									closeModal()
+								}}
+							>
+								Leave
+							</button>
+							<button className="hover:underline" onClick={closeModal}>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
 
-  return (
-    <div className="h-full flex w-full">
-      <div className="flex flex-col w-full py-2 px-4">
-        <div className="flex flex-col">
-          <div className="w-full flex py-2 px-4 rounded-t-md">
-            <div className="w-16 aspect-square rounded-full bg-white"></div>
-            <div className="mx-4 my-auto">
-              <div className="text-xl">{user.name}</div>
-              <div>rank wins</div>
-            </div>
-          </div>
-        </div>
+function InviteRoomsModal({
+	closeModal,
+	id,
+}: {
+	closeModal: () => void
+	id: number
+}) {
+	const [inviteRooms, setInviteRooms] = useState<ChatRoomInterface[]>([])
 
-        <div className="my-8 overflow-scroll">
-          <button
-            onClick={() => setOpenGroupsAccordean(!openGroupsAccordean)}
-            className="border-b border-white my-2 w-full text-start"
-          >
-            {" "}
-            Groups{" "}
-          </button>
-          <div
-            className={`transition-all space-y-2 ${
-              openGroupsAccordean ? "max-h-full" : "max-h-0"
-            } overflow-hidden`}
-          >
-            <Link className="group" href={"/"}>
-              <div className="relative border border-white roundend w-full place-content-between px-4 flex py-2 rounded">
-                <div>friend</div>
-                <div className="group-hover:invisible">members count</div>
-                <div className="invisible group-hover:visible bg-red-500 right-4 absolute">
-                  akjgwe
-                </div>
-              </div>
-            </Link>
+	useEffect(() => {
+		try {
+			api
+				.get(`/chat/possible-room-invites?friendId=${id}`)
+				.then((result) => {
+					setInviteRooms(result.data)
+				})
+				.catch(() => {
+					throw 'Network error'
+				})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}, [id])
 
-            <Link className="group" href={"/"}>
-              <div className="relative border border-white roundend w-full place-content-around flex py-2 rounded">
-                <div>friend</div>
-                <div className="group-hover:invisible">wins</div>
-                <div className="invisible group-hover:visible bg-red-500 right-4 absolute">
-                  akjgwe
-                </div>
-              </div>
-            </Link>
+	function inviteToRoom(roomId: number) {
+		const newInvite: SendRoomInviteRequest = {
+			receiverUID: parseInt(id),
+			roomId: parseInt(roomId),
+		}
 
-            <Link className="group" href={"/"}>
-              <div className="relative border border-white roundend w-full place-content-around flex py-2 rounded">
-                <div>friend</div>
-                <div className="group-hover:invisible">wins</div>
-                <div className="invisible group-hover:visible bg-red-500 right-4 absolute">
-                  akjgwe
-                  <button></button>
-                </div>
-              </div>
-            </Link>
-          </div>
+		try {
+			api.post(`/chat/invite`, newInvite).catch(() => {
+				throw 'Network error'
+			})
+		} catch (error: any) {
+			toast.error(error)
+		}
+	}
 
-          <button
-            onClick={() => setOpenFriendsAccordean(!openFriendsAccordean)}
-            className="border-b border-white my-2 w-full text-start"
-          >
-            {" "}
-            Friends{" "}
-          </button>
-          <div
-            className={`transition-all space-y-2 ${
-              openFriendsAccordean ? "max-h-full" : "max-h-0"
-            } overflow-hidden`}
-          >
-            <div className="group flex relative border border-white roundend py-2 rounded">
-              <Link className="flex w-full place-content-around" href={"/"}>
-                <div>friend</div>
-                <div className="visible group-hover:invisible">wins</div>
-              </Link>
-              <div className="invisible group-hover:visible right-4 absolute flex">
-                <Link href={"/"} className="hover:text-pink-400">
-                  <BiUser size={24} />
-                </Link>
-                <button className="hover:text-pink-400">
-                  <LuSwords size={24} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+	return (
+		<div className="absolute left-0 top-0 z-40 flex h-screen w-screen place-content-center items-center">
+			<button
+				className="absolute left-0 top-0 h-screen w-screen bg-black/70"
+				onClick={closeModal}
+			></button>
+			<div>
+				<div className="group relative grid items-start justify-center gap-8">
+					<div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-[#FB37FF] to-[#F32E7C] opacity-100 blur"></div>
+					<div className="relative block max-h-64 items-center space-y-3 overflow-auto rounded-lg bg-gradient-to-tr from-black via-[#170317] via-30% to-[#0E050E] to-80% p-4 leading-none scrollbar-thin scrollbar-thumb-white scrollbar-thumb-rounded">
+						{inviteRooms.length === 0 ? (
+							<div className="text-center text-2xl leading-8">
+								You need to be <br /> part of something first...
+							</div>
+						) : (
+							<div className="flex flex-col items-center space-y-4">
+								<h3>Invite to room</h3>
+								{inviteRooms.map((room) => {
+									return (
+										<div
+											className="flex w-96 place-content-between items-center rounded border border-white p-2"
+											key={room.id}
+										>
+											{room.name}
+											<button
+												onClick={() => {
+													inviteToRoom(room.id)
+													closeModal()
+												}}
+												className="flex rounded-r border border-white px-4 py-2 text-white mix-blend-lighten hover:bg-white hover:text-black"
+											>
+												Invite
+											</button>
+										</div>
+									)
+								})}
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default function FriendsList() {
+	const { user } = useAuth()
+	const { friends, newFriendNotification, rooms, seeNewFriendNotification } =
+		useFriends()
+
+	const [openModal, setOpenModal] = useState(openModalType.NULL)
+	const [exitModal, setExitModal] = useState(-1)
+	const [openGroupsAccordean, setOpenGroupsAccordean] = useState(true)
+	const [openFriendsAccordean, setOpenFriendsAccordean] = useState(true)
+
+	const [friendId, setFriendId] = useState(-1)
+
+	const { open, sendGameInvite } = useFriends()
+
+	function leaveRoom(openModal: boolean, roomId: number) {
+
+		if (openModal)
+		{
+			setExitModal(roomId)
+			return
+		}
+
+		api
+			.post(`/chat/${roomId}/leave`)
+			.catch((error: any) => toast.error(error.response.data.message || 'Network error'))
+	}
+
+	return (
+		<div className="flex h-full w-full">
+			{openModal === openModalType.FRIENDS ? (
+				<FriendsModal closeModal={() => setOpenModal(openModalType.NULL)} />
+			) : openModal === openModalType.GROUPS ? (
+				<RoomsModal closeModal={() => setOpenModal(openModalType.NULL)} />
+			) : (
+				openModal === openModalType.INVITEROOM && (
+					<InviteRoomsModal
+						closeModal={() => setOpenModal(openModalType.NULL)}
+						id={friendId}
+					/>
+				)
+			)}
+
+			{ exitModal != -1 && <LeaveModal id={exitModal} leaveRoom={leaveRoom} closeModal={() => setExitModal(-1)}/>}
+
+			<div className="flex w-full flex-col px-4 py-2">
+				<div className="flex items-center">
+					<div className="flex w-full rounded-t-md px-4 py-2">
+						<div className="relative aspect-square w-16 overflow-hidden rounded">
+							<Image
+								alt={'avatar'}
+								className="object-cover"
+								fill
+								loader={removeParams}
+								sizes="100vw"
+								src={user.avatar_url || '/placeholder.gif'}
+								unoptimized
+							/>
+						</div>
+						<div className="mx-4 my-auto">
+							<div className="text-xl">{user?.name}</div>
+							<a
+								className="text-sm text-gray-400 hover:underline"
+								href={user?.intra_profile_url}
+								target="_blank"
+							>
+								{user?.intra_name}
+							</a>
+						</div>
+					</div>
+					<div className="text-2xl">#{user.ladder_level || '#'} </div>
+				</div>
+
+				<div className="my-2 space-y-2">
+					<>
+						<div className="flex items-center space-x-2 border-b border-white p-2">
+							<button
+								onClick={() => {
+									seeNewFriendNotification()
+									setOpenModal(openModalType.FRIENDS)
+								}}
+							>
+								<div className="relative">
+									<AiOutlineUserAdd
+										className="text-white hover:text-primary-fushia"
+										size={24}
+									/>
+									{newFriendNotification && (
+										<div className="absolute -bottom-1 -left-0.5 flex h-full items-center group-hover:hidden">
+											<span className="relative my-auto flex h-3 w-3">
+												<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-shoque opacity-75"></span>
+												<span className="relative inline-flex h-3 w-3 rounded-full bg-primary-fushia"></span>
+											</span>
+										</div>
+									)}
+								</div>
+							</button>
+							<div
+								className="group flex w-full place-content-between text-start transition-all duration-200 hover:cursor-pointer hover:text-[#F32E7C]"
+								onClick={() => setOpenFriendsAccordean(!openFriendsAccordean)}
+							>
+								Friends
+								<div className="flex">
+									<RxTriangleUp
+										className={`transition-all duration-200 group-hover:text-primary-fushia
+									${openFriendsAccordean && '-rotate-180'}`}
+										size={24}
+									/>
+								</div>
+							</div>
+						</div>
+						<div
+							className={`flex flex-col space-y-2 transition-all
+							${openFriendsAccordean ? 'max-h-full' : 'max-h-0'} overflow-hidden`}
+						>
+							{friends?.map((friend) => (
+								<div
+									className="roundend group relative flex items-center rounded border border-white py-2"
+									key={friend.uid}
+								>
+									<button
+										className="flex w-full place-content-between items-center px-4"
+										onClick={() => open(friend.uid, false)}
+									>
+										<div className="flex items-center space-x-4">
+											<div className="relative aspect-square w-8 overflow-hidden rounded-sm">
+												<Image
+													alt={'avatar'}
+													className="object-cover"
+													fill
+													loader={removeParams}
+													sizes="100vw"
+													src={friend.avatar_url || '/placeholder.gif'}
+													unoptimized
+												/>
+											</div>
+											<div> {friend.name} </div>
+										</div>
+										<div className="visible group-hover:invisible">
+											{friend.status}
+										</div>
+									</button>
+									<div className="invisible absolute right-4 my-auto flex group-hover:visible">
+										<Link
+											className="hover:text-[#F32E7C]"
+											href={`/profile?id=${friend.uid}`}
+										>
+											<BiUser size={24} />
+										</Link>
+										{friend.status === UserStatus.ONLINE && (
+											<>
+												<button
+													onClick={() => {
+														setOpenModal(openModalType.INVITEROOM)
+														setFriendId(friend.uid)
+													}}
+													className="hover:text-[#F32E7C]"
+												>
+													<HiOutlineChatAlt2 size={24} />
+												</button>
+												<button
+													onClick={() =>
+														sendGameInvite(friend.name, friend.uid)
+													}
+													className="hover:text-[#F32E7C]"
+												>
+													<LuSwords size={24} />
+												</button>
+											</>
+										)}
+									</div>
+								</div>
+							))}
+						</div>
+					</>
+					<>
+						<div className="flex items-center space-x-2 border-b border-white p-2">
+							<button
+								onClick={() => {
+									setOpenModal(openModalType.GROUPS)
+								}}
+							>
+								<AiOutlineUsergroupAdd
+									className="aspect-square text-white hover:text-[#F32E7C]"
+									size={24}
+								/>
+							</button>
+							<div
+								className="group flex h-full w-full place-content-between text-start transition-all duration-200 hover:cursor-pointer hover:text-[#F32E7C]"
+								onClick={() => setOpenGroupsAccordean(!openGroupsAccordean)}
+							>
+								Groups
+								<div className="flex">
+									<RxTriangleUp
+										className={`transition-all duration-200 group-hover:text-[#F32E7C]
+									${openGroupsAccordean && '-rotate-180'}`}
+										size={24}
+									/>
+								</div>
+							</div>
+						</div>
+						<div
+							className={`flex flex-col space-y-2 overflow-hidden transition-all 
+						${openGroupsAccordean ? 'max-h-full' : 'max-h-0'}`}
+						>
+							{rooms?.map((room) => {
+								return (
+									<div className="peer relative w-full" key={room.id}>
+										<button
+											className="w-full "
+											onClick={() => open(room.id, true)}
+										>
+											<div className="roundend relative flex w-full place-content-between rounded border border-white px-4 py-2">
+												<div>{room.name}</div>
+											</div>
+										</button>
+										<div className="visible absolute right-4 top-2">
+											<button
+												className="text-xs text-gray-400 hover:text-red-500"
+												onClick={() => leaveRoom(room.ownerId == user.id, room.id)}
+											>
+												Exit room
+											</button>
+										</div>
+									</div>
+								)
+							})}
+						</div>
+					</>
+				</div>
+			</div>
+		</div>
+	)
 }

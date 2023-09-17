@@ -1,11 +1,9 @@
-README.md
 .env.example
 .gitignore
 package-lock.json
 .dockerignore
 index.html
+Dockerfile
 
 .next
 node_modules
-public
-app
