@@ -8,6 +8,7 @@
 
 ###  Demonstration:
 ![printscreen of the auth page](./extras/auth_page.png)
+![printscreen of the dashboard page](./extras/dashboard.png)
 ![printscreen of the user's profile page](./extras/user_profile_page.png)
 
 ### Stack Used  

@@ -44,11 +44,8 @@ export class FortyTwoAuthStrategy extends PassportStrategy(Strategy, '42') {
     const user: User | null = await this.usersService.findUserByIntraName(
       profile.username,
     );
-
-    if (user) {
-      return user;
-    }
-
+    if (user) return user;
+  
     this.logger.log(`"${profile.username}" logging in for the 1st time!`);
 
     return await this.usersService.createUser({
