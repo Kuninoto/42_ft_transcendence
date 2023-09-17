@@ -1,36 +1,37 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm';
-import { User } from './user.entity';
-
-export enum FriendshipStatus {
-  DECLINED = "declined",
-  ACCEPTED = "accepted",
-  PENDING = "pending",
-  BLOCKED = "blocked"
-}
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { FriendshipStatus } from 'types';
+import { User } from './index';
 
 @Entity('friendship')
 export class Friendship {
   @ApiProperty()
   @PrimaryGeneratedColumn({
     type: 'bigint',
-    name: 'id',
   })
   id: number;
 
   @ApiProperty()
   @Column({
     type: 'varchar',
+    nullable: false,
     default: FriendshipStatus.PENDING,
-    nullable: false
   })
   status: FriendshipStatus;
 
   @ApiProperty()
   @ManyToOne(() => User)
+  @JoinColumn()
   sender: User;
 
   @ApiProperty()
   @ManyToOne(() => User)
+  @JoinColumn()
   receiver: User;
 }

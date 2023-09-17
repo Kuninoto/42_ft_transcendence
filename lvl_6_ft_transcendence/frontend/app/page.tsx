@@ -1,40 +1,40 @@
-import Image from "next/image";
+import Image from 'next/image'
 
 export default function page() {
-  return (
-    <div className="flex flex-col items-center">
-      <Image
-        src={"/neon.gif"}
-        alt="neon flickering light"
-        width={850}
-        height={1}
-        className="mx-auto w-[65vw]"
-      />
-      <div className="w-full h-max flex place-content-end px-12 text-2xl space-x-4">
-        <div className="my-auto">INSERT COIN</div>
-        <Image
-          src={"/neonArrow.png"}
-          alt="neon arrow light"
-          width={100}
-          height={1}
-          className="animate-horizontalBounce"
-        />
-        <a
-          href={
-            "https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-b5dc96e149f80b24df624871658fdaa8d6610f1efc0a284afab94cbdb7d0420c&redirect_uri=http%3A%2F%2Flocalhost%3A3001%2Fauth&response_type=code"
-          }
-          className="h-auto w-10 flex group"
-        >
-          <div className="bg-black h-auto w-8 border-8 border-[#413F3F] rounded-md"></div>
-          <Image
-            src={"/coin.png"}
-            alt="coin"
-            width={50}
-            height={35}
-            className="opacity-0 translate-x-8 translate-y-12 transition-all duration-700 absolute group-hover:opacity-100 group-hover:translate-x-3 group-hover:translate-y-2"
-          />
-        </a>
-      </div>
-    </div>
-  );
+	return (
+		<div className="flex h-full w-full flex-col items-center">
+			<div className="relative aspect-video h-5/6">
+				<Image
+					alt="neon flickering light"
+					className="object-cover"
+					fill
+					priority
+					sizes="100%"
+					src={'/neon.gif'}
+				/>
+			</div>
+			<div className="flex h-max w-full place-content-end space-x-4 px-12 text-4xl">
+				<div className="my-auto">INSERT COIN</div>
+				<div className="relative aspect-square h-32">
+					<Image
+						alt="neon arrow light"
+						className="animate-horizontalBounce"
+						fill
+						priority
+						sizes="100%"
+						src={'/neonArrow.png'}
+					/>
+				</div>
+				<a
+					className="group flex h-auto w-10"
+					href={process.env.NEXT_PUBLIC_INTRA_REDIRECT_URI}
+				>
+					<div className="h-auto w-8 rounded-md border-8 border-[#413F3F] bg-black"></div>
+					<div className="absolute h-24 w-16 translate-x-8 translate-y-16 opacity-0 transition-all duration-700 group-hover:translate-x-3 group-hover:translate-y-4 group-hover:opacity-100">
+						<Image alt="coin" fill priority sizes="100%" src={'/coin.png'} />
+					</div>
+				</a>
+			</div>
+		</div>
+	)
 }

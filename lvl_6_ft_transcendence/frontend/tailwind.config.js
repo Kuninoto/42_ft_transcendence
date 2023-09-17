@@ -5,22 +5,39 @@ module.exports = {
 		'./components/**/*.{js,ts,jsx,tsx,mdx}',
 		'./app/**/*.{js,ts,jsx,tsx,mdx}',
 	],
+	plugins: [require('tailwind-scrollbar')({ nocompatible: true })],
 	theme: {
 		extend: {
 			animation: {
-				horizontalBounce: 'horizontalBounce 1s infinite',
-				cardBounce: 'cardBounce 2s infinite',
+				blink: 'blink 1s infinite',
+				ellipsis: 'ellipsis steps(4, end) 900ms infinite',
+				horizontalBounce: 'horizontalBounce 1500ms infinite',
+			},
+			colors: {
+				'primary-fushia': '#FB37FF',
+				'primary-shoque': '#F32E7C',
 			},
 			keyframes: {
+				blink: {
+					'0%, 100%': {
+						opacity: 1,
+						visibility: 'visible',
+					},
+					'50%': {
+						opacity: 0,
+						visibility: 'hidden',
+					},
+				},
+				ellipsis: {
+					to: {
+						width: '64px',
+					},
+				},
 				horizontalBounce: {
 					'0%, 100%': { transform: 'translateX(0)' },
 					'50%': { transform: 'translateX(-10px)' },
 				},
-				cardBounce: {
-					'0%, 100%': { transform: 'translateY(-35px)' },
-					'50%': { transform: 'translateY(-45px)' },
-				},
 			},
 		},
-	}
+	},
 }

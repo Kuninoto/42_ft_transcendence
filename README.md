@@ -12,7 +12,7 @@
 ### Stack Used  
 <img src="https://github.com/devicons/devicon/blob/master/icons/typescript/typescript-original.svg" title="TypeScript" alt="TS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/nextjs/nextjs-original.svg" title="Nextjs" alt="Next Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/tailwindcss/tailwindcss-plain.svg" title="Tailwindcss" alt="Tailwindcss Logo" width="50" height="50" />&nbsp;  
 <img src="https://github.com/devicons/devicon/blob/master/icons/nestjs/nestjs-plain.svg" title="NestJS" alt="NestJS Logo" width="50" height="50" />&nbsp;
-<img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL" alt="PostgreSQL Logo" width="50" height="50" />&nbsp; 
+<img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL" alt="PostgreSQL Logo" width="50" height="50" />&nbsp;
 <img src="https://github.com/devicons/devicon/blob/master/icons/docker/docker-original.svg" title="Docker" alt="Docker Logo" width="65" height="65" />  
 
 ### Overview
@@ -32,7 +32,7 @@ A website to host the might pong contest!
 2- Clone this repository
 
     git clone https://github.com/Kuninoto/42_ft_transcendence
-3- Navigate to _lvl_6_ft_transcendence_ 
+3- Navigate to _lvl_6_ft_transcendence_
 
     cd 42_ft_transcendence/lvl_6_ft_transcendence
 4- Write a .env file on ./backend and ./frontend like the .env.example to use your very own configurations  
@@ -73,13 +73,27 @@ A website to host the might pong contest!
 [Google OAuth 2.0 Login for React in 5 minutes](https://www.youtube.com/watch?v=HtJKUQXmtok)  
 [Session vs Token Authentication in 100 Seconds](https://www.youtube.com/watch?v=UBUNrFtufWo)  
 [Session vs Token based authentication](https://www.geeksforgeeks.org/session-vs-token-based-authentication/)  
-[Nest.JS Tutorial - Setting up Passport, OAuth2, TypeORM, Sessions, Session Store, Database](https://www.youtube.com/watch?v=vGafqCNCCSs)  
+[NestJS Tutorial - Setting up Passport, OAuth2, TypeORM, Sessions, Session Store, Database](https://www.youtube.com/watch?v=vGafqCNCCSs)  
 [Introduction to JWT](https://jwt.io/introduction/)  
 [JWT Authentication best practices](https://blog.logrocket.com/jwt-authentication-best-practices/)  
 [JWT usage vs. Session](https://stackoverflow.com/questions/43452896/authentication-jwt-usage-vs-session)  
 [JWT vs. Opaque tokens](https://zitadel.com/blog/jwt-vs-opaque-tokens)  
 [Passportjs serializerUser and deserializeUser](https://stackoverflow.com/questions/29066348/passportjs-serializeuser-and-deserializeuser-execution-flow)  
-[2fa with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
+[2FA with Google](https://dev.to/hahnmatthieu/2fa-with-nestjs-passeport-using-google-authenticator-1l32)  
+[NestJS passport docs](https://docs.nestjs.com/recipes/passport)    
+[Custom Decorators NestJS Docs](https://docs.nestjs.com/custom-decorators)  
+
+**File upload & serve**
+[Serve Static NestJS Docs](https://docs.nestjs.com/recipes/serve-static)  
+
+**User Relations**
+[Difference between one-to-many and many-to-one](https://stackoverflow.com/questions/4601703/difference-between-one-to-many-and-many-to-one-relationship)  
+
+**Chat & Game**
+[A Beginner's Guide to WebSockets](https://www.youtube.com/watch?v=8ARodQ4Wlf4)  
+[WebSockets in 100 Seconds & Beyond with Socket.io](https://www.youtube.com/watch?v=1BfCnjr_Vjg)  
+[NestJS WebSockets Tutorial Playlist](https://www.youtube.com/watch?v=0zyYhm5MjJ4&list=PLBHzlq7ILbsaL1sZxJIxrc4ofSPAMSTzr&pp=iAQB)  
+[Full Socket.io and React.js Online Multiplayer Tic-Tac-Toe Game | Socket.io From Zero To Hero](https://www.youtube.com/watch?v=aA_SdbGD64E)  
 
 **PostgreSQL**  
 [Dockerhub Postgre image](https://hub.docker.com/_/postgres/)  
@@ -95,7 +109,7 @@ A website to host the might pong contest!
 
 **Gluing the pieces together**  
 [NestJS, TypeOrm and PostgreSQL full example development and setup](https://medium.com/@gausmann.simon/nestjs-typeorm-and-postgresql-full-example-development-and-project-setup-working-with-database-c1a2b1b11b8f)  
-  
+
 [NestJS Tutorial for Beginners](https://www.youtube.com/watch?v=oU5Di3be-Sk&list=PLS1QulWo1RIbihafA6GlwyvmwkHshmVyh&pp=iAQB)  
 [Setting up NestJS with PostgreSQL](https://blog.devgenius.io/setting-up-nestjs-with-postgresql-ac2cce9045fe)  
 
