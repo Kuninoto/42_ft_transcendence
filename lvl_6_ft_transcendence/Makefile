@@ -1,25 +1,21 @@
 COMPOSE_FILE_PATH=./docker-compose.yml
 
-all: up_detached ps logs
+all: up_detached ps
 
 build:
 	docker-compose -f $(COMPOSE_FILE_PATH) build --progress=plain
 
 up_detached:
-	docker-compose -f $(COMPOSE_FILE_PATH) up --build
-#	sudo bash ./manage_hosts.sh
+	docker-compose -f $(COMPOSE_FILE_PATH) up --build -d
 
 down:
 	docker-compose -f $(COMPOSE_FILE_PATH) down
-#	sudo bash ./manage_hosts.sh --delete
 
 start:
 	docker-compose -f $(COMPOSE_FILE_PATH) start
-#	sudo bash ./manage_hosts.sh
 
 stop:
 	docker-compose -f $(COMPOSE_FILE_PATH) stop
-#	sudo bash ./manage_hosts.sh --delete
 
 ps:
 	docker-compose -f $(COMPOSE_FILE_PATH) ps
@@ -32,13 +28,6 @@ rmi: stop
 
 delete_volumes:
 	docker-compose -f $(COMPOSE_FILE_PATH) down --volumes
-#	rm -rf ./data
-
-logs:
-	docker logs nest -f
-
-system_prune:
-	docker system prune
 
 fclean: stop rm delete_volumes rmi
 
