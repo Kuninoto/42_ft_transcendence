@@ -9,16 +9,10 @@
 ![printscreen of the dashboard page](./extras/dashboard.png)  
 ![printscreen of the user's profile page](./extras/user_profile_page.png)  
 
-### Overview  
+### Description  
 A website to host the might pong contest!  
 
 > Disclaimer: Only tested on Google Chrome and Brave (Also works on Firefox but has a **visual** bug on user's profile avatar update field)
-
-### Stack Used  
-<img src="https://github.com/devicons/devicon/blob/master/icons/typescript/typescript-original.svg" title="TypeScript" alt="TS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/nextjs/nextjs-original.svg" title="NextJS" alt="NextJS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/tailwindcss/tailwindcss-original.svg" title="Tailwindcss" alt="Tailwindcss Logo" width="50" height="50" />&nbsp;  
-<img src="https://github.com/devicons/devicon/blob/master/icons/nestjs/nestjs-original.svg" title="NestJS" alt="NestJS Logo" width="50" height="50" />&nbsp;
-<img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL" alt="PostgreSQL Logo" width="50" height="50" />&nbsp;
-<img src="https://github.com/devicons/devicon/blob/master/icons/docker/docker-original.svg" title="Docker" alt="Docker Logo" width="65" height="65" />  
 
 ### Features
 - User accounts/profiles and relations (friendships & blocks)  
@@ -26,6 +20,12 @@ A website to host the might pong contest!
 - Chat (groups with roles (owner, admin and participant) and DMs)  
 - Pong game (with themes!)  
 - Matchmaking, 1v1 and match history  
+
+### Stack Used  
+<img src="https://github.com/devicons/devicon/blob/master/icons/typescript/typescript-original.svg" title="TypeScript" alt="TS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/nextjs/nextjs-original.svg" title="NextJS" alt="NextJS Logo" width="50" height="50" />&nbsp; <img src="https://github.com/devicons/devicon/blob/master/icons/tailwindcss/tailwindcss-original.svg" title="Tailwindcss" alt="Tailwindcss Logo" width="50" height="50" />&nbsp;  
+<img src="https://github.com/devicons/devicon/blob/master/icons/nestjs/nestjs-original.svg" title="NestJS" alt="NestJS Logo" width="50" height="50" />&nbsp;
+<img src="https://github.com/devicons/devicon/blob/master/icons/postgresql/postgresql-original.svg" title="PostgreSQL" alt="PostgreSQL Logo" width="50" height="50" />&nbsp;
+<img src="https://github.com/devicons/devicon/blob/master/icons/docker/docker-original.svg" title="Docker" alt="Docker Logo" width="65" height="65" />  
 
 ## Grade: 100/100  
 
